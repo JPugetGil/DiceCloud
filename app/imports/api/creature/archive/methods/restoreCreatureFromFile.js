@@ -8,7 +8,6 @@ import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
-import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 
@@ -87,7 +86,6 @@ const restoreCreaturefromFile = new ValidatedMethod({
         'You can only restore creatures you own');
     }
 
-    assertHasCharactersSlots(this.userId);
 
     if (Meteor.isServer) {
       // Read the file data

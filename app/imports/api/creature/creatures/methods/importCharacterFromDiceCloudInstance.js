@@ -6,7 +6,6 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
-import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 
 let migrateApiCreature;
@@ -97,7 +96,6 @@ const importCharacterFromDiceCloudInstance = new ValidatedMethod({
       throw new Meteor.Error('no-input',
         'No character data was provided');
     }
-    assertHasCharactersSlots(this.userId);
     if (Meteor.isServer) {
       return importApiCreature(characterData, this.userId)
     }

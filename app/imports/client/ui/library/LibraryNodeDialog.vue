@@ -120,7 +120,6 @@ import { organizeDoc } from '/imports/api/parenting/organizeMethods';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 import copyLibraryNodeTo from '/imports/api/library/methods/copyLibraryNodeTo';
-import { getUserTier } from '/imports/api/users/patreon/tiers';
 import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import PropertyViewer from '/imports/client/ui/properties/shared/PropertyViewer.vue';
 import Breadcrumbs from '/imports/client/ui/creature/creatureProperties/Breadcrumbs.vue';
@@ -322,15 +321,6 @@ export default {
       });
     },
     addLibraryNode({elementId, suggestedType}) {
-      // Check tier has paid benefits
-      let tier = getUserTier(Meteor.userId());
-      if (!(tier && tier.paidBenefits)){
-        this.$store.commit('pushDialogStack', {
-          component: 'tier-too-low-dialog',
-          elementId,
-        });
-        return;
-      }
       let parentPropertyId = this.model._id;
       this.$store.commit('pushDialogStack', {
         component: 'insert-property-dialog',

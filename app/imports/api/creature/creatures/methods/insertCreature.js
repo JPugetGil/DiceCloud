@@ -5,7 +5,6 @@ import Creatures, { CreatureSchema } from '/imports/api/creature/creatures/Creat
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import defaultCharacterProperties from '/imports/api/creature/creatures/defaultCharacterProperties';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
-import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import getSlotFillFilter from '/imports/api/creature/creatureProperties/methods/getSlotFillFilter';
 import getCreatureLibraryIds from '/imports/api/library/getCreatureLibraryIds';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
@@ -40,7 +39,6 @@ const insertCreature = new ValidatedMethod({
         'You need to be logged in to insert a creature');
     }
 
-    assertHasCharactersSlots(userId);
 
     // Create the creature document
     let creatureId = Creatures.insert({

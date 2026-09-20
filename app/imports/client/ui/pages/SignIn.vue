@@ -86,16 +86,6 @@
       >
         Sign in with Google
       </v-btn>
-      <div class="error--text">
-        {{ patreonError }}
-      </div>
-      <v-btn
-        color="accent"
-        class="ma-2"
-        @click="patreonLogin"
-      >
-        Sign in with Patreon
-      </v-btn>
     </v-layout>
   </div>
 </template>
@@ -114,7 +104,6 @@ export default {
     ],
     error: '',
     googleError: '',
-    patreonError: '',
   }),
   methods: {
     submit() {
@@ -133,16 +122,6 @@ export default {
         if (error) {
           console.error(error);
           this.googleError = error.message;
-        } else {
-          this.$router.push(this.$route.query.redirect || 'characterList');
-        }
-      });
-    },
-    patreonLogin() {
-      Meteor.loginWithPatreon(error => {
-        if (error) {
-          console.error(error);
-          this.patreonError = error.message;
         } else {
           this.$router.push(this.$route.query.redirect || 'characterList');
         }

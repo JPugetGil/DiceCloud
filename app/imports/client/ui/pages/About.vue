@@ -35,7 +35,7 @@
           powering the early versions of DiceCloud.
         </p>
         <h3 class="text-h6">
-          Paragon tier Patrons
+          Supporters
         </h3>
         <v-list
           avatar

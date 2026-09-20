@@ -28,18 +28,15 @@ mdg:validated-method
 static-html@1.3.2
 aldeed:collection2
 aldeed:schema-index
-accounts-patreon
 bozhao:link-accounts
 peerlibrary:reactive-publish
 simple:rest
 simple:rest-method-mixin
 mikowals:batch-insert
 peerlibrary:subscription-data
-zer0th:meteor-vuetify-loader
 akryum:vue-component@0.15.2
 akryum:vue-router2
 percolate:migrations
-meteortesting:mocha
 ostrio:files
 simple:rest-bearer-token-parser
 simple:rest-json-error-handler
@@ -51,5 +48,3 @@ zodern:types
 zodern:fix-async-stubs
 typescript@4.9.5
 ecmascript@0.16.8
-lmieulet:meteor-legacy-coverage
-lmieulet:meteor-coverage

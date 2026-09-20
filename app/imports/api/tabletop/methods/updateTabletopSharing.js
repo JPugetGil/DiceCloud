@@ -1,7 +1,6 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Tabletops from '../Tabletops';
-import { assertUserHasPaidBenefits } from '/imports/api/users/patreon/tiers';
 import { assertCanEditTabletop, assertUserIsTabletopOwner } from './shared/tabletopPermissions';
 
 const updateTabletopSharing = new ValidatedMethod({
@@ -38,7 +37,6 @@ const updateTabletopSharing = new ValidatedMethod({
         'You need to be logged in to update a tabletop');
     }
     const tabletop = Tabletops.findOne(tabletopId);
-    assertUserHasPaidBenefits(this.userId);
     assertCanEditTabletop(tabletop, this.userId);
 
     if (role === 'owner') {

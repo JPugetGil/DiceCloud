@@ -1,5 +1,4 @@
 import { RouterFactory, nativeScrollBehavior } from 'meteor/akryum:vue-router2';
-import { acceptInviteToken } from '/imports/api/users/Invites';
 import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
 // Components
 const Home = () => import('/imports/client/ui/pages/Home.vue');
@@ -19,16 +18,13 @@ const SignIn = () => import('/imports/client/ui/pages/SignIn.vue');
 const Register = () => import('/imports/client/ui/pages/Register.vue');
 const IconAdmin = () => import('/imports/client/ui/icons/IconAdmin.vue');
 //const Friends = () => import('/imports/client/ui/pages/Friends.vue' );
-const Feedback = () => import('/imports/client/ui/pages/Feedback.vue');
+const Discord = () => import('/imports/client/ui/pages/Discord.vue');
 const FunctionReference = () => import('/imports/client/ui/pages/FunctionReference.vue');
 const Account = () => import('/imports/client/ui/pages/Account.vue');
-const InviteSuccess = () => import('/imports/client/ui/pages/InviteSuccess.vue');
-const InviteError = () => import('/imports/client/ui/pages/InviteError.vue');
 const EmailVerificationSuccess = () => import('/imports/client/ui/pages/EmailVerificationSuccess.vue');
 const EmailVerificationError = () => import('/imports/client/ui/pages/EmailVerificationError.vue');
 const ResetPassword = () => import('/imports/client/ui/pages/ResetPassword.vue');
 const NotImplemented = () => import('/imports/client/ui/pages/NotImplemented.vue');
-const PatreonLevelTooLow = () => import('/imports/client/ui/pages/PatreonLevelTooLow.vue');
 const SingleLibrary = () => import('/imports/client/ui/pages/SingleLibrary.vue');
 const SingleLibraryToolbar = () => import('/imports/client/ui/library/SingleLibraryToolbar.vue');
 const Tabletops = () => import('/imports/client/ui/pages/Tabletops.vue');
@@ -84,28 +80,6 @@ function ensureAdmin(to, from, next) {
   });
 }
 
-function claimInvite(to, from, next) {
-  Tracker.autorun((computation) => {
-    if (userSubscription.ready()) {
-      computation.stop();
-      const user = Meteor.user();
-      if (user) {
-        let inviteToken = to.params.inviteToken;
-        acceptInviteToken.call({
-          inviteToken
-        }, (error) => {
-          if (error) {
-            next({ name: 'inviteError', params: { error } });
-          } else {
-            next('/invite-success')
-          }
-        });
-      } else {
-        next({ name: 'signIn', query: { redirect: to.path } });
-      }
-    }
-  });
-}
 
 function verifyEmail(to, from, next) {
   const token = to.params.token;
@@ -263,12 +237,12 @@ RouterFactory.configure(router => {
     },
     beforeEnter: ensureLoggedIn,
   }, {
-    path: '/feedback',
+    path: '/discord',
     components: {
-      default: Feedback,
+      default: Discord,
     },
     meta: {
-      title: 'Feedback',
+      title: 'Discord',
     },
   }, {
     path: '/docs/functions',
@@ -297,31 +271,8 @@ RouterFactory.configure(router => {
       title: 'About DiceCloud',
     },
   }, {
-    path: '/invite/:inviteToken',
-    beforeEnter: claimInvite,
-  }, {
     path: '/verify-email/:token',
     beforeEnter: verifyEmail,
-  }, {
-    name: 'inviteError',
-    path: '/invite-error',
-    components: {
-      default: InviteError,
-    },
-    props: {
-      default: true,
-    },
-    meta: {
-      title: 'Invite Error',
-    },
-  }, {
-    path: '/invite-success',
-    components: {
-      default: InviteSuccess,
-    },
-    meta: {
-      title: 'Invite Success',
-    },
   }, {
     name: 'emailVerificationError',
     path: '/email-verification-error',
@@ -349,14 +300,6 @@ RouterFactory.configure(router => {
     },
     meta: {
       title: 'Reset Password',
-    },
-  }, {
-    path: '/patreon-level-too-low',
-    components: {
-      default: PatreonLevelTooLow,
-    },
-    meta: {
-      title: 'Patreon Tier Too Low',
     },
   }, {
     path: '/icon-admin',

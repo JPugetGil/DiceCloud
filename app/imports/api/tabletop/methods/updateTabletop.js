@@ -1,7 +1,6 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Tabletops from '../Tabletops';
-import { assertUserHasPaidBenefits } from '/imports/api/users/patreon/tiers';
 import { assertCanEditTabletop } from './shared/tabletopPermissions';
 
 const updateTabletop = new ValidatedMethod({
@@ -35,7 +34,6 @@ const updateTabletop = new ValidatedMethod({
       throw new Meteor.Error('tabletops.update.denied',
         'You need to be logged in to update a tabletop');
     }
-    assertUserHasPaidBenefits(this.userId);
     assertCanEditTabletop(_id, this.userId);
 
     if (value === undefined || value === null) {

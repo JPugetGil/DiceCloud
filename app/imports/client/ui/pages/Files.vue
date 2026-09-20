@@ -1,16 +1,10 @@
 <template>
   <v-container>
-    <v-row
-      justify="center"
-      class="mt-2"
-    >
-      <file-storage-stats />
-    </v-row>
     <v-row dense>
       <v-col cols="12">
         <v-subheader> Archived Characters </v-subheader>
       </v-col>
-      
+
       <v-col
         key="upload"
         cols="12"
@@ -94,7 +88,7 @@
         </v-col>
       </template>
     </v-row>
-      <!--
+    <!--
     <v-row dense>
       <v-col cols="12">
         <v-subheader> Images </v-subheader>
@@ -125,7 +119,6 @@
       </v-col>
     </v-row>
     -->
-    </v-col>
   </v-container>
 </template>
 
@@ -134,14 +127,11 @@ import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureF
 import UserImages from '/imports/api/files/userImages/UserImages';
 import prettyBytes from 'pretty-bytes';
 import ArchiveFileCard from '/imports/client/ui/files/ArchiveFileCard.vue';
-import FileStorageStats from '/imports/client/ui/files/FileStorageStats.vue';
 import ImageUploadInput from '/imports/client/ui/components/ImageUploadInput.vue';
 import UserImageCard from '/imports/client/ui/files/userImages/UserImageCard.vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { archiveSchema } from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import migrateArchive from '/imports/migrations/archive/migrateArchive';
-import ImageField from '/imports/client/ui/properties/viewers/shared/ImageField.vue';
-import SmartImageInput from '/imports/client/ui/components/global/SmartImageInput.vue';
 
 // TODO Mark files that don't have versions.${version}.meta.pipePath set as broken links
 // TODO show user images
@@ -150,18 +140,15 @@ import SmartImageInput from '/imports/client/ui/components/global/SmartImageInpu
 export default {
   components: {
     ArchiveFileCard,
-    FileStorageStats,
     UserImageCard,
     ImageUploadInput,
   },
   data(){ return {
-    updateStorageUsedLoading: false,
     archiveFileError: undefined,
     archiveFile: undefined,
     archiveUploadInProgress: false,
     archiveUploadProgress: 0,
     archiveUploadIndeterminate: true,
-    inputImageHref: 'https://picsum.photos/2000/500',
   }},
   meteor: {
     $subscribe: {
@@ -271,11 +258,11 @@ export default {
           self.archiveUploadIndeterminate = false;
         });
 
-        uploadInstance.on('end', function (error, fileObj) {
+        uploadInstance.on('end', function () {
           self.archiveUploadInProgress = false;
         });
 
-        uploadInstance.on('uploaded', function (error, fileObj) {
+        uploadInstance.on('uploaded', function () {
           // Remove the file from the input box
           self.file = undefined;
 
@@ -283,14 +270,14 @@ export default {
           self.archiveUploadInProgress = false;
         });
 
-        uploadInstance.on('error', function (error, fileObj) {
+        uploadInstance.on('error', function (error) {
           const text = error.reason || error.message || error;
           snackbar({text});
           self.archiveFileError = text;
           self.archiveUploadInProgress = false;
         });
 
-        uploadInstance.on('progress', function (progress, fileObj) {
+        uploadInstance.on('progress', function (progress) {
           self.archiveUploadProgress = progress;
         });
 

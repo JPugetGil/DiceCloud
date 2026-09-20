@@ -8,7 +8,6 @@
     </v-card-subtitle>
     <v-card-actions>
       <v-btn
-        v-if="characterSlots > 0"
         text
         :loading="restoreLoading"
         @click="restore(model._id)"
@@ -35,7 +34,6 @@
 <script lang="js">
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
-import { characterSlotsRemaining } from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import removeArchiveCreature from '/imports/api/creature/archive/methods/removeArchiveCreature';
 
 export default {
@@ -50,11 +48,6 @@ export default {
       restoreLoading: false,
       removeLoading: false,
     }
-  },
-  meteor: {
-    characterSlots() {
-      return characterSlotsRemaining(Meteor.userId());
-    },
   },
   methods: {
     restore() {

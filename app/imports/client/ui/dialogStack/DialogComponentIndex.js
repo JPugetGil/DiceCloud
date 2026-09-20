@@ -16,7 +16,6 @@ import LevelUpDialog from '/imports/client/ui/creature/slots/LevelUpDialog.vue';
 import LibraryBrowserDialog from '/imports/client/ui/library/LibraryBrowserDialog.vue';
 import SelectLibraryNodeDialog from '/imports/client/ui/library/SelectLibraryNodeDialog.vue';
 import SlotFillDialog from '/imports/client/ui/creature/slots/SlotFillDialog.vue';
-import TierTooLowDialog from '/imports/client/ui/user/TierTooLowDialog.vue';
 import TransferOwnershipDialog from '/imports/client/ui/sharing/TransferOwnershipDialog.vue';
 
 // Lazily load less common dialogs
@@ -27,7 +26,6 @@ const CreatureFromLibraryDialog = () => import('/imports/client/ui/tabletop/Crea
 const DeleteUserAccountDialog = () => import('/imports/client/ui/user/DeleteUserAccountDialog.vue');
 const DependencyGraphDialog = () => import('/imports/client/ui/creature/dependencyGraph/DependencyGraphDialog.vue');
 const ImageInputDialog = () => import('../files/userImages/ImageInputDialog.vue');
-const InviteDialog = () => import('/imports/client/ui/user/InviteDialog.vue');
 const LibraryCollectionCreationDialog = () => import('/imports/client/ui/library/LibraryCollectionCreationDialog.vue');
 const LibraryCollectionEditDialog = () => import('/imports/client/ui/library/LibraryCollectionEditDialog.vue');
 const LibraryCreationDialog = () => import('/imports/client/ui/library/LibraryCreationDialog.vue');
@@ -60,7 +58,6 @@ export default {
   ImageInputDialog,
   ImagePreviewDialog,
   InsertPropertyDialog,
-  InviteDialog,
   LevelUpDialog,
   LibraryBrowserDialog,
   LibraryCollectionCreationDialog,
@@ -74,7 +71,6 @@ export default {
   ShareDialog,
   SlotFillDialog,
   TabletopDialog,
-  TierTooLowDialog,
   TransferOwnershipDialog,
   UsernameDialog,
 };

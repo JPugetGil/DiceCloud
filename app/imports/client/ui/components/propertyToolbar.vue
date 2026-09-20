@@ -119,7 +119,7 @@
               </v-list-item-action>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners['copy-to-library'] && userPaid"
+              v-if="$listeners && $listeners['copy-to-library']"
               :disabled="context.editPermission === false"
               @click="$emit('copy-to-library')"
             >
@@ -190,7 +190,6 @@ import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue'
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import PROPERTIES from '/imports/constants/PROPERTIES';
-import { assertUserHasPaidBenefits } from '/imports/api/users/patreon/tiers';
 
 export default {
   components: {
@@ -231,16 +230,6 @@ export default {
     docsPath() {
       const propDef = PROPERTIES[this.model.type];
       return propDef && propDef.docsPath;
-    },
-  },
-  meteor: {
-    userPaid() {
-      try {
-        assertUserHasPaidBenefits(Meteor.user())
-        return true;
-      } catch (e) {
-        return false;
-      }
     },
   },
   methods: {

@@ -89,7 +89,7 @@
             Free, open source, community funded
           </h3>
           <p>
-            DiceCloud is free to use, funded via Patreon,
+            DiceCloud is free to use, community funded,
             and the source code is available on Github under a GPL license.
           </p>
         </v-layout>
@@ -167,7 +167,6 @@
         <v-btn
           v-for="btn in [
             {link: 'https://discord.gg/qEvdfeB', name: 'Discord'},
-            {link: 'https://www.patreon.com/dicecloud', name: 'Patreon'},
             {link: 'https://github.com/ThaumRystra/DiceCloud', name: 'Github'},
           ]"
           :key="btn.name"

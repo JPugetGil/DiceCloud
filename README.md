@@ -71,7 +71,7 @@ Environmental Variables
 
 ```
 MAIL_URL=smtp://<your smtp mail url>
-METEOR_SETTINGS={ "public": { "environment": "production", "patreon": { "clientId": "<your patreon client ID>", "campaignId": "<your campaign id>" } }, "patreon": { "clientSecret": "<your client secret>", "creatorAccessToken": "<your creator access token>" } }
+METEOR_SETTINGS={ "public": { "environment": "production" } }
 MONGO_OPLOG_URL=mongodb+srv://<your url for the oplog account of your mongo database>
 MONGO_URL=mongodb+srv://<your url for the read/write account of your mongo database>
 NPM_CONFIG_PRODUCTION=true
@@ -80,10 +80,7 @@ ROOT_URL=https://<url of your DiceCloud instance>
 DEFAULT_LIBRARIES=<comma separated list of library ids that will be subscribed by default: "abc123,def456">
 ```
 
-To disable Patreon features and unlock all paid restrictions for all users of your deployment, replace
-`"patreon": { "clientId": ... }"` with `"disablePatreon": true` in the public key of the METEOR_SETTINGS environment variable.
-
-Alternatively run `meteor run --settings exampleMeteorSettings.json` to start the app with the example settings that disable Patreon by default.
+Run `meteor run --settings exampleMeteorSettings.json` to start the app with the example settings.
 
 Now, visiting [](http://localhost:3000/) should show you an empty instance of
 DiceCloud running.

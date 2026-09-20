@@ -5,7 +5,6 @@ import SharingSchema from '/imports/api/sharing/SharingSchema';
 import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
-import { getUserTier } from '/imports/api/users/patreon/tiers'
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
@@ -58,11 +57,6 @@ const insertLibrary = new ValidatedMethod({
     if (!this.userId) {
       throw new Meteor.Error('Libraries.methods.insert.denied',
         'You need to be logged in to insert a library');
-    }
-    let tier = getUserTier(this.userId);
-    if (!tier.paidBenefits) {
-      throw new Meteor.Error('Libraries.methods.insert.denied',
-        `The ${tier.name} tier does not allow you to insert a library`);
     }
     library.owner = this.userId;
     return Libraries.insert(library);

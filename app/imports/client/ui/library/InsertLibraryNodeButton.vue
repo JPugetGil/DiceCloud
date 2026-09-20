@@ -14,7 +14,6 @@
 
 <script lang="js">
 import { insertNode } from '/imports/api/library/LibraryNodes';
-import { getUserTier } from '/imports/api/users/patreon/tiers';
 
 export default {
   props: {
@@ -31,16 +30,6 @@ export default {
   methods: {
     insertLibraryNode(){
       let libraryId = this.libraryId;
-
-      // Check tier has paid benefits
-      let tier = getUserTier(Meteor.userId());
-      if (!(tier && tier.paidBenefits)){
-        this.$store.commit('pushDialogStack', {
-          component: 'tier-too-low-dialog',
-          elementId: 'insert-library-node-button',
-        });
-        return;
-      }
 
       // Get ancestry reference
       const parentRef = {

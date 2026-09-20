@@ -150,33 +150,26 @@ export default {
   methods: {
     insertLibrary() {
       const self = this;
-      if (this.paidBenefits){
-        this.$store.commit('pushDialogStack', {
-          component: 'library-creation-dialog',
-          elementId: 'insert-library-button',
-          callback(library){
-            if (!library) return;
-            return insertLibrary.call(library, (error, libraryId) => {
-              if (error){
-                console.error(error);
-                snackbar({
-                  text: error.reason,
-                });
-              } else {
-                self.$router.push({
-                  name: 'singleLibrary',
-                  params: { id: libraryId }
-                });
-              }
-            });
-          }
-        });
-      } else {
-        this.$store.commit('pushDialogStack', {
-          component: 'tier-too-low-dialog',
-          elementId: 'insert-library-button',
-        });
-      }
+      this.$store.commit('pushDialogStack', {
+        component: 'library-creation-dialog',
+        elementId: 'insert-library-button',
+        callback(library){
+          if (!library) return;
+          return insertLibrary.call(library, (error, libraryId) => {
+            if (error){
+              console.error(error);
+              snackbar({
+                text: error.reason,
+              });
+            } else {
+              self.$router.push({
+                name: 'singleLibrary',
+                params: { id: libraryId }
+              });
+            }
+          });
+        }
+      });
     },
     insertLibraryCollection() {
       this.$store.commit('pushDialogStack', {

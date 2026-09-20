@@ -35,16 +35,11 @@
       slot="actions"
       text
       :loading="archiveActionLoading"
-      :disabled="!numSelected || (mode === 'restore' && characterSlots <= 0)"
+      :disabled="!numSelected"
       color="primary"
       @click="archiveAction"
     >
-      <template v-if="mode === 'restore' && characterSlots <= 0">
-        No Character Slots Left
-      </template>
-      <template v-else>
-        {{ mode === 'archive' ? 'Archive' : 'Restore' }}
-      </template>
+      {{ mode === 'archive' ? 'Archive' : 'Restore' }}
     </v-btn>
     <v-btn
       slot="actions"
@@ -66,7 +61,6 @@ import archiveCreatureToFile from '/imports/api/creature/archive/methods/archive
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { uniq, flatten } from 'lodash';
-import { characterSlotsRemaining } from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 
 const characterTransform = function(char){
   char.url = `/character/${char._id}/${char.urlName || '-'}`;
@@ -147,9 +141,6 @@ export default {
       'archivedCreatures': [],
       'archiveCreatureFiles': [],
       'characterList': [],
-    },
-    characterSlots(){
-      return characterSlotsRemaining(Meteor.userId());
     },
     folders(){
       const userId = Meteor.userId();

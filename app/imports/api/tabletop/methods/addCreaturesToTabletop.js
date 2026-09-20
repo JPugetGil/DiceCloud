@@ -2,7 +2,6 @@ import SimpleSchema from 'simpl-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertUserInTabletop } from './shared/tabletopPermissions';
-import { assertUserHasPaidBenefits } from '/imports/api/users/patreon/tiers';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import Tabletops from '/imports/api/tabletop/Tabletops';
 import { assertTabletopHasPropSpace } from '/imports/api/tabletop/methods/shared/tabletopLimits';
@@ -37,7 +36,6 @@ const addCreaturesToTabletop = new ValidatedMethod({
       throw new Meteor.Error('tabletops.addCreatures.denied',
         'You need to be logged in to remove a tabletop');
     }
-    assertUserHasPaidBenefits(this.userId);
     const tabletop = Tabletops.findOne(tabletopId);
     assertUserInTabletop(tabletop, this.userId);
     assertTabletopHasPropSpace(tabletop);

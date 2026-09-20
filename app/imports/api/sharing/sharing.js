@@ -4,7 +4,6 @@ import { getCollectionByName, fetchDocByRef } from '/imports/api/parenting/paren
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import { getUserTier } from '/imports/api/users/patreon/tiers';
 
 const setPublic = new ValidatedMethod({
   name: 'sharing.setPublic',
@@ -113,28 +112,6 @@ const transferOwnership = new ValidatedMethod({
     assertOwnership(doc, this.userId);
 
     let collection = getCollectionByName(docRef.collection);
-
-    let tier = getUserTier(userId);
-    if (docRef.collection === 'creatures') {
-      let currentCharacterCount = collection.find({
-        owner: userId,
-      }, {
-        fields: { _id: 1 },
-      }).count();
-
-      if (
-        tier.characterSlots !== -1 &&
-        currentCharacterCount >= tier.characterSlots
-      ) {
-        throw new Meteor.Error('Sharing.methods.transferOwnership.denied',
-          'The new owner is already at their character limit')
-      }
-    } else if (docRef.collection === 'libraries') {
-      if (!tier.paidBenefits) {
-        throw new Meteor.Error('Sharing.methods.transferOwnership.denied',
-          'The new owner\'s Patreon tier does not have access to library ownership');
-      }
-    }
 
     // First remove current permissions for the user
     collection.update(docRef.id, {

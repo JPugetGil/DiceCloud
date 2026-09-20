@@ -72,7 +72,6 @@
 <script lang="js">
 import LibraryContentsContainer from '/imports/client/ui/library/LibraryContentsContainer.vue';
 import Libraries, { insertLibrary } from '/imports/api/library/Libraries';
-import { getUserTier } from '/imports/api/users/patreon/tiers';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import InsertLibraryNodeButton from '/imports/client/ui/library/InsertLibraryNodeButton.vue';
 
@@ -111,29 +110,18 @@ export default {
         sort: {name: 1}
       }).fetch();
     },
-    paidBenefits(){
-      let tier = getUserTier(Meteor.userId());
-      return tier && tier.paidBenefits;
-    },
   },
   methods: {
     insertLibrary(){
-      if (this.paidBenefits){
-        this.$store.commit('pushDialogStack', {
-          component: 'library-creation-dialog',
-          elementId: 'insert-library-button',
-          callback(library){
-            if (!library) return;
-            let libraryId = insertLibrary.call(library);
-            return libraryId;
-          }
-        });
-      } else {
-        this.$store.commit('pushDialogStack', {
-          component: 'tier-too-low-dialog',
-          elementId: 'insert-library-button',
-        });
-      }
+      this.$store.commit('pushDialogStack', {
+        component: 'library-creation-dialog',
+        elementId: 'insert-library-button',
+        callback(library){
+          if (!library) return;
+          let libraryId = insertLibrary.call(library);
+          return libraryId;
+        }
+      });
     },
     editPermission(library){
       try {

@@ -37,7 +37,6 @@
               Browse community libraries
             </v-btn>
             <v-btn
-              v-if="paidBenefits"
               text
               data-id="insert-library-collection-button"
               color="accent"
@@ -54,7 +53,6 @@
             bottom
             right
             data-id="insert-library-button"
-            :disabled="!paidBenefits"
             @click="insertLibrary"
           >
             <v-icon>mdi-plus</v-icon>
@@ -67,7 +65,6 @@
 
 <script lang="js">
 import { union } from 'lodash';
-import { getUserTier } from '/imports/api/users/patreon/tiers';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import LibraryCollections, { insertLibraryCollection } from '/imports/api/library/LibraryCollections';
 import Libraries, { insertLibrary } from '/imports/api/library/Libraries';
@@ -84,10 +81,6 @@ export default {
   meteor: {
     $subscribe: {
       'libraries': [],
-    },
-    paidBenefits(){
-      let tier = getUserTier(Meteor.userId());
-      return tier && tier.paidBenefits;
     },
     libraryCollections(){
       const userId = Meteor.userId();
@@ -143,33 +136,26 @@ export default {
   methods: {
     insertLibrary() {
       const self = this;
-      if (this.paidBenefits){
-        this.$store.commit('pushDialogStack', {
-          component: 'library-creation-dialog',
-          elementId: 'insert-library-button',
-          callback(library){
-            if (!library) return;
-            return insertLibrary.call(library, (error, libraryId) => {
-              if (error){
-                console.error(error);
-                snackbar({
-                  text: error.reason,
-                });
-              } else {
-                self.$router.push({
-                  name: 'singleLibrary',
-                  params: { id: libraryId }
-                });
-              }
-            });
-          }
-        });
-      } else {
-        this.$store.commit('pushDialogStack', {
-          component: 'tier-too-low-dialog',
-          elementId: 'insert-library-button',
-        });
-      }
+      this.$store.commit('pushDialogStack', {
+        component: 'library-creation-dialog',
+        elementId: 'insert-library-button',
+        callback(library){
+          if (!library) return;
+          return insertLibrary.call(library, (error, libraryId) => {
+            if (error){
+              console.error(error);
+              snackbar({
+                text: error.reason,
+              });
+            } else {
+              self.$router.push({
+                name: 'singleLibrary',
+                params: { id: libraryId }
+              });
+            }
+          });
+        }
+      });
     },
     insertLibraryCollection() {
       this.$store.commit('pushDialogStack', {

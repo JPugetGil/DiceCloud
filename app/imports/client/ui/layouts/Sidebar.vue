@@ -102,9 +102,8 @@ export default {
         //{ title: 'Friends', icon: 'mdi-account-multiple', to: '/friends', requireLogin: true },
         { title: 'Files', icon: 'mdi-file-multiple', to: '/my-files', requireLogin: true, },
         { title: 'Documentation', icon: 'mdi-book-open-variant', to: '/docs' },
-        { title: 'Feedback', icon: 'mdi-bug', to: '/feedback' },
+        { title: 'Discord', icon: 'mdi-discord', to: '/discord' },
         { title: 'About', icon: 'mdi-sign-text', to: '/about' },
-        { title: 'Patreon', icon: 'mdi-patreon', href: 'https://www.patreon.com/dicecloud' },
         { title: 'Github', icon: 'mdi-github', href: 'https://github.com/ThaumRystra/DiceCloud/' },
       ];
       return links.filter(link => !link.requireLogin || isLoggedIn);

@@ -2,12 +2,14 @@ import Vue from 'vue';
 //import Vuetify from 'vuetify/lib';
 import Vuetify from 'vuetify/lib/framework';
 import { Scroll, Ripple, ClickOutside } from 'vuetify/lib/directives';
+import * as components from '/imports/client/ui/vuetifyComponents';
 import SVG_ICONS from '/imports/constants/SVG_ICONS';
 import SvgIconByName from '/imports/client/ui/icons/SvgIconByName.vue';
 import themes from '/imports/client/ui/themes';
 import minifyTheme from 'minify-css-string';
 
 Vue.use(Vuetify, {
+  components,
   directives: {
     Scroll,
     Ripple,
