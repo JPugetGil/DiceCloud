@@ -5,7 +5,7 @@ RUN adduser --system mt
 
 RUN apt-get update
 RUN apt-get install --quiet --yes curl
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update
 RUN apt-get install --quiet --yes nodejs git
 
