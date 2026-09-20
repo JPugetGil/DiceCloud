@@ -34,6 +34,7 @@ simple:rest
 simple:rest-method-mixin
 mikowals:batch-insert
 peerlibrary:subscription-data
+dicecloud:vue-lang-js
 akryum:vue-component@0.15.2
 akryum:vue-router2
 percolate:migrations
