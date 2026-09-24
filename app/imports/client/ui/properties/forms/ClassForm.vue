@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="class-form">
     <v-row dense>
       <v-col
@@ -9,7 +9,7 @@
           :value="model.variableName"
           hint="Use this name in calculations to reference this class"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
     </v-row>
@@ -51,59 +51,31 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import PROPERTIES from '/imports/constants/PROPERTIES';
-import { SlotSchema } from '/imports/api/properties/Slots';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
 
-export default {
-  components: {
-    FormSection,
-    TagTargeting,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  props: {
-    classForm: Boolean,
-  },
-  data() {
-    let slotTypes = [];
-    for (let key in PROPERTIES) {
-      slotTypes.push({ text: PROPERTIES[key].name, value: key });
-    }
-    return {
-      slotTypes,
-      addExtraTagsLoading: false,
-      extraTagOperations: ['OR', 'NOT'],
-    };
-  },
-  computed: {
-    extraTagsFull() {
-      if (!this.model.extraTags) return false;
-      let maxCount = SlotSchema.get('extraTags', 'maxCount');
-      return this.model.extraTags.length >= maxCount;
-    }
-  },
-  methods: {
-    acknowledgeAddResult() {
-      this.addExtraTagsLoading = false;
-    },
-    addExtraTags() {
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: ['extraTags'],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
-};
+  classForm: Boolean,
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>

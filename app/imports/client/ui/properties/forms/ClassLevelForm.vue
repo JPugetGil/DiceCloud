@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="class-form">
     <v-row dense>
       <v-col
@@ -11,7 +11,7 @@
           style="flex-basis: 300px;"
           hint="This should be the same as the class's variable name"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
       <v-col
@@ -24,7 +24,7 @@
           class="base-value-field text-center large-format no-flex"
           :value="model.level"
           :error-messages="errors.level"
-          @change="change('level', ...arguments)"
+          @change="(value, ack) => change('level', value, ack)"
         />
       </v-col>
     </v-row>
@@ -46,12 +46,29 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-};
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

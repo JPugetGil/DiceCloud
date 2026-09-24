@@ -1,5 +1,5 @@
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -10,13 +10,17 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
+import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 
 let migrateArchive;
 if (Meteor.isServer) {
+  // require(), not import: this module is only pulled in on one side of the
+  // wire, and a static import would bundle it into both
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   migrateArchive = require('/imports/migrations/archive/migrateArchive').default;
 }
 
-function restoreCreature(archive, userId) {
+async function restoreCreature(archive, userId) {
   if (SCHEMA_VERSION < archive.meta.schemaVersion) {
     throw new Meteor.Error('Incompatible',
       'The archive file is from a newer version. Update required to read.')
@@ -29,7 +33,7 @@ function restoreCreature(archive, userId) {
   verifyArchiveSafety(archive);
 
   // Don't upload creatures twice
-  const existingCreature = Creatures.findOne(archive.creature._id, {
+  const existingCreature = await Creatures.findOneAsync(archive.creature._id, {
     fields: { _id: 1 }
   });
   if (existingCreature) throw new Meteor.Error('Already exists',
@@ -40,21 +44,21 @@ function restoreCreature(archive, userId) {
 
   // Insert the creature sub documents
   // They still have their original _id's
-  Creatures.insert(archive.creature);
+  await Creatures.insertAsync(archive.creature);
   try {
     // Add all the properties
     if (archive.properties && archive.properties.length) {
-      CreatureProperties.batchInsert(archive.properties);
+      await batchInsertAsync(CreatureProperties, archive.properties);
     }
     if (archive.experiences && archive.experiences.length) {
-      Experiences.batchInsert(archive.experiences);
+      await batchInsertAsync(Experiences, archive.experiences);
     }
     if (archive.logs && archive.logs.length) {
-      CreatureLogs.batchInsert(archive.logs);
+      await batchInsertAsync(CreatureLogs, archive.logs);
     }
   } catch (e) {
     // If the above fails, delete the inserted creature
-    removeCreatureWork(archive.creature._id);
+    await removeCreatureWork(archive.creature._id);
     throw e;
   }
 }
@@ -74,7 +78,7 @@ const restoreCreaturefromFile = new ValidatedMethod({
   },
   async run({ fileId }) {
     // fetch the file
-    const file = ArchiveCreatureFiles.findOne({ _id: fileId }).get();
+    const file = (await ArchiveCreatureFiles.findOneAsync({ _id: fileId }))?.get();
     if (!file) {
       throw new Meteor.Error('File not found',
         'The requested creature archive does not exist');
@@ -90,12 +94,12 @@ const restoreCreaturefromFile = new ValidatedMethod({
     if (Meteor.isServer) {
       // Read the file data
       const archive = await ArchiveCreatureFiles.readJSONFile(file);
-      restoreCreature(archive, this.userId);
+      await restoreCreature(archive, this.userId);
     }
     //Remove the archive once the restore succeeded
-    ArchiveCreatureFiles.remove({ _id: fileId });
+    await ArchiveCreatureFiles.removeAsync({ _id: fileId });
     // Update the user's file storage limits
-    incrementFileStorageUsed(userId, -file.size);
+    await incrementFileStorageUsed(userId, -file.size);
   },
 });
 

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="spell-list-viewer">
     <v-row dense>
       <property-field
@@ -46,9 +46,14 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-export default {
-  mixins: [propertyViewerMixin],
-}
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>

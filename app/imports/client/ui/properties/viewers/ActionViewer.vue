@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="action-viewer">
     <v-row dense>
       <property-field
@@ -7,7 +7,7 @@
         center
       >
         <v-btn
-          outlined
+          variant="outlined"
           style="font-size: 18px;"
           class="ma-2"
           data-id="do-action-button"
@@ -48,7 +48,7 @@
           <v-spacer />
           <v-btn
             v-if="context.creatureId"
-            text
+            variant="text"
             color="primary"
             :disabled="!model.usesUsed || !context.editPermission"
             @click="resetUses"
@@ -117,108 +117,98 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { ref, computed, inject } from 'vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import ActionConditionView from '/imports/client/ui/properties/components/actions/ActionConditionView.vue';
 import AttributeConsumedView from '/imports/client/ui/properties/components/actions/AttributeConsumedView.vue';
 import ItemConsumedView from '/imports/client/ui/properties/components/actions/ItemConsumedView.vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
-import doAction from '/imports/client/ui/creature/actions/doAction';
+// Aliased: the template calls this component's own doAction()
+import doActionApi from '/imports/client/ui/creature/actions/doAction';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    ActionConditionView,
-    AttributeConsumedView,
-    ItemConsumedView,
-    PropertyIcon,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
-  },
-  props: {
-    attack: Boolean,
-  },
-  data() {
-    return {
-      doActionLoading: false,
-      actionTypes: {
-        action: 'Action',
-        bonus: 'Bonus action',
-        attack: 'Attack action',
-        reaction: 'Reaction',
-        free: 'Free action',
-        long: 'Long action',
+  attack: Boolean,
+});
+
+const context = inject('context', {});
+const dialogStackStore = useDialogStackStore();
+
+const doActionLoading = ref(false);
+
+const actionTypes = {
+  action: 'Action',
+  bonus: 'Bonus action',
+  attack: 'Attack action',
+  reaction: 'Reaction',
+  free: 'Free action',
+  long: 'Long action',
+};
+
+const targetTypes = {
+  self: 'Self',
+  singleTarget: 'Single target',
+  multipleTargets: 'Multiple targets',
+};
+
+const reset = computed(() => {
+  const resetType = props.model.reset;
+  if (resetType === 'shortRest') {
+    return 'Reset on a short rest';
+  } else if (resetType === 'longRest') {
+    return 'Reset on a long rest';
+  }
+  return undefined;
+});
+
+const totalUses = computed(() => {
+  if (!props.model.uses) return 0;
+  return Math.max(props.model.uses.value || 0, 0);
+});
+
+const usesLeft = computed(() => {
+  return Math.max(totalUses.value - (props.model.usesUsed || 0), 0);
+});
+
+async function doAction() {
+  if (props.model.type === 'spell') {
+    return dialogStackStore.pushDialogStack({
+      component: 'cast-spell-with-slot-dialog',
+      elementId: 'cast-spell',
+      data: {
+        creatureId: props.model.root.id,
+        spellId: props.model._id,
       },
-      targetTypes: {
-        self: 'Self',
-        singleTarget: 'Single target',
-        multipleTargets: 'Multiple targets',
-      },
-    }
-  },
-  computed: {
-    reset() {
-      let reset = this.model.reset
-      if (reset === 'shortRest') {
-        return 'Reset on a short rest';
-      } else if (reset === 'longRest') {
-        return 'Reset on a long rest';
-      }
-      return undefined;
-    },
-    rollBonusTooLong() {
-      return this.rollBonus && this.rollBonus.length > 3;
-    },
-    totalUses() {
-      if (!this.model.uses) return 0;
-      return Math.max(this.model.uses.value || 0, 0);
-    },
-    usesLeft() {
-      return Math.max(this.totalUses - (this.model.usesUsed || 0), 0);
-    },
-    actionTypeIcon() {
-      return `$vuetify.icons.${this.model.actionType}`;
-    },
-  },
-  methods: {
-    doAction() {
-      if (this.model.type === 'spell') {
-        return this.$store.commit('pushDialogStack', {
-          component: 'cast-spell-with-slot-dialog',
-          elementId: 'cast-spell',
-          data: {
-            creatureId: this.model.root.id,
-            spellId: this.model._id,
-          },
-        });
-      }
-      this.doActionLoading = true;
-      doAction({
-        creatureId: this.model.root.id,
-        $store: this.$store,
-        propId: this.model._id,
-        elementId: 'do-action-button',
-        targetIds: [],
-      }).catch((e) => {
-        console.error(e);
-        snackbar({ text: e.message || e.reason || e.toString() });
-      }).finally(() => {
-        this.doActionLoading = false;
-      });
-    },
-    resetUses() {
-      updateCreatureProperty.call({
-        _id: this.model._id,
-        path: ['usesUsed'],
-        value: 0,
-      });
-    },
-  },
+    });
+  }
+  doActionLoading.value = true;
+  await doActionApi({
+    creatureId: props.model.root.id,
+    propId: props.model._id,
+    elementId: 'do-action-button',
+    targetIds: [],
+  }).catch((e) => {
+    console.error(e);
+    snackbar({ text: e.message || e.reason || e.toString() });
+  }).finally(() => {
+    doActionLoading.value = false;
+  });
+}
+
+async function resetUses() {
+  await updateCreatureProperty.callAsync({
+    _id: props.model._id,
+    path: ['usesUsed'],
+    value: 0,
+  });
 }
 </script>
 

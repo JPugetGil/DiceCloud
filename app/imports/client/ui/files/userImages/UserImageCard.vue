@@ -4,24 +4,26 @@
     @click="previewImage"
   >
     <v-img
+      cover
       :lazy-src="thumbHashDataUrl"
       :src="model.link"
       :data-id="`${model._id}-image`"
     />
-    <v-flex />
-    <v-card-title class="no-wrap">
+    <div class="flex-1-1" />
+    <v-card-title class="text-no-wrap">
       {{ model.name }}
     </v-card-title>
-    <v-card-subtitle class="no-wrap">
+    <v-card-subtitle class="text-no-wrap">
       {{ model.size }}
     </v-card-subtitle>
     <v-card-actions>
-      <v-flex />
-      <v-menu left>
-        <template #activator="{ on }">
+      <div class="flex-1-1" />
+      <v-menu location="left">
+        <template #activator="{ props: activatorProps }">
           <v-btn
+            variant="text"
             icon
-            v-on="on"
+            v-bind="activatorProps"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>
@@ -30,7 +32,7 @@
           <v-list-item @click="removeUserFile">
             <v-list-item-title>
               Delete file
-              <v-icon right>
+              <v-icon end>
                 mdi-delete
               </v-icon>
             </v-list-item-title>
@@ -38,6 +40,7 @@
         </v-list>
       </v-menu>
       <v-btn
+        variant="text"
         icon
         :href="`${model.link}?download=true`"
         @click.stop
@@ -48,51 +51,50 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import removeUserImage from '/imports/api/files/userImages/methods/removeUserImage';
 import { thumbHashToDataURL } from 'thumbhash';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  props: {
-    model: {
-      type: Object,
-      required: true,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
+
+const removeLoading = ref(false);
+
+const dialogStackStore = useDialogStackStore();
+
+const thumbHashDataUrl = computed(() => {
+  const thumbHash = props.model.meta?.thumbHash;
+  if (!thumbHash) return;
+  return thumbHashToDataURL(thumbHash);
+});
+
+async function removeUserFile() {
+  removeLoading.value = true;
+  try {
+    await removeUserImage.callAsync({ fileId: props.model._id });
+  } catch (error) {
+    snackbar({text: error.reason || error.message || error.toString()})
+    console.error(error);
+  } finally {
+    removeLoading.value = false;
+  }
+}
+
+function previewImage() {
+  dialogStackStore.pushDialogStack({
+    component: 'image-preview-dialog',
+    elementId: `${props.model._id}-image`,
+    data: {
+      href: props.model.link,
     },
-  },
-  data() {
-    return {
-      removeLoading: false,
-    }
-  },
-  computed: {
-    thumbHashDataUrl() {
-      const thumbHash = this.model.meta?.thumbHash;
-      if (!thumbHash) return;
-      return thumbHashToDataURL(thumbHash);
-    }
-  },
-  methods: {
-    removeUserFile() {
-      this.removeLoading = true;
-      removeUserImage.call({ fileId: this.model._id }, (error) => {
-        this.removeLoading = false;
-        if (error) {
-          snackbar({text: error.reason || error.message || error.toString()})
-          console.error(error);
-        }
-      });
-    },
-    previewImage() {
-      this.$store.commit('pushDialogStack', {
-        component: 'image-preview-dialog',
-        elementId: `${this.model._id}-image`,
-        data: {
-          href: this.model.link,
-        },
-      });
-    },
-  },
+  });
 }
 </script>
 

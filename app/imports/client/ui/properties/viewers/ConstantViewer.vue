@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="buff-viewer">
     <v-row dense>
       <property-field
@@ -14,10 +14,13 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-}
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>

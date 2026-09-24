@@ -10,7 +10,7 @@
     @mouseleave="hover = false"
     @click="$emit('click')"
   >
-    <card-highlight 
+    <card-highlight
       :active="hover"
     />
     <v-card-title>
@@ -26,6 +26,7 @@
     <v-card-actions>
       <v-spacer />
       <v-btn
+        variant="text"
         icon
         color="accent"
         @click.stop="$emit('ignore')"
@@ -36,37 +37,33 @@
   </v-card>
 </template>
 
-<script lang="js">
-import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
+<script setup>
+import { ref, computed} from 'vue';
+import { useTheme } from 'vuetify';
 
-export default {
-  components: {
-    CardHighlight,
+import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-  },
-  data(){ return {
-    hover: false,
-  }},
-  computed: {
-    accentColor(){
-      if (this.theme.isDark){
-        return this.$vuetify.theme.themes.dark.primary;
-      } else {
-        return this.$vuetify.theme.themes.light.primary;
-      }
-    }
-  },
-}
+});
+
+defineEmits(['click', 'ignore']);
+
+const theme = useThemeState();
+
+const vuetifyTheme = useTheme();
+
+const hover = ref(false);
+
+const accentColor = computed(() => {
+  if (theme.isDark) {
+    return vuetifyTheme.themes.value.dark.colors.primary;
+  } else {
+    return vuetifyTheme.themes.value.light.colors.primary;
+  }
+});
 </script>

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div>
     <v-alert
       :value="true"
@@ -9,8 +9,6 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  
-}
+<script setup>
+
 </script>

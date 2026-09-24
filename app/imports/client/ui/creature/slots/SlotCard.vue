@@ -10,7 +10,7 @@
     @mouseleave="hover = false"
     @click="fillSlot"
   >
-    <card-highlight 
+    <card-highlight
       :active="hover"
     />
     <v-card-title>
@@ -26,6 +26,7 @@
     <v-card-actions>
       <v-spacer />
       <v-btn
+        variant="text"
         icon
         color="accent"
         @click.stop="ignoreProp"
@@ -36,87 +37,81 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, inject } from 'vue';
+import { useTheme } from 'vuetify';
+
 import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
 
-export default {
-  components: {
-    CardHighlight,
-    PropertyDescription,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
+});
+
+const theme = useThemeState();
+const context = inject('context', {});
+
+const vuetifyTheme = useTheme();
+
+const hover = ref(false);
+
+const accentColor = computed(() => {
+  if (props.model?.color) {
+    return props.model.color;
+  } else if (theme.isDark) {
+    return vuetifyTheme.themes.value.dark.colors.primary;
+  } else {
+    return vuetifyTheme.themes.value.light.colors.primary;
+  }
+});
+
+function fillSlot() {
+  const slotId = props.model._id;
+  dialogStackStore.pushDialogStack({
+    component: 'slot-fill-dialog',
+    elementId: `slot-card-${slotId}`,
+    data: {
+      slotId,
+      creatureId: context.creatureId,
     },
-    context: {
-      default: {},
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-  },
-  data(){ return {
-    hover: false,
-  }},
-  computed: {
-    accentColor() {
-      if (this.model.color) {
-        return this.model.color
-      } else if (this.theme.isDark){
-        return this.$vuetify.theme.themes.dark.primary;
-      } else {
-        return this.$vuetify.theme.themes.light.primary;
+    async callback(nodeIds) {
+      if (!nodeIds || !nodeIds.length) return;
+      try {
+        await insertPropertyFromLibraryNode.callAsync({
+          nodeIds,
+          parentRef: {
+            'id': slotId,
+            'collection': 'creatureProperties',
+          },
+        });
+      } catch (error) {
+        console.error(error);
+        snackbar({ text: error.reason || error.message || error.toString() });
       }
-    }
-  },
-  methods: {
-    fillSlot() {
-      const slotId = this.model._id;
-      this.$store.commit('pushDialogStack', {
-        component: 'slot-fill-dialog',
-        elementId: `slot-card-${slotId}`,
-        data: {
-          slotId,
-          creatureId: this.context.creatureId,
-        },
-        callback(nodeIds){
-          if (!nodeIds || !nodeIds.length) return;
-          insertPropertyFromLibraryNode.call({
-            nodeIds,
-            parentRef: {
-              'id': slotId,
-              'collection': 'creatureProperties',
-            },
-          }, error => {
-            if (error){
-              console.error(error);
-              snackbar({text: error.reason || error.message || error.toString()});
-            }
-          });
-        }
-      });
     },
-    ignoreProp(){
-      updateCreatureProperty.call({
-        _id: this.model._id,
-        path: ['ignored'],
-        value: true
-      }, error => {
-        if (error){
-          console.error(error);
-          snackbar({text: error.reason || error.message || error.toString()});
-        }
-      });
-    },
+  });
+}
+
+async function ignoreProp() {
+  try {
+    await updateCreatureProperty.callAsync({
+      _id: props.model._id,
+      path: ['ignored'],
+      value: true,
+    });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message || error.toString() });
   }
 }
 </script>

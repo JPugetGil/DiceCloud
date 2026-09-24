@@ -4,7 +4,7 @@
     :style="{
       left: `${$vuetify.application.left}px`,
       right: `${$vuetify.application.right}px`,
-      bottom: $vuetify.breakpoint.xsOnly ? '60px' : '4px',
+      bottom: $vuetify.display.xs ? '60px' : '4px',
     }"
   >
     <v-card
@@ -14,24 +14,23 @@
       :height="64"
       class="mx-1"
     >
-      <v-progress-linear :value="62" />
-      <v-img src="https://picsum.photos/200/300" />
+      <v-progress-linear :model-value="62" />
+      <v-img
+        cover
+        src="https://picsum.photos/200/300"
+      />
     </v-card>
   </div>
 </template>
 
-<script lang="js">
-
-export default {
-  
-}
+<script setup>
 </script>
 
 <style scoped>
 .character-sheet-initiative {
   position: fixed;
   bottom: 0;
-  padding-right: 56px; 
+  padding-right: 56px;
   z-index: 5;
   overflow-x: auto;
   overflow-y: hidden;

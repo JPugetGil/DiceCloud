@@ -1,4 +1,33 @@
-import { RouterFactory, nativeScrollBehavior } from 'meteor/akryum:vue-router2';
+import { createRouter, createWebHistory } from 'vue-router';
+import { Accounts } from 'meteor/accounts-base';
+import { Meteor } from 'meteor/meteor';
+import { Tracker } from 'meteor/tracker';
+
+// Ported from the former akryum:vue-router2 package, which has no Vue 3 successor.
+// - only available in html5 history mode
+// - defaults to no scroll behavior
+// - return false to prevent scroll
+const nativeScrollBehavior = (to, from, savedPosition) => {
+  if (savedPosition) {
+    // savedPosition is only available for popstate navigations.
+    return savedPosition;
+  }
+  const position = {};
+  // scroll to anchor by returning the element selector
+  if (to.hash) {
+    position.el = to.hash;
+  }
+  // check if any matched route config has meta that requires scrolling to top
+  if (to.matched.some(m => m.meta.scrollToTop)) {
+    // cords will be used if no selector is provided,
+    // or if the selector didn't match any element.
+    position.left = 0;
+    position.top = 0;
+  }
+  // if the returned position is falsy or an empty object,
+  // will retain current scroll position.
+  return position;
+};
 import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
 // Components
 const Home = () => import('/imports/client/ui/pages/Home.vue');
@@ -27,9 +56,6 @@ const ResetPassword = () => import('/imports/client/ui/pages/ResetPassword.vue')
 const NotImplemented = () => import('/imports/client/ui/pages/NotImplemented.vue');
 const SingleLibrary = () => import('/imports/client/ui/pages/SingleLibrary.vue');
 const SingleLibraryToolbar = () => import('/imports/client/ui/library/SingleLibraryToolbar.vue');
-const Tabletops = () => import('/imports/client/ui/pages/Tabletops.vue');
-const Tabletop = () => import('/imports/client/ui/pages/Tabletop.vue');
-const TabletopToolbar = () => import('/imports/client/ui/tabletop/TabletopToolbar.vue');
 const Admin = () => import('/imports/client/ui/pages/Admin.vue');
 const Maintenance = () => import('/imports/client/ui/pages/Maintenance.vue');
 const Files = () => import('/imports/client/ui/pages/Files.vue');
@@ -42,11 +68,6 @@ const NotFound = () => import('/imports/client/ui/pages/NotFound.vue');
 
 let userSubscription = Meteor.subscribe('user');
 
-// Create router instance
-const routerFactory = new RouterFactory({
-  mode: 'history',
-  scrollBehavior: nativeScrollBehavior,
-});
 
 function ensureLoggedIn(to, from, next) {
   Tracker.autorun((computation) => {
@@ -92,8 +113,8 @@ function verifyEmail(to, from, next) {
   });
 }
 
-RouterFactory.configure(router => {
-  router.addRoutes([{
+/** @type {import('vue-router').RouteRecordRaw[]} */
+const routes = [{
     path: '/',
     name: 'home',
     components: {
@@ -154,8 +175,9 @@ RouterFactory.configure(router => {
     },
   }, {
     name: 'characterSheet',
-    path: '/character/:id',
-    alias: '/character/:id/:urlName',
+    // The name segment is cosmetic. Vue Router 4 requires an alias to share
+    // every param with its route, so it is an optional param instead
+    path: '/character/:id/:urlName?',
     components: {
       default: CharacterSheetPage,
       toolbar: CharacterSheetToolbar,
@@ -166,8 +188,7 @@ RouterFactory.configure(router => {
     },
   }, {
     name: 'printCharacterSheet',
-    path: '/print-character/:id',
-    alias: '/print-character/:id/:urlName',
+    path: '/print-character/:id/:urlName?',
     components: {
       default: CharacterSheetPrinted,
       toolbar: CharacterSheetPrintedToolbar,
@@ -175,22 +196,6 @@ RouterFactory.configure(router => {
     meta: {
       title: 'Print Character Sheet',
     },
-  }, {
-    path: '/tabletops',
-    name: 'tabletops',
-    component: Tabletops,
-    beforeEnter: ensureLoggedIn,
-    meta: {
-      title: 'Tabletops',
-    },
-  }, {
-    path: '/tabletop/:id',
-    name: 'tabletop',
-    components: {
-      default: Tabletop,
-      toolbar: TabletopToolbar,
-    },
-    beforeEnter: ensureLoggedIn,
   }, {
     path: '/friends',
     components: {
@@ -316,16 +321,13 @@ RouterFactory.configure(router => {
     name: 'maintenance',
     component: Maintenance,
   },
-  ]);
-});
+];
 
-// Not found route has lowest priority
-RouterFactory.configure(router => {
-  router.addRoute({
-    path: '*',
-    component: NotFound,
-  });
-}, -1);
+// Not found route has lowest priority, so it must be registered last
+routes.push({
+  path: '/:pathMatch(.*)*',
+  component: NotFound,
+});
 
 function redirectIfMaintenance(to, from, next) {
   if (!MAINTENANCE_MODE) return next();
@@ -348,6 +350,10 @@ function redirectIfMaintenance(to, from, next) {
 }
 
 // Create the router instance
-const router = routerFactory.create();
+const router = createRouter({
+  history: createWebHistory(),
+  scrollBehavior: nativeScrollBehavior,
+  routes,
+});
 router.beforeEach(redirectIfMaintenance);
 export default router;

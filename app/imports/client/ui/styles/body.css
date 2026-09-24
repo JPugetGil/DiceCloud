@@ -5,12 +5,12 @@ html {
   background-color: var(--scrollbarBG);
 }
 
-html:has(#app.theme--dark) {
+html:has(#app.v-theme--dark) {
   --scrollbarBG: #212121;
   --thumbBG: #404040;
 }
 
-#app.theme--dark {
+#app.v-theme--dark {
   --scrollbarBG: #212121;
   --thumbBG: #404040;
 }
@@ -22,4 +22,24 @@ html.lock-scroll {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+}
+/*
+ * Plain links (markdown, inline text) in the theme's primary colour, which
+ * passes WCAG AA as text on every surface (see themes.js). Vuetify 3 leaves
+ * links to the browser, whose blue and purple are hard to read on dark surfaces.
+ * Links stay underlined, so they do not rely on colour alone. Vuetify
+ * components rendered as <a> carry classes and keep their own colours.
+ */
+.v-application a:not([class]) {
+  color: rgb(var(--v-theme-primary));
+}
+
+/*
+ * Subheaders outside a list keep Vuetify 2's 16px indent. Vuetify 3 only
+ * indents them inside a v-list (with its own !important rules, which still
+ * apply there), so titles such as the Stats tab's folder cards ("Death Save")
+ * sat against the card's edge.
+ */
+.v-list-subheader {
+  padding-inline-start: 16px;
 }

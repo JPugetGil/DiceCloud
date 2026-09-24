@@ -1,8 +1,8 @@
-<template lang="html">
+<template>
   <v-btn
     :disabled="context.editPermission === false"
     :data-id="`event-btn-${model._id}`"
-    outlined
+    variant="outlined"
     class="event-button"
     style="min-width: 160px; max-width: 100%;"
     :color="model.color"
@@ -20,45 +20,36 @@
   </v-btn>
 </template>
 
-<script lang="js">
-import doAction from '/imports/client/ui/creature/actions/doAction';
+<script setup>
+import { ref, inject } from 'vue';
+import doActionApi from '/imports/client/ui/creature/actions/doAction';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 
-export default {
-  components: {
-    PropertyIcon,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-  data(){return {
-    hovering: false,
-    loading: false,
-  }},
-  methods: {
-    async doAction() {
-      this.loading = true;
-      doAction({
-        propId: this.model._id,
-        creatureId: this.model.root.id,
-        $store: this.$store,
-        elementId: `event-btn-${this.model._id}`,
-        targetIds: [],
-      }).catch(error => {
-        snackbar({ text: error.reason || error.message || error.toString() });
-        console.error(error);
-      }).finally(() => {
-        this.loading = false;
-      });
-    },
-  }
+});
+
+const context = inject('context', {});
+
+const loading = ref(false);
+
+async function doAction() {
+  loading.value = true;
+  await doActionApi({
+    propId: props.model._id,
+    creatureId: props.model.root.id,
+    elementId: `event-btn-${props.model._id}`,
+    targetIds: [],
+  }).catch(error => {
+    snackbar({ text: error.reason || error.message || error.toString() });
+    console.error(error);
+  }).finally(() => {
+    loading.value = false;
+  });
 }
 </script>
 

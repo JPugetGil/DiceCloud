@@ -21,8 +21,9 @@
       />
       <v-btn
         v-if="value"
+        variant="text"
         icon
-        dark
+        theme="dark"
         class="clear-button ma-1"
         @click.stop="change(undefined)"
       >
@@ -35,7 +36,7 @@
     >
       Add image
       <v-icon
-        right
+        end
       >
         mdi-image-outline
       </v-icon>
@@ -43,7 +44,7 @@
   </outlined-input>
 </template>
 
-<script lang="js">
+<script setup>
 /*
   <v-file-input
       v-cloak
@@ -78,86 +79,98 @@
   Clicking opens image input dialog
   Drag-drop opens image input dialog with a file ready to upload
 */
-import UserImages from '/imports/api/files/userImages/UserImages';
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
-import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+import { ref, computed} from 'vue';
+import { Random } from 'meteor/random';
 
-export default {
-  components: {
-    OutlinedInput,
+import { useSmartInput } from '/imports/client/ui/components/global/useSmartInput.js';
+import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  label: {
+    type: String,
+    default: '',
   },
-  mixins: [SmartInput],
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  modelValue: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  debounce: {
+    type: Number,
+    default: undefined,
+  },
+  rules: {
+    type: Array,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['input', 'update:modelValue', 'change', 'keyup']);
+
+const { change } = useSmartInput(props, emit);
+
+const theme = useThemeState();
+
+const id = ref(Random.id());
+const dragging = ref(false);
+
+const themeClasses = computed(() => {
+  return {
+    'v-theme--dark': theme.isDark,
+    'v-theme--light': !theme.isDark,
+  };
+});
+
+function openImageInputDialog() {
+  dialogStackStore.pushDialogStack({
+    component: 'image-input-dialog',
+    elementId: id.value,
+    data: {
+      href: props.value,
     },
-  },
-  props: {
-    label: {
-      type: String,
-      default: '',
-    },
-  },
-  data() {
-    return {
-      id: Random.id(),
-      dragging: false,
-    };
-  },
-  computed: {
-    themeClasses() {
-      return {
-        'theme--dark': this.theme.isDark,
-        'theme--light': !this.theme.isDark,
+    callback: (href) => {
+      if (href) {
+        change(href);
       }
     },
-  },
-  methods: {
-    openImageInputDialog() {
-      this.$store.commit('pushDialogStack', {
-        component: 'image-input-dialog',
-        elementId: this.id,
-        data: {
-          href: this.value,
-        },
-        callback: (href) => {
-          if (href) {
-            this.change(href);
-          }
-        },
-      });
-    },
-    handleUrlChange() {
-      this.$emit('change', this.url);
-    },
-    handleFileChange(event) {
-      const file = event.target.files[0];
-      this.uploadFile(file);
-    },
-    handleDragOver(event) {
-      // TODO
-      // event.preventDefault();
-      // this.dragging = true;
-    },
-    handleDragLeave() {
-      // TODO
-      // this.dragging = false;
-    },
-    handleDrop(event) {
-      // TODO
-      // console.log(event);
-      // event.preventDefault();
-      // const file = event.dataTransfer.files[0];
-      // this.dragging = false;
-      // this.uploadFile(file);
-    },
-    uploadFile(file) {
-      // Implement your file upload logic here
-    },
-  },
-};
+  });
+}
+
+
+function handleDragOver() {
+  // TODO
+  // event.preventDefault();
+  // dragging.value = true;
+}
+
+function handleDragLeave() {
+  // TODO
+  // dragging.value = false;
+}
+
+function handleDrop() {
+  // TODO
+  // console.log(event);
+  // event.preventDefault();
+  // const file = event.dataTransfer.files[0];
+  // dragging.value = false;
+  // uploadFile(file);
+}
 </script>
 
 <style scoped>
@@ -181,10 +194,10 @@ export default {
 .dragging {
   border-style: dashed;
 }
-.outlined-input.dragging.theme--dark:not(.no-hover) {
+.outlined-input.dragging.v-theme--dark:not(.no-hover) {
   border-color: #fff;
 }
-.outlined-input.dragging.theme--light:not(.no-hover) {
+.outlined-input.dragging.v-theme--light:not(.no-hover) {
   border-color: rgba(0,0,0,.86);
 }
 .image-overlay {
@@ -194,15 +207,15 @@ export default {
   left: 0;
   right: 0;
 }
-.image-overlay.theme--dark {
+.image-overlay.v-theme--dark {
   background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 }
-.image-overlay.theme--light {
+.image-overlay.v-theme--light {
   background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
 }
 .add-image-text {
   opacity: 0.7;
-  height: 118px; 
+  height: 118px;
 }
 .smart-image-input:hover .add-image-text {
   opacity: 1;

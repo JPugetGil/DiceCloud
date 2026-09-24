@@ -16,7 +16,6 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import getEffectivePropTags from '/imports/api/engine/computation/utility/getEffectivePropTags';
 import Context from '/imports/parser/types/Context';
 import applySavingThrowProperty from '/imports/api/engine/action/applyProperties/applySavingThrowProperty';
-import assert from 'node:assert';
 
 export default async function applyDamageProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -34,7 +33,7 @@ export default async function applyDamageProperty(
 
   // Skip if there is no parse node to work with
   if (!prop.amount?.valueNode) {
-    return applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
   }
 
   // Determine if the hit is critical
@@ -82,7 +81,7 @@ export default async function applyDamageProperty(
     typeof damage !== 'number'
     || !isFinite(damage)
   ) {
-    return applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
   }
 
   // Round the damage to a whole number
@@ -110,7 +109,10 @@ export default async function applyDamageProperty(
     if (prop.save.damageFunction?.calculation) {
       await recalculateCalculation(prop.save.damageFunction, action, 'compile', inputProvider);
       context.errors = [];
-      assert(prop.save.damageFunction.valueNode, 'Expected value to be defined after recalculateCalculation');
+      // node:assert is a server-only module, and this runs on the client too
+      if (!prop.save.damageFunction.valueNode) {
+        throw new Meteor.Error('type-error', 'Expected value to be defined after recalculateCalculation');
+      }
       const { result: saveDamageRolled } = await resolve(
         'roll', prop.save.damageFunction.valueNode, scope, context, inputProvider
       );
@@ -123,7 +125,7 @@ export default async function applyDamageProperty(
       if (
         !isFiniteNode(saveDamageResult)
       ) {
-        return applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
+        return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
       }
       // Round the damage to a whole number
       damageOnSave = Math.floor(saveDamageResult.value);
@@ -200,7 +202,7 @@ export default async function applyDamageProperty(
     inline: true,
     silenced: prop.silent,
   }, damageTargets);
-  return applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
+  return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
 }
 
 function damageFunctionText(save) {
@@ -270,7 +272,7 @@ async function dealDamage(
   targetId: string, damageType: string, amount: number
 ) {
   // Get all the health bars and do damage to them
-  let healthBars = getPropertiesOfType(targetId, 'attribute');
+  let healthBars = await getPropertiesOfType(targetId, 'attribute');
 
   // Keep only the healthbars that can take damage/healing
   healthBars = healthBars.filter((bar) => {

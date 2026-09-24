@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { JsonRoutes } from 'meteor/simple:json-routes';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import computeCreature from '/imports/api/engine/computeCreature';
@@ -6,7 +6,7 @@ import VERSION from '/imports/constants/VERSION';
 import { getCreature, getProperties, getVariables } from '/imports/api/engine/loadCreatures';
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
 
-JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
+JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
   const creatureId = req.params.id;
 
   // Validate the creature ID
@@ -17,17 +17,17 @@ JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
         max: 32,
       },
     }).validate({ creatureId });
-  } catch (e) {
+  } catch {
     const error = new Meteor.Error('invalid-id', 'Invalid creature ID provided');
     error.statusCode = 400;
     throw error;
   }
 
   // Check permissions
-  const creature = getCreature(creatureId);
+  const creature = await getCreature(creatureId);
   const userId = req.userId;
   try {
-    assertViewPermission(creature, userId)
+    await assertViewPermission(creature, userId)
   } catch (e) {
     e.statusCode = 403;
     throw e;
@@ -36,7 +36,7 @@ JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
   // Compute the creature first if need be
   if (creature.computeVersion !== VERSION) {
     try {
-      computeCreature(creatureId)
+      await computeCreature(creatureId)
     } catch (e) {
       e.statusCode = 500;
       console.error(e)
@@ -51,8 +51,8 @@ JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
         schemaVersion: SCHEMA_VERSION,
       },
       creatures: [creature],
-      creatureProperties: getProperties(creatureId),
-      creatureVariables: getVariables(creatureId),
+      creatureProperties: await getProperties(creatureId),
+      creatureVariables: await getVariables(creatureId),
     },
   });
 

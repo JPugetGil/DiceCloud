@@ -1,8 +1,7 @@
-<template lang="html">
+<template>
   <v-list
-    expand
     :nav="nav"
-    :dense="dense"
+    :density="dense ? 'compact' : undefined"
     class="creature-folder-list"
   >
     <creature-list
@@ -10,7 +9,7 @@
       :selection="selection"
       :selected-creature="selectedCreature"
       :dense="dense"
-      @creature-selected="id => $emit('creature-selected', id)"
+      @creature-selected="id => emit('creature-selected', id)"
     />
     <v-slide-x-transition
       group
@@ -36,47 +35,43 @@
           :selection="selection"
           :selected-creature="selectedCreature"
           :dense="dense"
-          @creature-selected="id => $emit('creature-selected', id)"
+          @creature-selected="id => emit('creature-selected', id)"
         />
       </v-list-group>
     </v-slide-x-transition>
   </v-list>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
 import CreatureFolderHeader from '/imports/client/ui/creature/creatureList/CreatureFolderHeader.vue';
 import CreatureList from '/imports/client/ui/creature/creatureList/CreatureList.vue';
 
-export default {
-  components: {
-    CreatureFolderHeader,
-    CreatureList,
+defineProps({
+  creatures: {
+    type: Array,
+    default: () => [],
   },
-  props:{
-    creatures: {
-      type: Array,
-      default: () => [],
-    },
-    folders: {
-      type: Array,
-      default: () => [],
-    },
-    selection: Boolean,
-    selectedCreature: {
-      type: String,
-      default: undefined,
-    },
-    dense: Boolean,
-    nav: Boolean,
+  folders: {
+    type: Array,
+    default: () => [],
   },
-  data(){return{
-    openFolders: {},
-  }},
-}
+  selection: Boolean,
+  selectedCreature: {
+    type: String,
+    default: undefined,
+  },
+  dense: Boolean,
+  nav: Boolean,
+});
+
+const emit = defineEmits(['creature-selected']);
+
+const openFolders = ref({});
 </script>
 
 <style lang="css">
-.creature-folder-list .v-list-item__icon.v-list-group__header__append-icon {
-  margin-left: 0 !important;
+.creature-folder-list .v-list-group__header .v-list-item__append {
+  margin-inline-start: 0 !important;
 }
 </style>

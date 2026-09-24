@@ -1,16 +1,16 @@
-<template lang="html">
+<template>
   <v-list-item
-    class="effect-viewer layout align-center"
+    class="effect-viewer d-flex flex-1-1 align-center"
     v-on="!hideBreadcrumbs ? {click} : {}"
   >
     <div class="effect-icon">
-      <v-tooltip bottom>
-        <template #activator="{ on }">
+      <v-tooltip location="bottom">
+        <template #activator="{ props: activatorProps }">
           <v-icon
             class="mx-2"
             style="cursor: default;"
-            large
-            v-on="on"
+            size="large"
+            v-bind="activatorProps"
           >
             {{ effectIcon }}
           </v-icon>
@@ -23,12 +23,12 @@
     >
       {{ displayedValue }}
     </div>
-    <div class="layout column my-2">
+    <div class="d-flex flex-1-1 flex-column my-2">
       <div class="text-body-1 mb-1">
         {{ displayedText }}
       </div>
       <div v-if="!hideBreadcrumbs && ancestors">
-        <breadcrumbs
+        <property-breadcrumbs
           :model="{...model, ancestors}"
           class="text-caption"
           no-links
@@ -40,117 +40,87 @@
   </v-list-item>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed} from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
-import Breadcrumbs from '/imports/client/ui/creature/creatureProperties/Breadcrumbs.vue';
+import PropertyBreadcrumbs from '/imports/client/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { isFinite } from 'lodash';
+import { isFinite, find } from 'lodash';
 
-export default {
-  components: {
-    Breadcrumbs,
+const props = defineProps({
+  hideBreadcrumbs: Boolean,
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    hideBreadcrumbs: Boolean,
-    model: {
-      type: Object,
-      required: true,
-    },
-    attribute: {
-      type: Object,
-      required: true,
-    },
+  attribute: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    hasClickListener(){
-      return this.$listeners && this.$listeners.click
-    },
-    displayedText(){
-      if (this.operation === 'conditional'){
-        return this.model.text || this.model.name || this.operation
-      } else {
-        return this.model.name || this.operation
-      }
-    },
-    resolvedValue() {
-      let amount = this.model.amount;
-      if (!amount) return;
-      return amount.value !== undefined ? amount.value : amount.calculation;
-    },
-    effectIcon(){
-      let value = this.resolvedValue;
-      return getEffectIcon(this.operation, value);
-    },
-    operation() {
-      if (this.model.type === 'pointBuy' || this.model.type === 'attribute') {
-        return 'base'
-      }
-      return this.model.operation;
-    },
-    operationText() {
-      switch(this.operation) {
-        case 'base': return 'Base value';
-        case 'add': return 'Add';
-        case 'mul': return 'Multiply';
-        case 'min': return 'Minimum';
-        case 'max': return 'Maximum';
-        case 'advantage': return 'Advantage';
-        case 'disadvantage': return 'Disadvantage';
-        case 'passiveAdd': return 'Passive bonus';
-        case 'fail': return 'Always fail';
-        case 'conditional': return 'Conditional benefit' ;
-        default: return '';
-      }
-    },
-    showValue(){
-      switch(this.operation) {
-        case 'base': return true;
-        case 'add': return true;
-        case 'mul': return true;
-        case 'min': return true;
-        case 'max': return true;
-        case 'advantage': return false;
-        case 'disadvantage': return false;
-        case 'passiveAdd': return true;
-        case 'fail': return false;
-        case 'conditional': return false;
-        default: return false;
-      }
-    },
-    displayedValue(){
-      let value = this.resolvedValue;
-      if (this.model.type === 'pointBuy') {
-        return find(this.model.values, row => this.attribute.variableName === row.variableName)?.value;
-      } else if (this.model.type === 'attribute') {
-        return this.model.baseValue?.value;
-      }
-      switch(this.operation) {
-        case 'base': return value;
-        case 'add': return isFinite(value) ? Math.abs(value) : value;
-        case 'mul': return value;
-        case 'min': return value;
-        case 'max': return value;
-        case 'advantage': return;
-        case 'disadvantage': return;
-        case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
-        case 'fail': return;
-        case 'conditional': return undefined;
-        default: return undefined;
-      }
-    }
-},
-  meteor: {
-    ancestors() {
-      const prop = CreatureProperties.findOne(this.model._id);
-      return prop && prop.ancestors || [];
-    }
-  },
-  methods: {
-    click(e){
-      this.$emit('click', e);
-    },
-  },
-};
+});
+
+const emit = defineEmits(['click']);
+
+
+const operation = computed(() => {
+  if (props.model.type === 'pointBuy' || props.model.type === 'attribute') {
+    return 'base';
+  }
+  return props.model.operation;
+});
+
+const displayedText = computed(() => {
+  if (operation.value === 'conditional') {
+    return props.model.text || props.model.name || operation.value;
+  } else {
+    return props.model.name || operation.value;
+  }
+});
+
+const resolvedValue = computed(() => {
+  let amount = props.model.amount;
+  if (!amount) return;
+  return amount.value !== undefined ? amount.value : amount.calculation;
+});
+
+const effectIcon = computed(() => {
+  let value = resolvedValue.value;
+  return getEffectIcon(operation.value, value);
+});
+
+
+
+const displayedValue = computed(() => {
+  let value = resolvedValue.value;
+  if (props.model.type === 'pointBuy') {
+    return find(props.model.values, row => props.attribute.variableName === row.variableName)?.value;
+  } else if (props.model.type === 'attribute') {
+    return props.model.baseValue?.value;
+  }
+  switch(operation.value) {
+    case 'base': return value;
+    case 'add': return isFinite(value) ? Math.abs(value) : value;
+    case 'mul': return value;
+    case 'min': return value;
+    case 'max': return value;
+    case 'advantage': return;
+    case 'disadvantage': return;
+    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
+    case 'fail': return;
+    case 'conditional': return undefined;
+    default: return undefined;
+  }
+});
+
+const ancestors = autorun(() => {
+  const prop = CreatureProperties.findOne(props.model._id);
+  return prop && prop.ancestors || [];
+}).result;
+
+function click(e) {
+  emit('click', e);
+}
 </script>
 
 <style lang="css" scoped>

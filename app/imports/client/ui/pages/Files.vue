@@ -2,7 +2,7 @@
   <v-container>
     <v-row dense>
       <v-col cols="12">
-        <v-subheader> Archived Characters </v-subheader>
+        <v-list-subheader> Archived Characters </v-list-subheader>
       </v-col>
 
       <v-col
@@ -12,7 +12,7 @@
         md="4"
         lg="3"
         xl="2"
-        class="layout column justify-center"
+        class="d-flex flex-1-1 flex-column justify-center"
       >
         <input
           ref="archiveFileInput"
@@ -22,14 +22,14 @@
           @input="inputArchiveFile"
         >
         <v-btn
-          outlined
+          variant="outlined"
           style="height: 100%; width: 100%; min-height: 120px;"
           class="archive-button"
           :color="archiveFileError ? 'error' : undefined"
           :disabled="archiveUploadInProgress"
-          @click="$refs.archiveFileInput.click()"
+          @click="archiveFileInput.click()"
         >
-          <v-icon left>
+          <v-icon start>
             mdi-file-upload-outline
           </v-icon>
           <template v-if="archiveFileError">
@@ -40,7 +40,7 @@
           </template>
           <v-progress-linear
             v-if="archiveUploadInProgress"
-            :value="archiveUploadProgress"
+            :model-value="archiveUploadProgress"
             :indeterminate="archiveUploadIndeterminate"
           />
         </v-btn>
@@ -61,7 +61,7 @@
     </v-row>
     <v-row dense>
       <v-col cols="12">
-        <v-subheader> Images </v-subheader>
+        <v-list-subheader> Images </v-list-subheader>
       </v-col>
       <v-col
         cols="12"
@@ -91,7 +91,7 @@
     <!--
     <v-row dense>
       <v-col cols="12">
-        <v-subheader> Images </v-subheader>
+        <v-list-subheader> Images </v-list-subheader>
       </v-col>
       <template v-if="userImages && userImages.length">
         <v-col
@@ -113,7 +113,7 @@
         md="4"
         lg="3"
         xl="2"
-        class="layout column justify-center"
+        class="d-flex flex-1-1 flex-column justify-center"
       >
         <image-upload-input />
       </v-col>
@@ -122,7 +122,10 @@
   </v-container>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { ref, watch } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import UserImages from '/imports/api/files/userImages/UserImages';
 import prettyBytes from 'pretty-bytes';
@@ -137,156 +140,145 @@ import migrateArchive from '/imports/migrations/archive/migrateArchive';
 // TODO show user images
 // TODO delete, rename, etc. user images
 
-export default {
-  components: {
-    ArchiveFileCard,
-    UserImageCard,
-    ImageUploadInput,
-  },
-  data(){ return {
-    archiveFileError: undefined,
-    archiveFile: undefined,
-    archiveUploadInProgress: false,
-    archiveUploadProgress: 0,
-    archiveUploadIndeterminate: true,
-  }},
-  meteor: {
-    $subscribe: {
-      'archiveCreatureFiles': [],
-      'userImages': [],
-      'characterList': [],
-    },
-    archiveFiles() {
-      const userId = Meteor.userId();
-      return ArchiveCreatureFiles.find(
-        {
-          userId,
-        }, {
-          sort: {'size': -1},
-        }
-      ).map(f => {
-        f.size = prettyBytes(f.size);
-        f.link = ArchiveCreatureFiles.link(f);
-        return f;
-      });
-    },
-    imageFiles() {
-      const userId = Meteor.userId();
-      return UserImages.find(
-        {
-          userId,
-        }, {
-          sort: {
-            'meta.createdAt': -1,
-            'name': 1,
-            'size': -1,
-          },
-        }
-      ).map(f => {
-        f.size = prettyBytes(f.size);
-        f.link = UserImages.link(f);
-        return f;
-      });
-    },
-  },
-  watch: {
-    archiveUploadInProgress(val){
-      if (val === false) {
-        this.archiveUploadProgress = 0;
-        this.archiveUploadIndeterminate = true;
-      }
-    },
-  },
-  methods: {
-    inputArchiveFile(){
-      this.archiveFile = undefined;
-      this.archiveFileError = undefined;
-      const file = this.$refs.archiveFileInput.files[0];
-      // Reset the file input
-      this.$refs.archiveFileInput.value = null;
-      if (!file) return;
-      if (file.type !== 'application/json'){
-        this.archiveFileError = 'File must be .json';
-        return;
-      }
-      if (file.size > 10000000){
-        this.archiveFileError = 'File too large';
-        return;
-      }
-      this.archiveFile = file;
-      this.archiveUploadIndeterminate = true;
-      this.archiveUploadInProgress = true;
-      this.archiveUploadProgress = undefined;
+const archiveFileInput = ref(null);
 
-      const fr = new FileReader();
-      const self = this;
+const archiveFileError = ref(undefined);
+const archiveFile = ref(undefined);
+const archiveUploadInProgress = ref(false);
+const archiveUploadProgress = ref(0);
+const archiveUploadIndeterminate = ref(true);
 
-      fr.addEventListener('load', () => {
-        let data;
-        try {
-          data = JSON.parse(fr.result);
-        } catch (e){
-          self.archiveFileError = 'File could not be parsed';
-          self.archiveUploadInProgress = false;
-          console.error(e);
-          return;
-        }
-        try {
-          // Migrate, clean, and validate the archive
-          migrateArchive(data);
-          data = archiveSchema.clean(data);
-          archiveSchema.validate(data);
-        } catch (e){
-          self.archiveFileError = 'File failed validation: ' + (e.reason || e.message || e.toString());
-          self.archiveUploadInProgress = false;
-          console.error(e);
-          return;
-        }
+subscribe('archiveCreatureFiles');
+subscribe('userImages');
+subscribe('characterList');
 
-        let uploadInstance = ArchiveCreatureFiles.insert({
-          file: file,
-          meta: {
-            creatureName: data?.creature?.name,
-            userId: Meteor.userId()
-          },
-          chunkSize: 'dynamic',
-          allowWebWorkers: true // If you see issues with uploads, change this to false
-        }, false)
-
-        // These are the event functions, don't need most of them, it shows where we are in the process
-        uploadInstance.on('start', function () {
-          self.archiveUploadIndeterminate = false;
-        });
-
-        uploadInstance.on('end', function () {
-          self.archiveUploadInProgress = false;
-        });
-
-        uploadInstance.on('uploaded', function () {
-          // Remove the file from the input box
-          self.file = undefined;
-
-          // Reset our state for the next file
-          self.archiveUploadInProgress = false;
-        });
-
-        uploadInstance.on('error', function (error) {
-          const text = error.reason || error.message || error;
-          snackbar({text});
-          self.archiveFileError = text;
-          self.archiveUploadInProgress = false;
-        });
-
-        uploadInstance.on('progress', function (progress) {
-          self.archiveUploadProgress = progress;
-        });
-
-        uploadInstance.start();
-      });
-
-      fr.readAsText(file);
+const archiveFiles = autorun(() => {
+  const userId = Meteor.userId();
+  return ArchiveCreatureFiles.find(
+    {
+      userId,
+    }, {
+      sort: {'size': -1},
     }
-  },
+  ).map(f => {
+    f.size = prettyBytes(f.size);
+    f.link = ArchiveCreatureFiles.link(f);
+    return f;
+  });
+}).result;
+
+const imageFiles = autorun(() => {
+  const userId = Meteor.userId();
+  return UserImages.find(
+    {
+      userId,
+    }, {
+      sort: {
+        'meta.createdAt': -1,
+        'name': 1,
+        'size': -1,
+      },
+    }
+  ).map(f => {
+    f.size = prettyBytes(f.size);
+    f.link = UserImages.link(f);
+    return f;
+  });
+}).result;
+
+watch(archiveUploadInProgress, (val) => {
+  if (val === false) {
+    archiveUploadProgress.value = 0;
+    archiveUploadIndeterminate.value = true;
+  }
+});
+
+function inputArchiveFile() {
+  archiveFile.value = undefined;
+  archiveFileError.value = undefined;
+  const file = archiveFileInput.value.files[0];
+  // Reset the file input
+  archiveFileInput.value.value = null;
+  if (!file) return;
+  if (file.type !== 'application/json') {
+    archiveFileError.value = 'File must be .json';
+    return;
+  }
+  if (file.size > 10000000) {
+    archiveFileError.value = 'File too large';
+    return;
+  }
+  archiveFile.value = file;
+  archiveUploadIndeterminate.value = true;
+  archiveUploadInProgress.value = true;
+  archiveUploadProgress.value = undefined;
+
+  const fr = new FileReader();
+
+  fr.addEventListener('load', () => {
+    let data;
+    try {
+      data = JSON.parse(fr.result);
+    } catch (e) {
+      archiveFileError.value = 'File could not be parsed';
+      archiveUploadInProgress.value = false;
+      console.error(e);
+      return;
+    }
+    try {
+      // Migrate, clean, and validate the archive
+      migrateArchive(data);
+      data = archiveSchema.clean(data);
+      archiveSchema.validate(data);
+    } catch (e) {
+      archiveFileError.value = 'File failed validation: ' + (e.reason || e.message || e.toString());
+      archiveUploadInProgress.value = false;
+      console.error(e);
+      return;
+    }
+
+    let uploadInstance = ArchiveCreatureFiles.insert({
+      file: file,
+      meta: {
+        creatureName: data?.creature?.name,
+        userId: Meteor.userId()
+      },
+      chunkSize: 'dynamic',
+      allowWebWorkers: true // If you see issues with uploads, change this to false
+    }, false);
+
+    // These are the event functions, don't need most of them, it shows where we are in the process
+    uploadInstance.on('start', function () {
+      archiveUploadIndeterminate.value = false;
+    });
+
+    uploadInstance.on('end', function () {
+      archiveUploadInProgress.value = false;
+    });
+
+    uploadInstance.on('uploaded', function () {
+      // Remove the file from the input box
+      archiveFile.value = undefined;
+
+      // Reset our state for the next file
+      archiveUploadInProgress.value = false;
+    });
+
+    uploadInstance.on('error', function (error) {
+      const text = error.reason || error.message || error;
+      snackbar({text});
+      archiveFileError.value = text;
+      archiveUploadInProgress.value = false;
+    });
+
+    uploadInstance.on('progress', function (progress) {
+      archiveUploadProgress.value = progress;
+    });
+
+    uploadInstance.start();
+  });
+
+  fr.readAsText(file);
 }
 </script>
 

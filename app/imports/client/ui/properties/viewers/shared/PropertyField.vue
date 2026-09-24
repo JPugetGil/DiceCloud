@@ -1,14 +1,14 @@
-<template lang="html">
+<template>
   <v-col
     v-if="value !== undefined ||
       calculation !== undefined ||
-      ($slots.default && $slots.default.length)"
+      $slots.default"
     v-bind="cols"
     class="mb-3"
   >
     <fieldset
-      :class="theme.isDark? 'theme--dark' :'theme--light'"
-      class="rounded v-sheet--outlined pa-2 layout column align-start fill-height"
+      :class="theme.isDark? 'v-theme--dark' :'v-theme--light'"
+      class="rounded v-sheet--outlined pa-2 d-flex flex-1-1 flex-column align-start fill-height"
       @click="$emit('click', $event)"
     >
       <legend
@@ -80,117 +80,116 @@
   </v-col>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import InlineEffect from '/imports/client/ui/properties/components/effects/InlineEffect.vue';
 import InlineProficiency from '/imports/client/ui/properties/components/proficiencies/InlineProficiency.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
 
-export default {
-  components: {
-    InlineEffect,
-    InlineProficiency,
+const props = defineProps({
+  name: {
+    type: String,
+    default: undefined,
   },
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+  value: {
+    type: [String, Number, Boolean],
+    default: undefined,
   },
-  props: {
-    name: {
-      type: String,
-      default: undefined,
-    },
-    value: {
-      type: [String, Number, Boolean],
-      default: undefined,
-    },
-    calculation: {
-      type: Object,
-      default: undefined,
-    },
-    center: Boolean,
-    end: Boolean,
-    large: Boolean,
-    mono: Boolean,
-    signed: Boolean,
-    wrap: Boolean,
-    cols: {
-      type: Object,
-      default: () => ({cols: 12, sm: 6, md: 4}),
-    },
+  calculation: {
+    type: Object,
+    default: undefined,
   },
-  computed: {
-    showCalculationInsteadOfValue(){
-      if (!this.calculation) return;
-      return this.calculation && this.calculation.value === undefined;
-    },
-    valueNotReduced(){
-      if (!this.calculation) return;
-      return typeof this.calculation.value === 'string'
-    },
-    valueText() {
-      if (this.signed) {
-        return numberToSignedString(this.value);
-      } else {
-        return this.value;
-      }
-    },
-    calculationText(){
-      const calculation = this.calculation;
-      if (!calculation) {
-        return undefined;
-      }
-      if (calculation.value === undefined){
-        return calculation.calculation;
-      }
-      if (this.signed) {
-        return numberToSignedString(calculation.value);
-      }
-      if (this.hasEffectsOrProficiencies) {
-        return calculation.unaffected;
-      }
-      return calculation.value;
-    },
-    // large and center are only applied to calculations if we are showing their
-    // value, if we are showing the calculation itself, large and center are
-    // turned off
-    isLarge(){
-      if (this.showCalculationInsteadOfValue) return false;
-      if (this.valueNotReduced) return false;
-      return this.large;
-    },
-    isCenter(){
-      if (this.showCalculationInsteadOfValue) return false;
-      if (this.valueNotReduced) return false;
-      return this.center;
-    },
-    isMono(){
-      if (this.showCalculationInsteadOfValue) return true;
-      if (this.valueNotReduced) return true;
-      return this.mono;
-    },
-    hasEffects(){
-      return this.calculation?.effectIds?.length > 0;
-    },
-    hasProficiencies(){
-      return this.calculation?.proficiencyIds?.length > 0;
-    },
-    hasEffectsOrProficiencies() {
-      return this.hasEffects || this.hasProficiencies;
-    },
+  center: Boolean,
+  end: Boolean,
+  large: Boolean,
+  mono: Boolean,
+  signed: Boolean,
+  wrap: Boolean,
+  cols: {
+    type: Object,
+    default: () => ({cols: 12, sm: 6, md: 4}),
   },
-  methods: {
-    numberToSignedString,
-    clickEffect(id){
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `${id}`,
-        data: {_id: id},
-      });
-    },
+});
+
+defineEmits(['click']);
+
+const theme = useThemeState();
+
+const dialogStackStore = useDialogStackStore();
+
+const showCalculationInsteadOfValue = computed(() => {
+  if (!props.calculation) return;
+  return props.calculation && props.calculation.value === undefined;
+});
+
+const valueNotReduced = computed(() => {
+  if (!props.calculation) return;
+  return typeof props.calculation.value === 'string'
+});
+
+const valueText = computed(() => {
+  if (props.signed) {
+    return numberToSignedString(props.value);
+  } else {
+    return props.value;
   }
+});
+
+const calculationText = computed(() => {
+  const calculation = props.calculation;
+  if (!calculation) {
+    return undefined;
+  }
+  if (calculation.value === undefined){
+    return calculation.calculation;
+  }
+  if (props.signed) {
+    return numberToSignedString(calculation.value);
+  }
+  if (hasEffectsOrProficiencies.value) {
+    return calculation.unaffected;
+  }
+  return calculation.value;
+});
+
+const isLarge = computed(() => {
+  if (showCalculationInsteadOfValue.value) return false;
+  if (valueNotReduced.value) return false;
+  return props.large;
+});
+
+const isCenter = computed(() => {
+  if (showCalculationInsteadOfValue.value) return false;
+  if (valueNotReduced.value) return false;
+  return props.center;
+});
+
+const isMono = computed(() => {
+  if (showCalculationInsteadOfValue.value) return true;
+  if (valueNotReduced.value) return true;
+  return props.mono;
+});
+
+const hasEffects = computed(() => {
+  return props.calculation?.effectIds?.length > 0;
+});
+
+const hasProficiencies = computed(() => {
+  return props.calculation?.proficiencyIds?.length > 0;
+});
+
+const hasEffectsOrProficiencies = computed(() => {
+  return hasEffects.value || hasProficiencies.value;
+});
+
+function clickEffect(id) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `${id}`,
+    data: {_id: id},
+  });
 }
 </script>
 
@@ -198,7 +197,7 @@ export default {
 .name {
   color: rgba(0,0,0,.6);
 }
-.theme--dark .name {
+.v-theme--dark .name {
   color: rgba(255,255,255,.6);
 }
 .mono {

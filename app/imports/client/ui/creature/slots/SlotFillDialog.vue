@@ -1,11 +1,11 @@
-<template lang="html">
+<template>
   <dialog-base
-    :color="model.color"
+    :color="model?.color"
     dark-body
   >
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
-        {{ model.name }}
+        {{ model?.name }}
       </v-toolbar-title>
       <v-spacer />
       <v-text-field
@@ -23,7 +23,7 @@
     </template>
     <property-description
       text
-      :string="model.description"
+      :string="model?.description"
     />
     <p>
       {{ slotPropertyTypeName }} with library tags:
@@ -42,8 +42,8 @@
     </p>
     <v-fade-transition>
       <div
-        v-if="!$subReady.slotFillers"
-        class="fill-height layout justify-center align-center"
+        v-if="!slotFillersReady"
+        class="fill-height d-flex flex-1-1 justify-center align-center"
       >
         <v-progress-circular
           indeterminate
@@ -53,30 +53,28 @@
       </div>
       <v-expansion-panels
         v-else
-        accordion
+        variant="accordion"
         tile
         multiple
-        hover
       >
-        <template v-for="libraryNode in [...selectedExcludedNodes, ...libraryNodes]">
+        <template
+          v-for="libraryNode in [...(selectedExcludedNodes || []), ...(libraryNodes || [])]"
+          :key="libraryNode._id"
+        >
           <v-expansion-panel
             v-if="showDisabled || !libraryNode._disabledBySlotFillerCondition"
-            :key="libraryNode._id"
             :model="libraryNode"
             :data-id="libraryNode._id"
             :class="{disabled: isDisabled(libraryNode) || libraryNode._disabledBySlotFillerCondition}"
           >
-            <v-expansion-panel-header>
+            <v-expansion-panel-title>
               <template #default="{ open }">
-                <v-layout
-                  align-center
-                  class="flex-grow-0 mr-2"
-                >
+                <div class="d-flex align-center flex-grow-0 mr-2">
                   <v-checkbox
                     v-if="libraryNode._disabledByAlreadyAdded"
                     class="my-0 py-0"
                     hide-details
-                    :input-value="true"
+                    :model-value="true"
                     disabled
                   />
                   <v-checkbox
@@ -89,26 +87,26 @@
                     :value="libraryNode._id"
                     @click.stop
                   />
-                </v-layout>
-                <v-layout column>
-                  <v-layout align-center>
+                </div>
+                <div class="d-flex flex-1-1 flex-column">
+                  <div class="d-flex flex-1-1 align-center">
                     <tree-node-view :model="libraryNode" />
                     <div
                       v-if="libraryNode._disabledBySlotFillerCondition"
-                      class="error--text text-no-wrap text-truncate"
+                      class="text-error text-no-wrap text-truncate"
                     >
                       {{ libraryNode._conditionError }}
                     </div>
-                  </v-layout>
-                  <div class="text-caption text-no-wrap text-truncate">
-                    {{ libraryNames[libraryNode.root.id ] }}
                   </div>
-                </v-layout>
+                  <div class="text-caption text-no-wrap text-truncate">
+                    {{ libraryNames?.[libraryNode.root.id ] }}
+                  </div>
+                </div>
                 <div
                   v-if="libraryNode.slotQuantityFilled !== undefined && libraryNode.slotQuantityFilled !== 1"
                   class="text-overline flex-grow-0 text-no-wrap"
                   :class="{
-                    'error--text': isDisabled(libraryNode) &&
+                    'text-error': isDisabled(libraryNode) &&
                       libraryNode._disabledByQuantityFilled
                   }"
                 >
@@ -116,6 +114,7 @@
                 </div>
                 <template v-if="open">
                   <v-btn
+                    variant="text"
                     icon
                     class="flex-grow-0"
                     @click.stop="openPropertyDetails(libraryNode._id)"
@@ -124,37 +123,29 @@
                   </v-btn>
                 </template>
               </template>
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
               <library-node-expansion-content :id="libraryNode._id" />
-            </v-expansion-panel-content>
+            </v-expansion-panel-text>
           </v-expansion-panel>
         </template>
       </v-expansion-panels>
     </v-fade-transition>
-    <v-layout
-      v-if="(!$subReady.slotFillers && !searchValue) || currentLimit < countAll"
-      column
-      align-center
-      justify-center
-      class="ma-3 mt-8"
+    <div
+      v-if="(!slotFillersReady && !searchValue) || currentLimit < countAll"
+      class="d-flex flex-1-1 flex-column align-center justify-center ma-3 mt-8"
     >
       <v-btn
-        :loading="!$subReady.slotFillers"
+        :loading="!slotFillersReady"
         color="accent"
-        outlined
+        variant="outlined"
         @click="loadMore"
       >
         Load More
       </v-btn>
-    </v-layout>
+    </div>
     <template v-if="!showDisabled && disabledNodeCount">
-      <v-layout
-        column
-        align-center
-        justify-center
-        class="ma-3 mt-8"
-      >
+      <div class="d-flex flex-1-1 flex-column align-center justify-center ma-3 mt-8">
         <div>
           Requirements of {{ disabledNodeCount }} properties were not met
         </div>
@@ -162,30 +153,21 @@
           class="mt-2"
           elevation="0"
           color="accent"
-          outlined
+          variant="outlined"
           @click="showDisabled = true"
         >
           Show All
         </v-btn>
-      </v-layout>
+      </div>
     </template>
-    <v-layout
-      align-center
-      justify-center
-      class="text-caption text--disabled mt-8 mb-2"
-    >
+    <div class="d-flex flex-1-1 align-center justify-center text-caption text-disabled mt-8 mb-2">
       Can't find what you're looking for?
-    </v-layout>
-    <v-layout
-      align-center
-      justify-center
-      wrap
-      class="mx-4 mb-4"
-    >
+    </div>
+    <div class="d-flex flex-1-1 align-center justify-center flex-wrap mx-4 mb-4">
       <v-btn
         v-if="!dummySlot"
-        text
-        small
+        variant="text"
+        size="small"
         data-id="library-browser-button"
         :disabled="!model"
         @click="openLibraryBrowser"
@@ -194,31 +176,31 @@
       </v-btn>
       <v-btn
         v-if="!dummySlot"
-        text
-        small
+        variant="text"
+        size="small"
         :disabled="!model"
         data-id="custom-button"
         @click="insertCustomFiller"
       >
         Create custom filler
       </v-btn>
-    </v-layout>
-    
-    <template slot="actions">
+    </div>
+
+    <template #actions>
       <v-btn
-        text
-        @click="$store.dispatch('popDialogStack')"
+        variant="text"
+        @click="dialogStackStore.popDialogStack()"
       >
         Cancel
       </v-btn>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         color="primary"
         :disabled="!dummySlot && !selectedNodeIds.length"
-        @click="$store.dispatch('popDialogStack', selectedNodeIds)"
+        @click="dialogStackStore.popDialogStack(selectedNodeIds)"
       >
-        <template v-if="model.spaceLeft">
+        <template v-if="model?.spaceLeft">
           {{ totalQuantitySelected }} / {{ model.spaceLeft }}
         </template>
         <template v-if="slotId">
@@ -232,14 +214,20 @@
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { ref, computed, watch, provide, reactive } from 'vue';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { EJSON } from 'meteor/ejson';
+
+import subscriptionData from '/imports/client/ui/utility/subscriptionData';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue'
-import resolve, { toString } from '/imports/parser/resolve';
+import resolve from '/imports/parser/resolve';
+import toString from '/imports/parser/toString';
 import { prettifyParseError, parse } from '/imports/parser/parser';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/client/ui/library/LibraryNodeExpansionContent.vue';
@@ -249,294 +237,281 @@ import { clone, difference } from 'lodash';
 import getDefaultSlotFiller from '/imports/api/library/methods/getDefaultSlotFiller';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
-    TreeNodeView,
-    PropertyDescription,
-    LibraryNodeExpansionContent,
-    PropertyTags,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  slotId: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    slotId: {
-      type: String,
-      default: undefined,
-    },
-    creatureId: {
-      type: String,
-      default: undefined,
-    },
-    dummySlot: {
-      type: Object,
-      default: undefined,
-    },
+  creatureId: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      selectedNodeIds: [],
-      searchInput: undefined,
-      searchValue: undefined,
-      showDisabled: false,
-      disabledNodeCount: undefined,
-      autoSelectRan: false,
+  dummySlot: {
+    type: Object,
+    default: undefined,
+  },
+});
+
+
+const selectedNodeIds = ref([]);
+const searchInput = ref(undefined);
+const searchValue = ref(undefined);
+const showDisabled = ref(false);
+const disabledNodeCount = ref(0);
+const autoSelectRan = ref(false);
+
+provide('context', reactive({
+  get creatureId() { return props.creatureId; }
+}));
+
+const { ready: slotFillersReady, sub: slotFillersSubHandle } = subscribe(() => ['slotFillers', props.slotId || props.dummySlot?._id, searchValue.value || undefined, !!props.dummySlot]);
+subscribe(() => ['selectedFillers', props.slotId || props.dummySlot?._id, selectedNodeIds.value, !!props.dummySlot]);
+
+const searchLoading = computed(() => !!searchValue.value && !slotFillersReady.value);
+
+const model = autorun(() => {
+  if (props.slotId) {
+    return CreatureProperties.findOne(props.slotId);
+  } else if (props.dummySlot) {
+    let m = clone(props.dummySlot);
+    if (!m.quantityExpected) m.quantityExpected = {};
+    m.quantityExpected.value = +m.quantityExpected.calculation;
+    m.spaceLeft = m.quantityExpected.value;
+    return m;
+  }
+}).result;
+
+const variables = autorun(() => {
+  if (!props.creatureId) return {};
+  return CreatureVariables.findOne({ _creatureId: props.creatureId }) || {};
+}).result;
+
+const currentLimit = computed(() => subscriptionData(slotFillersSubHandle, 'limit') || 50);
+const countAll = computed(() => subscriptionData(slotFillersSubHandle, 'countAll'));
+
+const libraryNodeFilter = computed(() => {
+  const filterString = subscriptionData(slotFillersSubHandle, 'libraryNodeFilter');
+  if (!filterString) return;
+  return EJSON.parse(filterString);
+});
+
+const alreadyAdded = autorun(() => {
+  let added = new Set();
+  if (!model.value || !model.value.unique) return added;
+  let rootId;
+  if (model.value.unique === 'uniqueInSlot') {
+    rootId = model.value._id;
+  } else if (model.value.unique === 'uniqueInCreature') {
+    rootId = props.creatureId;
+  }
+  CreatureProperties.find({
+    'root.id': rootId,
+    libraryNodeId: { $exists: true },
+    removed: { $ne: true },
+  }, {
+    fields: { libraryNodeId: 1 },
+  }).forEach(prop => {
+    added.add(prop.libraryNodeId);
+  });
+  return added;
+}).result;
+
+const totalQuantitySelected = autorun(() => {
+  let quantitySelected = 0;
+  LibraryNodes.find({
+    _id: { $in: selectedNodeIds.value }
+  }, {
+    fields: { slotQuantityFilled: 1 },
+  }).forEach(node => {
+    if (Number.isFinite(node.slotQuantityFilled)) {
+      quantitySelected += node.slotQuantityFilled;
+    } else {
+      quantitySelected += 1;
     }
-  },
-  reactiveProvide: {
-    name: 'context',
-    include: ['creatureId'],
-  },
-  computed: {
-    tagsSearched() {
-      let or = [];
-      let not = [];
-      if (this.model.slotTags && this.model.slotTags.length) {
-        or.push(this.model.slotTags);
-      }
-      this.model.extraTags?.forEach(extras => {
-        if (extras.tags?.length) {
-          if (extras.operation === 'OR') {
-            or.push(extras.tags);
-          } else if (extras.operation === 'NOT') {
-            not.push(extras.tags);
-          }
-        }
-      });
-      return { or, not };
-    },
-    slotPropertyTypeName() {
-      if (!this.model) return;
-      if (!this.model.slotType) return 'Property';
-      let propName = getPropertyName(this.model.slotType);
-      return propName;
-    },
-  },
-  watch: {
-    activeCount(val) {
-      // Still loading fillers
-      if (!this._subs['slotFillers'].ready()) return;
-      // Can load more, and not showing enough active choices, so load more
-      if (
-        this.currentLimit < this.countAll
-        && val < 25
-      ) {
-        this.loadMore();
-      }
-    },
-  },
-  methods: {
-    loadMore() {
-      if (this.currentLimit >= this.countAll) return;
-      this._subs['slotFillers'].setData('limit', this.currentLimit + 50);
-    },
-    openPropertyDetails(id) {
-      this.$store.commit('pushDialogStack', {
-        component: 'library-node-dialog',
-        elementId: id,
-        data: {
-          _id: id,
-        },
-      });
-    },
-    openLibraryBrowser() {
-      this.$store.commit('pushDialogStack', {
-        component: 'library-browser-dialog',
-        elementId: 'library-browser-button',
-      });
-    },
-    isDisabled(node) {
-      return node._disabledByAlreadyAdded ||
-        (
-          node._disabledByQuantityFilled &&
-          !this.selectedNodeIds.includes(node._id)
-        )
-    },
-    insertCustomFiller() {
-      if (!this.model) return;
-      const prop = getDefaultSlotFiller(this.model);
-      const parentRef = { id: this.slotId, collection: 'creatureProperties' };
-      const order = this.model.order + 0.5;
-      const $store = this.$store;
-      $store.commit('pushDialogStack', {
-        component: 'insert-property-dialog',
-        elementId: 'custom-button',
-        data: {
-          parentDoc: this.model,
-          creatureId: this.creatureId,
-          prop,
-          noBackdropClose: true,
-        },
-        callback(result) {
-          if (!result) return;
-          if (Array.isArray(result)){
-            let nodeIds = result;
-            insertPropertyFromLibraryNode.call({ nodeIds, parentRef, order });
-            setTimeout(() => $store.dispatch('popDialogStack'), 200);
-          } else if (typeof result === 'object') {
-            let creatureProperty = result;
-            creatureProperty.order = order;
-            insertProperty.call({ creatureProperty, parentRef });
-            setTimeout(() => $store.dispatch('popDialogStack'), 200);
-          }
-        }
-      });
-    },
-  },
-  meteor: {
-    $subscribe: {
-      'slotFillers'() {
-        return [this.slotId || this.dummySlot?._id, this.searchValue || undefined, !!this.dummySlot]
-      },
-      'selectedFillers'() {
-        return [this.slotId || this.dummySlot?._id, this.selectedNodeIds, !!this.dummySlot]
-      },
-    },
-    searchLoading() {
-      return !!this.searchValue && !this.$subReady.slotFillers;
-    },
-    model() {
-      if (this.slotId) {
-        return CreatureProperties.findOne(this.slotId);
-      } else if (this.dummySlot) {
-        let model = clone(this.dummySlot)
-        if (!model.quantityExpected) model.quantityExpected = {};
-        model.quantityExpected.value = +model.quantityExpected.calculation;
-        model.spaceLeft = model.quantityExpected.value;
-        return model;
-      }
-    },
-    variables() {
-      if (!this.creatureId) return {};
-      return CreatureVariables.findOne({ _creatureId: this.creatureId }) || {};
-    },
-    currentLimit() {
-      return this._subs['slotFillers'].data('limit') || 50;
-    },
-    countAll() {
-      return this._subs['slotFillers'].data('countAll');
-    },
-    activeCount() {
-      if (!this.libraryNodes) return;
-      return this.libraryNodes.length - (this.disabledNodeCount || 0);
-    },
-    libraryNodeFilter() {
-      const filterString = this._subs['slotFillers'].data('libraryNodeFilter');
-      if (!filterString) return;
-      return EJSON.parse(filterString);
-    },
-    alreadyAdded() {
-      let added = new Set();
-      if (!this.model.unique) return added;
-      let rootId;
-      if (this.model.unique === 'uniqueInSlot') {
-        rootId = this.model._id;
-      } else if (this.model.unique === 'uniqueInCreature') {
-        rootId = this.creatureId;
-      }
-      CreatureProperties.find({
-        'root.id': rootId,
-        libraryNodeId: { $exists: true },
-        removed: { $ne: true },
-      }, {
-        fields: { libraryNodeId: 1 },
-      }).forEach(prop => {
-        added.add(prop.libraryNodeId);
-      });
-      return added;
-    },
-    totalQuantitySelected() {
-      let quantitySelected = 0;
-      LibraryNodes.find({
-        _id: { $in: this.selectedNodeIds }
-      }, {
-        fields: { slotQuantityFilled: 1 },
-      }).forEach(node => {
-        if (Number.isFinite(node.slotQuantityFilled)) {
-          quantitySelected += node.slotQuantityFilled;
-        } else {
-          quantitySelected += 1;
-        }
-      });
-      return quantitySelected;
-    },
-    spaceLeft() {
-      if (!this.model.quantityExpected || this.model.quantityExpected.value === 0) return undefined;
-      return this.model.spaceLeft - this.totalQuantitySelected;
-    },
-    libraryNames() {
-      let names = {};
-      Libraries.find().forEach(lib => names[lib._id] = lib.name)
-      return names;
-    },
-    libraryNodes() {
-      if (!this.libraryNodeFilter) return [];
-      if (!this.$subReady.slotFillers) return [];
-      let nodes = LibraryNodes.find(this.libraryNodeFilter, {
-        sort: { name: 1, order: 1 }
-      }).fetch();
-      let disabledNodeCount = 0;
-      // Mark slotFillers whose condition isn't met or are too big to fit
-      // the quantity to fill
-      nodes.forEach(node => {
-        if (node.slotFillerCondition) {
-          try {
-            let parseNode = parse(node.slotFillerCondition);
-            const { result: resultNode } = resolve('reduce', parseNode, this.variables);
-            if (resultNode?.parseType === 'constant') {
-              if (!resultNode.value) {
-                node._disabled = true;
-                node._disabledBySlotFillerCondition = true;
-                node._conditionError = node.slotFillerConditionNote || node.slotFillerCondition;
-                disabledNodeCount += 1;
-              }
-            } else {
-              node._disabled = true;
-              node._disabledBySlotFillerCondition = true;
-              node._conditionError = node.slotFillerConditionNote || toString(resultNode);
-              disabledNodeCount += 1;
-            }
-          } catch (e) {
-            console.warn(e);
-            let error = prettifyParseError(e);
+  });
+  return quantitySelected;
+}).result;
+
+const spaceLeft = computed(() => {
+  if (!model.value || !model.value.quantityExpected || model.value.quantityExpected.value === 0) return undefined;
+  return model.value.spaceLeft - (totalQuantitySelected.value || 0);
+});
+
+const libraryNames = autorun(() => {
+  let names = {};
+  Libraries.find().forEach(lib => names[lib._id] = lib.name)
+  return names;
+}).result;
+
+const libraryNodes = autorun(() => {
+  if (!libraryNodeFilter.value) return [];
+  if (!slotFillersReady.value) return [];
+  let nodes = LibraryNodes.find(libraryNodeFilter.value, {
+    sort: { name: 1, order: 1 }
+  }).fetch();
+  let count = 0;
+  nodes.forEach(async node => {
+    if (node.slotFillerCondition) {
+      try {
+        let parseNode = parse(node.slotFillerCondition);
+        const { result: resultNode } = await resolve('reduce', parseNode, variables.value);
+        if (resultNode?.parseType === 'constant') {
+          if (!resultNode.value) {
             node._disabled = true;
             node._disabledBySlotFillerCondition = true;
-            node._conditionError = 'Condition error: '+ error;
-            disabledNodeCount += 1;
+            node._conditionError = node.slotFillerConditionNote || node.slotFillerCondition;
+            count += 1;
           }
-        }
-        let quantityToFill = typeof node.slotQuantityFilled == 'number' ? node.slotQuantityFilled : 1;
-        if (
-          quantityToFill > this.spaceLeft
-        ) {
+        } else {
           node._disabled = true;
-          node._disabledByQuantityFilled = true;
+          node._disabledBySlotFillerCondition = true;
+          node._conditionError = node.slotFillerConditionNote || toString(resultNode);
+            count += 1;
         }
-        if (this.alreadyAdded.has(node._id)) {
-          node._disabled = true;
-          node._disabledByAlreadyAdded = true;
-        }
-      });
-      // Only run the auto-select once
-      if (!this.autoSelectRan) {
-        this.autoSelectRan = true;
-        // If we have exactly one active node and no selected nodes, pre-select it
-        if (
-          nodes.length === 1
-          && !nodes[0]._disabled
-          && !this.selectedNodeIds?.length
-        ) {
-          this.selectedNodeIds = [nodes[0]._id];
-        }
+      } catch (e) {
+        console.warn(e);
+        let error = prettifyParseError(e);
+        node._disabled = true;
+        node._disabledBySlotFillerCondition = true;
+        node._conditionError = 'Condition error: '+ error;
+        count += 1;
       }
-      this.disabledNodeCount = disabledNodeCount;
-      return nodes;
-    },
-    selectedExcludedNodes() {
-      const displayedIds = this.libraryNodes.map(node => node._id);
-      const excludedNodeIds = difference(this.selectedNodeIds, displayedIds);
-      return LibraryNodes.find({ _id: { $in: excludedNodeIds } });
+    }
+    let quantityToFill = typeof node.slotQuantityFilled == 'number' ? node.slotQuantityFilled : 1;
+    if (
+      quantityToFill > spaceLeft.value
+    ) {
+      node._disabled = true;
+      node._disabledByQuantityFilled = true;
+    }
+    if (alreadyAdded.value?.has(node._id)) {
+      node._disabled = true;
+      node._disabledByAlreadyAdded = true;
+    }
+  });
+  if (!autoSelectRan.value) {
+    autoSelectRan.value = true;
+    if (
+      nodes.length === 1
+      && !nodes[0]._disabled
+      && !selectedNodeIds.value?.length
+    ) {
+      selectedNodeIds.value = [nodes[0]._id];
     }
   }
+  disabledNodeCount.value = count;
+  return nodes;
+}).result;
+
+const selectedExcludedNodes = autorun(() => {
+  const displayedIds = (libraryNodes.value || []).map(node => node._id);
+  const excludedNodeIds = difference(selectedNodeIds.value, displayedIds);
+  return LibraryNodes.find({ _id: { $in: excludedNodeIds } }).fetch();
+}).result;
+
+const activeCount = computed(() => {
+  if (!libraryNodes.value) return;
+  return libraryNodes.value.length - (disabledNodeCount.value || 0);
+});
+
+const tagsSearched = computed(() => {
+  let or = [];
+  let not = [];
+  if (model.value?.slotTags && model.value.slotTags.length) {
+    or.push(model.value.slotTags);
+  }
+  model.value?.extraTags?.forEach(extras => {
+    if (extras.tags?.length) {
+      if (extras.operation === 'OR') {
+        or.push(extras.tags);
+      } else if (extras.operation === 'NOT') {
+        not.push(extras.tags);
+      }
+    }
+  });
+  return { or, not };
+});
+
+const slotPropertyTypeName = computed(() => {
+  if (!model.value) return;
+  if (!model.value.slotType) return 'Property';
+  let propName = getPropertyName(model.value.slotType);
+  return propName;
+});
+
+watch(activeCount, (val) => {
+  if (!slotFillersReady.value) return;
+  if (
+    currentLimit.value < countAll.value
+    && val < 25
+  ) {
+    loadMore();
+  }
+});
+
+function loadMore() {
+  if (currentLimit.value >= countAll.value) return;
+  slotFillersSubHandle.setData('limit', currentLimit.value + 50);
+}
+
+function openPropertyDetails(id) {
+  dialogStackStore.pushDialogStack({
+    component: 'library-node-dialog',
+    elementId: id,
+    data: {
+      _id: id,
+    },
+  });
+}
+
+function openLibraryBrowser() {
+  dialogStackStore.pushDialogStack({
+    component: 'library-browser-dialog',
+    elementId: 'library-browser-button',
+  });
+}
+
+function isDisabled(node) {
+  return node._disabledByAlreadyAdded ||
+    (
+      node._disabledByQuantityFilled &&
+      !selectedNodeIds.value.includes(node._id)
+    );
+}
+
+function insertCustomFiller() {
+  if (!model.value) return;
+  const prop = getDefaultSlotFiller(model.value);
+  const parentRef = { id: props.slotId, collection: 'creatureProperties' };
+  const order = model.value.order + 0.5;
+  
+  dialogStackStore.pushDialogStack({
+    component: 'insert-property-dialog',
+    elementId: 'custom-button',
+    data: {
+      parentDoc: model.value,
+      creatureId: props.creatureId,
+      prop,
+      noBackdropClose: true,
+    },
+    async callback(result) {
+      if (!result) return;
+      if (Array.isArray(result)){
+        let nodeIds = result;
+        await insertPropertyFromLibraryNode.callAsync({ nodeIds, parentRef, order });
+        await dialogStackStore.popDialogStack();
+      } else if (typeof result === 'object') {
+        let creatureProperty = result;
+        creatureProperty.order = order;
+        await insertProperty.callAsync({ creatureProperty, parentRef });
+        await dialogStackStore.popDialogStack();
+      }
+    }
+  });
 }
 </script>
 
@@ -545,4 +520,4 @@ export default {
   opacity: 0.7;
 }
 </style>
-resolveimport { toString } from '/imports/parser/toString';
+

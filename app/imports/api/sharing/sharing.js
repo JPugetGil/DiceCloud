@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { assertOwnership } from '/imports/api/sharing/sharingPermissions';
 import { getCollectionByName, fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
@@ -16,10 +16,10 @@ const setPublic = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ docRef, isPublic }) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, isPublic }) {
+    let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
-    return getCollectionByName(docRef.collection).update(docRef.id, {
+    return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
       $set: { public: isPublic },
     });
   },
@@ -36,10 +36,10 @@ const setReadersCanCopy = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ docRef, readersCanCopy }) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, readersCanCopy }) {
+    let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
-    return getCollectionByName(docRef.collection).update(docRef.id, {
+    return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
       $set: { readersCanCopy },
     });
   },
@@ -63,14 +63,14 @@ const updateUserSharePermissions = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ docRef, userId, role }) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, userId, role }) {
+    let doc = await fetchDocByRef(docRef);
     if (role === 'none') {
       // only assert ownership if you aren't removing yourself
       if (this.userId !== userId) {
         assertOwnership(doc, this.userId);
       }
-      return getCollectionByName(docRef.collection).update(docRef.id, {
+      return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
         $pullAll: { readers: userId, writers: userId },
       });
     }
@@ -80,12 +80,12 @@ const updateUserSharePermissions = new ValidatedMethod({
     }
     assertOwnership(doc, this.userId);
     if (role === 'reader') {
-      return getCollectionByName(docRef.collection).update(docRef.id, {
+      return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
         $addToSet: { readers: userId },
         $pullAll: { writers: userId },
       });
     } else if (role === 'writer') {
-      return getCollectionByName(docRef.collection).update(docRef.id, {
+      return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
         $addToSet: { writers: userId },
         $pullAll: { readers: userId },
       });
@@ -107,18 +107,18 @@ const transferOwnership = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ docRef, userId }) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, userId }) {
+    let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
 
     let collection = getCollectionByName(docRef.collection);
 
     // First remove current permissions for the user
-    collection.update(docRef.id, {
+    await collection.updateAsync(docRef.id, {
       $pullAll: { writers: userId, readers: userId },
     });
     // Then make the user the owner and the current owner a writer
-    return collection.update(docRef.id, {
+    return await collection.updateAsync(docRef.id, {
       $set: { owner: userId },
       $addToSet: { writers: this.userId },
     });

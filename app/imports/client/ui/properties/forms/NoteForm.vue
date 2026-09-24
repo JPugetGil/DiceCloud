@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="feature-form">
     <inline-computation-field
       label="Summary"
@@ -27,10 +27,21 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-}
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+defineEmits(['change']);
+
 </script>

@@ -4,11 +4,9 @@
       ref="form"
       class="mt-4"
     >
-      <v-layout
-        column
-        align-center
-      >
+      <div class="d-flex flex-1-1 flex-column align-center">
         <v-img
+          cover
           src="crown-dice-logo-cropped-transparent.png"
           width="120px"
           class="ma-3"
@@ -20,8 +18,9 @@
             type="password"
             label="New Password"
             :rules="passwordRules"
-            class="ma-2"
-            outlined
+            class="ma-2 w-100"
+            style="max-width: 320px;"
+            variant="outlined"
             required
             @keyup.enter="submit"
           />
@@ -30,8 +29,9 @@
             type="password"
             label="Password Again"
             :rules="password2Rules"
-            class="ma-2"
-            outlined
+            class="ma-2 w-100"
+            style="max-width: 320px;"
+            variant="outlined"
             required
             @keyup.enter="submit"
           />
@@ -42,8 +42,9 @@
           type="text"
           label="Email"
           :rules="emailRules"
-          class="ma-2"
-          outlined
+          class="ma-2 w-100"
+          style="max-width: 320px;"
+          variant="outlined"
           required
           @keyup.enter="submit"
         />
@@ -63,7 +64,7 @@
             {{ info }}
           </v-alert>
         </v-expand-transition>
-        <v-layout>
+        <div class="d-flex flex-1-1">
           <v-btn
             :disabled="!valid"
             color="accent"
@@ -71,69 +72,64 @@
           >
             Reset Password
           </v-btn>
-        </v-layout>
-      </v-layout>
+        </div>
+      </div>
     </v-form>
   </div>
 </template>
 
-<script lang="js">
-  export default {
-    data() {
-      return {
-        valid: true,
-        submitLoading: false,
-        email: '',
-        emailRules: [
-          v => !!v || 'E-mail is required',
-          v => /.+@.+/.test(v) || 'E-mail must be valid',
-        ],
-        password: '',
-        passwordRules: [
-          v => !!v || 'Password is required',
-        ],
-        password2: '',
-        password2Rules: [
-          v => !!v || 'Password is required',
-          v => v == this.password || 'Passwords don\'t match',
-        ],
-        error: '',
-        info: '',
+<script setup>
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Accounts } from 'meteor/accounts-base';
+
+const route = useRoute();
+const router = useRouter();
+
+const form = ref(null);
+const valid = ref(true);
+const email = ref('');
+const emailRules = [
+  v => !!v || 'E-mail is required',
+  v => /.+@.+/.test(v) || 'E-mail must be valid',
+];
+const password = ref('');
+const passwordRules = [
+  v => !!v || 'Password is required',
+];
+const password2 = ref('');
+const password2Rules = [
+  v => !!v || 'Password is required',
+  v => v == password.value || 'Passwords don\'t match',
+];
+const error = ref('');
+const info = ref('');
+
+const token = computed(() => route.params.token);
+
+async function submit() {
+  // Vuetify 3's validate() resolves to { valid, errors }; the Promise itself is
+  // always truthy, so testing it directly let invalid forms through
+  const { valid: formValid } = await form.value.validate();
+  if (!formValid) return;
+  if (token.value) {
+    Accounts.resetPassword(token.value, password.value, resetError => {
+      error.value = resetError && resetError.message;
+      info.value = '';
+      if (!resetError) {
+        router.push('/character-list');
       }
-    },
-    computed: {
-      token(){
-        return this.$route.params.token;
-      },
-    },
-    methods: {
-      submit () {
-        if (this.$refs.form.validate()) {
-          if (this.token){
-            this.submitLoading = true;
-            Accounts.resetPassword(this.token, this.password, error => {
-              this.submitLoading = false;
-              this.error = error && error.message;
-              this.info = '';
-              if (!error){
-                this.$router.push('/characterList');
-              }
-            });
-          } else {
-            this.submitLoading = true;
-            Accounts.forgotPassword({email: this.email}, error => {
-              this.submitLoading = false;
-              this.error = error && error.message;
-              this.info = '';
-              if (!error){
-                this.info = `Password reset link sent to ${this.email}`;
-                this.email = '';
-                this.valid = true;
-              }
-            });
-          }
-        }
-      },
-    },
+    });
+  } else {
+    Accounts.forgotPassword({ email: email.value }, forgotError => {
+      error.value = forgotError && forgotError.message;
+      info.value = '';
+      if (!forgotError) {
+        info.value = `Password reset link sent to ${email.value}`;
+        email.value = '';
+        valid.value = true;
+      }
+    });
   }
+}
 </script>

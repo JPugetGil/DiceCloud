@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="attribute-form">
     <v-row dense>
       <v-col
@@ -10,7 +10,7 @@
           :value="model.variableName"
           hint="Use this name in calculations to reference this attribute"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
       <v-col
@@ -36,7 +36,7 @@
           :error-messages="errors.attributeType"
           :menu-props="{auto: true, lazy: true}"
           :hint="attributeTypeHints[model.attributeType]"
-          @change="change('attributeType', ...arguments)"
+          @change="(value, ack) => change('attributeType', value, ack)"
         />
       </v-col>
       <v-expand-transition>
@@ -50,7 +50,7 @@
             :value="model.hitDiceSize"
             :error-messages="errors.hitDiceSize"
             :menu-props="{auto: true, lazy: true}"
-            @change="change('hitDiceSize', ...arguments)"
+            @change="(value, ack) => change('hitDiceSize', value, ack)"
           />
         </v-col>
         <v-col
@@ -123,7 +123,7 @@
                 :disabled="model.healthBarNoDamage"
                 :value="model.healthBarDamageOrder"
                 :error-messages="errors.healthBarDamageOrder"
-                @change="change('healthBarDamageOrder', ...arguments)"
+                @change="(value, ack) => change('healthBarDamageOrder', value, ack)"
               />
             </v-col>
             <v-col
@@ -135,7 +135,7 @@
                 label="Ignore damage"
                 :value="model.healthBarNoDamage"
                 :error-messages="errors.healthBarNoDamage"
-                @change="change('healthBarNoDamage', ...arguments)"
+                @change="(value, ack) => change('healthBarNoDamage', value, ack)"
               />
             </v-col>
             <v-col
@@ -147,7 +147,7 @@
                 label="Prevent damage overflow"
                 :value="model.healthBarNoDamageOverflow"
                 :error-messages="errors.healthBarNoDamageOverflow"
-                @change="change('healthBarNoDamageOverflow', ...arguments)"
+                @change="(value, ack) => change('healthBarNoDamageOverflow', value, ack)"
               />
             </v-col>
             <v-col
@@ -161,7 +161,7 @@
                 :disabled="model.healthBarNoHealing"
                 :value="model.healthBarHealingOrder"
                 :error-messages="errors.healthBarHealingOrder"
-                @change="change('healthBarHealingOrder', ...arguments)"
+                @change="(value, ack) => change('healthBarHealingOrder', value, ack)"
               />
             </v-col>
             <v-col
@@ -173,7 +173,7 @@
                 label="Ignore healing"
                 :value="model.healthBarNoHealing"
                 :error-messages="errors.healthBarNoHealing"
-                @change="change('healthBarNoHealing', ...arguments)"
+                @change="(value, ack) => change('healthBarNoHealing', value, ack)"
               />
             </v-col>
             <v-col
@@ -185,7 +185,7 @@
                 label="Prevent healing overflow"
                 :value="model.healthBarNoHealingOverflow"
                 :error-messages="errors.healthBarNoHealingOverflow"
-                @change="change('healthBarNoHealingOverflow', ...arguments)"
+                @change="(value, ack) => change('healthBarNoHealingOverflow', value, ack)"
               />
             </v-col>
           </v-row>
@@ -205,7 +205,7 @@
               :disabled="!context.isLibraryForm"
               :value="model.damage"
               :error-messages="errors.damage"
-              @change="change('damage', ...arguments)"
+              @change="(value, ack) => change('damage', value, ack)"
             />
           </v-col>
           <v-col
@@ -217,7 +217,7 @@
               hint="When damage should be reset to zero"
               :value="model.reset"
               :error-messages="errors.reset"
-              @change="change('reset', ...arguments)"
+              @change="(value, ack) => change('reset', value, ack)"
             />
           </v-col>
         </v-row>
@@ -235,7 +235,7 @@
               class="mx-4"
               :value="model.decimal"
               :error-messages="errors.decimal"
-              @change="change('decimal', ...arguments)"
+              @change="(value, ack) => change('decimal', value, ack)"
             />
           </v-col>
           <v-col
@@ -248,7 +248,7 @@
               class="mx-4"
               :value="model.ignoreLowerLimit"
               :error-messages="errors.ignoreLowerLimit"
-              @change="change('ignoreLowerLimit', ...arguments)"
+              @change="(value, ack) => change('ignoreLowerLimit', value, ack)"
             />
           </v-col>
           <v-col
@@ -261,7 +261,7 @@
               class="mx-4"
               :value="model.ignoreUpperLimit"
               :error-messages="errors.ignoreUpperLimit"
-              @change="change('ignoreUpperLimit', ...arguments)"
+              @change="(value, ack) => change('ignoreUpperLimit', value, ack)"
             />
           </v-col>
           <v-col
@@ -274,7 +274,7 @@
               class="mx-4"
               :value="model.hideWhenTotalZero"
               :error-messages="errors.hideWhenTotalZero"
-              @change="change('hideWhenTotalZero', ...arguments)"
+              @change="(value, ack) => change('hideWhenTotalZero', value, ack)"
             />
           </v-col>
           <v-col
@@ -287,7 +287,7 @@
               class="mx-4"
               :value="model.hideWhenValueZero"
               :error-messages="errors.hideWhenValueZero"
-              @change="change('hideWhenValueZero', ...arguments)"
+              @change="(value, ack) => change('hideWhenValueZero', value, ack)"
             />
           </v-col>
         </v-row>
@@ -297,86 +297,81 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { inject, watch } from 'vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import ColorPicker from '/imports/client/ui/components/ColorPicker.vue';
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
 import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
 
-export default {
-  components: {
-    FormSection,
-    FormSections,
-    OutlinedInput,
-    ColorPicker,
-    ResetSelector,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  data() {
-    let data = {
-      attributeTypes: [
-        {
-          text: 'Ability score',
-          value: 'ability',
-          help: 'Ability scores are your primary attributes, like Strength and Intelligence',
-        }, {
-          text: 'Stat',
-          value: 'stat',
-          help: 'Stats are attributes with a numerical value like speed or carrying capacity',
-        }, {
-          text: 'Modifier',
-          value: 'modifier',
-          help: 'Modifiers are attributes that are added to rolls, like proficiency bonus',
-        }, {
-          text: 'Hit dice',
-          value: 'hitDice',
-        }, {
-          text: 'Health bar',
-          value: 'healthBar',
-        }, {
-          text: 'Resource',
-          value: 'resource',
-          help: 'Resources are attributes that are spent to fuel actions, like sorcery points or ki'
-        }, {
-          text: 'Spell slot',
-          value: 'spellSlot',
-        }, {
-          text: 'Utility',
-          value: 'utility',
-          help: 'Utility attributes aren\'t displayed on your character sheet, but can be referenced or used in calculations',
-        },
-      ],
-      resetOptions: [
-        {
-          text: 'Short rest',
-          value: 'shortRest',
-        }, {
-          text: 'Long rest',
-          value: 'longRest',
-        }
-      ],
-    };
-    data.attributeTypeHints = {};
-    data.attributeTypes.forEach(type => {
-      data.attributeTypeHints[type.value] = type.help;
-    });
-    return data;
+});
+
+const emit = defineEmits(['change']);
+
+const context = inject('context', {});
+
+const attributeTypes = [
+  {
+    title: 'Ability score',
+    value: 'ability',
+    help: 'Ability scores are your primary attributes, like Strength and Intelligence',
+  }, {
+    title: 'Stat',
+    value: 'stat',
+    help: 'Stats are attributes with a numerical value like speed or carrying capacity',
+  }, {
+    title: 'Modifier',
+    value: 'modifier',
+    help: 'Modifiers are attributes that are added to rolls, like proficiency bonus',
+  }, {
+    title: 'Hit dice',
+    value: 'hitDice',
+  }, {
+    title: 'Health bar',
+    value: 'healthBar',
+  }, {
+    title: 'Resource',
+    value: 'resource',
+    help: 'Resources are attributes that are spent to fuel actions, like sorcery points or ki'
+  }, {
+    title: 'Spell slot',
+    value: 'spellSlot',
+  }, {
+    title: 'Utility',
+    value: 'utility',
+    help: 'Utility attributes aren\'t displayed on your character sheet, but can be referenced or used in calculations',
   },
-  watch: {
-    'model.attributeType': function (newVal, oldVal) {
-      if (newVal === 'hitDice' && !this.model.hitDiceSize) {
-        this.$emit('change', { path: ['hitDiceSize'], value: 'd8' });
-      } else if (oldVal === 'hitDice') {
-        this.$emit('change', { path: ['hitDiceSize'], value: undefined });
-      }
-    },
+];
+
+const attributeTypeHints = Object.fromEntries(attributeTypes.map(type => [type.value, type.help]));
+
+// Hit dice need a size; other types must not keep one
+watch(() => props.model.attributeType, (newVal, oldVal) => {
+  if (newVal === 'hitDice' && !props.model.hitDiceSize) {
+    emit('change', { path: ['hitDiceSize'], value: 'd8' });
+  } else if (oldVal === 'hitDice') {
+    emit('change', { path: ['hitDiceSize'], value: undefined });
   }
-};
+});
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

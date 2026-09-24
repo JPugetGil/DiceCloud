@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
@@ -11,13 +11,13 @@
       >
         <v-btn value="archive">
           <span>Archive</span>
-          <v-icon right>
+          <v-icon end>
             mdi-archive-arrow-down
           </v-icon>
         </v-btn>
         <v-btn value="restore">
           <span>Restore</span>
-          <v-icon right>
+          <v-icon end>
             mdi-archive-arrow-up-outline
           </v-icon>
         </v-btn>
@@ -30,28 +30,31 @@
       :selected-creature="selectedCreature"
       @creature-selected="id => selectedCreature = id"
     />
-    <v-spacer slot="actions" />
-    <v-btn
-      slot="actions"
-      text
-      :loading="archiveActionLoading"
-      :disabled="!numSelected"
-      color="primary"
-      @click="archiveAction"
-    >
-      {{ mode === 'archive' ? 'Archive' : 'Restore' }}
-    </v-btn>
-    <v-btn
-      slot="actions"
-      text
-      @click="$store.dispatch('popDialogStack')"
-    >
-      Close
-    </v-btn>
+    <template #actions>
+      <v-spacer />
+      <v-btn
+        variant="text"
+        :loading="archiveActionLoading"
+        :disabled="!numSelected"
+        color="primary"
+        @click="archiveAction"
+      >
+        {{ mode === 'archive' ? 'Archive' : 'Restore' }}
+      </v-btn>
+      <v-btn
+        variant="text"
+        @click="dialogStackStore.popDialogStack()"
+      >
+        Close
+      </v-btn>
+    </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
@@ -61,6 +64,10 @@ import archiveCreatureToFile from '/imports/api/creature/archive/methods/archive
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { uniq, flatten } from 'lodash';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
 
 const characterTransform = function(char){
   char.url = `/character/${char._id}/${char.urlName || '-'}`;
@@ -90,126 +97,113 @@ const creatureFields = {
   'owner': 1,
 };
 
-export default {
-  components: {
-    DialogBase,
-    CreatureFolderList,
-  },
-  data(){return {
-    selectedCreature: null,
-    mode: 'archive',
-    archiveActionLoading: false,
-  }},
-  computed: {
-    numSelected(){
-      return this.selectedCreature ? 1 : 0;
-    },
-  },
-  watch: {
-    mode(){
-      this.selectedCreature = null;
-    },
-  },
-  methods: {
-    archiveAction(){
-      if (!this.selectedCreature) return;
-      this.archiveActionLoading = true;
-      if (this.mode === 'archive'){
-        archiveCreatureToFile.call({
-          creatureId: this.selectedCreature,
-        }, error => {
-          this.archiveActionLoading = false;
-          if (!error) return;
-          console.error(error);
-          snackbar({text: error.reason});
-        });
-      } else if (this.mode === 'restore'){
-        restoreCreatureFromFile.call({
-          fileId: this.selectedCreature,
-        }, error => {
-          this.archiveActionLoading = false;
-          if (!error) return;
-          console.error(error);
-          snackbar({text: error.reason});
-        });
-      }
-      this.selectedCreature = null;
+const selectedCreature = ref(null);
+const mode = ref('archive');
+const archiveActionLoading = ref(false);
+
+const numSelected = computed(() => {
+  return selectedCreature.value ? 1 : 0;
+});
+
+watch(mode, () => {
+  selectedCreature.value = null;
+});
+
+const archiveAction = async () => {
+  if (!selectedCreature.value) return;
+  archiveActionLoading.value = true;
+  try {
+    if (mode.value === 'archive'){
+      await archiveCreatureToFile.callAsync({
+        creatureId: selectedCreature.value,
+      });
+    } else if (mode.value === 'restore'){
+      await restoreCreatureFromFile.callAsync({
+        fileId: selectedCreature.value,
+      });
     }
-  },
-  meteor: {
-    $subscribe: {
-      'archivedCreatures': [],
-      'archiveCreatureFiles': [],
-      'characterList': [],
-    },
-    folders(){
-      const userId = Meteor.userId();
-      let folders =  CreatureFolders.find(
-        {owner: userId, archived: {$ne: true}},
-        {sort: {left: 1}},
-      ).map(folder => {
-        folder.creatures = Creatures.find(
-          {
-            _id: {$in: folder.creatures || []},
-            owner: userId,
-          }, {
-            sort: {name: 1},
-            fields: creatureFields,
-          }
-        ).map(characterTransform);
-        return folder;
-      });
-      folders = folders.filter(folder => !!folder.creatures.length);
-      return folders;
-    },
-    CreaturesWithNoParty() {
-      var userId = Meteor.userId();
-      var charArrays = CreatureFolders.find({owner: userId}).map(p => p.creatures);
-      var folderChars = uniq(flatten(charArrays));
-      return Creatures.find(
-        {
-          _id: {$nin: folderChars},
-          owner: userId,
-        }, {
-          sort: {name: 1},
-          fields: creatureFields,
-        }
-      ).map(characterTransform);
-    },
-    archivefolders(){
-      const userId = Meteor.userId();
-      let folders =  CreatureFolders.find(
-        {owner: userId},
-        {sort: {left: 1}},
-      ).map(folder => {
-        folder.creatures = ArchiveCreatureFiles.find(
-          {
-            'meta.creatureId': {$in: folder.creatures || []},
-            userId,
-          }, {
-            sort: {'meta.creatureName': 1},
-          }
-        ).map(fileTransform);
-        return folder;
-      });
-      folders = folders.filter(folder => !!folder.creatures.length);
-      return folders;
-    },
-    archiveCreaturesWithNoParty() {
-      var userId = Meteor.userId();
-      var charArrays = CreatureFolders.find({owner: userId}).map(p => p.creatures);
-      var folderChars = uniq(flatten(charArrays));
-      return ArchiveCreatureFiles.find(
-        {
-          'meta.creatureId': {$nin: folderChars},
-          userId,
-        }, {
-          sort: {'meta.creatureName': 1},
-        }
-      ).map(fileTransform);
-    },
+    selectedCreature.value = null;
+  } catch (error) {
+    console.error(error);
+    snackbar({text: error.reason});
+  } finally {
+    archiveActionLoading.value = false;
   }
-}
+};
+
+subscribe('archivedCreatures');
+subscribe('archiveCreatureFiles');
+subscribe('characterList');
+
+const folders = autorun(() => {
+  const userId = Meteor.userId();
+  let foldersResult = CreatureFolders.find(
+    {owner: userId, archived: {$ne: true}},
+    {sort: {left: 1}},
+  ).map(folder => {
+    folder.creatures = Creatures.find(
+      {
+        _id: {$in: folder.creatures || []},
+        owner: userId,
+      }, {
+        sort: {name: 1},
+        fields: creatureFields,
+      }
+    ).map(characterTransform);
+    return folder;
+  });
+  foldersResult = foldersResult.filter(folder => !!folder.creatures.length);
+  return foldersResult;
+}).result;
+
+const CreaturesWithNoParty = autorun(() => {
+  const userId = Meteor.userId();
+  const charArrays = CreatureFolders.find({owner: userId}).map(p => p.creatures);
+  const folderChars = uniq(flatten(charArrays));
+  return Creatures.find(
+    {
+      _id: {$nin: folderChars},
+      owner: userId,
+    }, {
+      sort: {name: 1},
+      fields: creatureFields,
+    }
+  ).map(characterTransform);
+}).result;
+
+const archivefolders = autorun(() => {
+  const userId = Meteor.userId();
+  let foldersResult = CreatureFolders.find(
+    {owner: userId},
+    {sort: {left: 1}},
+  ).map(folder => {
+    folder.creatures = ArchiveCreatureFiles.find(
+      {
+        'meta.creatureId': {$in: folder.creatures || []},
+        userId,
+      }, {
+        sort: {'meta.creatureName': 1},
+      }
+    ).map(fileTransform);
+    return folder;
+  });
+  foldersResult = foldersResult.filter(folder => !!folder.creatures.length);
+  return foldersResult;
+}).result;
+
+const archiveCreaturesWithNoParty = autorun(() => {
+  const userId = Meteor.userId();
+  const charArrays = CreatureFolders.find({owner: userId}).map(p => p.creatures);
+  const folderChars = uniq(flatten(charArrays));
+  return ArchiveCreatureFiles.find(
+    {
+      'meta.creatureId': {$nin: folderChars},
+      userId,
+    }, {
+      sort: {'meta.creatureName': 1},
+    }
+  ).map(fileTransform);
+}).result;
 </script>
 
 <style lang="css" scoped>

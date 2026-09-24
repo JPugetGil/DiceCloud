@@ -1,6 +1,6 @@
-<template lang="html">
+<template>
   <div class="experience-form">
-    <div class="layout column align-center">
+    <div class="d-flex flex-1-1 flex-column align-center">
       <smart-switch
         label="Milestone"
         class="mx-3"
@@ -14,7 +14,7 @@
         class="base-value-field text-center large-format no-flex"
         :value="model.levels"
         :error-messages="errors.levels"
-        @change="change('levels', ...arguments)"
+        @change="(value, ack) => change('levels', value, ack)"
       />
       <text-field
         v-else
@@ -24,7 +24,7 @@
         autofocus
         :value="model.xp"
         :error-messages="errors.xp"
-        @change="change('xp', ...arguments)"
+        @change="(value, ack) => change('xp', value, ack)"
       />
     </div>
     <text-field
@@ -32,34 +32,54 @@
       :autofocus="milestone"
       :value="model.name"
       :error-messages="errors.name"
-      @change="change('name', ...arguments)"
+      @change="(value, ack) => change('name', value, ack)"
     />
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref, watch } from 'vue';
 
-export default {
-  mixins: [propertyFormMixin],
-  props: {
-    startAsMilestone: {
-      type: Boolean,
-    },
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  data(){return {
-    milestone: this.startAsMilestone,
-  }},
-  methods: {
-    makeMilestone(milestone, ack){
-      this.milestone = milestone;
-      if (milestone){
-        this.change('xp', undefined);
-        this.change('levels', 1, ack);
-      } else {
-        this.change('levels', undefined, ack);
-      }
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+  startAsMilestone: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(['change']);
+
+const milestone = ref(props.startAsMilestone);
+
+watch(
+  () => props.startAsMilestone,
+  (val) => {
+    milestone.value = val;
+  }
+);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
+
+function makeMilestone(isMilestone, ack) {
+  milestone.value = isMilestone;
+  if (isMilestone) {
+    change('xp', undefined);
+    change('levels', 1, ack);
+  } else {
+    change('levels', undefined, ack);
   }
 }
 </script>

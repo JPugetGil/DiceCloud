@@ -1,8 +1,8 @@
-<template lang="html">
+<template>
   <div class="resources-form">
     <div
       v-if="model.conditions && model.conditions.length"
-      class="subheading"
+      class="text-subtitle-1"
     >
       Conditions
     </div>
@@ -14,7 +14,7 @@
     />
     <div
       v-if="model.attributesConsumed && model.attributesConsumed.length"
-      class="subheading"
+      class="text-subtitle-1"
     >
       Attributes
     </div>
@@ -26,7 +26,7 @@
     />
     <div
       v-if="model.itemsConsumed && model.itemsConsumed.length"
-      class="subheading"
+      class="text-subtitle-1"
     >
       Ammo
     </div>
@@ -39,17 +39,16 @@
     <v-menu
       origin="center center"
       transition="scale-transition"
-      nudge-top="50%"
-      nudge-left="50%"
+      location="center"
     >
-      <template #activator="{ on }">
+      <template #activator="{ props }">
         <v-btn
           :loading="addResourceLoading"
           :disabled="addResourceLoading || context.editPermission === false"
           icon
-          outlined
+          variant="outlined"
           color="accent"
-          v-on="on"
+          v-bind="props"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -69,66 +68,67 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { inject, ref } from 'vue';
 import AttributesConsumedListForm from '/imports/client/ui/properties/forms/AttributesConsumedListForm.vue';
 import ActionConditionsListForm from '/imports/client/ui/properties/forms/ActionConditionsListForm.vue';
 import ItemsConsumedListForm from '/imports/client/ui/properties/forms/ItemsConsumedListForm.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 
-export default {
-  components: {
-    ActionConditionsListForm,
-    AttributesConsumedListForm,
-    ItemsConsumedListForm,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  props: {
-    parentTarget: {
-      type: String,
-      default: undefined,
-    },
-    buffsStored: {
-      type: Boolean,
-    },
+  parentTarget: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      addResourceLoading: false,
-    }
+  buffsStored: {
+    type: Boolean,
   },
-  methods: {
-    acknowledgeAddResult() {
-      this.addResourceLoading = false;
-    },
-    addAttributesConsumed() {
-      this.addResourceLoading = true;
-      this.$emit('push', {
-        path: ['attributesConsumed'],
-        value: { _id: Random.id() },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-    addItemsConsumed() {
-      this.addResourceLoading = true;
-      this.$emit('push', {
-        path: ['itemsConsumed'],
-        value: { _id: Random.id() },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-    addCondition() {
-      this.addResourceLoading = true;
-      this.$emit('push', {
-        path: ['conditions'],
-        value: { _id: Random.id() },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+const context = inject('context', {});
+
+const addResourceLoading = ref(false);
+
+function acknowledgeAddResult() {
+  addResourceLoading.value = false;
 }
+
+function addAttributesConsumed() {
+  addResourceLoading.value = true;
+  emit('push', {
+    path: ['attributesConsumed'],
+    value: { _id: Random.id() },
+    ack: acknowledgeAddResult,
+  });
+}
+
+function addItemsConsumed() {
+  addResourceLoading.value = true;
+  emit('push', {
+    path: ['itemsConsumed'],
+    value: { _id: Random.id() },
+    ack: acknowledgeAddResult,
+  });
+}
+
+function addCondition() {
+  addResourceLoading.value = true;
+  emit('push', {
+    path: ['conditions'],
+    value: { _id: Random.id() },
+    ack: acknowledgeAddResult,
+  });
+}
+
 </script>
 
 <style lang="css" scoped>

@@ -1,12 +1,14 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <v-toolbar-title slot="toolbar">
-      Delete {{ typeName }}
-    </v-toolbar-title>
+    <template #toolbar>
+      <v-toolbar-title>
+        Delete {{ typeName }}
+      </v-toolbar-title>
+    </template>
     <div>
       <v-alert
         type="warning"
-        outlined
+        variant="outlined"
       >
         This can't be undone
       </v-alert>
@@ -17,60 +19,56 @@
         v-if="name"
         v-model="inputName"
         label="Confirmation"
-        outlined
+        variant="outlined"
       />
-      <div class="layout justify-center">
+      <div class="d-flex flex-1-1 justify-center">
         <v-btn
           v-show="nameMatch"
-          class="primary"
-          @click="$store.dispatch('popDialogStack', true);"
+          class="bg-primary"
+          @click="dialogStackStore.popDialogStack(true);"
         >
           Delete forever
         </v-btn>
       </div>
     </div>
-    <v-spacer slot="actions" />
-    <v-btn
-      slot="actions"
-      text
-      @click="$store.dispatch('popDialogStack')"
-    >
-      Cancel
-    </v-btn>
+    <template #actions>
+      <v-spacer />
+      <v-btn
+        variant="text"
+        @click="dialogStackStore.popDialogStack()"
+      >
+        Cancel
+      </v-btn>
+    </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
+const props = defineProps({
+  typeName: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    typeName: {
-      type: String,
-      default: undefined,
-    },
-    name: {
-      type: String,
-      default: undefined,
-    },
+  name: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      inputName: undefined,
-    }
-  },
-  computed: {
-    nameMatch() {
-      if (!this.name) return true;
-      let uppername = this.name.toUpperCase();
-      let upperInputName = this.inputName && this.inputName.toUpperCase();
-      return uppername === upperInputName;
-    },
-  },
-};
+});
+
+const inputName = ref(undefined);
+
+const dialogStackStore = useDialogStackStore();
+
+const nameMatch = computed(() => {
+  if (!props.name) return true;
+  let uppername = props.name.toUpperCase();
+  let upperInputName = inputName.value && inputName.value.toUpperCase();
+  return uppername === upperInputName;
+});
 </script>
 
 <style lang="css" scoped>

@@ -1,9 +1,6 @@
-<template
-  lang="html"
-  functional
->
+<template>
   <div
-    class="pa-4 layout column align-center card-background"
+    class="pa-4 d-flex flex-1-1 flex-column align-center card-background"
     style="height: calc(100vh - 96px); display: flex;"
   >
     <v-card
@@ -14,6 +11,6 @@
   </div>
 </template>
 
-<script lang="js">
-  export default {}
+<script setup>
+
 </script>

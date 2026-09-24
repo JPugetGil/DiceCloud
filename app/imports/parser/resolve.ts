@@ -67,9 +67,6 @@ const computationInputProvider: InputProvider = {
     }
     return chosen;
   },
-  async targetIds() {
-    return [];
-  },
   async advantage() {
     return 0;
   },

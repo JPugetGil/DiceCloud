@@ -1,5 +1,5 @@
-<template lang="html">
-  <v-list v-if="items.length">
+<template>
+  <v-list v-if="items?.length">
     <v-list-item
       v-for="item in items"
       :key="item._id"
@@ -18,54 +18,53 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup lang="js">
 import ItemTreeNode from '/imports/client/ui/properties/treeNodeViews/ItemTreeNode.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import selectAmmoItem from '/imports/api/creature/creatureProperties/methods/selectAmmoItem';
 import { findIndex } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
-export default {
-  components: {
-    ItemTreeNode
+import { autorun } from 'vue-meteor-tracker';
+import { computed } from 'vue';
+
+const props = defineProps({
+  action: {
+    type: Object,
+    required: true,
   },
-  props: {
-    action: {
-      type: Object,
-      required: true,
-    },
-    itemConsumed: {
-      type: Object,
-      required: true,
-    },
+  itemConsumed: {
+    type: Object,
+    required: true,
   },
-  meteor: {
-    items(){
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.action.root.id),
-        type: 'item',
-        tags: this.itemConsumed.tag,
-        removed: {$ne: true},
-        inactive: {$ne: true},
-      }, {
-        sort: {left: 1},
-        fields: {equipped: false},
-      });
-    }
-  },
-  methods:{
-    selectItem(itemId){
-      let itemConsumedIndex = findIndex(
-        this.action.resources.itemsConsumed,
-        item => item._id === this.itemConsumed._id
-      );
-      selectAmmoItem.call({
-        actionId: this.action._id,
-        itemId,
-        itemConsumedIndex
-      }, error => {
-        if (error) console.error(error);
-      });
-    }
+});
+
+const itemsResult = autorun(() => {
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(props.action.root.id),
+    type: 'item',
+    tags: props.itemConsumed.tag,
+    removed: {$ne: true},
+    inactive: {$ne: true},
+  }, {
+    sort: {left: 1},
+    fields: {equipped: false},
+  }).fetch();
+});
+const items = computed(() => itemsResult.result.value || []);
+
+async function selectItem(itemId){
+  let itemConsumedIndex = findIndex(
+    props.action.resources.itemsConsumed,
+    item => item._id === props.itemConsumed._id
+  );
+  try {
+    await selectAmmoItem.callAsync({
+      actionId: props.action._id,
+      itemId,
+      itemConsumedIndex
+    });
+  } catch (error) {
+    console.error(error);
   }
 }
 </script>

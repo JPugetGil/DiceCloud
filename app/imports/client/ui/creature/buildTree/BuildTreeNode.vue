@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-sheet
     class="tree-node"
     :class="{
@@ -7,17 +7,18 @@
     :data-id="`tree-node-${doc._id}`"
   >
     <div
-      class="layout align-center justify-start tree-node-title"
+      class="d-flex flex-1-1 align-center justify-start tree-node-title"
       style="cursor: pointer;"
       @click.stop="$emit('selected', doc._id)"
     >
       <v-btn
-        small
+        variant="text"
+        size="small"
         icon
         class="expand-button"
         :class="{
           'rotate-90': showExpanded,
-          'accent--text': doc._descendantCanFill || canFillWithMany
+          'text-accent': doc._descendantCanFill || canFillWithMany
         }"
         :disabled="!canExpand"
         @click.stop="expanded = !expanded"
@@ -27,7 +28,7 @@
         </v-icon>
       </v-btn>
       <div
-        class="layout align-center justify-start pr-1"
+        class="d-flex flex-1-1 align-center justify-start pr-1"
       >
         <!--{{doc && doc.order}}-->
         <div
@@ -36,8 +37,8 @@
         >
           <span
             :class="{
-              'text--secondary': !canFill,
-              'accent--text': canFill,
+              'text-medium-emphasis': !canFill,
+              'text-accent': canFill,
             }"
           >
             {{ doc.name }}
@@ -56,6 +57,7 @@
           <v-spacer />
           <v-btn
             v-if="doc.parentId === parentSlotId"
+            variant="text"
             icon
             :disabled="context.editPermission === false"
             @click.stop="remove(doc)"
@@ -72,6 +74,7 @@
           />
           <v-spacer />
           <v-btn
+            variant="text"
             icon
             :disabled="context.editPermission === false"
             @click.stop="remove(children[0].doc)"
@@ -117,146 +120,160 @@
   </v-sheet>
 </template>
 
-<script lang="js">
+<script setup>
 /**
 * TreeNode's are list item views of character properties. Every property which
 * can belong to the character is shown in the tree view of the character
 * the tree view shows off the full character structure, and where each part of
 * character comes from.
 **/
+import { ref, computed, watch, inject } from 'vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import FillSlotButton from '/imports/client/ui/creature/buildTree/FillSlotButton.vue';
-import { some } from 'lodash';
+import BuildTreeNodeList from './BuildTreeNodeList.vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import restoreProperty from '/imports/api/creature/creatureProperties/methods/restoreProperty';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 import { isAncestor } from '/imports/api/parenting/parentingFunctions';
 
-export default {
+defineOptions({
   name: 'BuildTreeNode',
-  components: {
-    TreeNodeView,
-    FillSlotButton,
+});
+
+const props = defineProps({
+  // Children load on demand, so a collapsed node may still have some
+  lazy: Boolean,
+  depth: {
+    type: Number,
+    default: 0,
   },
-  inject: {
-    context: { default: {} }
+  doc: {
+    type: Object,
+    required: true,
   },
-  props: {
-    depth: {
-      type: Number,
-      default: 0,
-    },
-    doc: {
-      type: Object,
-      required: true,
-    },
-    children: {
-      type: Array,
-      default: () => [],
-    },
-    parentSlotId: {
-      type: String,
-      default: undefined,
-    },
+  children: {
+    type: Array,
+    default: () => [],
   },
-  data(){return {
-    expanded: this.depth <= 2,
-    /* expand if there's a slot needing attention:
-      this.doc._descendantCanFill || (
-        this.doc.type === 'propertySlot' &&
-        this. node.quantityExpected?.value === 0 ||
-        (this.doc.quantityExpected?.value > 1 && this.doc.spaceLeft > 0)
-      )
-    */
-  }},
-  computed: {
-    condenseChild(){
-      return this.doc.type === 'propertySlot' &&
-      this.children.length === 1 &&
-      this.children[0].doc.type !== 'propertySlot' &&
-      this.doc.quantityExpected &&
-      this.doc.quantityExpected.value === 1 &&
-      !this.canFill;
-    },
-    isSlot(){
-      return this.doc.type === 'propertySlot';
-    },
-    canFill(){
-      return !!this.doc._canFill;
-    },
-    canFillWithOne(){
-      return this.isSlot &&
-        this.canFill &&
-        this.doc.quantityExpected &&
-        this.doc.quantityExpected.value === 1 &&
-        this.doc.spaceLeft === 1 &&
-        !this.children?.length;
-    },
-    canFillWithMany(){
-      return this.isSlot && this.canFill && (
-        !this.doc.quantityExpected ||
-        this.doc.quantityExpected.value === 0 ||
-        (this.doc.quantityExpected.value > 1 && this.doc.spaceLeft > 0) ||
-        (this.doc.quantityExpected.value === 1 && this.children?.length) 
-      );
-    },
-    hasChildren(){
-      return !!this.children && !!this.computedChildren.length || this.lazy && !this.expanded;
-    },
-    showExpanded(){
-      return this.canExpand && this.expanded;
-    },
-    computedChildren(){
-      if (this.condenseChild){
-        return this.children[0].children;
-      }
-      return this.children;
-    },
-    computedSlotId() {
-      if (this.condenseChild) {
-        if (this.children[0].doc.type === 'propertySlot') {
-          return this.children[0].doc._id;
-        } else {
-          return undefined;
-        }
-      } else {
-        if (this.doc.type === 'propertySlot') {
-          return this.doc._id;
-        } else {
-          return undefined;
-        }
-      }
-    },
-    canExpand(){
-      return !!this.computedChildren.length || this.canFillWithMany;
-    },
+  parentSlotId: {
+    type: String,
+    default: undefined,
   },
-  watch: {
-    'doc._ancestorOfMatchedDocument'(value){
-      this.expanded = !!value || isAncestor(this.doc, this.selectedNode);
-    },
-    'selectedNode.parentId'(){
-      this.expanded = isAncestor(this.doc, this.selectedNode) || this.expanded;
-    },
+  selectedNode: {
+    type: Object,
+    default: undefined,
   },
-  beforeCreate() {
-    this.$options.components.BuildTreeNodeList = require('./BuildTreeNodeList.vue').default
-  },
-  methods: {
-    remove(model) {
-      const _id = model._id;
-      softRemoveProperty.call({_id});
-      snackbar({
-        text: `Deleted ${getPropertyTitle(model)}`,
-        callbackName: 'undo',
-        callback(){
-          restoreProperty.call({_id});
-        },
-      });
+});
+
+defineEmits(['selected']);
+
+const context = inject('context', {});
+
+const expanded = ref(props.depth <= 2);
+/* expand if there's a slot needing attention:
+  this.doc._descendantCanFill || (
+    this.doc.type === 'propertySlot' &&
+    this. node.quantityExpected?.value === 0 ||
+    (this.doc.quantityExpected?.value > 1 && this.doc.spaceLeft > 0)
+  )
+*/
+
+const isSlot = computed(() => {
+  return props.doc.type === 'propertySlot';
+});
+
+const canFill = computed(() => {
+  return !!props.doc._canFill;
+});
+
+const condenseChild = computed(() => {
+  return props.doc.type === 'propertySlot' &&
+    props.children.length === 1 &&
+    props.children[0].doc.type !== 'propertySlot' &&
+    props.doc.quantityExpected &&
+    props.doc.quantityExpected.value === 1 &&
+    !canFill.value;
+});
+
+const canFillWithOne = computed(() => {
+  return isSlot.value &&
+    canFill.value &&
+    props.doc.quantityExpected &&
+    props.doc.quantityExpected.value === 1 &&
+    props.doc.spaceLeft === 1 &&
+    !props.children?.length;
+});
+
+const canFillWithMany = computed(() => {
+  return isSlot.value && canFill.value && (
+    !props.doc.quantityExpected ||
+    props.doc.quantityExpected.value === 0 ||
+    (props.doc.quantityExpected.value > 1 && props.doc.spaceLeft > 0) ||
+    (props.doc.quantityExpected.value === 1 && props.children?.length)
+  );
+});
+
+const computedChildren = computed(() => {
+  if (condenseChild.value) {
+    return props.children[0].children;
+  }
+  return props.children;
+});
+
+const computedSlotId = computed(() => {
+  if (condenseChild.value) {
+    if (props.children[0].doc.type === 'propertySlot') {
+      return props.children[0].doc._id;
+    } else {
+      return undefined;
     }
-  },
-};
+  } else {
+    if (props.doc.type === 'propertySlot') {
+      return props.doc._id;
+    } else {
+      return undefined;
+    }
+  }
+});
+
+const canExpand = computed(() => {
+  return !!computedChildren.value.length || canFillWithMany.value;
+});
+
+const hasChildren = computed(() => {
+  return !!props.children && !!computedChildren.value.length || props.lazy && !expanded.value;
+});
+
+const showExpanded = computed(() => {
+  return canExpand.value && expanded.value;
+});
+
+watch(() => props.doc?._ancestorOfMatchedDocument, (value) => {
+  expanded.value = !!value || isAncestor(props.doc, props.selectedNode);
+});
+
+watch(() => props.selectedNode?.parentId, () => {
+  expanded.value = isAncestor(props.doc, props.selectedNode) || expanded.value;
+});
+
+async function remove(model) {
+  const _id = model._id;
+  try {
+    await softRemoveProperty.callAsync({ _id });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message || error.toString() });
+    return;
+  }
+  snackbar({
+    text: `Deleted ${getPropertyTitle(model)}`,
+    callbackName: 'undo',
+    callback() {
+      return restoreProperty.callAsync({ _id });
+    },
+  });
+}
 </script>
 
 <style lang="css" scoped>
@@ -289,10 +306,10 @@ export default {
   .v-icon {
     transition: none !important;
   }
-  .theme--light .tree-node-title:hover {
+  .v-theme--light .tree-node-title:hover {
     background-color: rgba(0,0,0,.04);
   }
-  .theme--dark .tree-node-title:hover {
+  .v-theme--dark .tree-node-title:hover {
     background-color: rgba(255,255,255,.04);
   }
   .tree-node-title{

@@ -1,11 +1,12 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
         Experiences
       </v-toolbar-title>
       <v-spacer />
       <v-btn
+        variant="text"
         icon
         data-id="experience-add-button"
         @click="addExperience"
@@ -13,6 +14,7 @@
         <v-icon>mdi-plus</v-icon>
       </v-btn>
       <v-btn
+        variant="text"
         icon
         @click="recompute"
       >
@@ -20,8 +22,8 @@
       </v-btn>
     </template>
     <div
-      v-if="!$subReady.experiences"
-      class="layout column align-center justify-center fill-height"
+      v-if="!experiencesReady"
+      class="d-flex flex-1-1 flex-column align-center justify-center fill-height"
     >
       <v-progress-circular
         indeterminate
@@ -30,10 +32,10 @@
     </div>
     <div
       v-else-if="experiences.length === 0"
-      class="layout column align-center justify-center fill-height"
+      class="d-flex flex-1-1 flex-column align-center justify-center fill-height"
     >
       <v-icon class="big-icon">
-        $vuetify.icons.baby_face
+        $baby_face
       </v-icon>
       <p class="text-h5">
         No experiences
@@ -49,121 +51,124 @@
           :key="experience._id"
           :data-id="experience._id"
         >
-          <v-list-item-action class="mr-3">
-            <v-list-item-action-text>
-              {{ formatDate(experience.date) }}
-            </v-list-item-action-text>
-          </v-list-item-action>
-          <v-list-item-content>
-            <template v-if="experience.name">
-              <v-list-item-title>
-                {{ experience.name }}
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                {{ xpText(experience) }}
-              </v-list-item-subtitle>
-            </template>
-            <template v-else>
-              <v-list-item-title>
-                {{ xpText(experience) }}
-              </v-list-item-title>
-            </template>
-          </v-list-item-content>
-          <v-list-item-action>
+          <template #prepend>
+            <div class="mr-3">
+              <span class="text-caption">
+                {{ formatDate(experience.date) }}
+              </span>
+            </div>
             <v-btn
+              variant="text"
               icon
               :loading="experiencesRemovalLoading.has(experience._id)"
               @click="removeExperience(experience._id)"
             >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
-          </v-list-item-action>
+          </template>
+
+          <template v-if="experience.name">
+            <v-list-item-title>
+              {{ experience.name }}
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              {{ xpText(experience) }}
+            </v-list-item-subtitle>
+          </template>
+          <template v-else>
+            <v-list-item-title>
+              {{ xpText(experience) }}
+            </v-list-item-title>
+          </template>
         </v-list-item>
       </v-slide-x-transition>
     </v-list>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { ref } from 'vue';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import { format } from 'date-fns';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
-import Experiences, { removeExperience, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
+import Experiences, { removeExperience as removeExperienceMethod, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
   },
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
-    },
-    startAsMilestone: {
-      type: Boolean,
-    },
+  startAsMilestone: {
+    type: Boolean,
   },
-  data(){ return {
-    experiencesRemovalLoading: new Set(),
-    recomputeLoading: false,
-  }},
-  meteor: {
-    $subscribe: {
-      'experiences'(){
-        return [this.creatureId];
-      },
+});
+
+
+const experiencesRemovalLoading = ref(new Set());
+const recomputeLoading = ref(false);
+
+const { ready: experiencesReady } = subscribe(() => ['experiences', props.creatureId]);
+
+const { result: experiences } = autorun(() => Experiences.find({
+  creatureId: props.creatureId
+}, {
+  sort: {date: 1}
+}).fetch());
+
+function xpText(experience){
+  let xpText = [];
+  if (experience.levels === 1){
+    xpText.push('1 Milestone level');
+  } else if (experience.levels){
+    xpText.push(`${experience.levels} Milestone levels`);
+  }
+  if (experience.xp || !experience.levels){
+    xpText.push(`${experience.xp || 0} XP`);
+  }
+  return xpText.join(', ');
+}
+
+function formatDate(date){
+  return format(date, 'YYYY-MM-DD');
+}
+
+async function removeExperience(experienceId){
+  experiencesRemovalLoading.value.add(experienceId);
+  try {
+    await removeExperienceMethod.callAsync({experienceId});
+  } catch (error) {
+    console.error(error);
+  } finally {
+    experiencesRemovalLoading.value.delete(experienceId);
+  }
+}
+
+async function recompute(){
+  recomputeLoading.value = true;
+  try {
+    await recomputeExperiences.callAsync({creatureId: props.creatureId});
+  } catch (error) {
+    console.error(error);
+  } finally {
+    recomputeLoading.value = false;
+  }
+}
+
+function addExperience(){
+  dialogStackStore.pushDialogStack({
+    component: 'experience-insert-dialog',
+    elementId: 'experience-add-button',
+    data: {
+      creatureIds: [props.creatureId],
+      startAsMilestone: props.startAsMilestone,
     },
-    experiences(){
-      return Experiences.find({
-        creatureId: this.creatureId
-      }, {
-        sort: {date: 1}
-      });
+    callback(id){
+      return id;
     }
-  },
-  methods: {
-    xpText(experience){
-      let xpText = [];
-      if (experience.levels === 1){
-        xpText.push('1 Milestone level');
-      } else if (experience.levels){
-        xpText.push(`${experience.levels} Milestone levels`);
-      }
-      if (experience.xp || !experience.levels){
-        xpText.push(`${experience.xp || 0} XP`);
-      }
-      return xpText.join(', ');
-    },
-    formatDate(date){
-      return format(date, 'YYYY-MM-DD');
-    },
-    removeExperience(experienceId){
-      this.experiencesRemovalLoading.add(experienceId);
-      removeExperience.call({experienceId}, (error) => {
-        this.experiencesRemovalLoading.delete(experienceId);
-        if (error) console.error(error);
-      });
-    },
-    recompute(){
-      this.recomputeLoading = true;
-      recomputeExperiences.call({creatureId: this.creatureId}, error => {
-        this.recomputeLoading = false;
-        if (error) console.error(error);
-      });
-    },
-    addExperience(){
-      this.$store.commit('pushDialogStack', {
-        component: 'experience-insert-dialog',
-        elementId: 'experience-add-button',
-        data: {
-          creatureIds: [this.creatureId],
-          startAsMilestone: this.startAsMilestone,
-        },
-        callback(id){
-          return id;
-        }
-      });
-    },
-  },
+  });
 }
 </script>
 

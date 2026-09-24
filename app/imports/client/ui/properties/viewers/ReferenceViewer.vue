@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="reference-viewer">
     <v-row>
       <property-field
@@ -13,7 +13,7 @@
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">
           <v-btn
-            plain
+            variant="plain"
             class="normal-text"
             style="min-width: 100%; min-height: 100%;"
             :to="(model.cache.library && model.cache.library.id) ? `/library/${model.cache.library.id}` : undefined"
@@ -36,7 +36,7 @@
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">
           <v-btn
-            plain
+            variant="plain"
             height="56"
             class="normal-text"
             style="min-width: 100%; min-height: 100%;"
@@ -52,18 +52,18 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
-import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    TreeNodeView,
-    OutlinedInput,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-}
+});
+
+defineEmits(['select-sub-property']);
 </script>
 
 <style lang="css">

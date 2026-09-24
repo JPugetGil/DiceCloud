@@ -1,43 +1,43 @@
-import Vue from 'vue';
-// vuetify/lib is the untranspiled build: every component in it imports its own
-// .sass, which needs a Sass compiler in the build chain. Meteor has none, so
-// those imports resolve to nothing at runtime. The dist build ships the same
-// components already compiled, with their stylesheet alongside.
-import Vuetify from 'vuetify';
-import 'vuetify/dist/vuetify.min.css';
+import { h } from 'vue';
+import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import 'vuetify/styles';
 import SVG_ICONS from '/imports/constants/SVG_ICONS';
 import SvgIconByName from '/imports/client/ui/icons/SvgIconByName.vue';
 import themes from '/imports/client/ui/themes';
-import minifyTheme from 'minify-css-string';
 
-// The dist build registers every component and directive itself.
-Vue.use(Vuetify);
-
-let icons = {};
+const customIcons = {};
 
 for (const name in SVG_ICONS) {
-  let icon = SVG_ICONS[name];
-  icons[icon.name] = {
-    component: SvgIconByName,
-    props: {
-      name: name,
-    }
-  }
+  const icon = SVG_ICONS[name];
+  customIcons[icon.name] = props => h(SvgIconByName, { ...props, name });
 }
 
-let vuetify = new Vuetify({
+const vuetify = createVuetify({
+  components,
+  directives,
   theme: {
+    defaultTheme: 'light',
     themes,
-    options: {
-      variations: false,
-      minifyTheme,
+  },
+  // Toolbars without a colour of their own, as in Vuetify 2 (see themes.js)
+  defaults: {
+    VToolbar: {
+      color: 'toolbar',
     },
-    //options: { customProperties: true },
   },
   icons: {
-    iconfont: 'mdi',
-    values: icons,
-  }
+    defaultSet: 'mdi',
+    aliases: {
+      ...aliases,
+      ...customIcons,
+    },
+    sets: {
+      mdi,
+    },
+  },
 });
 
 export default vuetify;

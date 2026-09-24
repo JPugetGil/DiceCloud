@@ -77,7 +77,7 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
     return true;
   }
 
-  const attributes = getPropertiesByFilter(creatureId, attributeFilterFunction, attributeFilter);
+  const attributes = await getPropertiesByFilter(creatureId, attributeFilterFunction, attributeFilter);
 
   for (const prop of attributes) {
     await applyTask(action, {
@@ -109,7 +109,7 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
     return true;
   }
 
-  const actionProps = getPropertiesByFilter(creatureId, actionFilterFunction, actionFilter);
+  const actionProps = await getPropertiesByFilter(creatureId, actionFilterFunction, actionFilter);
 
   for (const prop of actionProps) {
     result.mutations.push({
@@ -130,7 +130,7 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
 async function resetHitDice(task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider) {
   const creatureId = task.targetIds[0];
 
-  const hitDice = getPropertiesOfType(creatureId, 'hitDice');
+  const hitDice = await getPropertiesOfType(creatureId, 'hitDice');
 
   // Use a collator to do sorting in natural order
   const collator = new Intl.Collator('en', {
@@ -143,7 +143,7 @@ async function resetHitDice(task: ResetTask, action: EngineAction, result: TaskR
 
   // Get the total number of hit dice that can be recovered this rest
   const totalHd = hitDice.reduce((sum, hd) => sum + (hd.total || 0), 0);
-  const creature = getCreature(creatureId);
+  const creature = await getCreature(creatureId);
   const resetMultiplier = creature.settings.hitDiceResetMultiplier || 0.5;
   let recoverableHd = Math.max(Math.floor(totalHd * resetMultiplier), 1);
 

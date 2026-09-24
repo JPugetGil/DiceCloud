@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <component
     :is="treeNodeView"
     :model="model"
@@ -10,28 +10,27 @@
   />
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import treeNodeViewIndex from '/imports/client/ui/properties/treeNodeViews/treeNodeViewIndex';
 
-export default {
+// Not registering the index: `:is` below receives the component itself
+defineOptions({
   name: 'TreeNodeView',
-  components: {
-    ...treeNodeViewIndex
+});
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    selected: Boolean,
-  },
-  computed: {
-    treeNodeView(){
-      let type = this.model.type;
-      return treeNodeViewIndex[type] || treeNodeViewIndex.default;
-    },
-  }
-}
+  selected: Boolean,
+});
+
+const treeNodeView = computed(() => {
+  let type = props.model.type;
+  return treeNodeViewIndex[type] || treeNodeViewIndex.default;
+});
 </script>
 
 <style lang="css" scoped>

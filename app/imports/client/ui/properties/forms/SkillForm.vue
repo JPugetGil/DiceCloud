@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="skill-form">
     <v-row dense>
       <v-col
@@ -11,7 +11,7 @@
           style="flex-basis: 300px;"
           hint="Use this name in formulae to reference this skill"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(...args) => change('variableName', ...args)"
         />
       </v-col>
       <v-col
@@ -25,7 +25,7 @@
           hint="Which ability is this skill based off of"
           :items="abilityScoreList"
           :error-messages="errors.ability"
-          @change="change('ability', ...arguments)"
+          @change="(...args) => change('ability', ...args)"
         />
       </v-col>
       <v-col
@@ -40,7 +40,7 @@
           :error-messages="errors.skillType"
           :menu-props="{auto: true, lazy: true}"
           :hint="skillTypeHints[model.skillType]"
-          @change="change('skillType', ...arguments)"
+          @change="(...args) => change('skillType', ...args)"
         />
       </v-col>
     </v-row>
@@ -63,7 +63,7 @@
               label="Base Proficiency"
               :value="model.baseProficiency"
               :error-messages="errors.baseProficiency"
-              @change="change('baseProficiency', ...arguments)"
+              @change="(...args) => change('baseProficiency', ...args)"
             />
           </v-col>
           <v-col
@@ -86,7 +86,7 @@
           label="Apply skill to targeted tags"
           :value="model.targetByTags"
           :error-messages="errors.targetByTags"
-          @change="change('targetByTags', ...arguments)"
+          @change="(...args) => change('targetByTags', ...args)"
         />
         <v-expand-transition>
           <tag-targeting
@@ -104,70 +104,81 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { autorun } from 'vue-meteor-tracker';
 import ProficiencySelect from '/imports/client/ui/properties/forms/shared/ProficiencySelect.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 
-export default {
-  components: {
-    ProficiencySelect,
-    FormSection,
-    TagTargeting,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data() {
-    return {
-      skillTypes: [
-        {
-          text: 'Skill',
-          value: 'skill',
-        }, {
-          text: 'Save',
-          value: 'save',
-        }, {
-          text: 'Check',
-          value: 'check',
-        }, {
-          text: 'Tool',
-          value: 'tool',
-        }, {
-          text: 'Weapon',
-          value: 'weapon',
-        }, {
-          text: 'Armor',
-          value: 'armor',
-        }, {
-          text: 'Language',
-          value: 'language',
-        }, {
-          text: 'Utility',
-          value: 'utility',
-        },
-      ],
-      skillTypeHints: {
-        skill: 'A normal character sheet skill like Athletics, Deception, or Investigation',
-        'save': 'A saving throw the character can make: Strength Save, etc.',
-        'check': 'An ability check that might include a proficiency bonus later eg. Initiative',
-        'tool': 'A tool proficiency. Be sure to add a base proficiency in the advanced section.',
-        'weapon': 'A weapon proficiency. Be sure to add a base proficiency in the advanced section.',
-        'armor': 'A armor proficiency. Be sure to add a base proficiency in the advanced section.',
-        'language': 'A language proficiency. Be sure to add a base proficiency in the advanced section.',
-        'utility': 'A skill that does not show up in the sheet, but can be used by other caclulations',
-      }
-    };
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  meteor: {
-    abilityScoreList() {
-      return createListOfProperties({
-        type: 'attribute',
-        attributeType: 'ability',
-      });
-    },
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+const skillTypes = [
+  {
+    title: 'Skill',
+    value: 'skill',
+  }, {
+    title: 'Save',
+    value: 'save',
+  }, {
+    title: 'Check',
+    value: 'check',
+  }, {
+    title: 'Tool',
+    value: 'tool',
+  }, {
+    title: 'Weapon',
+    value: 'weapon',
+  }, {
+    title: 'Armor',
+    value: 'armor',
+  }, {
+    title: 'Language',
+    value: 'language',
+  }, {
+    title: 'Utility',
+    value: 'utility',
   },
+];
+
+const skillTypeHints = {
+  skill: 'A normal character sheet skill like Athletics, Deception, or Investigation',
+  'save': 'A saving throw the character can make: Strength Save, etc.',
+  'check': 'An ability check that might include a proficiency bonus later eg. Initiative',
+  'tool': 'A tool proficiency. Be sure to add a base proficiency in the advanced section.',
+  'weapon': 'A weapon proficiency. Be sure to add a base proficiency in the advanced section.',
+  'armor': 'A armor proficiency. Be sure to add a base proficiency in the advanced section.',
+  'language': 'A language proficiency. Be sure to add a base proficiency in the advanced section.',
+  'utility': 'A skill that does not show up in the sheet, but can be used by other caclulations',
 };
+
+const abilityScoreList = autorun(() => {
+  return createListOfProperties({
+    type: 'attribute',
+    attributeType: 'ability',
+  });
+}).result;
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="inventory"
   >
@@ -7,12 +7,12 @@
         Inventory
       </div>
       <div class="d-flex inventory-stat">
-        <v-icon>$vuetify.icons.injustice</v-icon>
+        <v-icon>$injustice</v-icon>
         Weight Carried:
         {{ weightCarried }} lb
       </div>
       <div class="d-flex inventory-stat">
-        <v-icon>$vuetify.icons.cash</v-icon>
+        <v-icon>$cash</v-icon>
         Net worth:
         <coin-value
           class="ml-2"
@@ -20,10 +20,10 @@
         />
       </div>
       <div
-        v-if="variables.itemsAttuned && variables.itemsAttuned.value"
+        v-if="variables && variables.itemsAttuned && variables.itemsAttuned.value"
         class="d-flex inventory-stat"
       >
-        <v-icon>$vuetify.icons.spell</v-icon>
+        <v-icon>$spell</v-icon>
         Items attuned:
         {{ variables.itemsAttuned && variables.itemsAttuned.value }}
       </div>
@@ -71,146 +71,100 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed} from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import Creatures from '/imports/api/creature/creatures/Creatures';
 import ColumnLayout from '/imports/client/ui/components/ColumnLayout.vue';
-import getParentRefByTag from '../../../../../api/creature/creatureProperties/methods/getParentByTag';
-import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
-import PrintedLineItem from '/imports/client/ui/creature/character/printedCharacterSheet/components/PrintedLineItem.vue';
+import PrintedItem from '/imports/client/ui/creature/character/printedCharacterSheet/components/PrintedLineItem.vue';
 import PrintedContainer from '/imports/client/ui/creature/character/printedCharacterSheet/components/PrintedContainer.vue';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
-export default {
-  components: {
-    ColumnLayout,
-    CoinValue,
-    PrintedItem: PrintedLineItem,
-    PrintedContainer,
+
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
   },
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      organize: false,
-    }
-  },
-  meteor: {
-    containers() {
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'container',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, {
-        sort: { left: 1 },
-      });
-    },
-    creature() {
-      return Creatures.findOne(this.creatureId, {
-        fields: {
-          color: 1,
-          variables: 1,
-        }
-      });
-    },
-    variables() {
-      return CreatureVariables.findOne({ _creatureId: this.creatureId }) || {};
-    },
-    containersWithoutAncestorContainers() {
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        $nor: [getFilter.descendantsOfAll(this.containers)],
-        type: 'container',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, {
-        sort: { left: 1 },
-      }).map(c => {
-        c.items = CreatureProperties.find({
-          'parentId': c._id,
-          type: { $in: ['item', 'container'] },
-          removed: { $ne: true },
-          equipped: { $ne: true },
-          deactivatedByAncestor: { $ne: true },
-          deactivatedByToggle: { $ne: true },
-        }, {
-          sort: { left: 1 },
-        }).fetch();
-        return c;
-      });
-    },
-    carriedItems() {
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        $nor: [getFilter.descendantsOfAll(this.containers)],
-        type: 'item',
-        equipped: { $ne: true },
-        removed: { $ne: true },
-        deactivatedByAncestor: { $ne: true },
-        deactivatedByToggle: { $ne: true },
-      }, {
-        sort: { left: 1 },
-      });
-    },
-    equippedItems() {
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'item',
-        equipped: true,
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, {
-        sort: { left: 1 },
-      });
-    },
-    equipmentParentRef() {
-      return getParentRefByTag(
-        this.creatureId, BUILT_IN_TAGS.equipment
-      ) || getParentRefByTag(
-        this.creatureId, BUILT_IN_TAGS.inventory
-      ) || {
-        id: this.creatureId,
-        collection: 'creatures'
-      };
-    },
-    carriedParentRef() {
-      return getParentRefByTag(
-        this.creatureId, BUILT_IN_TAGS.carried
-      ) || getParentRefByTag(
-        this.creatureId, BUILT_IN_TAGS.inventory
-      ) || {
-        id: this.creatureId,
-        collection: 'creatures'
-      };
-    },
-  },
-  computed: {
-    weightCarried() {
-      return stripFloatingPointOddities(
-        this.variables &&
-        this.variables.weightCarried &&
-        this.variables.weightCarried.value || 0
-      );
-    },
-  },
-  methods: {
-    clickProperty(_id) {
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `tree-node-${_id}`,
-        data: { _id },
-      });
-    },
-  },
-}
+});
+
+
+
+const containers = autorun(() => CreatureProperties.find({
+  ...getFilter.descendantsOfRoot(props.creatureId),
+  type: 'container',
+  removed: { $ne: true },
+  inactive: { $ne: true },
+}, {
+  sort: { left: 1 },
+}).fetch()).result;
+
+
+const variables = autorun(() => CreatureVariables.findOne({ _creatureId: props.creatureId }) || {}).result;
+
+const containersWithoutAncestorContainers = autorun(() => {
+  const currentContainers = containers.value || [];
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(props.creatureId),
+    $nor: [getFilter.descendantsOfAll(currentContainers)],
+    type: 'container',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+  }, {
+    sort: { left: 1 },
+  }).map(c => {
+    c.items = CreatureProperties.find({
+      'parentId': c._id,
+      type: { $in: ['item', 'container'] },
+      removed: { $ne: true },
+      equipped: { $ne: true },
+      deactivatedByAncestor: { $ne: true },
+      deactivatedByToggle: { $ne: true },
+    }, {
+      sort: { left: 1 },
+    }).fetch();
+    return c;
+  });
+}).result;
+
+const carriedItems = autorun(() => {
+  const currentContainers = containers.value || [];
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(props.creatureId),
+    $nor: [getFilter.descendantsOfAll(currentContainers)],
+    type: 'item',
+    equipped: { $ne: true },
+    removed: { $ne: true },
+    deactivatedByAncestor: { $ne: true },
+    deactivatedByToggle: { $ne: true },
+  }, {
+    sort: { left: 1 },
+  }).fetch();
+}).result;
+
+const equippedItems = autorun(() => CreatureProperties.find({
+  ...getFilter.descendantsOfRoot(props.creatureId),
+  type: 'item',
+  equipped: true,
+  removed: { $ne: true },
+  inactive: { $ne: true },
+}, {
+  sort: { left: 1 },
+}).fetch()).result;
+
+
+
+const weightCarried = computed(() => {
+  return stripFloatingPointOddities(
+    variables.value &&
+    variables.value.weightCarried &&
+    variables.value.weightCarried.value || 0
+  );
+});
+
 </script>
 
 <style lang="css" scoped>

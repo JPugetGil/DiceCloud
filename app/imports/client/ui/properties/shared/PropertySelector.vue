@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="card-raised-background">
     <v-container fluid>
       <v-row
@@ -9,14 +9,16 @@
       >
         <template v-if="properties.suggested">
           <v-col cols="12">
-            <v-subheader>
+            <v-list-subheader>
               Suggested
-            </v-subheader>
+            </v-list-subheader>
           </v-col>
-          <template v-for="(property, type) in properties.suggested">
+          <template
+            v-for="(property, type) in properties.suggested"
+            :key="type"
+          >
             <v-col
               v-if="!noLibraryOnlyProps || !property.libraryOnly"
-              :key="type"
               md="4"
               sm="6"
               cols="10"
@@ -33,14 +35,16 @@
           v-if="properties.suggested"
           cols="12"
         >
-          <v-subheader>
+          <v-list-subheader>
             More
-          </v-subheader>
+          </v-list-subheader>
         </v-col>
-        <template v-for="(property, type) in properties.more">
+        <template
+          v-for="(property, type) in properties.more"
+          :key="type"
+        >
           <v-col
             v-if="!noLibraryOnlyProps || !property.libraryOnly"
-            :key="type"
             md="4"
             sm="6"
             cols="10"
@@ -57,65 +61,58 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import PropertySelectCard from '/imports/client/ui/properties/shared/PropertySelectCard.vue';
-export default {
-  components: {
-    PropertySelectCard,
+
+const props = defineProps({
+  noLibraryOnlyProps: Boolean,
+  parentType: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    noLibraryOnlyProps: Boolean,
-    parentType: {
-      type: String,
-      default: undefined,
-    },
-    suggestedTypes: {
-      type: Array,
-      default: undefined,
-    },
-    currentType: {
-      type: String,
-      default: undefined,
-    }
+  suggestedTypes: {
+    type: Array,
+    default: undefined,
   },
-  data() {
-    return {
-      PROPERTIES,
-    };
+  currentType: {
+    type: String,
+    default: undefined,
   },
-  computed: {
-    properties() {
-      let suggested;
-      let more = {};
-      if (this.suggestedTypes) {
-        for (const key in PROPERTIES) {
-          let prop = PROPERTIES[key];
-          if (this.suggestedTypes.includes(prop.type)) {
-            if (!suggested) suggested = {};
-            suggested[key] = prop;
-          } else {
-            more[key] = prop;
-          }
-        }
-        return { suggested, more };
-      } else if (this.parentType) {
-        for (const key in PROPERTIES) {
-          let prop = PROPERTIES[key];
-          if (prop.suggestedParents.includes(this.parentType)) {
-            if (!suggested) suggested = {};
-            suggested[key] = prop;
-          } else {
-            more[key] = prop;
-          }
-        }
-        return { suggested, more };
+});
+
+defineEmits(['select']);
+
+const properties = computed(() => {
+  let suggested;
+  let more = {};
+  if (props.suggestedTypes) {
+    for (const key in PROPERTIES) {
+      let prop = PROPERTIES[key];
+      if (props.suggestedTypes.includes(prop.type)) {
+        if (!suggested) suggested = {};
+        suggested[key] = prop;
       } else {
-        return { more: PROPERTIES };
+        more[key] = prop;
       }
-    },
-  },
-}
+    }
+    return { suggested, more };
+  } else if (props.parentType) {
+    for (const key in PROPERTIES) {
+      let prop = PROPERTIES[key];
+      if (prop.suggestedParents.includes(props.parentType)) {
+        if (!suggested) suggested = {};
+        suggested[key] = prop;
+      } else {
+        more[key] = prop;
+      }
+    }
+    return { suggested, more };
+  } else {
+    return { more: PROPERTIES };
+  }
+});
 </script>
 
 <style lang="css" scoped>

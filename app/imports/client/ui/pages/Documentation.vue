@@ -18,7 +18,7 @@
             </v-card-text>
           </v-card>
           <v-progress-circular
-            v-else-if="!$subReady.docs"
+            v-else-if="!docsReady"
             indeterminate
             color="primary"
             size="32"
@@ -34,70 +34,57 @@
   </v-container>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import Docs from '/imports/api/docs/Docs';
 import { propsByDocsPath } from '/imports/constants/PROPERTIES';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
 
-export default {
-  components: {
-    MarkdownText,
-  },
-  data() {
-    return {
-      action: undefined,
-    };
-  },
-  computed: {
-    path() {
-      return this.$route.params.docPath || 'docs';
-    },
-    prop() {
-      return propsByDocsPath.get(this.path);
-    },
-    title() {
-      if (this.prop) {
-        return this.prop.name + ' Docs';
-      } else {
-        const titleCase = this.path.replace(
-          /(\w*)(\W+)/g,
-          function (txt, word) {
-            return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase() + ' ';
-          }
-        );
-        return titleCase || 'DiceCloud Docs';
+const appStore = useAppStore();
+
+const route = useRoute();
+const router = useRouter();
+
+
+const path = computed(() => route.params.docPath || 'docs');
+
+const prop = computed(() => propsByDocsPath.get(path.value));
+
+const title = computed(() => {
+  if (prop.value) {
+    return prop.value.name + ' Docs';
+  } else {
+    const titleCase = path.value.replace(
+      /(\w*)(\W+)/g,
+      function (txt, word) {
+        return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase() + ' ';
       }
-    }
-  },
-  meteor: {
-    $subscribe: {
-      'docs'() {
-        return [this.path];
-      },
-    },
-    doc() {
-      const doc = Docs.findOne(this.path);
-      return doc && doc.description;
-    },
-  },
-  watch: {
-    title: {
-      immediate: true,
-      handler(value) {
-        this.$store.commit('setPageTitle', value);
-      }
-    }
-  },
-  methods: {
-    mdClick(e) {
-      const target = e.target || e.srcElement;
-      const href = target && target.href;
-      if (!href) return;
-      const path = href.split('/docs/')[1];
-      if (!path) return;
-      e.preventDefault();
-      this.$router.push('/docs/' + path);
-    }
+    );
+    return titleCase || 'DiceCloud Docs';
   }
+});
+
+const { ready: docsReady } = subscribe(() => ['docs', path.value]);
+
+const doc = autorun(() => {
+  const document = Docs.findOne(path.value);
+  return document && document.description;
+}).result;
+
+watch(title, (value) => {
+  appStore.setPageTitle(value);
+}, { immediate: true });
+
+function mdClick(e) {
+  const target = e.target || e.srcElement;
+  const href = target && target.href;
+  if (!href) return;
+  const targetPath = href.split('/docs/')[1];
+  if (!targetPath) return;
+  e.preventDefault();
+  router.push('/docs/' + targetPath);
 }
 </script>

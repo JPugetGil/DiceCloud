@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="item-viewer">
     <v-row dense>
       <property-field
@@ -26,7 +26,7 @@
         center
       >
         <v-btn
-          outlined
+          variant="outlined"
           style="font-size: 18px;"
           class="ma-2"
           :color="'primary'"
@@ -42,28 +42,27 @@
         name="value"
       >
         <div style="overflow: hidden;">
-          <v-layout
+          <div
             v-if="model.quantity > 1"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.cash
+              $cash
             </v-icon>
             <coin-value
               class="text-subtitle-1"
               :value="totalValue"
             />
-          </v-layout>
-          <v-layout align-center>
+          </div>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.two_coins
+              $two_coins
             </v-icon>
             <coin-value
               class="text-subtitle-1 mr-2"
@@ -75,7 +74,7 @@
             >
               each
             </span>
-          </v-layout>
+          </div>
         </div>
       </property-field>
       <property-field
@@ -83,29 +82,26 @@
         name="Weight"
       >
         <div style="overflow: hidden;">
-          <v-layout
+          <div
             v-if="model.quantity > 1"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.injustice
+              $injustice
             </v-icon>
             <span class="text-subtitle-1">
               {{ totalWeight }} lb
             </span>
-          </v-layout>
-          <v-layout
-            align-center
-          >
+          </div>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.weight
+              $weight
             </v-icon>
             <span class="text-subtitle-1 mr-2">
               {{ model.weight }} lb
@@ -116,7 +112,7 @@
             >
               each
             </span>
-          </v-layout>
+          </div>
         </div>
       </property-field>
       <property-field v-if="model.equipped">
@@ -145,7 +141,7 @@
             style="overflow: hidden;"
             class="ma-1"
           >
-            $vuetify.icons.spell
+            $spell
           </v-icon>
           <span class="ml-1">Attuned</span>
         </template>
@@ -161,62 +157,52 @@
   </div>
 </template>
 
-<script lang="js">
-import SVG_ICONS from '/imports/constants/SVG_ICONS';
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import { inject, ref, computed } from 'vue';
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
 import IncrementButton from '/imports/client/ui/components/IncrementButton.vue';
 import adjustQuantity from '/imports/api/creature/creatureProperties/methods/adjustQuantity';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 
-export default {
-  components: {
-    IncrementButton,
-    CoinValue,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: { default: {} }
-  },
-  data() {
-    return {
-      incrementLoading: false,
-    }
-  },
-  computed: {
-    totalValue() {
-      return stripFloatingPointOddities(this.model.value * this.model.quantity);
-    },
-    totalWeight() {
-      return stripFloatingPointOddities(this.model.weight * this.model.quantity);
-    },
-    attunementText() {
-      if (this.model.requiresAttunement) {
-        if (this.model.attuned) return 'Attuned';
-        return 'Requires attunement';
-      }
-      return undefined;
-    }
-  },
-  methods: {
-    getIcon(name) {
-      return SVG_ICONS[name];
-    },
-    changeQuantity({ type, value }) {
-      this.incrementLoading = true;
-      adjustQuantity.call({
-        _id: this.model._id,
-        operation: type,
-        value: value
-      }, error => {
-        this.incrementLoading = false;
-        if (error) {
-          snackbar({ text: error.reason });
-          console.error(error);
-        }
-      });
-    },
+});
+
+defineEmits(['remove', 'change']);
+
+const context = inject('context', {});
+
+const incrementLoading = ref(false);
+
+const totalValue = computed(() => {
+  return stripFloatingPointOddities(props.model.value * props.model.quantity);
+});
+
+const totalWeight = computed(() => {
+  return stripFloatingPointOddities(props.model.weight * props.model.quantity);
+});
+
+
+
+async function changeQuantity({ type, value }) {
+  incrementLoading.value = true;
+  try {
+    await adjustQuantity.callAsync({
+      _id: props.model._id,
+      operation: type,
+      value: value
+    });
+  } catch (error) {
+    snackbar({ text: error.reason });
+    console.error(error);
+  } finally {
+    incrementLoading.value = false;
   }
 }
 </script>

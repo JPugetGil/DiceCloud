@@ -1,10 +1,10 @@
-<template lang="html">
+<template>
   <toolbar-card
     :id="model._id"
     :color="model.color"
     @toolbarclick="$emit('click')"
   >
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
         {{ model.name }}
       </v-toolbar-title>
@@ -23,34 +23,29 @@
   </toolbar-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import ToolbarCard from '/imports/client/ui/components/ToolbarCard.vue';
-import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue'
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 
-export default {
-  components: {
-    ToolbarCard,
-    PropertyDescription,
-    PropertyIcon,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    summaryText() {
-      if (!this.model || !this.model.summary) return;
-      if (typeof this.model.summary.value === 'string') {
-        return this.model.summary.value;
-      } else {
-        return this.model.summary.text
-      }
-    },
+});
+
+defineEmits(['click']);
+
+const summaryText = computed(() => {
+  if (!props.model || !props.model.summary) return;
+  if (typeof props.model.summary.value === 'string') {
+    return props.model.summary.value;
+  } else {
+    return props.model.summary.text;
   }
-};
+});
 </script>
 
 <style lang="css" scoped>

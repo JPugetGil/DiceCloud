@@ -9,7 +9,7 @@ import getSlotFillFilter from '/imports/api/creature/creatureProperties/methods/
 import getCreatureLibraryIds from '/imports/api/library/getCreatureLibraryIds';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { insertExperienceForCreature } from '/imports/api/creature/experience/Experiences';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 
 const insertCreature = new ValidatedMethod({
   name: 'creatures.insertCreature',
@@ -31,7 +31,7 @@ const insertCreature = new ValidatedMethod({
     timeInterval: 5000,
   },
 
-  run({ name, gender, alignment, startingLevel,
+  async run({ name, gender, alignment, startingLevel,
     allowedLibraries, allowedLibraryCollections }) {
     const userId = this.userId
     if (!userId) {
@@ -41,7 +41,7 @@ const insertCreature = new ValidatedMethod({
 
 
     // Create the creature document
-    let creatureId = Creatures.insert({
+    let creatureId = await Creatures.insertAsync({
       owner: userId,
       name,
       gender,
@@ -57,7 +57,7 @@ const insertCreature = new ValidatedMethod({
 
     // Insert experience to get character to starting level
     if (startingLevel) {
-      insertExperienceForCreature({
+      await insertExperienceForCreature({
         experience: {
           name: 'Starting level',
           levels: startingLevel,
@@ -70,17 +70,20 @@ const insertCreature = new ValidatedMethod({
     // Insert the default properties
     // Not batchInsert because we want the properties cleaned by the schema
     let baseId, rulesetSlot;
-    defaultCharacterProperties(creatureId).forEach(prop => {
-      let id = CreatureProperties.insert(prop);
+    // for...of rather than forEach: an async callback handed to forEach is never
+    // awaited, so baseId and rulesetSlot were still unset by the time the code
+    // below read them.
+    for (const prop of defaultCharacterProperties(creatureId)) {
+      let id = await CreatureProperties.insertAsync(prop);
       if (prop.name === 'Ruleset') {
         baseId = id;
         rulesetSlot = prop;
       }
-    });
+    }
 
     // If the user only has a single ruleset subscribed, use it by default
     if (Meteor.isServer) {
-      insertDefaultRuleset(creatureId, baseId, userId, rulesetSlot);
+      await insertDefaultRuleset(creatureId, baseId, userId, rulesetSlot);
     }
 
     return creatureId;
@@ -88,14 +91,16 @@ const insertCreature = new ValidatedMethod({
 });
 
 // If the user only has a single ruleset subscribed, insert it by default
-function insertDefaultRuleset(creatureId, baseId, userId, slot) {
-  const libraryIds = getCreatureLibraryIds(creatureId, userId);
+async function insertDefaultRuleset(creatureId, baseId, userId, slot) {
+  const libraryIds = await getCreatureLibraryIds(creatureId, userId);
   const filter = getSlotFillFilter({ slot, libraryIds });
   const fillCursor = LibraryNodes.find(filter, { fields: { _id: 1 } });
-  const numRulesets = fillCursor.count();
+  const numRulesets = await fillCursor.countAsync();
   if (numRulesets === 1) {
-    const ruleset = fillCursor.fetch()[0]
-    insertPropertyFromLibraryNode.call({
+    const ruleset = (await fillCursor.fetchAsync())[0]
+    // Awaited: the method is async, and a call left running on its own lost any
+    // error and returned the new creature before its ruleset had landed
+    await insertPropertyFromLibraryNode.callAsync({
       nodeIds: [ruleset._id],
       parentRef: { id: baseId, collection: 'creatureProperties' },
     });

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="container-form">
     <v-row dense>
       <v-col
@@ -13,10 +13,10 @@
           hint="The value of the item in gold pieces, using decimals for values less than 1 gp"
           class="mx-1"
           style="flex-basis: 300px;"
-          prepend-inner-icon="$vuetify.icons.two_coins"
+          prepend-inner-icon="$two_coins"
           :value="model.value"
           :error-messages="errors.value"
-          @change="change('value', ...arguments)"
+          @change="(value, ack) => change('value', value, ack)"
         />
       </v-col>
       <v-col
@@ -30,10 +30,10 @@
           min="0"
           class="mx-1"
           style="flex-basis: 300px;"
-          prepend-inner-icon="$vuetify.icons.weight"
+          prepend-inner-icon="$weight"
           :value="model.weight"
           :error-messages="errors.weight"
-          @change="change('weight', ...arguments)"
+          @change="(value, ack) => change('weight', value, ack)"
         />
       </v-col>
       <v-col
@@ -46,7 +46,7 @@
           hint="Whether this container and its contents count towards the creature's weight carried"
           :value="model.carried"
           :error-messages="errors.carried"
-          @change="change('carried', ...arguments)"
+          @change="(value, ack) => change('carried', value, ack)"
         />
       </v-col>
       <v-col
@@ -57,7 +57,7 @@
           label="Contents are weightless"
           :value="model.contentsWeightless"
           :error-messages="errors.contentsWeightless"
-          @change="change('contentsWeightless', ...arguments)"
+          @change="(value, ack) => change('contentsWeightless', value, ack)"
         />
       </v-col>
     </v-row>
@@ -80,10 +80,27 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>

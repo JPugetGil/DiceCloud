@@ -1,12 +1,12 @@
-<template lang="html">
+<template>
   <v-toolbar
     :color="color || 'secondary'"
-    :dark="isDark"
-    :light="!isDark"
+    :theme="isDark ? 'dark' : 'light'"
     :flat="flat"
   >
     <v-btn
       v-if="!embedded"
+      variant="text"
       icon
       @click="back"
     >
@@ -23,27 +23,29 @@
     <v-slide-y-transition
       hide-on-leave
     >
-      <v-layout
+      <div
         v-if="editing && model"
         key="edit-buttons"
-        style="flex-shrink: 0;"
+        class="d-flex"
+        style="flex: 1 0 auto;"
       >
         <v-spacer />
         <v-menu
-          v-if="$listeners && (
-            $listeners.move ||
-            $listeners.duplicate ||
-            $listeners.remove
-          )"
-          bottom
-          left
+          v-if="
+            $attrs.onMove ||
+              $attrs.onDuplicate ||
+              $attrs.onRemove
+          "
+          location="bottom left"
+
           transition="slide-y-transition"
         >
-          <template #activator="{ on }">
+          <template #activator="{ props: activatorProps }">
             <v-btn
+              variant="text"
               icon
               data-id="property-toolbar-menu-button"
-              v-on="on"
+              v-bind="activatorProps"
             >
               <v-icon>mdi-dots-vertical</v-icon>
             </v-btn>
@@ -53,110 +55,104 @@
               v-if="docsPath"
               @click="helpDialog"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Help
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Help
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-help</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners.duplicate"
+              v-if="$attrs.onDuplicate"
               :disabled="context.editPermission === false"
               @click="$emit('duplicate')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Duplicate
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Duplicate
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-content-copy</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners.copy"
+              v-if="$attrs.onCopy"
               :disabled="context.copyPermission === false"
               @click="$emit('copy')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Copy To
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Copy To
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-content-duplicate</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners['make-reference']"
+              v-if="$attrs.onMakeReference"
               :disabled="context.editPermission === false"
               @click="$emit('make-reference')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Create Reference
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Create Reference
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-link-plus</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners.move"
+              v-if="$attrs.onMove"
               :disabled="context.editPermission === false"
               @click="$emit('move')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Move
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Move
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-send</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners['copy-to-library']"
+              v-if="$attrs.onCopyToLibrary"
               :disabled="context.editPermission === false"
               @click="$emit('copy-to-library')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Copy to library
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Copy to library
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-content-duplicate</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
             <v-list-item
-              v-if="$listeners && $listeners.remove"
+              v-if="$attrs.onRemove"
               :disabled="context.editPermission === false"
               @click="$emit('remove')"
             >
-              <v-list-item-content>
-                <v-list-item-title>
-                  Delete
-                </v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
+              <v-list-item-title>
+                Delete
+              </v-list-item-title>
+
+              <template #append>
                 <v-icon>mdi-delete</v-icon>
-              </v-list-item-action>
+              </template>
             </v-list-item>
           </v-list>
         </v-menu>
-      </v-layout>
-      <v-layout
+      </div>
+      <div
         v-else
         key="blank"
+        class="d-flex flex-1-1"
       />
     </v-slide-y-transition>
     <v-btn
       tile
-      outlined
+      variant="outlined"
       @click="$emit('toggle-editing')"
     >
       <span style="width: 44px;">
@@ -168,14 +164,14 @@
         <v-icon
           v-if="editing"
           key="doneIcon"
-          right
+          end
         >
           mdi-check
         </v-icon>
         <v-icon
           v-else
           key="createIcon"
-          right
+          end
         >
           mdi-pencil
         </v-icon>
@@ -184,71 +180,71 @@
   </v-toolbar>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed, inject } from 'vue';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import PROPERTIES from '/imports/constants/PROPERTIES';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    PropertyIcon,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-    flat: Boolean,
-    editing: Boolean,
-    embedded: Boolean,
-  },
-  computed: {
-    isDark(){
-      return isDarkColor(this.color);
-    },
-    color(){
-      return this.model && this.model.color || getThemeColor('secondary');
-    },
-    title(){
-      let model = this.model;
-      if (model.quantity !== 1 && model.quantity !== undefined){
-        if (model.plural){
-          return `${model.quantity} ${model.plural}`;
-        } else if (model.name) {
-          return `${model.quantity} ${model.name}`;
-        } else {
-          return `${model.quantity} × ${getPropertyName(model.type)}`
-        }
-      }
-      return model.name || getPropertyName(model.type);
-    },
-    docsPath() {
-      const propDef = PROPERTIES[this.model.type];
-      return propDef && propDef.docsPath;
-    },
-  },
-  methods: {
-    colorChanged(value){
-      this.$emit('color-changed', value);
-    },
-    back(){
-      this.$store.dispatch('popDialogStack');
-    },
-    helpDialog() {
-      this.$store.commit('pushDialogStack', {
-        component: 'help-dialog',
-        elementId: 'property-toolbar-menu-button',
-        data: {
-          path: this.docsPath,
-        },
-      });
-    },
+  flat: Boolean,
+  editing: Boolean,
+  embedded: Boolean,
+});
+
+defineEmits(['color-changed', 'duplicate', 'copy', 'make-reference', 'move', 'copy-to-library', 'remove', 'toggle-editing']);
+
+const context = inject('context', {});
+
+const isDark = computed(() => isDarkColor(color.value));
+
+const color = computed(() => {
+  return (props.model && props.model.color) || getThemeColor('secondary');
+});
+
+const title = computed(() => {
+  let model = props.model;
+  if (!model) return '';
+  if (model.quantity !== 1 && model.quantity !== undefined) {
+    if (model.plural) {
+      return `${model.quantity} ${model.plural}`;
+    } else if (model.name) {
+      return `${model.quantity} ${model.name}`;
+    } else {
+      return `${model.quantity} × ${getPropertyName(model.type)}`;
+    }
   }
+  return model.name || getPropertyName(model.type);
+});
+
+const docsPath = computed(() => {
+  if (!props.model) return undefined;
+  const propDef = PROPERTIES[props.model.type];
+  return propDef && propDef.docsPath;
+});
+
+
+function back() {
+  dialogStackStore.popDialogStack();
+}
+
+function helpDialog() {
+  dialogStackStore.pushDialogStack({
+    component: 'help-dialog',
+    elementId: 'property-toolbar-menu-button',
+    data: {
+      path: docsPath.value,
+    },
+  });
 }
 </script>
 

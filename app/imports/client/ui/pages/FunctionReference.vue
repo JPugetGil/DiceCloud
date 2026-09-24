@@ -41,18 +41,16 @@
   </v-container>
 </template>
 
-<script lang="js">
-import functions from '/imports/parser/functions';
-export default {
-  computed:{
-    functions(){
-      let fns = [];
-      for (let name in functions){
-        let f = functions[name];
-        fns.push({name, ...f});
-      }
-      return fns;
-    }
+<script setup>
+import { computed } from 'vue';
+import parserFunctions from '/imports/parser/functions';
+
+const functions = computed(() => {
+  let fns = [];
+  for (let name in parserFunctions) {
+    let f = parserFunctions[name];
+    fns.push({ name, ...f });
   }
-}
+  return fns;
+});
 </script>

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-row dense>
     <v-col
       cols="12"
@@ -27,10 +27,20 @@
   </v-row>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-}
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+defineEmits(['change']);
+
 </script>

@@ -1,5 +1,6 @@
 import { JsonRoutes } from 'meteor/simple:json-routes';
 import authenticateMeteorUserByToken from './middleware/authenticateUserByToken';
+import parseBearerToken from './middleware/parseBearerToken';
 /**
  * Login with username/email and password:
  *   POST /api/login
@@ -23,14 +24,17 @@ import authenticateMeteorUserByToken from './middleware/authenticateUserByToken'
  *  }, callback);
 **/
 
-JsonRoutes.Middleware.use(JsonRoutes.Middleware.parseBearerToken);
+JsonRoutes.Middleware.use(parseBearerToken);
 JsonRoutes.Middleware.use(authenticateMeteorUserByToken);
 
 JsonRoutes.add('options', 'api/login', function (req, res) {
   JsonRoutes.sendResult(res);
 });
 
-JsonRoutes.add('post', 'api/login', function (req, res) {
+// Meteor 3 made the accounts lookups and the password check asynchronous, so
+// this handler awaits them. Left synchronous, `user` was a pending promise and
+// the password check blew up with a generic 500 instead of a clean auth error.
+JsonRoutes.add('post', 'api/login', async function (req, res) {
   var options = req.body;
 
   var user;
@@ -39,13 +43,13 @@ JsonRoutes.add('post', 'api/login', function (req, res) {
       email: String,
       password: String,
     });
-    user = Accounts.findUserByEmail(options.email);
+    user = await Accounts.findUserByEmail(options.email);
   } else {
     check(options, {
       username: String,
       password: String,
     });
-    user = Accounts.findUserByUsername(options.username);
+    user = await Accounts.findUserByUsername(options.username);
   }
 
   if (!user) {
@@ -53,7 +57,7 @@ JsonRoutes.add('post', 'api/login', function (req, res) {
       'User with that username or email address not found.');
   }
 
-  var result = Accounts._checkPassword(user, options.password);
+  var result = await Accounts._checkPasswordAsync(user, options.password);
   check(result, {
     userId: String,
     error: Match.Optional(Meteor.Error),
@@ -69,7 +73,7 @@ JsonRoutes.add('post', 'api/login', function (req, res) {
     when: Date,
   });
 
-  Accounts._insertLoginToken(result.userId, stampedLoginToken);
+  await Accounts._insertLoginToken(result.userId, stampedLoginToken);
 
   var tokenExpiration = Accounts._tokenExpiration(stampedLoginToken.when);
   check(tokenExpiration, Date);

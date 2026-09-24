@@ -10,16 +10,20 @@ const validateDatabase = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 10000,
   },
-  run() {
-    assertAdmin(this.userId);
-    // Very computationally expensive data diagnostics
-    // Only run in an offline instance you control
-    return;
-    if (Meteor.isClient) return;
+  async run() {
+    await assertAdmin(this.userId);
+    // Very computationally expensive data diagnostics.
+    // Only run in an offline instance you control, by starting the server with
+    // VALIDATE_DATABASE=1 in the environment.
+    if (Meteor.isClient || !process.env.VALIDATE_DATABASE) return;
 
-    Meteor.Collection.getAll().forEach(collection => {
-      if (!collection.instance._c2?._simpleSchemas) return;
-      collection.instance.find({}).forEach(doc => {
+    // for...of rather than forEach: an async callback handed to forEach is
+    // never awaited.
+    for (const collection of Meteor.Collection.getAll()) {
+      // `continue`, not `return`: this was a forEach callback, where returning
+      // only skipped that one collection.
+      if (!collection.instance._c2?._simpleSchemas) continue;
+      await collection.instance.find({}).forEachAsync(doc => {
         const schema = collection.instance.simpleSchema(doc);
         let cleanDoc = schema.clean(doc);
         try {
@@ -28,7 +32,7 @@ const validateDatabase = new ValidatedMethod({
           console.log(collection.name, doc._id, e.message || e.reason || e.toString());
         }
       });
-    });
+    }
   },
 });
 

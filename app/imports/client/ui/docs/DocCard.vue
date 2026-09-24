@@ -23,32 +23,27 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
-  
-export default {
-  components: {
-    MarkdownText,
-    CardHighlight,
+
+defineProps({
+  doc: {
+    type: Object,
+    required: true,
   },
-  props: { 
-    doc: {
-      type: Object,
-      required: true,
-    },
-  },
-  data() {return {
-    hovering: false,
-  }},
-}
+});
+
+const hovering = ref(false);
 </script>
 
 <style scoped>
   .v-card {
     height: 240px;
   }
-  .v-card__text{
+  /* Vuetify 3 renamed Vuetify 2's .v-card__text */
+  .v-card-text {
     overflow: hidden;
     -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 95%);
     mask-image: linear-gradient(to bottom, black 75%, transparent 95%);

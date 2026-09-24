@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="saving-throw-form">
     <v-row dense>
       <v-col
@@ -24,7 +24,7 @@
           :value="model.stat"
           :items="saveList"
           :error-messages="errors.stat"
-          @change="change('stat', ...arguments)"
+          @change="(...args) => change('stat', ...args)"
         />
       </v-col>
       <v-col
@@ -38,7 +38,7 @@
             {name: 'Self', value: 'self'},
           ]"
           :error-messages="errors.target"
-          @change="change('target', ...arguments)"
+          @change="(...args) => change('target', ...args)"
         />
       </v-col>
     </v-row>
@@ -48,7 +48,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(...args) => change('silent', ...args)"
         />
       </form-section>
       <slot />
@@ -56,11 +56,28 @@
   </div>
 </template>
 
-<script lang="js">
-import saveListMixin from '/imports/client/ui/properties/forms/shared/lists/saveListMixin';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { useSaveList } from '/imports/client/ui/properties/forms/shared/lists/useSaveList';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [saveListMixin, propertyFormMixin],
-};
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  emit('change', { path: [path], value, ack });
+}
+
+const saveList = useSaveList();
 </script>

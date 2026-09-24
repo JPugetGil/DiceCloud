@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';

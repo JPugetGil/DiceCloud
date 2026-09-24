@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="library-browser"
     style="
@@ -17,16 +17,13 @@
         :key="library._id"
         :data-id="library._id"
       >
-        <v-expansion-panel-header>
+        <v-expansion-panel-title>
           <div class="text-h6">
             {{ library.name }}
           </div>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-layout
-            justify-space-around
-            class="ma-2"
-          >
+        </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <div class="d-flex flex-1-1 justify-space-around ma-2">
             <insert-library-node-button
               v-if="editPermission(library)"
               :library-id="library._id"
@@ -35,13 +32,13 @@
             />
             <v-btn
               color="primary"
-              outlined
-              small
-              @click="$router.push(`/library/${library._id}`)"
+              variant="outlined"
+              size="small"
+              @click="router.push(`/library/${library._id}`)"
             >
               <v-icon>mdi-arrow-right</v-icon>
             </v-btn>
-          </v-layout>
+          </div>
           <library-contents-container
             :library-id="library._id"
             :organize-mode="organizeMode && editPermission(library)"
@@ -51,13 +48,13 @@
             should-subscribe
             @selected="e => $emit('selected', e)"
           />
-        </v-expansion-panel-content>
+        </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
     <v-btn
       v-show="noLibrariesExpanded"
       v-if="editMode"
-      text
+      variant="text"
       color="primary"
       style="background-color: inherit;"
       data-id="insert-library-button"
@@ -69,81 +66,71 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { Meteor } from 'meteor/meteor';
 import LibraryContentsContainer from '/imports/client/ui/library/LibraryContentsContainer.vue';
-import Libraries, { insertLibrary } from '/imports/api/library/Libraries';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import Libraries, { insertLibrary as insertLibraryMethod } from '/imports/api/library/Libraries';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import InsertLibraryNodeButton from '/imports/client/ui/library/InsertLibraryNodeButton.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    LibraryContentsContainer,
-    InsertLibraryNodeButton,
+const dialogStackStore = useDialogStackStore();
+
+defineProps({
+  organizeMode: Boolean,
+  editMode: Boolean,
+  selectedNode: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    organizeMode: Boolean,
-    editMode: Boolean,
-    selectedNode: {
-      type: Object,
-      default: undefined,
-    },
-    filter: {
-      type: Object,
-      default: undefined,
-    },
+  filter: {
+    type: Object,
+    default: undefined,
   },
-  data(){ return {
-    expandedLibrary: [],
-    expandedLibraryContent: [],
-  };},
-  computed: {
-    noLibrariesExpanded(){
-      return !this.expandedLibrary || this.expandedLibrary.length === 0;
-    },
-  },
-  meteor: {
-    $subscribe: {
-      'libraries': [],
-    },
-    libraries(){
-      return Libraries.find({}, {
-        sort: {name: 1}
-      }).fetch();
-    },
-  },
-  methods: {
-    insertLibrary(){
-      this.$store.commit('pushDialogStack', {
-        component: 'library-creation-dialog',
-        elementId: 'insert-library-button',
-        callback(library){
-          if (!library) return;
-          let libraryId = insertLibrary.call(library);
-          return libraryId;
-        }
-      });
-    },
-    editPermission(library){
-      try {
-        assertEditPermission(library, Meteor.userId());
-        return true;
-      } catch (e) {
-        return false;
-      }
-    },
-    editLibrary(_id){
-      this.$store.commit('pushDialogStack', {
-        component: 'library-edit-dialog',
-        elementId: _id,
-        data: {_id},
-      });
-    },
-  },
+});
+
+defineEmits(['selected']);
+
+const router = useRouter();
+
+const expandedLibrary = ref([]);
+
+const noLibrariesExpanded = computed(() => {
+  return !expandedLibrary.value || expandedLibrary.value.length === 0;
+});
+
+subscribe('libraries');
+
+const libraries = autorun(() => {
+  return Libraries.find({}, {
+    sort: { name: 1 }
+  }).fetch();
+}).result;
+
+function insertLibrary() {
+  dialogStackStore.pushDialogStack({
+    component: 'library-creation-dialog',
+    elementId: 'insert-library-button',
+    async callback(library) {
+      if (!library) return;
+      let libraryId = await insertLibraryMethod.callAsync(library);
+      return libraryId;
+    }
+  });
 }
+
+function editPermission(library) {
+  // Called from the template, so it has to answer synchronously
+  return hasEditPermission(library, Meteor.user());
+}
+
 </script>
 
 <style lang="css">
-.library-browser .v-expansion-panel-content__wrap, .library-browser .v-expansion-panel-header {
+.library-browser .v-expansion-panel-text__wrapper, .library-browser .v-expansion-panel-title {
   padding: 0 !important;
 }
 </style>

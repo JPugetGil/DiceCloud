@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div>
     <span
       v-if="coinValue.gp || value === 0"
@@ -18,22 +18,20 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { computed } from 'vue';
 import valueToCoins from '/imports/client/ui/utility/valueToCoins';
 
-export default {
-  props:{
-    value: {
-      type: Number,
-      default: undefined,
-    },
+const props = defineProps({
+  value: {
+    type: Number,
+    default: undefined,
   },
-  computed:{
-    coinValue(){
-      return valueToCoins(this.value);
-    }
-  },
-}
+});
+
+const coinValue = computed(() => {
+  return valueToCoins(props.value);
+});
 </script>
 
 <style lang="css" scoped>

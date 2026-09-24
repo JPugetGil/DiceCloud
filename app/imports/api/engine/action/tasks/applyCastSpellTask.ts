@@ -29,7 +29,7 @@ export default async function applySpellProperty(
     message = `Ritual casting at level ${slotLevel}`
   } else {
     // Get the slot being cast with
-    const spellSlot = task.params.slotId && getSingleProperty(action.creatureId, task.params.slotId) || undefined;
+    const spellSlot = task.params.slotId && await getSingleProperty(action.creatureId, task.params.slotId) || undefined;
     // Ensure the slot exists
     if (!spellSlot) {
       result.appendLog({
@@ -75,7 +75,7 @@ export default async function applySpellProperty(
   };
 
   // Run the rest of the spell as if it were an action
-  return applyActionProperty({
+  return await applyActionProperty({
     prop,
     targetIds: targetIds,
   }, action, result, userInput);

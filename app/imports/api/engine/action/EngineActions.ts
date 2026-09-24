@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
 import Task from './tasks/Task';
@@ -12,7 +12,6 @@ export interface EngineAction {
   _decisions?: any[],
   task: Task;
   creatureId: string;
-  tabletopId?: string;
   results: TaskResult[];
   taskCount: number;
 }
@@ -28,13 +27,6 @@ const ActionSchema = new SimpleSchema({
     type: String,
     max: 32,
     optional: true,
-  },
-  tabletopId: {
-    type: String,
-    max: 32,
-    optional: true,
-    // @ts-expect-error index not defined
-    index: 1,
   },
   task: {
     type: Object,

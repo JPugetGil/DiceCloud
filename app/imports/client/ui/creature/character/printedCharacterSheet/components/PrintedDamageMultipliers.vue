@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div>
     <div
       v-for="(multiplier, multiplierIndex) in multipliers"
@@ -43,22 +43,21 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    multipliers:{
-      type: Array,
-      required: true,
-    }
+<script setup>
+defineProps({
+  multipliers: {
+    type: Array,
+    required: true,
   },
-  methods: {
-    title(prop){
-      switch (prop.value){
-        case 0: return 'Immunity';
-        case 0.5: return 'Resistance';
-        case 2: return 'Vulnerability';
-      }
-    }
+});
+
+defineEmits(['click-multiplier']);
+
+function title(prop) {
+  switch (prop.value) {
+    case 0: return 'Immunity';
+    case 0.5: return 'Resistance';
+    case 2: return 'Vulnerability';
   }
 }
 </script>

@@ -1,36 +1,42 @@
-<template lang="html">
+<template>
   <v-list-item
     class="spell"
     v-bind="$attrs"
     :disabled="disabled"
     v-on="hasClickListener ? {click} : {}"
   >
-    <v-list-item-avatar class="spell-avatar">
-      <property-icon
-        class="mr-2"
-        :model="model"
-        :color="model.color"
-        :disabled="disabled"
-      />
-    </v-list-item-avatar>
-    <v-list-item-content>
-      <v-list-item-title>
-        {{ title }}
-      </v-list-item-title>
-      <v-list-item-subtitle v-if="spellComponents">
-        {{ spellComponents }}
-      </v-list-item-subtitle>
-    </v-list-item-content>
-    <v-list-item-action v-if="preparingSpells || showInfoButton">
+    <template #prepend>
+      <v-avatar class="spell-avatar">
+        <property-icon
+          class="mr-2"
+          :model="model"
+          :color="model.color"
+          :disabled="disabled"
+        />
+      </v-avatar>
+    </template>
+
+    <v-list-item-title>
+      {{ title }}
+    </v-list-item-title>
+    <v-list-item-subtitle v-if="spellComponents">
+      {{ spellComponents }}
+    </v-list-item-subtitle>
+
+    <template
+      v-if="preparingSpells || showInfoButton"
+      #append
+    >
       <smart-checkbox
         v-if="preparingSpells"
         :value="model.prepared || model.alwaysPrepared"
         :disabled="model.alwaysPrepared || context.editPermission === false"
-        @click.native.stop="() => {}"
+        @click.stop="() => {}"
         @change="setPrepared"
       />
       <v-btn
         v-else-if="showInfoButton"
+        variant="text"
         icon
         class="info-icon"
         :disabled="disabled"
@@ -39,50 +45,71 @@
       >
         <v-icon>mdi-information</v-icon>
       </v-btn>
-    </v-list-item-action>
+    </template>
   </v-list-item>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { inject, computed, useAttrs } from 'vue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
+import PROPERTIES from '/imports/constants/PROPERTIES';
 
-export default {
-  mixins: [treeNodeViewMixin],
-  inject: {
-    context: { default: {} }
+const attrs = useAttrs();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  props: {
-    preparingSpells: Boolean,
-    showInfoButton: Boolean,
-    disabled: Boolean,
-  },
-  computed: {
-    hasClickListener() {
-      return this.$listeners && !!this.$listeners.click;
-    },
-    spellComponents() {
-      let components = [];
-      if (this.model.ritual) components.push('R');
-      if (this.model.concentration) components.push('C');
-      if (this.model.verbal) components.push('V');
-      if (this.model.somatic) components.push('S');
-      if (this.model.material) components.push(`M (${this.model.material})`);
-      return components.join(', ');
-    },
-  },
-  methods: {
-    click(e) {
-      this.$emit('click', e);
-    },
-    setPrepared(val, ack) {
-      updateCreatureProperty.call({
-        _id: this.model._id,
-        path: ['prepared'],
-        value: val
-      }, ack);
-    }
-  },
+  selected: Boolean,
+  hideIcon: Boolean,
+  preparingSpells: Boolean,
+  showInfoButton: Boolean,
+  disabled: Boolean,
+});
+
+const emit = defineEmits(['show-info', 'click']);
+
+const context = inject('context', {});
+
+const hasClickListener = computed(() => {
+  return !!attrs.onClick;
+});
+
+const spellComponents = computed(() => {
+  let components = [];
+  if (props.model.ritual) components.push('R');
+  if (props.model.concentration) components.push('C');
+  if (props.model.verbal) components.push('V');
+  if (props.model.somatic) components.push('S');
+  if (props.model.material) components.push(`M (${props.model.material})`);
+  return components.join(', ');
+});
+
+const title = computed(() => {
+  const model = props.model;
+  if (!model) return;
+  if (model.name) return model.name;
+  const prop = PROPERTIES[model.type];
+  return prop && prop.name;
+});
+
+function click(e) {
+  emit('click', e);
+}
+
+async function setPrepared(val, ack) {
+  try {
+    await updateCreatureProperty.callAsync({
+      _id: props.model._id,
+      path: ['prepared'],
+      value: val
+    });
+    ack?.();
+  } catch (error) {
+    ack?.(error);
+  }
 }
 </script>
 
@@ -95,12 +122,13 @@ export default {
   background-color: inherit;
 }
 
-.primary--text .v-icon,
-.primary--text .v-list__tile__sub-title {
-  color: #b71c1c
+/* The light theme's red was forced here in both themes: 2.1:1 on dark cards */
+.text-primary .v-icon,
+.text-primary .v-list-item-subtitle {
+  color: rgb(var(--v-theme-primary));
 }
 
-.theme--light.info-icon {
-  color: rgba(0, 0, 0, .54) !important;
+.info-icon {
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)) !important;
 }
 </style>

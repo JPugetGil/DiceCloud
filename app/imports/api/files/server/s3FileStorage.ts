@@ -95,7 +95,7 @@ if (Meteor.settings.useS3) {
             Body: fs.createReadStream(vRef.path),
             ContentType: vRef.type,
           }, (error: Error) => {
-            bound(() => {
+            bound(async () => {
               if (error) {
                 this.emit('s3Result', error, fileRef);
                 return console.error(error);
@@ -109,15 +109,15 @@ if (Meteor.settings.useS3) {
                 }
               };
 
-              filesCollection.collection.update({
+              await filesCollection.collection.updateAsync({
                 _id: fileRef._id
-              }, upd, undefined, (updError: any) => {
+              }, upd, undefined, async (updError: any) => {
                 if (updError) {
                   this.emit('s3Result', updError, fileRef);
                   console.error(updError);
                 } else {
                   // Unlink original files from FS after successful upload to AWS:S3
-                  filesCollection.unlink(filesCollection.findOne(fileRef._id), version);
+                  filesCollection.unlink(await filesCollection.findOneAsync(fileRef._id), version);
                   this.emit('s3Result', undefined, fileRef)
                 }
               });
@@ -193,11 +193,13 @@ if (Meteor.settings.useS3) {
       debug,
       allowClientCode,
     });
-    // Intercept FilesCollection's remove method to remove file from AWS:S3
-    const _origRemove = filesCollection.remove;
-    filesCollection.remove = function (search) {
+    // Intercept FilesCollection's removeAsync to remove file from AWS:S3.
+    // ostrio:files 3 does not route removeAsync through remove(), and the app
+    // only calls removeAsync, so intercepting remove() never ran.
+    const _origRemoveAsync = filesCollection.removeAsync;
+    filesCollection.removeAsync = async function (search) {
       const cursor = this.collection.find(search);
-      cursor.forEach((fileRef) => {
+      await cursor.forEachAsync((fileRef) => {
         each(fileRef.versions, (vRef) => {
           if (vRef?.meta?.pipePath) {
             // Remove the object from AWS:S3 first, then we will call the original FilesCollection remove
@@ -216,7 +218,7 @@ if (Meteor.settings.useS3) {
       });
 
       //remove original file from database
-      return _origRemove.call(this, search);
+      return _origRemoveAsync.call(this, search);
     };
 
     filesCollection.readJSONFile = async function (file: FileObj<S3Metadata>) {

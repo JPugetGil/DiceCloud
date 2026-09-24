@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="folder-form">
     <inline-computation-field
       label="Description"
@@ -13,7 +13,7 @@
           label="Group children on a card"
           :value="model.groupStats"
           :error-messages="errors.groupStats"
-          @change="change('groupStats', ...arguments)"
+          @change="(value, ack) => change('groupStats', value, ack)"
         />
         <v-expand-transition>
           <div v-if="model.groupStats">
@@ -21,24 +21,24 @@
               label="Hide children from their default locations"
               :value="model.hideStatsGroup"
               :error-messages="errors.hideStatsGroup"
-              @change="change('hideStatsGroup', ...arguments)"
+              @change="(value, ack) => change('hideStatsGroup', value, ack)"
             />
             <smart-select
               clearable
               label="Tab"
               :items="[
-                { text: 'Stats Tab', value: 'stats' },
-                { text: 'Features Tab', value: 'features' },
-                { text: 'Actions Tab', value: 'actions' },
-                { text: 'Spells Tab', value: 'spells' },
-                { text: 'Inventory Tab', value: 'inventory' },
-                { text: 'Journal Tab', value: 'journal' },
-                { text: 'Build Tab', value: 'build' },
+                { title: 'Stats Tab', value: 'stats' },
+                { title: 'Features Tab', value: 'features' },
+                { title: 'Actions Tab', value: 'actions' },
+                { title: 'Spells Tab', value: 'spells' },
+                { title: 'Inventory Tab', value: 'inventory' },
+                { title: 'Journal Tab', value: 'journal' },
+                { title: 'Build Tab', value: 'build' },
               ]"
               :value="model.tab"
               :error-messages="errors.tab"
               :menu-props="{auto: true, lazy: true}"
-              @change="changeTab('tab', ...arguments)"
+              @change="(value, ack) => changeTab('tab', value, ack)"
             />
             <smart-select
               clearable
@@ -47,7 +47,7 @@
               :value="model.location"
               :error-messages="errors.location"
               :menu-props="{auto: true, lazy: true}"
-              @change="change('location', ...arguments)"
+              @change="(value, ack) => change('location', value, ack)"
             />
           </div>
         </v-expand-transition>
@@ -57,49 +57,62 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { computed } from 'vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    FormSection,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  computed: {
-    locationItems() {
-      if (this.model.tab === 'stats') {
-        return [
-          { text: 'Start', value: 'start' },
-          { text: 'After events', value: 'events' },
-          { text: 'After stats', value: 'stats' },
-          { text: 'After skills', value: 'skills' },
-          { text: 'After proficiencies', value: 'proficiencies' },
-          { text: 'End', value: 'end' },
-        ];
-      } else {
-        return [
-          { text: 'Start', value: 'start' },
-          { text: 'End', value: 'end' },
-        ];
-      }
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  methods: {
-    changeTab(path, value, ack) {
-      if (!Array.isArray(path)){
-        path = [path];
-      }
-      if (
-        value !== 'stats' &&
-        (this.model.location !== 'start' && this.model.location !== 'end')
-        || (!this.model.location && value)
-      )
-      this.$emit('change', {path: ['location'], value: 'start'});
-      this.$emit('change', {path, value, ack});
-    },
+});
+
+const emit = defineEmits(['change']);
+
+const locationItems = computed(() => {
+  if (props.model.tab === 'stats') {
+    return [
+      { title: 'Start', value: 'start' },
+      { title: 'After events', value: 'events' },
+      { title: 'After stats', value: 'stats' },
+      { title: 'After skills', value: 'skills' },
+      { title: 'After proficiencies', value: 'proficiencies' },
+      { title: 'End', value: 'end' },
+    ];
+  } else {
+    return [
+      { title: 'Start', value: 'start' },
+      { title: 'End', value: 'end' },
+    ];
   }
-};
+});
+
+function changeTab(path, value, ack) {
+  if (!Array.isArray(path)){
+    path = [path];
+  }
+  if (
+    value !== 'stats' &&
+    (props.model.location !== 'start' && props.model.location !== 'end')
+    || (!props.model.location && value)
+  )
+  emit('change', {path: ['location'], value: 'start'});
+  emit('change', {path, value, ack});
+}
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

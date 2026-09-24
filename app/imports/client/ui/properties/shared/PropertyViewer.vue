@@ -1,6 +1,6 @@
-<template lang="html">
+<template>
   <div
-    v-if="model && $options.components[model.type]"
+    v-if="model && components[model.type]"
     class="property-viewer"
   >
     <v-row dense>
@@ -11,7 +11,7 @@
       >
         <div
           style="width: 100%"
-          class="text--disabled"
+          class="text-disabled"
         >
           <div>
             Inactive
@@ -48,7 +48,7 @@
       </property-field>
     </v-row>
     <component
-      :is="model.type"
+      :is="components[model.type]"
       :key="model._id"
       class="property-viewer"
       :model="model"
@@ -75,24 +75,24 @@
             </li>
           </ul>
         </property-field>
-        <property-field 
+        <property-field
           name="Slot fill type"
           :value="slotFillTypeName"
         />
-        <property-field 
+        <property-field
           name="Slot quantity filled"
           :value="model.slotQuantityFilled"
         />
-        <property-field 
+        <property-field
           name="Condition"
           mono
           :value="model.slotFillerCondition"
         />
-        <property-field 
+        <property-field
           name="Condition Error Text"
           :value="model.slotFillerConditionNote"
         />
-        <property-field 
+        <property-field
           name="Library Tags"
           :cols="{cols: 12}"
         >
@@ -104,7 +104,7 @@
               v-for="(tag, index) in model.libraryTags"
               :key="tag + index"
               class="mr-1"
-              small
+              size="small"
               disabled
             >
               {{ tag }}
@@ -112,7 +112,7 @@
           </div>
         </property-field>
       </template>
-      <property-field 
+      <property-field
         name="Tags"
         :cols="{cols: 12}"
       >
@@ -125,7 +125,7 @@
             :key="tag + index"
             class="mr-1"
             disabled
-            small
+            size="small"
           >
             {{ tag }}
           </v-chip>
@@ -151,52 +151,50 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import propertyViewerIndex from '/imports/client/ui/properties/viewers/shared/propertyViewerIndex';
 import CreaturePropertiesTree from '/imports/client/ui/creature/creatureProperties/CreaturePropertiesTree.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import DescendantPropertiesTree from '/imports/client/ui/creature/creatureProperties/DescendantPropertiesTree.vue';
+import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 
-export default {
-  components: {
-    ...propertyViewerIndex,
-    CreaturePropertiesTree,
-    PropertyField,
-    DescendantPropertiesTree,
+const components = {
+  ...propertyViewerIndex,
+  CreaturePropertiesTree,
+  PropertyField,
+  DescendantPropertiesTree,
+};
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined
   },
-  props: {
-    model: {
-      type: Object,
-      default: undefined
-    },
-    collection: {
-      type: String,
-      default: 'creatureProperties'
-    },
+  collection: {
+    type: String,
+    default: 'creatureProperties'
   },
-  data() {
-    return {
-      childrenLength: 0,
-    }
-  },
-  meteor: {
-    deactivatingToggle() {
-      if (!this.model.deactivatingToggleId) return;
-      return CreatureProperties.findOne(this.model.deactivatingToggleId);
-    }
-  },
-  computed: {
-    slotFillTypeName() {
-      return getPropertyName(this.model.slotFillerType);      
-    },
-  },
-  methods: {
-    selectSubProperty(_id) {
-      this.$emit('select-sub-property', _id);
-    },
-  },
+});
+
+const emit = defineEmits(['change', 'remove', 'select-sub-property']);
+
+const childrenLength = ref(0);
+
+const deactivatingToggle = autorun(() => {
+  if (!props.model?.deactivatingToggleId) return;
+  return CreatureProperties.findOne(props.model.deactivatingToggleId);
+}).result;
+
+const slotFillTypeName = computed(() => {
+  return getPropertyName(props.model?.slotFillerType);
+});
+
+function selectSubProperty(_id) {
+  emit('select-sub-property', _id);
 }
 </script>
 

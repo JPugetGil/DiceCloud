@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="buff-remover-form">
     <smart-toggle
       label="Target buffs"
@@ -46,7 +46,7 @@
                 {name: 'Self', value: 'self'},
               ]"
               :error-messages="errors.target"
-              @change="change('target', ...arguments)"
+              @change="(value, ack) => change('target', value, ack)"
             />
           </v-col>
         </v-row>
@@ -67,7 +67,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -75,47 +75,34 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-import {
-  BuffRemoverSchema
-} from '/imports/api/properties/BuffRemovers';
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-export default {
-  components: {
-    TagTargeting,
-  },
-  mixins: [propertyFormMixin],
-  data(){return {
-    addExtraTagsLoading: false,
-    extraTagOperations: ['OR', 'NOT'],
-  }},
-  computed: {
-    extraTagsFull(){
-      if (!this.model.extraTags) return false;
-      let maxCount = BuffRemoverSchema.get('extraTags', 'maxCount');
-      return this.model.extraTags.length >= maxCount;
-    },
-  },
-  methods: {
-    acknowledgeAddResult(){
-      this.addExtraTagsLoading = false;
-    },
-    addExtraTags(){
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: ['extraTags'],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
+const emit = defineEmits(['change', 'push', 'pull']);
+
+
+
+
+
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

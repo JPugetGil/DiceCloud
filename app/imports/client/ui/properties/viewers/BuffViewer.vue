@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="buff-viewer">
     <!--<property-field
       name="Duration"
@@ -20,30 +20,17 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-import numberToSignedString from '../../../../api/utility/numberToSignedString';
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  computed: {
-    reset() {
-      let reset = this.model.reset
-      if (reset === 'shortRest') {
-        return `Reset${this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a short rest`;
-      } else if (reset === 'longRest') {
-        return `Reset${this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a long rest`;
-      } else {
-        return undefined;
-      }
-    }
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  methods: {
-    numberToSignedString,
-  }
-}
+});
+
 </script>
 
 <style lang="css" scoped>

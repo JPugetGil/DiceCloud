@@ -1,7 +1,9 @@
 <template>
+  <!-- elevated: speed dials sit in toolbars, which default buttons to `text` -->
   <v-btn
-    fab
-    small
+    class="rounded-circle"
+    size="small"
+    variant="elevated"
     v-bind="$attrs"
     :disabled="disabled"
     :style="disabled ? 'background-color: #616161 !important;' : ''"
@@ -14,14 +16,24 @@
   </v-btn>
 </template>
 
-<script lang="js">
-  /*
-   * Because speed dials only work well with v-btn's as children, this hacky
-   * component creates a v-btn with a label.
-   */
-  export default {
-    props: ['icon', 'label', 'disabled'],
-  }
+<script setup>
+/*
+ * Because speed dials only work well with v-btn's as children, this hacky
+ * component creates a v-btn with a label.
+ */
+defineProps({
+  icon: {
+    type: String,
+    default: undefined,
+  },
+  label: {
+    type: String,
+    default: undefined,
+  },
+  disabled: Boolean,
+});
+
+defineEmits(['click']);
 </script>
 
 <style scoped>

@@ -21,7 +21,7 @@ export default async function applyAdjustmentProperty(
   const damageTargetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
 
   if (damageTargetIds.length > 1) {
-    return applyTaskToEachTarget(action, task, damageTargetIds, userInput);
+    return await applyTaskToEachTarget(action, task, damageTargetIds, userInput);
   }
 
   // Get the operation and value and push the damage hooks to the queue
@@ -52,8 +52,8 @@ export default async function applyAdjustmentProperty(
   const targetId = damageTargetIds[0];
   let stat: CreatureProperty | undefined;
   if (targetId && prop.stat) {
-    const statId = getVariables(targetId)?.[prop.stat]?._propId;
-    stat = statId && getSingleProperty(targetId, statId);
+    const statId = (await getVariables(targetId))?.[prop.stat]?._propId;
+    stat = statId && await getSingleProperty(targetId, statId);
     if (!stat?.type) {
       result.appendLog({
         name: 'Error',
@@ -73,5 +73,5 @@ export default async function applyAdjustmentProperty(
       targetProp: stat ?? { name: prop.stat ?? '' },
     },
   }, userInput);
-  return applyDefaultAfterPropTasks(action, prop, damageTargetIds, userInput);
+  return await applyDefaultAfterPropTasks(action, prop, damageTargetIds, userInput);
 }

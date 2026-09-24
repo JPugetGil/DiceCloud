@@ -1,25 +1,24 @@
-<template lang="html">
+<template>
   <v-menu
     v-model="menu"
     :close-on-content-click="false"
     transition="slide-y-transition"
     min-width="290px"
     style="overflow-y: auto;"
-    left
+    location="left"
   >
-    <template #activator="{ on }">
+    <template #activator="{ props: menuProps }">
       <v-btn
         :loading="loading"
-        :outlined="!!label"
+        :variant="!!label ? 'outlined' : undefined"
         :icon="!label"
         :tile="!label"
         :min-width="label && 108"
         :height="height"
         :width="width"
         :style="buttonStyle"
-        :disabled="context.editPermission === false"
-        v-bind="$attrs"
-        v-on="on"
+        :disabled="context?.editPermission === false"
+        v-bind="{ ...$attrs, ...menuProps }"
       >
         {{ label }}
         <svg-icon
@@ -30,7 +29,7 @@
         />
         <v-icon
           v-else
-          :right="!!label"
+          :end="!!label"
         >
           mdi-select-search
         </v-icon>
@@ -38,7 +37,7 @@
     </template>
     <v-card>
       <v-card-text>
-        <div class="layout row align-center">
+        <div class="d-flex flex-1-1 align-center">
           <text-field
             ref="iconSearchField"
             label="Search icons"
@@ -50,14 +49,14 @@
             @change="search"
           />
           <v-btn
-            text
+            variant="text"
             @click="select()"
           >
             clear
           </v-btn>
         </div>
-        <v-layout
-          wrap
+        <div
+          class="d-flex flex-1-1 flex-wrap"
           style="max-height: 400px; overflow-y: auto;"
         >
           <v-scale-transition
@@ -67,8 +66,9 @@
             <v-btn
               v-for="icon in icons"
               :key="icon._id"
+              variant="text"
               icon
-              large
+              size="large"
               @click="select(icon)"
             >
               <svg-icon
@@ -77,76 +77,97 @@
               />
             </v-btn>
           </v-scale-transition>
-        </v-layout>
+        </div>
       </v-card-text>
     </v-card>
   </v-menu>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, watch, inject } from 'vue';
 import SvgIcon from '/imports/client/ui/components/global/SvgIcon.vue';
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
 import { findIcons } from '/imports/api/icons/Icons';
+import { useSmartInput } from '/imports/client/ui/components/global/useSmartInput.js';
 
-export default {
-  components: {
-    SvgIcon,
+const props = defineProps({
+  label: {
+    type: String,
+    default: undefined,
   },
-  mixins: [SmartInput],
-  inject: {
-    context: { default: {} }
+  buttonStyle: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    label: {
-      type: String,
-      default: undefined,
-    },
-    buttonStyle: {
-      type: String,
-      default: undefined,
-    },
-    height: {
-        type: Number,
-        default: undefined,
-    },
-    width: {
+  height: {
       type: Number,
       default: undefined,
-    },
   },
-  data() {
-    return {
-      menu: false,
-      searchString: '',
-      icons: [],
-    };
+  width: {
+    type: Number,
+    default: undefined,
   },
-  watch: {
-    menu(value) {
-      if (value) {
-        setTimeout(() => {
-          if (this.$refs.iconSearchField) {
-            this.$refs.iconSearchField.$children[0].focus();
-          }
-        }, 100);
+  // Props from SmartInputMixin
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  disabled: Boolean,
+  debounce: {
+    type: Number,
+    default: undefined,
+  },
+  rules: {
+    type: Array,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['change', 'input', 'update:value']);
+
+const context = inject('context', {});
+
+const menu = ref(false);
+const searchString = ref('');
+const icons = ref([]);
+const iconSearchField = ref(null);
+
+const { loading, safeValue, change } = useSmartInput(props, emit);
+
+watch(menu, (value) => {
+  if (value) {
+    setTimeout(() => {
+      if (iconSearchField.value) {
+        if (typeof iconSearchField.value.focus === 'function') {
+          iconSearchField.value.focus();
+        } else if (iconSearchField.value.$el) {
+          const input = iconSearchField.value.$el.querySelector('input');
+          if (input) input.focus();
+        }
       }
-    },
-  },
-  methods: {
-    search(value, ack) {
-      this.searchString = value;
-      this.icons = [];
-      findIcons.call({ search: value }, (error, result) => {
-        ack(error);
-        this.icons = result;
-      });
-    },
-    select(icon) {
-      this.menu = false;
-      this.change(icon);
-    },
-  },
-}
+    }, 100);
+  }
+});
+
+const search = async (value, ack) => {
+  searchString.value = value;
+  icons.value = [];
+  try {
+    const result = await findIcons.callAsync({ search: value });
+    icons.value = result;
+    if (typeof ack === 'function') ack();
+  } catch (error) {
+    if (typeof ack === 'function') ack(error);
+  }
+};
+
+const select = (icon) => {
+  menu.value = false;
+  change(icon);
+};
 </script>
 
 <style lang="css" scoped>

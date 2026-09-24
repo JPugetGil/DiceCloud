@@ -7,13 +7,17 @@ import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
+import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 
 let migrateApiCreature;
 if (Meteor.isServer) {
+  // require(), not import: this module is only pulled in on one side of the
+  // wire, and a static import would bundle it into both
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   migrateApiCreature = require('/imports/migrations/apiCreature/migrateApiCreature.js').default;
 }
 
-function importApiCreature(apiCreature, userId) {
+async function importApiCreature(apiCreature, userId) {
   const apiVersion = apiCreature.meta?.schemaVersion ?? 2;
   const creature = apiCreature.creatures[0];
   const creatureId = creature._id;
@@ -35,7 +39,7 @@ function importApiCreature(apiCreature, userId) {
   });
 
   // Don't upload creatures twice
-  const existingCreature = Creatures.findOne(creature._id, {
+  const existingCreature = await Creatures.findOneAsync(creature._id, {
     fields: { _id: 1 }
   });
 
@@ -60,21 +64,21 @@ function importApiCreature(apiCreature, userId) {
 
   // Insert the creature sub documents
   // They still have their original _id's
-  Creatures.insert(creature);
+  await Creatures.insertAsync(creature);
   try {
     // Add all the properties
     if (apiCreature.creatureProperties && apiCreature.creatureProperties.length) {
-      CreatureProperties.batchInsert(apiCreature.creatureProperties);
+      await batchInsertAsync(CreatureProperties, apiCreature.creatureProperties);
     }
     if (apiCreature.experiences && apiCreature.experiences.length) {
-      Experiences.batchInsert(apiCreature.experiences);
+      await batchInsertAsync(Experiences, apiCreature.experiences);
     }
     if (apiCreature.logs && apiCreature.logs.length) {
-      CreatureLogs.batchInsert(apiCreature.logs);
+      await batchInsertAsync(CreatureLogs, apiCreature.logs);
     }
   } catch (e) {
     // If the above fails, delete the inserted creature
-    removeCreatureWork(creatureId);
+    await removeCreatureWork(creatureId);
     throw e;
   }
   return creatureId;
@@ -97,7 +101,7 @@ const importCharacterFromDiceCloudInstance = new ValidatedMethod({
         'No character data was provided');
     }
     if (Meteor.isServer) {
-      return importApiCreature(characterData, this.userId)
+      return await importApiCreature(characterData, this.userId)
     }
   },
 });

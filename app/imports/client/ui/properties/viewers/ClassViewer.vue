@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="class-viewer">
     <v-row dense>
       <property-field
@@ -47,21 +47,21 @@
         :cols="{cols: 12}"
       >
         <v-btn
-          outlined
+          variant="outlined"
           color="accent"
           data-id="level-up-btn"
           :disabled="model.slotCondition && model.slotCondition.hasOwnProperty('value') && !model.slotCondition.value"
           @click="levelUpDialog"
         >
-          <v-icon left>
+          <v-icon start>
             mdi-plus
           </v-icon>
           <template v-if="model.missingLevels && model.missingLevels.length">
-            Get Missing Levels 
+            Get Missing Levels
           </template>
           <template v-else>
             Level Up
-          </template> 
+          </template>
         </v-btn>
       </property-field>
       <property-description
@@ -72,41 +72,46 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { inject} from 'vue';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  methods: {
-    levelUpDialog(){
-      let classId = this.model._id;
-      this.$store.commit('pushDialogStack', {
-        component: 'level-up-dialog',
-        elementId: 'level-up-btn',
-        data: {
-          creatureId: this.context.creatureId,
-          classId: this.model._id,
-        },
-        callback(nodeIds){
-          if (!nodeIds || !nodeIds.length) return;
-          let newPropertyId = insertPropertyFromLibraryNode.call({
-            nodeIds,
-            parentRef: {
-              'id': classId,
-              'collection': 'creatureProperties',
-            },
-          });
-          return `tree-node-${newPropertyId}`;
-        }
-      });
+});
+
+const context = inject('context', {});
+
+const dialogStackStore = useDialogStackStore();
+
+function levelUpDialog() {
+  let classId = props.model._id;
+  dialogStackStore.pushDialogStack({
+    component: 'level-up-dialog',
+    elementId: 'level-up-btn',
+    data: {
+      creatureId: context.creatureId,
+      classId: props.model._id,
     },
-  }
+    async callback(nodeIds){
+      if (!nodeIds || !nodeIds.length) return;
+      let newPropertyId = await insertPropertyFromLibraryNode.callAsync({
+        nodeIds,
+        parentRef: {
+          'id': classId,
+          'collection': 'creatureProperties',
+        },
+      });
+      return `tree-node-${newPropertyId}`;
+    }
+  });
 }
 </script>
 

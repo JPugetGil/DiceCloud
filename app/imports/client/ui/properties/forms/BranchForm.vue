@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="buff-form">
     <smart-select
       label="Branch Type"
@@ -7,7 +7,7 @@
       :value="model.branchType"
       :error-messages="errors.branchType"
       :menu-props="{auto: true, lazy: true}"
-      @change="change('branchType', ...arguments)"
+      @change="(value, ack) => change('branchType', value, ack)"
     />
     <v-expand-transition>
       <computed-field
@@ -35,7 +35,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -43,48 +43,61 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref, computed } from 'vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-  props: {
-    parentTarget: {
-      type: String,
-      default: undefined,
-    },
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  data() {
-    return {
-      typeOptions: [
-        { value: 'if', text: 'If condition is true' },
-        { value: 'hit', text: 'Attack hit' },
-        { value: 'miss', text: 'Attack miss' },
-        { value: 'failedSave', text: 'Save failed' },
-        { value: 'successfulSave', text: 'Save succeeded' },
-        { value: 'eachTarget', text: 'Apply to each target' },
-        { value: 'random', text: 'Random' },
-        { value: 'index', text: 'Calculated index' },
-        { value: 'choice', text: 'User choice' },
-      ],
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    typeHint() {
-      switch (this.model.branchType) {
-        case 'if': return 'If the condition is true, the child properties are applied';
-        case 'hit': return 'If the parent attack hits, the child properties are applied';
-        case 'miss': return 'If the parent attack misses, the child properties are applied';
-        case 'failedSave': return 'If the parent save is failed, the child properties are applied';
-        case 'successfulSave': return 'If the parent save is made, the child properties are applied';
-        case 'eachTarget': return 'Applies each child property once per target';
-        case 'random': return 'Chooses one child property at random and applies it';
-        case 'index': return 'Chooses one child property to apply based on the given index';
-        case 'choice': return 'Pause the action and let the user choose which child to apply';
-        default: return '';
-      }
-    }
+  parentTarget: {
+    type: String,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['change']);
+
+const typeOptions = ref([
+  { value: 'if', title: 'If condition is true' },
+  { value: 'hit', title: 'Attack hit' },
+  { value: 'miss', title: 'Attack miss' },
+  { value: 'failedSave', title: 'Save failed' },
+  { value: 'successfulSave', title: 'Save succeeded' },
+  { value: 'eachTarget', title: 'Apply to each target' },
+  { value: 'random', title: 'Random' },
+  { value: 'index', title: 'Calculated index' },
+  { value: 'choice', title: 'User choice' },
+]);
+
+const typeHint = computed(() => {
+  switch (props.model.branchType) {
+    case 'if': return 'If the condition is true, the child properties are applied';
+    case 'hit': return 'If the parent attack hits, the child properties are applied';
+    case 'miss': return 'If the parent attack misses, the child properties are applied';
+    case 'failedSave': return 'If the parent save is failed, the child properties are applied';
+    case 'successfulSave': return 'If the parent save is made, the child properties are applied';
+    case 'eachTarget': return 'Applies each child property once per target';
+    case 'random': return 'Chooses one child property at random and applies it';
+    case 'index': return 'Chooses one child property to apply based on the given index';
+    case 'choice': return 'Pause the action and let the user choose which child to apply';
+    default: return '';
   }
+});
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

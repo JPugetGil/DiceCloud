@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="slot-viewer">
     <v-row dense>
       <property-field
@@ -49,7 +49,7 @@
         :cols="{cols: 12}"
       >
         <fill-slot-button :model="model">
-          <v-icon left>
+          <v-icon start>
             mdi-plus
           </v-icon>
           Fill Slot
@@ -59,35 +59,30 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import { inject, computed } from 'vue';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import FillSlotButton from '/imports/client/ui/creature/buildTree/FillSlotButton.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
 
-const uniqueText = {
-  uniqueInSlot: 'Each property inside this slot should be unique',
-  uniqueInCreature: 'Properties in this slot should be unique across the whole character',
-}
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 
-export default {
-  components: {
-    FillSlotButton,
-  },
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
-  },
-  computed: {
-    slotTypeName() {
-      if (!this.model.slotType) return;
-      return getPropertyName(this.model.slotType);
-    },
-    uniqueText() {
-      if (!this.model.unique) return;
-      return uniqueText[this.model.unique]
-    },
-  }
-}
+const context = inject('context', {});
+
+const slotTypeName = computed(() => {
+  if (!props.model.slotType) return;
+  return getPropertyName(props.model.slotType);
+});
+
+const uniqueText = computed(() => {
+  if (!props.model.unique) return;
+  return uniqueText[props.model.unique]
+});
 </script>

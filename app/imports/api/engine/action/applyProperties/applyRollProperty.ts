@@ -18,7 +18,7 @@ export default async function applyRollProperty(
 
   // If there isn't a calculation, just apply the children instead
   if (!prop.roll?.calculation) {
-    return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
   }
 
   const logValue: string[] = [];
@@ -50,7 +50,7 @@ export default async function applyRollProperty(
 
   // If we didn't end up with a constant or a number of finite value, give up
   if (!isFiniteNode(reduced)) {
-    return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
   }
   const value = reduced.value;
 
@@ -65,5 +65,5 @@ export default async function applyRollProperty(
   }, task.targetIds);
 
   // Apply children
-  return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
+  return await applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
 }

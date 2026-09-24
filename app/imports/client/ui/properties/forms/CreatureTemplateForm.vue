@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="creature-template-form">
     <v-row>
       <v-col
@@ -28,7 +28,7 @@
     </v-row>
     <inline-computation-field
       label="Description"
-      hint="A brief description of the creature shown when the creature is added to a tabletop"
+      hint="A brief description of the creature, shown in the log when it is summoned"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -44,14 +44,22 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
 import SmartImageInput from '/imports/client/ui/components/global/SmartImageInput.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    SmartImageInput,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-}
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+defineEmits(['change']);
+
 </script>

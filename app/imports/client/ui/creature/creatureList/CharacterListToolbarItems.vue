@@ -1,17 +1,11 @@
-<template lang="html">
+<template>
   <div class="d-flex">
     <archive-button />
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import ArchiveButton from '/imports/client/ui/creature/creatureList/ArchiveButton.vue';
-
-export default {
-  components: {
-    ArchiveButton,
-  },
-}
 </script>
 
 <style lang="css">

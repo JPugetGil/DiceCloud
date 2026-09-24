@@ -1,21 +1,23 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <v-toolbar-title slot="toolbar">
-      Delete User Account
-    </v-toolbar-title>
+    <template #toolbar>
+      <v-toolbar-title>
+        Delete User Account
+      </v-toolbar-title>
+    </template>
     <div>
       <h2>Are you sure you want to delete your account?</h2>
       <v-alert
         :value="true"
         icon="mdi-alert"
         color="error"
-        outlined
+        variant="outlined"
       >
         Deleted accounts can not be recovered
       </v-alert>
       <p>We will immediately delete your account and all of your data</p>
       <p>Your username will become available to anyone on DiceCloud</p>
-      <template v-if="characters.length">
+      <template v-if="characters?.length">
         <h3 v-if="characters.length > 1">
           These {{ characters.length }} characters will be deleted:
         </h3>
@@ -30,7 +32,7 @@
           />
         </v-list>
       </template>
-      <template v-if="libraries.length">
+      <template v-if="libraries?.length">
         <h3 v-if="libraries.length > 1">
           These {{ libraries.length }} libraries will be deleted:
         </h3>
@@ -45,12 +47,9 @@
           />
         </v-list>
       </template>
-      <v-layout
-        column
-        align-start
-      >
+      <div class="d-flex flex-1-1 flex-column align-start">
         <v-text-field
-          v-if="user.username"
+          v-if="user?.username"
           v-model="usernameInput"
           label="Type your username or email"
           style="width: 350px;"
@@ -72,82 +71,73 @@
         >
           Permanently delete account
         </v-btn>
-      </v-layout>
+      </div>
     </div>
-    <div
-      slot="actions"
-      class="layout justify-end"
-    >
-      <v-btn
-        text
-        @click="$store.dispatch('popDialogStack')"
+    <template #actions>
+      <div
+
+        class="d-flex flex-1-1 justify-end"
       >
-        Cancel
-      </v-btn>
-    </div>
+        <v-btn
+          variant="text"
+          @click="dialogStackStore.popDialogStack()"
+        >
+          Cancel
+        </v-btn>
+      </div>
+    </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { subscribe, autorun } from 'vue-meteor-tracker';
+import { Meteor } from 'meteor/meteor';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import Libraries from '/imports/api/library/Libraries';
 import CreatureListTile from '/imports/client/ui/creature/creatureList/CreatureListTile.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
-    CreatureListTile,
-  },
-  data() {
-    return {
-      usernameInput: '',
-      verificationInput: '',
-    };
-  },
-  meteor: {
-    $subscribe: {
-      'ownedDocuments'() {
-        return [];
-      },
-    },
-    characters() {
-      return Creatures.find({ owner: Meteor.userId() });
-    },
-    libraries() {
-      return Libraries.find({ owner: Meteor.userId() });
-    },
-    user() {
-      return Meteor.user();
-    },
-  },
-  computed: {
-    usernameInputValid() {
-      let username = this.user.username;
-      if (!username) return true;
-      let input = this.usernameInput;
-      if (!input) return false;
-      if (input.toLowerCase() === username.toLowerCase()) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-    verificationInputValid() {
-      let input = this.verificationInput || '';
-      return input.toLowerCase() === 'delete my account'
-    },
-    valid() {
-      return this.usernameInputValid && this.verificationInputValid;
-    }
-  },
-  methods: {
-    deleteAccount() {
-      this.$router.push('/');
-      Meteor.users.deleteMyAccount.call();
-      this.$store.dispatch('popDialogStack');
-    },
-  },
+const dialogStackStore = useDialogStackStore();
+
+const router = useRouter();
+
+const usernameInput = ref('');
+const verificationInput = ref('');
+
+subscribe('ownedDocuments');
+
+const characters = autorun(() => Creatures.find({ owner: Meteor.userId() })).result;
+const libraries = autorun(() => Libraries.find({ owner: Meteor.userId() })).result;
+const user = autorun(() => Meteor.user()).result;
+
+const usernameInputValid = computed(() => {
+  let username = user.value?.username;
+  if (!username) return true;
+  let input = usernameInput.value;
+  if (!input) return false;
+  if (input.toLowerCase() === username.toLowerCase()) {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+const verificationInputValid = computed(() => {
+  let input = verificationInput.value || '';
+  return input.toLowerCase() === 'delete my account';
+});
+
+const valid = computed(() => {
+  return usernameInputValid.value && verificationInputValid.value;
+});
+
+async function deleteAccount() {
+  await Meteor.users.deleteMyAccount.callAsync();
+  await router.push('/');
+  await dialogStackStore.popDialogStack();
 }
 </script>
 

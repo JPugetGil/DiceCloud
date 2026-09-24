@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="action-form">
     <v-row dense>
       <v-col
@@ -11,7 +11,7 @@
             class="ml-4"
             label="Attack roll"
             :value="attackSwitch"
-            @change="e => attackSwitch = e"
+            @update:model-value="e => attackSwitch = e"
           />
           <computed-field
             v-else
@@ -24,6 +24,7 @@
           >
             <template #prepend>
               <v-btn
+                variant="text"
                 :disabled="!!(model.attackRoll && model.attackRoll.calculation)"
                 icon
                 style="margin-top: -12px;"
@@ -46,7 +47,7 @@
           :error-messages="errors.actionType"
           :menu-props="{auto: true, lazy: true}"
           :hint="actionTypeHints[model.actionType]"
-          @change="change('actionType', ...arguments)"
+          @change="(value, ack) => change('actionType', value, ack)"
         />
       </v-col>
     </v-row>
@@ -58,7 +59,7 @@
         :value="model.variableName"
         hint="Variable name of the event that this action represents"
         :error-messages="errors.variableName"
-        @change="change('variableName', ...arguments)"
+        @change="(value, ack) => change('variableName', value, ack)"
       />
     </v-slide-x-transition>
 
@@ -71,7 +72,7 @@
         {name: 'Self', value: 'self'},
       ]"
       :error-messages="errors.target"
-      @change="change('target', ...arguments)"
+      @change="(value, ack) => change('target', value, ack)"
     />
 
     <inline-computation-field
@@ -127,7 +128,7 @@
               style="flex-basis: 300px;"
               :value="model.usesUsed"
               :error-messages="errors.uses"
-              @change="change('usesUsed', ...arguments)"
+              @change="(value, ack) => change('usesUsed', value, ack)"
             />
           </v-col>
         </v-row>
@@ -135,7 +136,7 @@
           hint="When number of uses used should be reset to zero"
           :value="model.reset"
           :error-messages="errors.reset"
-          @change="change('reset', ...arguments)"
+          @change="(value, ack) => change('reset', value, ack)"
         />
       </form-section>
       <form-section name="Log">
@@ -144,7 +145,7 @@
           class="ml-4 mt-0 mb-4"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -152,73 +153,74 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
 import ResourcesForm from '/imports/client/ui/properties/forms/ResourcesForm.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    ResourcesForm,
-    ResetSelector,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data(){
-    let data = {
-      actionTypes: [
-        {
-          text: 'Action',
-          value: 'action',
-        }, {
-          text: 'Bonus action',
-          value: 'bonus',
-        }, {
-          text: 'Attack action',
-          value: 'attack',
-          help: 'Attack actions replace a single attack when you choose to use your Action to attack',
-        }, {
-          text: 'Reaction',
-          value: 'reaction',
-        }, {
-          text: 'Free action',
-          value: 'free',
-          help: 'You can take one free action on your turn without using an action or bonus action'
-        }, {
-          text: 'Long action',
-          value: 'long',
-          help: 'Long actions take longer than one turn to complete'
-        }, {
-          text: 'Event',
-          value: 'event',
-          help: 'Events are actions that happen to the character like rests or dawn'
-        },
-      ],
-      targetOptions: [
-        {
-          text: 'Self',
-          value: 'self',
-        }, {
-          text: 'Single target',
-          value: 'singleTarget',
-        }, {
-          text: 'Multiple targets',
-          value: 'multipleTargets',
-        },
-      ],
-      attackSwitch: false,
-    };
-    data.actionTypeHints = {};
-    data.actionTypes.forEach(type => {
-      data.actionTypeHints[type.value] = type.help;
-    });
-    return data;
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    isAttack(){
-      return this.attackSwitch || !!this.model.attackRoll?.calculation
-    }
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
+
+const actionTypes = [
+  {
+    title: 'Action',
+    value: 'action',
+  }, {
+    title: 'Bonus action',
+    value: 'bonus',
+  }, {
+    title: 'Attack action',
+    value: 'attack',
+    help: 'Attack actions replace a single attack when you choose to use your Action to attack',
+  }, {
+    title: 'Reaction',
+    value: 'reaction',
+  }, {
+    title: 'Free action',
+    value: 'free',
+    help: 'You can take one free action on your turn without using an action or bonus action',
+  }, {
+    title: 'Long action',
+    value: 'long',
+    help: 'Long actions take longer than one turn to complete',
+  }, {
+    title: 'Event',
+    value: 'event',
+    help: 'Events are actions that happen to the character like rests or dawn',
   },
-};
+];
+
+const attackSwitch = ref(false);
+
+const actionTypeHints = {};
+actionTypes.forEach(type => {
+  actionTypeHints[type.value] = type.help;
+});
+
+const isAttack = computed(() => {
+  return attackSwitch.value || !!props.model.attackRoll?.calculation;
+});
 </script>
 
 <style lang="css" scoped>

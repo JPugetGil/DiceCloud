@@ -1,5 +1,3 @@
-import SimpleSchema from 'simpl-schema';
-
 const SCHEMA_OPTIONS = {
   clean: {
     filter: true,

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="toggle-viewer">
     <v-row dense>
       <property-field
@@ -24,14 +24,14 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
 import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/PropertyTargetTags.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    PropertyTargetTags,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-}
+});
 </script>

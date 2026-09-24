@@ -1,18 +1,24 @@
-<template lang="html">
+<template>
   <v-checkbox
     v-bind="$attrs"
     :loading="loading"
     :error-messages="errors"
-    :input-value="safeValue"
+    :model-value="safeValue"
     :disabled="isDisabled"
-    @change="change"
+    @update:model-value="change"
   />
 </template>
 
-<script lang="js">
-  import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { smartInputProps, useSmartInput } from '/imports/client/ui/components/global/useSmartInput';
 
-  export default {
-    mixins: [SmartInput],
-  };
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps(smartInputProps);
+
+const emit = defineEmits(['input', 'change', 'update:modelValue']);
+
+const { loading, errors, safeValue, isDisabled, change } = useSmartInput(props, emit);
 </script>

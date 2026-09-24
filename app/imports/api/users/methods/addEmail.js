@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 
@@ -15,9 +15,9 @@ const addEmail = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 5000,
   },
-  run({ email }) {
+  async run({ email }) {
     const userId = Meteor.userId();
-    const user = Meteor.users.findOne(userId);
+    const user = await Meteor.users.findOneAsync(userId);
     if (!user) throw new Meteor.Error('No user',
       'You must be logged in to add an email address');
     if (user.emails && user.emails.length >= 2) {
@@ -25,8 +25,8 @@ const addEmail = new ValidatedMethod({
         'You may only have up to 2 email addresses per account');
     }
     if (Meteor.isServer) {
-      Accounts.addEmail(userId, email);
-      Accounts.sendVerificationEmail(userId, email);
+      await Accounts.addEmailAsync(userId, email);
+      await Accounts.sendVerificationEmail(userId, email);
     }
   }
 });

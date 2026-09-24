@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="build-tree-node-list">
     <build-tree-node
       v-for="child in children"
@@ -12,31 +12,24 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup lang="js">
 import BuildTreeNode from '/imports/client/ui/creature/buildTree/BuildTreeNode.vue';
 
-export default {
-  components: {
-    BuildTreeNode,
+defineProps({
+  children: {
+    type: Array,
+    default: () => [],
   },
-  props: {
-    children: {
-      type: Array,
-      default: () => [],
-    },
-    parentSlotId: {
-      type: String,
-      default: undefined,
-    },
-    depth: {
-      type: Number,
-      default: 0,
-    },
+  parentSlotId: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      expanded: false,
-    }
+  depth: {
+    type: Number,
+    default: 0,
   },
-};
+});
+
+defineEmits(['selected']);
+
 </script>

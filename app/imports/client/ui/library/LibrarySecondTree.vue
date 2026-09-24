@@ -1,13 +1,14 @@
-<template lang="html">
+<template>
   <div class="d-flex flex-column fill-height">
     <v-fade-transition mode="out-in">
       <v-toolbar
         v-if="libraryId"
-        dark
+        theme="dark"
         flat
         color="secondary"
       >
         <v-btn
+          variant="text"
           icon
           @click="libraryId = undefined"
         >
@@ -23,16 +24,17 @@
           <v-spacer />
         </v-toolbar-title>
         <v-btn
-          v-if="library && ($route.params.id !== library._id)"
+          v-if="library && (route.params.id !== library._id)"
+          variant="text"
           icon
-          @click="libraryId = undefined; $router.push({ name: 'singleLibrary', params: { id: library._id }})"
+          @click="libraryId = undefined; router.push({ name: 'singleLibrary', params: { id: library._id }})"
         >
           <v-icon>mdi-arrow-right-bold</v-icon>
         </v-btn>
       </v-toolbar>
       <v-toolbar
         v-else
-        dark
+        theme="dark"
         flat
         color="secondary"
       >
@@ -40,6 +42,7 @@
           key="no-library"
         >
           <v-btn
+            variant="text"
             icon
             @click="$emit('close')"
           >
@@ -73,52 +76,44 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { Meteor } from 'meteor/meteor';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import LibraryList from '/imports/client/ui/library/LibraryList.vue';
 import LibraryContentsContainer from '/imports/client/ui/library/LibraryContentsContainer.vue';
 import Libraries from '/imports/api/library/Libraries';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 
-export default {
-  components: {
-    LibraryList,
-    LibraryContentsContainer,
+defineProps({
+  selectedNode: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    selectedNode: {
-      type: Object,
-      default: undefined,
-    },
-  },
-  data() {
-    return {
-      libraryId: undefined
-    };
-  },
-  meteor: {
-    $subscribe: {
-      'library'(){
-        if (this.libraryId){
-          return [this.libraryId]
-        } else {
-          return [];
-        }
-      },
-    },
-    library() {
-      return Libraries.findOne(this.libraryId);
-    },
-    canEditLibrary(){
-      if (!this.libraryId) return;
-      try {
-        assertEditPermission(this.library, Meteor.userId());
-        return true;
-      } catch (e){
-        return false;
-      }
-    },
-  },
-}
+});
+
+defineEmits(['close', 'selected']);
+
+const route = useRoute();
+const router = useRouter();
+
+const libraryId = ref(undefined);
+
+subscribe(() => {
+  if (libraryId.value) {
+    return ['library', libraryId.value];
+  } else {
+    return false;
+  }
+});
+
+const library = autorun(() => Libraries.findOne(libraryId.value)).result;
+
+const canEditLibrary = autorun(() => {
+  if (!libraryId.value) return;
+  return hasEditPermission(library.value, Meteor.user());
+}).result;
 </script>
 
 <style lang="css" scoped>

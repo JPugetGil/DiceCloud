@@ -25,16 +25,16 @@ export default async function applyCheckTask(
     if (targetId === action.creatureId) {
       scope = await getEffectiveActionScope(action);
     } else {
-      scope = getVariables(targetId);
+      scope = await getVariables(targetId);
     }
     // Get the updated parameters from user input
     const checkParams = await userInput.check(task);
     const advantage = checkParams.advantage;
 
-    const skill = checkParams.skillVariableName && getFromScope(checkParams.skillVariableName, scope) || null;
+    const skill = checkParams.skillVariableName && await getFromScope(checkParams.skillVariableName, scope) || null;
     const skillBonus = (skill?.value || 0) - (skill?.abilityMod || 0);
 
-    const ability = checkParams.abilityVariableName && getFromScope(checkParams.abilityVariableName, scope) || null;
+    const ability = checkParams.abilityVariableName && await getFromScope(checkParams.abilityVariableName, scope) || null;
     const abilityModifier = ability?.modifier || 0;
 
 

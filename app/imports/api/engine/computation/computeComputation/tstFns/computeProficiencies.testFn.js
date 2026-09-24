@@ -6,7 +6,6 @@ import { applyNestedSetProperties, compareOrder } from '/imports/api/parenting/p
 
 export default async function () {
   const computation = buildComputationFromProps(testProperties);
-  const hasLink = computation.dependencyGraph.hasLink;
   await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   assert.equal(

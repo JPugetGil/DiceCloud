@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="spell-list-form">
     <v-row dense>
       <v-col
@@ -72,49 +72,60 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
 
-export default {
-  mixins: [propertyFormMixin],
-  meteor: {
-    abilityScoreList() {
-      return createListOfProperties({
-        type: 'attribute',
-        attributeType: 'ability',
-      });
-    },
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  methods: {
-    changeAbility(value, ack) {
-      this.$emit('change', { path: ['ability'], value, ack })
-      const oldValue = this.model.ability;
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-      const attackRollBonus = this.model.attackRollBonus?.calculation;
-      if (
-        value &&
-        (!attackRollBonus ||
-        attackRollBonus === `proficiencyBonus + ${oldValue}.modifier`)
-      ) {
-        this.$emit('change', {
-          path: ['attackRollBonus', 'calculation'],
-          value: `proficiencyBonus + ${value}.modifier`
-        });
-      }
+const emit = defineEmits(['change']);
 
-      const dc = this.model.dc?.calculation;
-      if (
-        value &&
-        (!dc || 
-        dc === `8 + proficiencyBonus + ${oldValue}.modifier`)
-      ) {
-        this.$emit('change', {
-          path: ['dc', 'calculation'],
-          value: `8 + proficiencyBonus + ${value}.modifier`
-        });
-      }
-    }
+const abilityScoreList = autorun(() => {
+  return createListOfProperties({
+    type: 'attribute',
+    attributeType: 'ability',
+  });
+}).result;
+
+function changeAbility(value, ack) {
+  emit('change', { path: ['ability'], value, ack });
+  const oldValue = props.model.ability;
+
+  const attackRollBonus = props.model.attackRollBonus?.calculation;
+  if (
+    value &&
+    (!attackRollBonus ||
+    attackRollBonus === `proficiencyBonus + ${oldValue}.modifier`)
+  ) {
+    emit('change', {
+      path: ['attackRollBonus', 'calculation'],
+      value: `proficiencyBonus + ${value}.modifier`
+    });
   }
-};
+
+  const dc = props.model.dc?.calculation;
+  if (
+    value &&
+    (!dc || 
+    dc === `8 + proficiencyBonus + ${oldValue}.modifier`)
+  ) {
+    emit('change', {
+      path: ['dc', 'calculation'],
+      value: `8 + proficiencyBonus + ${value}.modifier`
+    });
+  }
+}
 </script>

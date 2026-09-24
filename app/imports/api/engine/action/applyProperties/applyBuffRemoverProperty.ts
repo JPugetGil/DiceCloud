@@ -25,11 +25,11 @@ export default async function applyBuffRemoverProperty(
   }
 
   if (targetIds.length > 1) {
-    return applyTaskToEachTarget(action, task, targetIds, userInput);
+    return await applyTaskToEachTarget(action, task, targetIds, userInput);
   }
 
   if (!targetIds.length) {
-    return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
   }
 
   if (targetIds.length !== 1) {
@@ -40,7 +40,7 @@ export default async function applyBuffRemoverProperty(
   // Remove buffs
   if (prop.targetParentBuff) {
     // Remove nearest ancestor buff
-    const ancestors = getPropertyAncestors(action.creatureId, prop._id);
+    const ancestors = await getPropertyAncestors(action.creatureId, prop._id);
     const nearestBuff = findLast(ancestors, ancestor => ancestor.type === 'buff');
     if (!nearestBuff) {
       result.appendLog({
@@ -53,7 +53,7 @@ export default async function applyBuffRemoverProperty(
     removeBuff(nearestBuff, prop, result);
   } else {
     // Get all the buffs targeted by tags
-    const allBuffs = getPropertiesOfType(targetId, 'buff');
+    const allBuffs = await getPropertiesOfType(targetId, 'buff');
     const targetedBuffs = filter(allBuffs, (buff): boolean => {
       if (buff.inactive) return false;
       if (buffRemoverMatchTags(prop, buff)) return true;
@@ -75,7 +75,7 @@ export default async function applyBuffRemoverProperty(
       }
     }
   }
-  return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
 }
 
 function removeBuff(buff: any, prop, result: TaskResult) {

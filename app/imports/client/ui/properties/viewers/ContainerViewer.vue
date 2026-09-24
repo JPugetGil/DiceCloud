@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="container-viewer">
     <v-row dense>
       <property-field
@@ -6,28 +6,27 @@
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden;">
-          <v-layout
+          <div
             v-if="model.value !== undefined"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.two_coins
+              $two_coins
             </v-icon>
             <coin-value
               class="text-subtitle-1 mr-2"
               :value="model.value"
             />
-          </v-layout>
-          <v-layout align-center>
+          </div>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.cash
+              $cash
             </v-icon>
             <coin-value
               class="text-subtitle-1 mr-2"
@@ -36,7 +35,7 @@
             <span class="text-subtitle-1">
               contents
             </span>
-          </v-layout>
+          </div>
         </div>
       </property-field>
       <property-field
@@ -44,30 +43,29 @@
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden;">
-          <v-layout
+          <div
             v-if="model.weight !== undefined"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.weight
+              $weight
             </v-icon>
             <span class="text-subtitle-1 mr-2">
               {{ model.weight }} lb
             </span>
-          </v-layout>
-          <v-layout
-            align-center
+          </div>
+          <div
+            class="d-flex flex-1-1 align-center"
             :class="{'mb-2': model.contentsWeightless}"
           >
             <v-icon
               class="mr-2"
-              large
+              size="large"
             >
-              $vuetify.icons.injustice
+              $injustice
             </v-icon>
             <span class="text-subtitle-1 mr-2">
               {{ model.contentsWeight }} lb
@@ -75,7 +73,7 @@
             <span class="text-subtitle-1">
               contents
             </span>
-          </v-layout>
+          </div>
         </div>
       </property-field>
       <property-field
@@ -87,7 +85,7 @@
           style="overflow: hidden;"
           class="ma-1"
         >
-          $vuetify.icons.weightless
+          $weightless
         </v-icon>
         <span class="ml-1">Contents weightless</span>
       </property-field>
@@ -99,15 +97,17 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-export default {
-  components: {
-    CoinValue,
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-}
+});
 </script>
 
 <style lang="css" scoped>

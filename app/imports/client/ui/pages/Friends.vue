@@ -5,10 +5,11 @@
         Friends
       </h1>
       <v-btn
-        fixed
-        bottom
-        right
-        fab
+        position="fixed"
+        class="ma-4"
+        location="bottom right"
+
+        icon
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>

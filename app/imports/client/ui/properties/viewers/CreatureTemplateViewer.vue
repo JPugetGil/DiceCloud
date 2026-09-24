@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="creature-viewer">
     <v-row dense>
       <property-description
@@ -9,9 +9,13 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-export default {
-  mixins: [propertyViewerMixin],
-}
+<script setup>
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>

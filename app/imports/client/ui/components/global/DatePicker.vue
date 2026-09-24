@@ -1,56 +1,75 @@
-<template lang="html">
+<template>
   <v-menu
     v-model="menu"
     :close-on-content-click="false"
-    lazy
     transition="scale-transition"
-    full-width
     min-width="290px"
   >
-    <template #activator="{ on }">
+    <template #activator="{ props: activatorProps }">
       <v-text-field
-        :value="formattedSafeValue"
-        v-bind="$attrs"
+        :model-value="formattedSafeValue"
+        v-bind="{ ...$attrs, ...activatorProps }"
         prepend-icon="mdi-calendar"
         readonly
         :loading="loading"
         :error-messages="errors"
         :disabled="isDisabled"
-        outlined
-        v-on="on"
+        variant="outlined"
         @focus="focused = true"
         @blur="focused = false"
       />
     </template>
     <v-date-picker
-      :value="formattedSafeValue"
-      @input="dateInput"
+      :model-value="pickerValue"
+      @update:model-value="dateInput"
     />
   </v-menu>
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { ref, computed } from 'vue';
 import { format } from 'date-fns';
+import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/client/ui/components/global/useSmartInput';
 
-export default {
-  mixins: [SmartInput],
-  data() {
-    return {
-      menu: false,
-    };
-  },
-  computed: {
-    formattedSafeValue() {
-      return format(this.safeValue, 'YYYY-MM-DD')
-    },
-  },
-  methods: {
-    dateInput(e) {
-      this.menu = false;
-      this.input(e);
-    },
-  },
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  ...smartInputProps,
+});
+
+const emit = defineEmits([
+  ...smartInputEmits,
+  'update:model-value',
+]);
+
+const {
+  safeValue,
+  input,
+  loading,
+  errors,
+  isDisabled,
+  focused,
+} = useSmartInput(props, emit);
+
+const menu = ref(false);
+
+const pickerValue = computed(() => {
+  if (!safeValue.value) return undefined;
+  const value = safeValue.value instanceof Date
+    ? safeValue.value
+    : new Date(safeValue.value);
+  return Number.isNaN(value.getTime()) ? undefined : value;
+});
+
+const formattedSafeValue = computed(() => {
+  return pickerValue.value ? format(pickerValue.value, 'YYYY-MM-DD') : '';
+});
+
+function dateInput(e) {
+  menu.value = false;
+  input(e);
 }
 </script>
 

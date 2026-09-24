@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="damage-multiplier-form">
     <v-row dense>
       <v-col
@@ -18,7 +18,7 @@
             name: 'Immunity',
           }]"
           :error-messages="errors.value"
-          @change="change('value', ...arguments)"
+          @change="(value, ack) => change('value', value, ack)"
         />
       </v-col>
     </v-row>
@@ -35,7 +35,7 @@
           :error-messages="errors.damageTypes"
           :menu-props="{auto: true, lazy: true}"
           @update:error="error"
-          @change="change('damageTypes', ...arguments)"
+          @change="(value, ack) => change('damageTypes', value, ack)"
         />
       </v-col>
     </v-row>
@@ -58,7 +58,7 @@
               persistent-hint
               :items="['magical', 'silvered']"
               :value="model.includeTags"
-              @change="change('includeTags', ...arguments)"
+              @change="(value, ack) => change('includeTags', value, ack)"
             />
           </v-col>
           <v-col cols="12">
@@ -71,7 +71,7 @@
               persistent-hint
               :items="['magical', 'silvered']"
               :value="model.excludeTags"
-              @change="change('excludeTags', ...arguments)"
+              @change="(value, ack) => change('excludeTags', value, ack)"
             />
           </v-col>
         </v-row>
@@ -81,40 +81,48 @@
   </div>
 </template>
 
-<script lang="js">
-import FormSection, { FormSections } from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import DAMAGE_TYPES from '/imports/constants/DAMAGE_TYPES';
 
-export default {
-  components: {
-    FormSections,
-    FormSection,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data() {
-    return {
-      DAMAGE_TYPES,
-      damageTypeRules: [
-        value => {
-          if (value && value.length) {
-            for (let i = 0; i < value.length; i++) {
-              if (!VARIABLE_NAME_REGEX.test(value[i])) {
-                return `${value[i]} is not a valid damage name`
-              }
-            }
-          }
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+const damageTypeRules = [
+  value => {
+    if (value && value.length) {
+      for (let i = 0; i < value.length; i++) {
+        if (!VARIABLE_NAME_REGEX.test(value[i])) {
+          return `${value[i]} is not a valid damage name`
         }
-      ],
-    };
-  },
-  methods: {
-    error(e) {
-      console.error(e)
+      }
     }
   }
-};
+];
+
+// The damage type field's `update:error` handler
+function error(e) {
+  console.error(e);
+}
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

@@ -1,4 +1,3 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';

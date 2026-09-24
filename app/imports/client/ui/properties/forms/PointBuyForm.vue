@@ -1,6 +1,6 @@
-<template lang="html">
+<template>
   <div class="point-buy-form">
-    <point-buy-spend-form 
+    <point-buy-spend-form
       v-if="!context.isLibraryForm"
       :model="model"
       @change="e => $emit('change', e)"
@@ -91,7 +91,7 @@
                     label="Row Name"
                     :value="row.name"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].name"
-                    @change="change(['values', i, 'name'], ...arguments)"
+                    @change="(value, ack) => change(['values', i, 'name'], value, ack)"
                   />
                 </v-col>
                 <v-col
@@ -103,7 +103,7 @@
                     :value="row.variableName"
                     hint="Use this name in calculations to reference this row of the table"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].variableName"
-                    @change="change(['values', i, 'variableName'], ...arguments)"
+                    @change="(value, ack) => change(['values', i, 'variableName'], value, ack)"
                   />
                 </v-col>
                 <v-col
@@ -116,7 +116,7 @@
                     :value="row.value"
                     hint="The starting value of the row"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].value"
-                    @change="change(['values', i, 'value'], ...arguments)"
+                    @change="(value, ack) => change(['values', i, 'value'], value, ack)"
                   />
                 </v-col>
                 <v-col
@@ -134,8 +134,9 @@
               class="d-flex align-center justify-center"
             >
               <v-btn
+                variant="text"
                 icon
-                large
+                size="large"
                 @click="$emit('pull', {path: ['values', i]})"
               >
                 <v-icon>mdi-delete</v-icon>
@@ -151,10 +152,10 @@
             <v-col
               cols="1"
               class="d-flex justify-center"
-            >  
+            >
               <v-btn
                 icon
-                outlined
+                variant="outlined"
                 :loading="addRowLoading"
                 :disabled="rowsFull"
                 @click="addRow"
@@ -172,48 +173,55 @@
   </div>
 </template>
 
-<script lang="js">
-import attributeListMixin from '/imports/client/ui/properties/forms/shared/lists/attributeListMixin';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref, computed, inject } from 'vue';
 import { PointBuySchema } from '/imports/api/properties/PointBuys';
 import CalculationErrorList from '/imports/client/ui/properties/forms/shared/CalculationErrorList.vue';
 import PointBuySpendForm from '/imports/client/ui/properties/forms/PointBuySpendForm.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    CalculationErrorList,
-    PointBuySpendForm,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyFormMixin, attributeListMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  data() {
-    return {
-      addRowLoading: false,
-    };
-  },
-  computed: {
-    rowsFull(){
-      if (!this.model.values) return false;
-      let maxCount = PointBuySchema.get('values', 'maxCount');
-      return this.model.values.length >= maxCount;
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+
+const context = inject('context', {});
+
+const addRowLoading = ref(false);
+
+const rowsFull = computed(() => {
+  if (!props.model.values) return false;
+  let maxCount = PointBuySchema.get('values', 'maxCount');
+  return props.model.values.length >= maxCount;
+});
+
+const change = (path, value, ack) => {
+  emit('change', { path, value, ack });
+};
+
+const acknowledgeAddResult = () => {
+  addRowLoading.value = false;
+};
+
+const addRow = () => {
+  addRowLoading.value = true;
+  emit('push', {
+    path: ['values'],
+    value: {
+      _id: Random.id(),
     },
-  },
-  methods: {
-    acknowledgeAddResult(){
-      this.addRowLoading = false;
-    },
-    addRow(){
-      this.addRowLoading = true;
-      this.$emit('push', {
-        path: ['values'],
-        value: {
-          _id: Random.id(),
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
-}
+    ack: acknowledgeAddResult,
+  });
+};
 </script>

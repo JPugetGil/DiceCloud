@@ -112,26 +112,28 @@ describe('Document tree filters can fetch other documents based on their positio
    *            6 MongoDB 7       8 dbm 9
    */
   const treeCollection: Mongo.Collection<TreeDoc> = new Mongo.Collection('treeDocs');
-  treeCollection.remove({});
-  [
+  let docs: TreeDoc[] = [];
+  // Mocha does not wait for an async describe body, so the fixtures load in a hook
+  before(async function () {
+    await treeCollection.removeAsync({});
+    await Promise.all([
     doc('Books', 1, 12, undefined),
     doc('Programming', 2, 11, 'Books'),
     doc('Languages', 3, 4, 'Programming'),
     doc('Databases', 5, 10, 'Programming'),
     doc('MongoDB', 6, 7, 'Databases'),
     doc('dbm', 8, 9, 'Databases'),
-  ].map(doc => {
-    return treeCollection.insert(doc);
+    ].map(doc => treeCollection.insertAsync(doc)));
+    docs = await treeCollection.find({}).fetchAsync();
   });
-  const docs: TreeDoc[] = treeCollection.find({}).fetch();
 
   it('Can filter ancestors', async function () {
     const ancestorIds: { [id: string]: string[] } = {};
-    docs.forEach(doc => {
-      ancestorIds[doc._id] = treeCollection.find(
+    for (const doc of docs) {
+      ancestorIds[doc._id] = (await treeCollection.find(
         getFilter.ancestors(doc)
-      ).map(doc => doc._id);
-    });
+      ).fetchAsync()).map(doc => doc._id);
+    }
     assert.isEmpty(ancestorIds['Books'], 'Books has no ancestors');
     assert.sameMembers(ancestorIds['Programming'], ['Books']);
     assert.sameMembers(ancestorIds['Languages'], ['Books', 'Programming']);
@@ -142,11 +144,11 @@ describe('Document tree filters can fetch other documents based on their positio
 
   it('Can filter descendants', async function () {
     const descendantIds: { [id: string]: string[] } = {};
-    docs.forEach(doc => {
-      descendantIds[doc._id] = treeCollection.find(
+    for (const doc of docs) {
+      descendantIds[doc._id] = (await treeCollection.find(
         getFilter.descendants(doc)
-      ).map(doc => doc._id);
-    });
+      ).fetchAsync()).map(doc => doc._id);
+    }
     assert.isEmpty(descendantIds['MongoDB'], 'MongoDB has no descendants');
     assert.isEmpty(descendantIds['dbm'], 'dbm has no descendants');
     assert.isEmpty(descendantIds['Languages'], 'Languages has no descendants');
@@ -159,11 +161,11 @@ describe('Document tree filters can fetch other documents based on their positio
 
   it('Can filter children', async function () {
     const childrenIds: { [id: string]: string[] } = {};
-    docs.forEach(doc => {
-      childrenIds[doc._id] = treeCollection.find(
+    for (const doc of docs) {
+      childrenIds[doc._id] = (await treeCollection.find(
         getFilter.children(doc)
-      ).map(doc => doc._id);
-    });
+      ).fetchAsync()).map(doc => doc._id);
+    }
     assert.sameMembers(childrenIds['Books'], ['Programming']);
     assert.sameMembers(childrenIds['Programming'], ['Languages', 'Databases']);
     assert.isEmpty(childrenIds['Languages'], 'Languages has no children');
@@ -174,11 +176,11 @@ describe('Document tree filters can fetch other documents based on their positio
 
   it('Can filter parents', async function () {
     const parentIds: { [id: string]: string[] } = {};
-    docs.forEach(doc => {
-      parentIds[doc._id] = treeCollection.find(
+    for (const doc of docs) {
+      parentIds[doc._id] = (await treeCollection.find(
         getFilter.parent(doc)
-      ).map(doc => doc._id);
-    });
+      ).fetchAsync()).map(doc => doc._id);
+    }
     assert.isEmpty(parentIds['Books'], 'Books has no parent');
     assert.sameMembers(parentIds['Programming'], ['Books']);
     assert.sameMembers(parentIds['Languages'], ['Programming']);
@@ -201,9 +203,9 @@ describe('Document can be moved withing root without breaking the tree', functio
   *            6 MongoDB 7       8 dbm 9             18 Pasta 19        20 Mains 21
   */
   const treeCollection: Mongo.Collection<TreeDoc> = new Mongo.Collection('treeDocsMove');
-  beforeEach(function () {
-    treeCollection.remove({});
-    [
+  beforeEach(async function () {
+    await treeCollection.removeAsync({});
+    await Promise.all([
       doc('Books', 1, 12, undefined),
       doc('Programming', 2, 11, 'Books'),
       doc('Languages', 3, 4, 'Programming'),
@@ -216,9 +218,7 @@ describe('Document can be moved withing root without breaking the tree', functio
       doc('Vegetarian', 17, 22, 'Cooking'),
       doc('Pasta', 18, 19, 'Vegetarian'),
       doc('Mains', 20, 21, 'Vegetarian'),
-    ].map(doc => {
-      return treeCollection.insert(doc);
-    });
+    ].map(doc => treeCollection.insertAsync(doc)));
   });
   it('can move a document within its parent', async function () {
     const languagesDoc = await treeCollection.findOneAsync({ _id: 'Languages' });
@@ -340,9 +340,9 @@ describe('Documents can be moved between roots without breaking the trees', func
     if (!parentId) delete doc.parentId;
     return doc;
   }
-  beforeEach(function () {
-    treeCollection.remove({});
-    [
+  beforeEach(async function () {
+    await treeCollection.removeAsync({});
+    await Promise.all([
       doc('Books', 1, 12, undefined, 'root1'),
       doc('Programming', 2, 11, 'Books', 'root1'),
       doc('Languages', 3, 4, 'Programming', 'root1'),
@@ -355,9 +355,7 @@ describe('Documents can be moved between roots without breaking the trees', func
       doc('Vegetarian', 5, 10, 'Cooking', 'root2'),
       doc('Pasta', 6, 7, 'Vegetarian', 'root2'),
       doc('Mains', 8, 9, 'Vegetarian', 'root2'),
-    ].map(doc => {
-      return treeCollection.insert(doc);
-    });
+    ].map(doc => treeCollection.insertAsync(doc)));
   });
   it('can move a document from one root to another', async function () {
     /**

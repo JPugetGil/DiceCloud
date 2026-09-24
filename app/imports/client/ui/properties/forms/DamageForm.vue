@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div>
     <v-row dense>
       <v-col
@@ -28,7 +28,7 @@
           :value="model.damageType"
           :error-messages="errors.damageType"
           :menu-props="{auto: true}"
-          @change="change('damageType', ...arguments)"
+          @change="(...args) => change('damageType', ...args)"
         />
       </v-col>
       <v-col cols="12">
@@ -40,7 +40,7 @@
             {name: 'Self', value: 'self'},
           ]"
           :error-messages="errors.target"
-          @change="change('target', ...arguments)"
+          @change="(...args) => change('target', ...args)"
         />
       </v-col>
       <v-col cols="12">
@@ -112,7 +112,7 @@
               label="Don't show in log"
               :value="model.silent"
               :error-messages="errors.silent"
-              @change="change('silent', ...arguments)"
+              @change="(...args) => change('silent', ...args)"
             />
           </v-col>
         </v-row>
@@ -122,60 +122,52 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import DAMAGE_TYPES from '/imports/constants/DAMAGE_TYPES';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
-import saveListMixin from '/imports/client/ui/properties/forms/shared/lists/saveListMixin';
+import { useSaveList } from '/imports/client/ui/properties/forms/shared/lists/useSaveList';
 
-export default {
-  mixins: [propertyFormMixin, saveListMixin],
-  props: {
-    parentTarget: {
-      type: String,
-      default: undefined,
-    },
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  data() {
-    return {
-      DAMAGE_TYPES,
-      damageTypeRules: [
-        value => {
-          if (!value) return 'Damage type is required';
-          if (!VARIABLE_NAME_REGEX.test(value)) {
-            return `${value} is not a valid damage name`
-          }
-        }
-      ],
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    targetOptions() {
-      return [
-        {
-          text: 'Self',
-          value: 'self',
-        }, {
-          text: 'Target',
-          value: 'target',
-        },
-      ];
-    },
-    targetOptionHint() {
-      let hints = {
-        self: 'The damage will be applied to the character taking the action',
-        target: 'The damage will be applied to the target of the action',
-      };
-      return hints[this.model.target];
-    }
+  parentTarget: {
+    type: String,
+    default: undefined,
   },
-  methods: {
-    saveChange({ path, value, ack }) {
-      this.$emit('change', {path: [ 'save', ...path ], value, ack})
-      this.$emit('change', {path: [ 'silent' ], value: true, ack})
-    },
-  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
+
+const saveList = useSaveList();
+
+const damageTypeRules = [
+  value => {
+    if (!value) return 'Damage type is required';
+    if (!VARIABLE_NAME_REGEX.test(value)) {
+      return `${value} is not a valid damage name`;
+    }
+  }
+];
+
+
+
 </script>
 
 <style lang="css" scoped>

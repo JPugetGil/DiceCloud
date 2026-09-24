@@ -1,28 +1,61 @@
-<template lang="html">
+<template>
   <v-textarea
     v-bind="$attrs"
     :loading="loading"
     :error-messages="errors"
-    :value="safeValue"
+    :model-value="safeValue"
     :disabled="isDisabled"
     :auto-grow="autoGrow"
-    outlined
-    @input="input"
+    variant="outlined"
+    @update:model-value="input"
     @focus="focused = true"
     @blur="focused = false"
   />
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { useSmartInput } from '/imports/client/ui/components/global/useSmartInput';
 
-export default {
-  mixins: [SmartInput],
-  props: {
-    autoGrow: {
-      type: Boolean,
-      default: false,
-    },
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  autoGrow: {
+    type: Boolean,
+    default: false,
   },
-};
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  modelValue: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  disabled: Boolean,
+  debounce: {
+    type: Number,
+    default: undefined,
+  },
+  rules: {
+    type: Array,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['input', 'update:modelValue', 'change']);
+
+const {
+  loading,
+  errors,
+  safeValue,
+  isDisabled,
+  input,
+  focused
+} = useSmartInput(props, emit);
 </script>

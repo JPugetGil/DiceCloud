@@ -28,21 +28,13 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 
-export default {
-  components: {
-    PropertyDescription,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    
-  }
-}
+});
 </script>

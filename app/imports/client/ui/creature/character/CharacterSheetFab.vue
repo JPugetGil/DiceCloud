@@ -1,20 +1,28 @@
-<template lang="html">
-  <v-speed-dial
-    v-model="fab"
-    v-bind="$attrs"
+<template>
+  <!--
+    Vuetify 3's speed dial is a menu and renders no element of its own, so this
+    root carries the class and positioning Vuetify 2's speed dial used to.
+  -->
+  <div
+    class="character-sheet-fab"
+    :class="{ 'character-sheet-fab--fixed': fixed }"
     :style="!speedDials ? 'visibility: hidden;' : ''"
   >
-    <template #activator>
-      <v-btn
-        v-model="fab"
-        color="primary"
-        fab
-        small
-        data-id="insert-creature-property-fab"
-        class="insert-creature-property-fab"
-      >
-        <transition
-          name="fab-rotate"
+    <v-speed-dial
+      v-model="fab"
+      :location="`${direction} center`"
+      transition="scale-transition"
+    >
+      <template #activator="{ props: activatorProps }">
+        <!-- elevated: the toolbar this sits in defaults its buttons to `text` -->
+        <v-btn
+          v-bind="activatorProps"
+          color="primary"
+          variant="elevated"
+          icon
+          size="small"
+          data-id="insert-creature-property-fab"
+          class="insert-creature-property-fab"
         >
           <v-icon
             style="transition: transform 0.2s ease-in-out"
@@ -22,39 +30,78 @@
           >
             mdi-plus
           </v-icon>
-        </transition>
-      </v-btn>
-    </template>
-    <labeled-fab
-      v-for="type in speedDials"
-      :key="type"
-      color="primary"
-      :data-id="`insert-creature-property-type-${type}`"
-      :label="getPropertyLabel(type)"
-      :icon="type ? properties[type].icon : 'mdi-plus'"
-      :disabled="!editPermission"
-      @click="addProperty(type)"
-    />
-  </v-speed-dial>
+        </v-btn>
+      </template>
+      <labeled-fab
+        v-for="type in speedDials"
+        :key="type"
+        color="primary"
+        :data-id="`insert-creature-property-type-${type}`"
+        :label="getPropertyLabel(type)"
+        :icon="type ? properties[type].icon : 'mdi-plus'"
+        :disabled="!editPermission"
+        @click="addProperty(type)"
+      />
+    </v-speed-dial>
+  </div>
 </template>
 
-<script lang="js">
+<script setup>
+  import { ref, computed, toRefs } from 'vue';
+  import { useRoute } from 'vue-router';
+
   import LabeledFab from '/imports/client/ui/components/LabeledFab.vue';
   import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
-  import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-  import Creatures from '/imports/api/creature/creatures/Creatures';
   import PROPERTIES from '/imports/constants/PROPERTIES';
   import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
   import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
+  import { useAppStore } from '/imports/client/ui/piniaAppStore';
+  import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-  function getParentFromSelectedTreeNode(creatureId, $store){
+const appStore = useAppStore();
+const dialogStackStore = useDialogStackStore();
+
+  const props = defineProps({
+    editPermission: Boolean,
+    // Which way the dial opens: 'top' or 'bottom'
+    direction: {
+      type: String,
+      default: 'top',
+    },
+    // Pinned to the bottom right of the viewport
+    fixed: Boolean,
+  });
+  const { direction, fixed } = toRefs(props);
+
+  const fab = ref(false);
+
+  const route = useRoute();
+
+  const creatureId = computed(() => route.params.id);
+  const tabName = computed(() => appStore.tabNameById(creatureId.value));
+  
+  const speedDialsByTab = computed(() => ({
+    'stats': ['attribute', 'skill', 'buff'],
+    'features': ['feature'],
+    'spells': ['spellList', 'spell'],
+    'actions': ['action'],
+    'inventory': ['item', 'container'],
+    'journal': ['note'],
+    'tree': [null],
+  }));
+
+  const speedDials = computed(() => speedDialsByTab.value[tabName.value]);
+  const properties = computed(() => PROPERTIES);
+
+
+  function getParentFromSelectedTreeNode(creatureId) {
     // find the parent based on the currently selected property
-    let el = document.querySelector('.tree-tab .tree-node-title.primary--text');
+    let el = document.querySelector('.tree-tab .tree-node-title.text-primary');
     let selectedComponent = el && el.parentElement.__vue__.$parent;
     let parentRef;
-    const onTreeTab = $store.getters.tabNameById(creatureId) === 'tree';
-    if (onTreeTab && selectedComponent){
-      if (selectedComponent.showExpanded){
+    const onTreeTab = appStore.tabNameById(creatureId) === 'tree';
+    if (onTreeTab && selectedComponent) {
+      if (selectedComponent.showExpanded) {
         parentRef = {
           id: selectedComponent.node._id,
           collection: 'creatureProperties',
@@ -63,119 +110,89 @@
         parentRef = selectedComponent.node.parent;
       }
     } else {
-      parentRef = {collection: 'creatures', id: creatureId};
+      parentRef = { collection: 'creatures', id: creatureId };
     }
     return parentRef;
   }
 
-  function hideFab(){
-    let fab = document.querySelector('.insert-creature-property-fab');
-    if (fab) fab.style.opacity = '0';
-    return fab;
+  function hideFab() {
+    let fabEl = document.querySelector('.insert-creature-property-fab');
+    if (fabEl) fabEl.style.opacity = '0';
+    return fabEl;
   }
 
-  function revealFab(fab){
-    if (!fab) return;
+  function revealFab(fabEl) {
+    if (!fabEl) return;
     // Bring back the fab with scale up animation
-    fab.style.transition = 'none';
-    fab.style.opacity = '';
-    fab.style.transform = 'scale(0)';
-    setTimeout(()=> {
-      fab.style.transform = '';
-      fab.style.transition = '';
+    fabEl.style.transition = 'none';
+    fabEl.style.opacity = '';
+    fabEl.style.transform = 'scale(0)';
+    setTimeout(() => {
+      fabEl.style.transform = '';
+      fabEl.style.transition = '';
     }, 400);
   }
 
-  export default {
-    components: {
-      LabeledFab,
-    },
-    props: {
-      editPermission: Boolean,
-    },
-    data(){return {
-      fab: false,
-    };},
-    computed: {
-      creatureId(){
-        return this.$route.params.id;
-      },
-      tabName(){
-        return this.$store.getters.tabNameById(this.creatureId);
-      },
-      speedDials(){
-        return this.speedDialsByTab[this.tabName];
-      },
-      speedDialsByTab() { return {
-        'stats': ['attribute', 'skill', 'buff'],
-        'features': ['feature'],
-        'spells': ['spellList', 'spell'],
-        'actions': ['action'],
-        'inventory': ['item', 'container'],
-        'journal': ['note'],
-        'tree': [null],
-      };},
-      properties(){
-        return PROPERTIES;
-      },
-    },
-    meteor: {
-      hideSpellsTab(){
-        let creature = Creatures.findOne(this.creatureId);
-        return creature?.settings?.hideSpellsTab;
-      },
-    },
-    methods: {
-      getPropertyLabel(type){
-        if (type === 'buff') return 'Buff or Condition';
-        return type ? PROPERTIES[type].name : 'Property'
-      },
-      addProperty(forcedType){
-        let creatureId = this.creatureId;
-        let fab = hideFab();
+  function getPropertyLabel(type) {
+    if (type === 'buff') return 'Buff or Condition';
+    return type ? PROPERTIES[type].name : 'Property';
+  }
 
-        let parentRef  = getParentFromSelectedTreeNode(creatureId, this.$store);
-        let parent;
-        try {
-          parent = fetchDocByRef(parentRef);
-        } catch (e) {
-          console.warn(e);
-        }
+  async function addProperty(forcedType) {
+    let currentCreatureId = creatureId.value;
+    let fabEl = hideFab();
 
-        this.$store.commit('pushDialogStack', {
-          component: 'insert-property-dialog',
-          elementId: 'insert-creature-property-type-' + forcedType,
-          data: {
-            parentDoc: forcedType ? undefined : parent,
-            forcedType,
-            creatureId: this.creatureId,
-            noBackdropClose: true,
-          },
-          async callback(result){
-            if (!result){
-              return 'insert-creature-property-fab';
-            }
-            if (Array.isArray(result)){
-              revealFab(fab);
-              let nodeIds = result;
-              let id = insertPropertyFromLibraryNode.call({nodeIds, parentRef});
-              return forcedType ? id : `tree-node-${id}`;
-            } else {
-              revealFab(fab);
-              let creatureProperty = result;
-              // Insert the property
-              let id = await insertProperty.callAsync({creatureProperty, parentRef});
-              return forcedType ? id : `tree-node-${id}`;
-            }
-          }
-        });
-      },
+    let parentRef = getParentFromSelectedTreeNode(currentCreatureId);
+    let parent;
+    try {
+      parent = await fetchDocByRef(parentRef);
+    } catch (e) {
+      console.warn(e);
     }
+
+    dialogStackStore.pushDialogStack({
+      component: 'insert-property-dialog',
+      elementId: 'insert-creature-property-type-' + forcedType,
+      data: {
+        parentDoc: forcedType ? undefined : parent,
+        forcedType,
+        creatureId: currentCreatureId,
+        noBackdropClose: true,
+      },
+      async callback(result) {
+        if (!result) {
+          return 'insert-creature-property-fab';
+        }
+        if (Array.isArray(result)) {
+          revealFab(fabEl);
+          let nodeIds = result;
+          let id = await insertPropertyFromLibraryNode.callAsync({ nodeIds, parentRef });
+          return forcedType ? id : `tree-node-${id}`;
+        } else {
+          revealFab(fabEl);
+          let creatureProperty = result;
+          // Insert the property
+          let id = await insertProperty.callAsync({ creatureProperty, parentRef });
+          return forcedType ? id : `tree-node-${id}`;
+        }
+      }
+    });
   }
 </script>
 
 <style lang="css" scoped>
   .insert-creature-property-fab {
     transition: transform 0.07s cubic-bezier(0.5, 0.2, 0.8, 0.4) 0s;
+  }
+  /* :where() keeps these defaults weaker than a parent's own class */
+  :where(.character-sheet-fab) {
+    position: relative;
+    z-index: 1;
+  }
+  :where(.character-sheet-fab--fixed) {
+    position: fixed;
+    z-index: 1010;
+    bottom: 16px;
+    right: 16px;
   }
 </style>

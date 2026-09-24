@@ -32,7 +32,7 @@ const accessor: AccessorFactory = {
     };
   },
   async compile(node, scope, context) {
-    let value = getFromScope(node.name, scope);
+    let value = await getFromScope(node.name, scope);
     // Get the value from the given path
     node.path?.forEach(name => {
       if (name === 'isUndefined') {

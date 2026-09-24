@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="trigger-form">
     <v-row dense>
       <v-col
@@ -12,7 +12,7 @@
           :items="timingOptions"
           :value="model.timing"
           :error-messages="errors.timing"
-          @change="change('timing', ...arguments)"
+          @change="(value, ack) => change('timing', value, ack)"
         />
       </v-col>
       <v-col
@@ -26,7 +26,7 @@
           :items="eventOptions"
           :value="model.event"
           :error-messages="errors.event"
-          @change="change('event', ...arguments)"
+          @change="(value, ack) => change('event', value, ack)"
         />
       </v-col>
       <v-col
@@ -57,7 +57,7 @@
             :items="actionPropertyTypeOptions"
             :value="model.actionPropertyType"
             :error-messages="errors.actionPropertyType"
-            @change="change('actionPropertyType', ...arguments)"
+            @change="(value, ack) => change('actionPropertyType', value, ack)"
           />
         </v-col>
       </v-expand-transition>
@@ -90,7 +90,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -98,66 +98,41 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import {
-  TriggerSchema, eventOptions, timingOptions, actionPropertyTypeOptions
-} from '/imports/api/properties/Triggers';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import {
+  eventOptions as EVENT_OPTIONS,
+  timingOptions as TIMING_OPTIONS,
+  actionPropertyTypeOptions as ACTION_PROPERTY_TYPE_OPTIONS,
+} from '/imports/api/properties/Triggers';
 
-export default {
-  components: {
-    FormSection,
-    TagTargeting,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  data(){
-    return {
-      addExtraTagsLoading: false,
-      extraTagOperations: ['OR', 'NOT'],
-      eventOptions: Object.keys(eventOptions).map(value => {
-        return { value, text: eventOptions[value] };
-      }),
-      timingOptions: Object.keys(timingOptions).map(value => {
-        return { value, text: timingOptions[value] };
-      }),
-      actionPropertyTypeOptions: Object.keys(actionPropertyTypeOptions).map(value => {
-        return { value, text: actionPropertyTypeOptions[value] };
-      }),
-    };
-  },
-  computed: {
-    extraTagsFull(){
-      if (!this.model.extraTags) return false;
-      let maxCount = TriggerSchema.get('extraTags', 'maxCount');
-      return this.model.extraTags.length >= maxCount;
-    },
-    showTags() {
-      return this.model.event !== 'shortRest' &&
-        this.model.event !== 'longRest' &&
-        this.model.event !== 'anyRest';
-    }
-  },
-  methods: {
-    acknowledgeAddResult(){
-      this.addExtraTagsLoading = false;
-    },
-    addExtraTags(){
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: ['extraTags'],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
-};
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+// The select items; the imported maps are { value: label }
+const toItems = options => Object.keys(options).map(value => ({ value, title: options[value] }));
+const eventOptions = toItems(EVENT_OPTIONS);
+const timingOptions = toItems(TIMING_OPTIONS);
+const actionPropertyTypeOptions = toItems(ACTION_PROPERTY_TYPE_OPTIONS);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>

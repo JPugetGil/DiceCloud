@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Libraries from '/imports/api/library/Libraries';
@@ -130,13 +130,13 @@ Meteor.users.generateApiKey = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run() {
+  async run() {
     if (Meteor.isClient) return;
-    var user = Meteor.users.findOne(this.userId);
+    var user = await Meteor.users.findOneAsync(this.userId);
     if (!user) return;
     if (user && user.apiKey) return;
     var apiKey = Random.id(30);
-    Meteor.users.update(this.userId, { $set: { apiKey } });
+    await Meteor.users.updateAsync(this.userId, { $set: { apiKey } });
   },
 });
 
@@ -150,9 +150,9 @@ Meteor.users.setDarkMode = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 2000,
   },
-  run({ darkMode }) {
+  async run({ darkMode }) {
     if (!this.userId) return;
-    Meteor.users.update(this.userId, { $set: { darkMode } });
+    await Meteor.users.updateAsync(this.userId, { $set: { darkMode } });
   },
 });
 
@@ -172,9 +172,9 @@ Meteor.users.sendVerificationEmail = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ userId, address }) {
+  async run({ userId, address }) {
     userId = this.userId || userId;
-    let user = Meteor.users.findOne(userId);
+    let user = await Meteor.users.findOneAsync(userId);
     if (!user) {
       throw new Meteor.Error('User not found',
         'Can\'t send a validation email to a user that does not exist');
@@ -183,7 +183,7 @@ Meteor.users.sendVerificationEmail = new ValidatedMethod({
       throw new Meteor.Error('Email address not found',
         'The specified email address wasn\'t found on this user account');
     }
-    Accounts.sendVerificationEmail(userId, address);
+    await Accounts.sendVerificationEmail(userId, address);
   }
 });
 
@@ -195,9 +195,9 @@ Meteor.users.canPickUsername = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ username }) {
+  async run({ username }) {
     if (Meteor.isClient) return;
-    let user = Accounts.findUserByUsername(username);
+    const user = await Accounts.findUserByUsername(username);
     // You can pick your own username
     if (user && user._id === this.userId) {
       return false;
@@ -214,10 +214,10 @@ Meteor.users.setUsername = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ username }) {
+  async run({ username }) {
     if (!this.userId) throw 'Can only set your username if logged in';
     if (Meteor.isClient) return;
-    return Accounts.setUsername(this.userId, username)
+    return await Accounts.setUsername(this.userId, username);
   }
 });
 
@@ -236,15 +236,15 @@ Meteor.users.setPreference = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ preference, value }) {
+  async run({ preference, value }) {
     if (!this.userId) throw 'You can only set preferences once logged in';
     let prefPath = `preferences.${preference}`
     if (value == true) {
-      return Meteor.users.update(this.userId, {
+      return await Meteor.users.updateAsync(this.userId, {
         $set: { [prefPath]: true },
       });
     } else {
-      return Meteor.users.update(this.userId, {
+      return await Meteor.users.updateAsync(this.userId, {
         $unset: { [prefPath]: 1 },
       });
     }
@@ -252,9 +252,9 @@ Meteor.users.setPreference = new ValidatedMethod({
 });
 
 if (Meteor.isServer) {
-  Accounts.onCreateUser((options, user) => {
+  Accounts.onCreateUser(async (options, user) => {
     if (defaultLibraries?.length) {
-      Libraries.update({
+      await Libraries.updateAsync({
         _id: { $in: defaultLibraries }
       }, {
         $inc: { subscriberCount: 1 }
@@ -263,7 +263,7 @@ if (Meteor.isServer) {
       }, () => {/**/ });
     }
     if (defaultLibraryCollections?.length) {
-      LibraryCollections.update({
+      await LibraryCollections.updateAsync({
         _id: { $in: defaultLibraryCollections }
       }, {
         $inc: { subscriberCount: 1 }
@@ -291,16 +291,16 @@ Meteor.users.subscribeToLibrary = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 2000,
   },
-  run({ libraryId, subscribe }) {
+  async run({ libraryId, subscribe }) {
     if (!this.userId) throw 'Can only subscribe if logged in';
     if (subscribe) {
-      Libraries.update({ _id: libraryId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
-      return Meteor.users.update(this.userId, {
+      await Libraries.updateAsync({ _id: libraryId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
+      return await Meteor.users.updateAsync(this.userId, {
         $addToSet: { subscribedLibraries: libraryId },
       });
     } else {
-      Libraries.update({ _id: libraryId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
-      return Meteor.users.update(this.userId, {
+      await Libraries.updateAsync({ _id: libraryId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
+      return await Meteor.users.updateAsync(this.userId, {
         $pullAll: { subscribedLibraries: libraryId },
       });
     }
@@ -323,16 +323,16 @@ Meteor.users.subscribeToLibraryCollection = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ libraryCollectionId, subscribe }) {
+  async run({ libraryCollectionId, subscribe }) {
     if (!this.userId) throw 'Can only subscribe if logged in';
     if (subscribe) {
-      LibraryCollections.update({ _id: libraryCollectionId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
-      return Meteor.users.update(this.userId, {
+      await LibraryCollections.updateAsync({ _id: libraryCollectionId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
+      return await Meteor.users.updateAsync(this.userId, {
         $addToSet: { subscribedLibraryCollections: libraryCollectionId },
       });
     } else {
-      LibraryCollections.update({ _id: libraryCollectionId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
-      return Meteor.users.update(this.userId, {
+      await LibraryCollections.updateAsync({ _id: libraryCollectionId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
+      return await Meteor.users.updateAsync(this.userId, {
         $pullAll: { subscribedLibraryCollections: libraryCollectionId },
       });
     }
@@ -351,10 +351,10 @@ Meteor.users.findUserByUsernameOrEmail = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ usernameOrEmail }) {
+  async run({ usernameOrEmail }) {
     if (Meteor.isClient) return;
-    let user = Accounts.findUserByUsername(usernameOrEmail) ||
-      Accounts.findUserByEmail(usernameOrEmail);
+    const user = await Accounts.findUserByUsername(usernameOrEmail) ||
+      await Accounts.findUserByEmail(usernameOrEmail);
     return user && user._id;
   }
 });

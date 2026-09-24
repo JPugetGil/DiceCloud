@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-row dense>
     <v-col
       cols="12"
@@ -10,7 +10,7 @@
         style="flex-basis: 300px;"
         :value="model.tag"
         :error-messages="errors.tag"
-        @change="change('tag', ...arguments)"
+        @change="(value, ack) => change('tag', value, ack)"
       />
     </v-col>
     <v-col
@@ -30,10 +30,26 @@
   </v-row>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-};
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>

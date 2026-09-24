@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <i
     ref="icon"
     aria-hidden
@@ -19,7 +19,10 @@
   </i>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
 const SIZE_MAP = {
   xSmall: '12px',
   small: '16px',
@@ -28,65 +31,65 @@ const SIZE_MAP = {
   large: '36px',
   xLarge: '40px',
 }
-export default {
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+
+const theme = useThemeState();
+
+const props = defineProps({
+  shape: {
+    type: String,
+    default: '',
   },
-  props: {
-    shape: {
-      type: String,
-      default: '',
-    },
-    color: {
-      type: String,
-      default: undefined,
-    },
-    xSmall: Boolean,
-    small: Boolean,
-    medium: Boolean,
-    large: Boolean,
-    xLarge: Boolean,
+  color: {
+    type: String,
+    default: undefined,
   },
-  data(){return {
-    inheritedSize: undefined,
-  }},
-  computed: {
-    isDark () {
-      if (this.dark === true) {
-        // explicitly dark
-        return true
-      } else if (this.light === true) {
-        // explicitly light
-        return false
-      } else {
-        // inherit from parent, or default false if there is none
-        return this.theme.isDark
-      }
-    },
-    themeClasses() {
-      return {
-        'theme--dark': this.isDark,
-        'theme--light': !this.isDark,
-      }
-    },
-    size() {
-      if (this.inheritedSize) return this.inheritedSize;
-      if (this.xSmall) return SIZE_MAP['xSmall'];
-      if (this.small)  return SIZE_MAP['small'];
-      if (this.medium) return SIZE_MAP['medium'];
-      if (this.large)  return SIZE_MAP['large'];
-      if (this.xLarge) return SIZE_MAP['xLarge'];
-      return SIZE_MAP['default'];
-    },
-  },
-  mounted(){
-    this.inheritedSize = this.$refs.icon.style.fontSize;
+  xSmall: Boolean,
+  small: Boolean,
+  medium: Boolean,
+  large: Boolean,
+  xLarge: Boolean,
+  dark: Boolean,
+  light: Boolean,
+})
+
+const icon = ref(null)
+const inheritedSize = ref(undefined)
+
+const isDark = computed(() => {
+  if (props.dark === true) {
+    // explicitly dark
+    return true
+  } else if (props.light === true) {
+    // explicitly light
+    return false
+  } else {
+    // inherit from parent, or default false if there is none
+    return theme.isDark
   }
-}
+})
+
+const themeClasses = computed(() => {
+  return {
+    'v-theme--dark': isDark.value,
+    'v-theme--light': !isDark.value,
+  }
+})
+
+const size = computed(() => {
+  if (inheritedSize.value) return inheritedSize.value;
+  if (props.xSmall) return SIZE_MAP['xSmall'];
+  if (props.small)  return SIZE_MAP['small'];
+  if (props.medium) return SIZE_MAP['medium'];
+  if (props.large)  return SIZE_MAP['large'];
+  if (props.xLarge) return SIZE_MAP['xLarge'];
+  return SIZE_MAP['default'];
+})
+
+onMounted(() => {
+  if (icon.value) {
+    inheritedSize.value = icon.value.style.fontSize;
+  }
+})
 </script>
 
 <style lang="css" scoped>

@@ -2,10 +2,9 @@
   <v-card data-id="spell-slot-card">
     <v-list
       v-if="spellSlots.length"
-      two-line
-      subheader
+      lines="two"
     >
-      <v-subheader>Spell Slots</v-subheader>
+      <v-list-subheader>Spell Slots</v-list-subheader>
       <spell-slot-list-tile
         v-for="spellSlot in spellSlots"
         :key="spellSlot._id"
@@ -21,7 +20,7 @@
       <v-btn
         color="accent"
         style="width: 100%;"
-        outlined
+        variant="outlined"
         data-id="cast-spell-btn"
         @click="castSpell"
       >
@@ -31,45 +30,42 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
 import SpellSlotListTile from '/imports/client/ui/properties/components/attributes/SpellSlotListTile.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    SpellSlotListTile,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
   },
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
-    },
-    hasSpells: Boolean,
-    spellSlots: {
-      type: Array,
-      default: () => [],
-    },
+  hasSpells: Boolean,
+  spellSlots: {
+    type: Array,
+    default: () => [],
   },
-  data(){return {
-    castSpellLoading: false,
-  }},
-  methods: {
-    castSpell() {
-      // push spell cast dialog
-      this.$store.commit('pushDialogStack', {
-        component: 'cast-spell-with-slot-dialog',
-        elementId: 'spell-slot-card',
-        data: {
-          creatureId: this.creatureId,
-        },
-      });
+});
+
+
+
+function castSpell() {
+  // push spell cast dialog
+  dialogStackStore.pushDialogStack({
+    component: 'cast-spell-with-slot-dialog',
+    elementId: 'spell-slot-card',
+    data: {
+      creatureId: props.creatureId,
     },
-    clickProperty({ _id }) {
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `spell-slot-card-${_id}`,
-        data: { _id },
-      });
-    },
-  }
+  });
+}
+
+function clickProperty({ _id }) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `spell-slot-card-${_id}`,
+    data: { _id },
+  });
 }
 </script>

@@ -61,7 +61,7 @@
   overflow: auto;
 }
 
-.theme--dark.v-application .markdown hr {
+.v-theme--dark.v-application .markdown hr {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -89,11 +89,53 @@
   background-color: rgba(0, 0, 0, 0.03)
 }
 
-.markdown ul {
+/*
+ * Vuetify 3's reset zeroes the padding and margin of every element
+ * (`* { padding: 0; margin: 0 }` in vuetify/styles). Vuetify 2's element styles
+ * gave paragraphs a bottom margin and lists their indent, and rendered markdown
+ * relied on them: paragraphs ran together and list bullets hung outside the
+ * box. Restored here for markdown only.
+ */
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown blockquote,
+.markdown pre {
   margin-bottom: 16px;
 }
 
-.theme--dark.v-application .markdown tbody>tr:nth-child(odd) {
+.markdown ul,
+.markdown ol {
+  padding-left: 24px;
+}
+
+/* A nested list continues its item rather than starting a new block */
+.markdown li > ul,
+.markdown li > ol {
+  margin-bottom: 0;
+}
+
+.markdown blockquote {
+  padding-left: 16px;
+  border-left: 4px solid rgba(128, 128, 128, 0.4);
+}
+
+.markdown pre {
+  padding: 8px 12px;
+}
+
+.markdown code {
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  background-color: rgba(128, 128, 128, 0.15);
+}
+
+.markdown pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+.v-theme--dark.v-application .markdown tbody>tr:nth-child(odd) {
   background-color: rgba(255, 255, 255, 0.03)
 }
 

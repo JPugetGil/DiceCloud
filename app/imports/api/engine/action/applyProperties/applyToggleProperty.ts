@@ -21,13 +21,13 @@ export default async function applyToggle(
       value: 'toggle does not have a condition set',
       silenced: prop.silent,
     }, task.targetIds);
-    return applyAfterTasksSkipChildren(action, prop, task.targetIds, inputProvider);
+    return await applyAfterTasksSkipChildren(action, prop, task.targetIds, inputProvider);
   }
 
   await recalculateCalculation(prop.condition, action, 'reduce', inputProvider);
   if (prop.condition?.value) {
-    return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
   } else {
-    return applyAfterTasksSkipChildren(action, prop, task.targetIds, inputProvider);
+    return await applyAfterTasksSkipChildren(action, prop, task.targetIds, inputProvider);
   }
 }

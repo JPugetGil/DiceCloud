@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
@@ -12,7 +12,7 @@ let schema = new SimpleSchema({
 
 Meteor.publish('experiences', function (creatureId) {
   schema.validate({ creatureId });
-  this.autorun(function () {
+  this.autorun(async function () {
     let userId = this.userId;
     if (!userId) {
       return [];
@@ -27,8 +27,8 @@ Meteor.publish('experiences', function (creatureId) {
       ],
     });
     try {
-      assertViewPermission(creatureCursor.fetch()[0], this.userId);
-    } catch (e) {
+      await assertViewPermission((await creatureCursor.fetchAsync())[0], this.userId);
+    } catch {
       return [];
     }
     return [

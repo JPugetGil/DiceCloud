@@ -1,4 +1,7 @@
-import SimpleSchema from 'simpl-schema';
+// Registers the custom schema options (index, computedField, ...) before any
+// definition uses them, whichever entry point or test file loads first
+import '/imports/api/simpleSchemaConfig';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
@@ -40,7 +43,7 @@ const Icons = new Mongo.Collection<Icon>('icons');
 Icons.attachSchema(iconsSchema);
 
 if (Meteor.isServer) {
-  Icons._ensureIndex({
+  Icons.createIndexAsync({
     'name': 'text',
     'description': 'text',
     'tags': 'text',
@@ -65,11 +68,11 @@ const writeIcons = new ValidatedMethod({
     numRequests: 20,
     timeInterval: 10000,
   },
-  run(icons) {
-    assertAdmin(this.userId);
+  async run(icons) {
+    await assertAdmin(this.userId);
     if (Meteor.isServer) {
       this.unblock();
-      Icons.rawCollection().insert(icons, { ordered: false });
+      await Icons.rawCollection().insertMany(icons, { ordered: false });
     }
   }
 });
@@ -88,10 +91,10 @@ const findIcons = new ValidatedMethod({
     numRequests: 20,
     timeInterval: 10000,
   },
-  run({ search }) {
+  async run({ search }) {
     if (!search) return [];
     if (!Meteor.isServer) return;
-    return Icons.find(
+    return await Icons.find(
       { $text: { $search: search } },
       {
         // relevant documents have a higher score.
@@ -104,7 +107,7 @@ const findIcons = new ValidatedMethod({
           score: { $meta: 'textScore' }
         }
       }
-    ).fetch();
+    ).fetchAsync();
   }
 })
 

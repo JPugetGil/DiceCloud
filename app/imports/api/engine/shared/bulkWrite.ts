@@ -17,21 +17,23 @@ export default async function bulkWrite<T>(bulkWriteOps, collection: Mongo.Colle
 // If we re-enable client-side sheet recalculation, this needs to be run on
 // both client and server to preserve latency compensation. Bulkwrite breaks
 // latency compensation and causes flickering
-function writePropertiesSequentially(bulkWriteOps: any[], collection: Mongo.Collection<any>) {
-  bulkWriteOps.forEach(op => {
+async function writePropertiesSequentially(bulkWriteOps: any[], collection: Mongo.Collection<any>) {
+  // for...of rather than forEach: an async callback handed to forEach is never
+  // awaited, so the writes would overlap instead of running in order.
+  for (const op of bulkWriteOps) {
     const insertOne = op.insertOne;
     if (insertOne) {
-      collection.insert(insertOne);
+      await collection.insertAsync(insertOne);
     }
     const updateOneOrMany = op.updateOne || op.updateMany;
     if (updateOneOrMany) {
-      collection.update(updateOneOrMany.filter, updateOneOrMany.update, {
+      await collection.updateAsync(updateOneOrMany.filter, updateOneOrMany.update, {
         // The bulk code is bypassing validation, so do the same here
         // @ts-expect-error Collection 2 has no typescript support
         bypassCollection2: true,
       });
     }
-  });
+  }
 }
 
 export function newOperation(_id) {

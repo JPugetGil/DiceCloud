@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="d-flex flex-wrap align-start"
   >
@@ -27,22 +27,18 @@
   </div>
 </template>
 
-<script lang="js">
-  import ColorPicker from '/imports/client/ui/components/ColorPicker.vue';
-  import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+<script setup>
+import ColorPicker from '/imports/client/ui/components/ColorPicker.vue';
+import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
 
-  export default {
-    components: {
-      OutlinedInput,
-      ColorPicker,
-    },
-    props: {
-      model: {
-        type: Object,
-        required: true,
-      },
-    },
-  }
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
+
+defineEmits(['change']);
 </script>
 
 <style lang="css" scoped>

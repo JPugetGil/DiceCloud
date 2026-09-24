@@ -1,6 +1,5 @@
 <template>
   <v-list
-    expand
     class="library-list"
   >
     <library-list-tile
@@ -19,7 +18,6 @@
       v-for="libraryCollection in libraryCollections"
       :key="libraryCollection._id"
       v-model="openCollections[libraryCollection._id]"
-      group="library-collection"
       :data-id="`library-collection-${libraryCollection._id}`"
     >
       <template #activator>
@@ -47,7 +45,7 @@
         @select="val => $emit('select-library', library._id, val)"
       />
     </v-list-group>
-    <v-list-item v-if="!$subReady.libraries">
+    <v-list-item v-if="!subLibrariesReady">
       <v-spacer />
       <v-progress-circular
         indeterminate
@@ -58,136 +56,142 @@
   </v-list>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import { union } from 'lodash';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
-import LibraryCollections, { insertLibraryCollection } from '/imports/api/library/LibraryCollections';
-import Libraries, { insertLibrary } from '/imports/api/library/Libraries';
-import LibraryListTile from '/imports/client/ui/library/LibraryListTile.vue'
+import LibraryCollections, { insertLibraryCollection as insertLibraryCollectionApi } from '/imports/api/library/LibraryCollections';
+import Libraries, { insertLibrary as insertLibraryApi } from '/imports/api/library/Libraries';
+import LibraryListTile from '/imports/client/ui/library/LibraryListTile.vue';
 import LibraryCollectionHeader from '/imports/client/ui/library/LibraryCollectionHeader.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    LibraryListTile,
-    LibraryCollectionHeader,
+const dialogStackStore = useDialogStackStore();
+
+defineProps({
+  selection: Boolean,
+  singleSelect: Boolean,
+  disabled: Boolean,
+  librariesSelected: {
+    type: Array,
+    default: undefined,
   },
-  props: {
-    selection: Boolean,
-    singleSelect: Boolean,
-    disabled: Boolean,
-    librariesSelected: {
-      type: Array,
-      default: undefined,
-    },
-    libraryCollectionsSelected: {
-      type: Array,
-      default: undefined,
-    },
-    librariesSelectedByCollections: {
-      type: Array,
-      default: undefined,
-    },
+  libraryCollectionsSelected: {
+    type: Array,
+    default: undefined,
   },
-  data(){ return{
-    loadingInsertLibraryCollection: false,
-    openCollections: [],
-  }},
-  meteor: {
-    $subscribe: {
-      'libraries': [],
-    },
-    libraryCollections(){
-      const userId = Meteor.userId();
-      if (!userId) return;
-      const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
-      return LibraryCollections.find({
-        $or: [
-          { owner: userId },
-          { writers: userId },
-          { readers: userId },
-          { _id: { $in: subCollections }, public: true },
-        ]
-      }, {
-        sort: { name: 1 }
-      }).map(libCollection => {
-        libCollection.libraryDocuments = Libraries.find({
-          _id: {$in: libCollection.libraries},
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        }, {
-          sort: { name: 1 }
-        }).fetch();
-        return libCollection;
-      });
-    },
-    librariesWithoutCollection() {
-      const userId = Meteor.userId();
-      if (!this.libraryCollections) return;
-      // Collate the IDs of all the libraries in collections
-      let collectedLibraries = [];
-      this.libraryCollections.forEach(libCollection => {
-        collectedLibraries = union(collectedLibraries, libCollection.libraries);
-      });
-      // return the libraries with IDs not in that list
-      return Libraries.find(
-        {
-          _id: {$nin: collectedLibraries},
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        },
-        {sort: {name: 1}}
-      );
-    },
+  librariesSelectedByCollections: {
+    type: Array,
+    default: undefined,
   },
-  methods: {
-    insertLibrary() {
-      const self = this;
-      this.$store.commit('pushDialogStack', {
-        component: 'library-creation-dialog',
-        elementId: 'insert-library-button',
-        callback(library){
-          if (!library) return;
-          return insertLibrary.call(library, (error, libraryId) => {
-            if (error){
-              console.error(error);
-              snackbar({
-                text: error.reason,
-              });
-            } else {
-              self.$router.push({
-                name: 'singleLibrary',
-                params: { id: libraryId }
-              });
-            }
-          });
-        }
-      });
+});
+
+defineEmits(['select-library', 'select-library-collection']);
+
+const router = useRouter();
+
+const openCollections = ref([]);
+
+const { ready: subLibrariesReady } = subscribe('libraries');
+
+const libraryCollections = autorun(() => {
+  const userId = Meteor.userId();
+  if (!userId) return;
+  const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
+  return LibraryCollections.find({
+    $or: [
+      { owner: userId },
+      { writers: userId },
+      { readers: userId },
+      { _id: { $in: subCollections }, public: true },
+    ]
+  }, {
+    sort: { name: 1 }
+  }).map(libCollection => {
+    libCollection.libraryDocuments = Libraries.find({
+      _id: {$in: libCollection.libraries},
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
+    }, {
+      sort: { name: 1 }
+    }).fetch();
+    return libCollection;
+  });
+}).result;
+
+const librariesWithoutCollection = autorun(() => {
+  const userId = Meteor.userId();
+  if (!libraryCollections.value) return;
+  // Collate the IDs of all the libraries in collections
+  let collectedLibraries = [];
+  libraryCollections.value.forEach(libCollection => {
+    collectedLibraries = union(collectedLibraries, libCollection.libraries);
+  });
+  // return the libraries with IDs not in that list
+  return Libraries.find(
+    {
+      _id: {$nin: collectedLibraries},
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
     },
-    insertLibraryCollection() {
-      this.$store.commit('pushDialogStack', {
-        component: 'library-collection-creation-dialog',
-        elementId: 'insert-library-collection-button',
-        callback(libraryCollection){
-          if (!libraryCollection) return;
-          const id = insertLibraryCollection.call(libraryCollection, error => {
-            if (!error) return;
-            console.error(error);
-            snackbar({
-              text: error.reason,
-            });
-          });
-          return `library-collection-${id}`
-        }
-      });
-    },
-  },
+    {sort: {name: 1}}
+  ).fetch();
+}).result;
+
+const insertLibrary = () => {
+  dialogStackStore.pushDialogStack({
+    component: 'library-creation-dialog',
+    elementId: 'insert-library-button',
+    async callback(library) {
+      if (!library) return;
+      try {
+        const libraryId = await insertLibraryApi.callAsync(library);
+        await router.push({
+          name: 'singleLibrary',
+          params: { id: libraryId }
+        });
+        return `library-${libraryId}`;
+      } catch (error) {
+        console.error(error);
+        snackbar({
+          text: error.reason,
+        });
+      }
+    }
+  });
 };
+
+const insertLibraryCollection = () => {
+  dialogStackStore.pushDialogStack({
+    component: 'library-collection-creation-dialog',
+    elementId: 'insert-library-collection-button',
+    async callback(libraryCollection) {
+      if (!libraryCollection) return;
+      try {
+        const id = await insertLibraryCollectionApi.callAsync(libraryCollection);
+        return `library-collection-${id}`;
+      } catch (error) {
+        console.error(error);
+        snackbar({
+          text: error.reason,
+        });
+      }
+    }
+  });
+};
+
+defineExpose({
+  insertLibrary,
+  insertLibraryCollection
+});
 </script>

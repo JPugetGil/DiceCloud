@@ -1,5 +1,5 @@
 import { getCreature } from '/imports/api/engine/loadCreatures';
 
-export default function getRootCreatureAncestor(property) {
-  return getCreature(property.root.id);
+export default async function getRootCreatureAncestor(property) {
+  return await getCreature(property.root.id);
 }

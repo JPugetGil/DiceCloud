@@ -1,11 +1,11 @@
-<template lang="html">
+<template>
   <div class="mt-4">
     <v-slide-x-transition group>
       <div
         v-for="(item, i) in model"
         :key="item._id || i"
       >
-        <div class="layout align-center">
+        <div class="d-flex flex-1-1 align-center">
           <div style="flex-grow: 1;">
             <item-consumed-form
               :model="item"
@@ -13,9 +13,9 @@
             />
           </div>
           <v-btn
-            outlined
+            variant="outlined"
             icon
-            large
+            size="large"
             class="ma-3"
             style="margin-bottom: 30px !important;"
             @click="$emit('pull', {path: [i]})"
@@ -28,14 +28,26 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import ItemConsumedForm from '/imports/client/ui/properties/forms/ItemConsumedForm.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 
-export default {
-  components: {
-    ItemConsumedForm,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change', 'pull']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>

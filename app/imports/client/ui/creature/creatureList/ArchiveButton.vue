@@ -1,7 +1,7 @@
-<template lang="html">
+<template>
   <v-btn
+    variant="text"
     :icon="!text"
-    :text="text"
     :data-id="randomId"
     v-bind="$attrs"
     @click="openArchive"
@@ -9,28 +9,29 @@
     <template v-if="text">
       Archive Characters
     </template>
-    <v-icon :right="text">
+    <v-icon :end="text">
       mdi-archive
     </v-icon>
   </v-btn>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    text: Boolean,
-  },
-  data(){return {
-    randomId: Random.id(),
-  }},
-  methods: {
-    openArchive(){
-      this.$store.commit('pushDialogStack', {
-        component: 'archive-dialog',
-        elementId: this.randomId,
-      });
-    }
-  }
+<script setup>
+import { Random } from 'meteor/random';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
+defineProps({
+  text: Boolean,
+});
+
+const randomId = Random.id();
+
+function openArchive() {
+  dialogStackStore.pushDialogStack({
+    component: 'archive-dialog',
+    elementId: randomId,
+  });
 }
 </script>
 

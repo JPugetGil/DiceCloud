@@ -1,7 +1,10 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
-import { Migrations } from 'meteor/percolate:migrations';
+// `Migrations` is a server-only global (percolate:migrations exports it through
+// Meteor's global-imports on the server only), and run() below bails out on the
+// client before touching it. Importing it here instead put the server-only
+// package into the client's module graph, which the client build cannot resolve.
 
 const dbVersionToGitVersion = {
   0: '2.0-beta.32 and lower',
@@ -16,10 +19,10 @@ const getVersion = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run() {
+  async run() {
     if (Meteor.isClient) return;
-    assertAdmin(this.userId);
-    const dbVersion = Migrations.getVersion();
+    await assertAdmin(this.userId);
+    const dbVersion = await Migrations.getVersion();
     return {
       dbVersion,
       gitVersion: dbVersionToGitVersion[dbVersion],

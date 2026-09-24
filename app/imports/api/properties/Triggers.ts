@@ -1,4 +1,3 @@
-import SimpleSchema from 'simpl-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';

@@ -1,21 +1,21 @@
-<template lang="html">
+<template>
   <v-card
     class="action-card"
     :class="cardClasses"
     :data-id="model._id"
   >
-    <div class="layout align-center px-3">
+    <div class="d-flex flex-1-1 align-center px-3">
       <div class="avatar">
         <v-btn
           icon
-          outlined
+          variant="outlined"
           style="font-size: 16px; letter-spacing: normal;"
           class="mr-2"
           :data-id="`${model._id}-do-action-button`"
           :color="model.color || 'primary'"
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission || !!targetingError"
-          @click.stop="doAction"
+          @click.stop="handleDoAction"
         >
           <template v-if="rollBonus && !rollBonusTooLong">
             {{ rollBonus }}
@@ -27,7 +27,7 @@
         </v-btn>
       </div>
       <div
-        class="action-header flex layout column justify-center pl-1"
+        class="action-header flex-1-1 d-flex flex-column justify-center pl-1"
         style="height: 72px; cursor: pointer;"
         @mouseover="hovering = true"
         @mouseleave="hovering = false"
@@ -36,15 +36,15 @@
         <div class="action-title my-1">
           {{ model.name || propertyName }}
         </div>
-        <div class="action-sub-title layout align-center">
+        <div class="action-sub-title d-flex flex-1-1 align-center">
           <div
             v-if="targetingError"
-            class="flex error--text"
+            class="flex-1-1 text-error"
           >
             {{ targetingError }}
           </div>
           <template v-else>
-            <div class="flex">
+            <div class="flex-1-1">
               {{ model.actionType }}
             </div>
             <div v-if="Number.isFinite(model.usesLeft)">
@@ -98,7 +98,10 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, inject } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
+
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import doAction from '/imports/client/ui/creature/actions/doAction';
@@ -112,131 +115,111 @@ import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
 import { getFilter, docsToForest as nodeArrayToTree } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
 
-export default {
-  components: {
-    ActionConditionView,
-    AttributeConsumedView,
-    ItemConsumedView,
-    MarkdownText,
-    PropertyIcon,
-    CardHighlight,
-    TreeNodeList,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: {
-      default: {},
-    },
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+  targets: {
+    type: Array,
+    default: undefined,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    targets: {
-      type: Array,
-      default: undefined,
-    },
-  },
-  data() {
-    return {
-      activated: undefined,
-      doActionLoading: false,
-      hovering: false,
-    }
-  },
-  computed: {
-    showResources() {
-      if (this.model.resources?.attributesConsumed?.length
-        || this.model.resources?.itemsConsumed?.length) return true;
-      return some(this.model.resources?.conditions, con => con.condition && !con.condition.value);
-    },
-    rollBonus() {
-      if (!this.model.attackRoll) return;
-      return numberToSignedString(this.model.attackRoll.value);
-    },
-    rollBonusTooLong() {
-      return this.rollBonus && this.rollBonus.length > 3;
-    },
-    propertyName() {
-      return getPropertyName(this.model.type);
-    },
-    cardClasses() {
-      return {
-        'theme--dark': this.theme.isDark,
-        'theme--light': !this.theme.isDark,
-        'muted-text': this.model.insufficientResources,
-        'active': this.activated,
-        'elevation-8': this.hovering,
-      }
-    },
-    actionTypeIcon() {
-      return `$vuetify.icons.${this.model.actionType}`;
-    },
-    targetingError(){
-      // Can always do an action without a target
-      if (!this.targets || !this.targets.length) return undefined;
-      if (this.targets.length > 1 && this.model.target !== 'multipleTargets'){
-        return 'Single target';
-      } else if (this.model.target === 'self' && this.targets[0] !== this.model.ancestors[0]._id){
-        return 'Can only target self';
-      }
-      return undefined;
-    }
-  },
-  meteor: {
-    children() {
-      const rangesToExclude = [];
-      const descendants = CreatureProperties.find({
-        ...getFilter.descendants(this.model),
-        'removed': { $ne: true },
-      }, {
-        sort: {left: 1}
-      }).map(prop => {
-        // Get all the props we don't want to show the descendants of and
-        // where they might appear in the ancestor list
-        if (prop.type === 'buff' || prop.type === 'folder') {
-          rangesToExclude.push({
-            left: prop.left,
-            right: prop.right,
-          });
-        }
-        return prop;
-      }).filter(prop => {
-        // Filter out folders entirely
-        if (prop.type === 'folder') return false;
-        // Filter out descendants of terminating props
-        return !some(rangesToExclude, range => {
-          return prop.left > range.left && prop.right < range.right;
-        });
-      });
-      return nodeArrayToTree(descendants);
-    },
-  },
-  methods: {
-    click(e) {
-      this.$emit('click', e);
-    },
-    doAction() {
-      this.doActionLoading = true;
-      doAction({
-        propId: this.model._id,
-        creatureId: this.model.root.id,
-        $store: this.$store,
-        elementId: `${this.model._id}-do-action-button`,
-        targetIds: [],
-      }).catch((e) => {
-        console.error(e);
-      }).finally(() => {
-        this.doActionLoading = false;
-      });
-    },
+});
+
+defineEmits(['click', 'sub-click']);
+
+const context = inject('context', {});
+const theme = useThemeState();
+
+
+const activated = ref(undefined);
+const doActionLoading = ref(false);
+const hovering = ref(false);
+
+const showResources = computed(() => {
+  if (props.model.resources?.attributesConsumed?.length
+    || props.model.resources?.itemsConsumed?.length) return true;
+  return some(props.model.resources?.conditions, con => con.condition && !con.condition.value);
+});
+
+const rollBonus = computed(() => {
+  if (!props.model.attackRoll) return;
+  return numberToSignedString(props.model.attackRoll.value);
+});
+
+const rollBonusTooLong = computed(() => {
+  return rollBonus.value && rollBonus.value.length > 3;
+});
+
+const propertyName = computed(() => {
+  return getPropertyName(props.model.type);
+});
+
+const cardClasses = computed(() => {
+  return {
+    'v-theme--dark': theme.isDark,
+    'v-theme--light': !theme.isDark,
+    'muted-text': props.model.insufficientResources,
+    'active': activated.value,
+    'elevation-8': hovering.value,
   }
+});
+
+
+const targetingError = computed(() => {
+  // Can always do an action without a target
+  if (!props.targets || !props.targets.length) return undefined;
+  if (props.targets.length > 1 && props.model.target !== 'multipleTargets'){
+    return 'Single target';
+  } else if (props.model.target === 'self' && props.targets[0] !== props.model.ancestors[0]._id){
+    return 'Can only target self';
+  }
+  return undefined;
+});
+
+const children = autorun(() => {
+  const rangesToExclude = [];
+  const descendants = CreatureProperties.find({
+    ...getFilter.descendants(props.model),
+    'removed': { $ne: true },
+  }, {
+    sort: {left: 1}
+  }).map(prop => {
+    // Get all the props we don't want to show the descendants of and
+    // where they might appear in the ancestor list
+    if (prop.type === 'buff' || prop.type === 'folder') {
+      rangesToExclude.push({
+        left: prop.left,
+        right: prop.right,
+      });
+    }
+    return prop;
+  }).filter(prop => {
+    // Filter out folders entirely
+    if (prop.type === 'folder') return false;
+    // Filter out descendants of terminating props
+    return !some(rangesToExclude, range => {
+      return prop.left > range.left && prop.right < range.right;
+    });
+  });
+  return nodeArrayToTree(descendants);
+}).result;
+
+
+async function handleDoAction() {
+  doActionLoading.value = true;
+  await doAction({
+    propId: props.model._id,
+    creatureId: props.model.root.id,
+    elementId: `${props.model._id}-do-action-button`,
+    targetIds: [],
+  }).catch((e) => {
+    console.error(e);
+  }).finally(() => {
+    doActionLoading.value = false;
+  });
 }
 </script>
 
@@ -265,7 +248,8 @@ export default {
 }
 
 .action-sub-title {
-  color: #9e9e9e;
+  /* Material's medium emphasis; the fixed #9e9e9e was 2.7:1 on white */
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
   flex-grow: 0;
   font-size: 12px;
   line-height: 12px;
@@ -280,11 +264,11 @@ export default {
   height: 32px;
 }
 
-.theme--light.muted-text {
+.v-theme--light.muted-text {
   color: rgba(0, 0, 0, .3) !important;
 }
 
-.theme--dark.muted-text {
+.v-theme--dark.muted-text {
   color: hsla(0, 0%, 100%, .3) !important;
 }
 
@@ -294,11 +278,11 @@ export default {
 </style>
 
 <style lang="css">
-.action-card.theme--light.muted-text .v-icon {
+.action-card.v-theme--light.muted-text .v-icon {
   color: rgba(0, 0, 0, .3) !important;
 }
 
-.action-card.theme--dark.muted-text .v-icon {
+.action-card.v-theme--dark.muted-text .v-icon {
   color: hsla(0, 0%, 100%, .3) !important;
 }
 

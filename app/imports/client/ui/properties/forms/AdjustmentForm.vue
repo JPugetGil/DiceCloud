@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="adjustment-form">
     <v-row dense>
       <v-col
@@ -12,7 +12,7 @@
           :items="attributeList"
           :value="model.stat"
           :error-messages="errors.stat"
-          @change="change('stat', ...arguments)"
+          @change="(value, ack) => change('stat', value, ack)"
         />
       </v-col>
       <v-col
@@ -43,7 +43,7 @@
             { name: 'Set', value: 'set' },
           ]"
           :error-messages="errors.operation"
-          @change="change('operation', ...arguments)"
+          @change="(value, ack) => change('operation', value, ack)"
         />
       </v-col>
       <v-col
@@ -58,7 +58,7 @@
             {name: 'Self', value: 'self'},
           ]"
           :error-messages="errors.target"
-          @change="change('target', ...arguments)"
+          @change="(value, ack) => change('target', value, ack)"
         />
       </v-col>
     </v-row>
@@ -68,7 +68,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -76,18 +76,32 @@
   </div>
 </template>
 
-<script lang="js">
-import attributeListMixin from '/imports/client/ui/properties/forms/shared/lists/attributeListMixin';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { useAttributeList } from '/imports/client/ui/properties/forms/shared/lists/useAttributeList';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin, attributeListMixin],
-  data() {
-    return {
-      damageHint: 'The amount of damage to apply, negative values will heal',
-      setHint: 'The value to set the stat to',
-    }
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+const attributeList = useAttributeList();
+
+const damageHint = 'The amount of damage to apply, negative values will heal';
+const setHint = 'The value to set the stat to';
+
+function change(field, value, ack) {
+  emit('change', { path: [field], value, ack });
 }
 </script>
 

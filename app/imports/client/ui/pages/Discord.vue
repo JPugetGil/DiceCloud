@@ -1,6 +1,6 @@
-<template lang="html">
+<template>
   <div
-    class="layout column align-center pa-2"
+    class="d-flex flex-1-1 flex-column align-center pa-2"
   >
     <v-card>
       <iframe
@@ -14,9 +14,8 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-}
+<script setup>
+
 </script>
 
 <style lang="css" scoped>

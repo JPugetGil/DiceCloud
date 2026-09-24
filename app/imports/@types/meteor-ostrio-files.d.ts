@@ -2,7 +2,7 @@ declare module 'meteor/ostrio:files' {
   import { Meteor } from 'meteor/meteor';
   import { Mongo } from 'meteor/mongo';
   import { ReactiveVar } from 'meteor/reactive-var';
-  import { SimpleSchemaDefinition } from 'simpl-schema';
+  import type { SimpleSchemaDefinition } from 'simpl-schema';
   import * as http from 'http';
   import { IncomingMessage } from 'connect';
 
@@ -204,6 +204,9 @@ declare module 'meteor/ostrio:files' {
      *                        Note that removing fields with a transform function is not currently supported as this may break
      *                        functions defined on a FileRef or FileCursor.
      */
+    // `{}` here means "the transform adds nothing"; a stricter empty type would
+    // change what the intersection below accepts
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     find<TransformAdditions = {}>(
       selector?: Mongo.Selector<Partial<FileObj<MetadataType>>>,
       options?: SearchOptions<MetadataType, TransformAdditions>
@@ -219,6 +222,9 @@ declare module 'meteor/ostrio:files' {
      *                        Note that removing fields with a transform function is not currently supported as this may break
      *                        functions defined on a FileRef or FileCursor.
      */
+    // `{}` here means "the transform adds nothing"; a stricter empty type would
+    // change what the intersection below accepts
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     findOne<TransformAdditions = {}>(
       selector?: Mongo.Selector<Partial<FileObj<MetadataType>>> | string,
       options?: SearchOptions<MetadataType, TransformAdditions>

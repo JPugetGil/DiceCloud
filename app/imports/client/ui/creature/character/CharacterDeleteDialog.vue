@@ -1,8 +1,10 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <v-toolbar-title slot="toolbar">
-      Delete Character
-    </v-toolbar-title>
+    <template #toolbar>
+      <v-toolbar-title>
+        Delete Character
+      </v-toolbar-title>
+    </template>
     <div>
       <p v-if="name">
         Type "{{ name }}" to permanently delete the character
@@ -13,68 +15,75 @@
       />
       <v-btn
         v-show="nameMatch"
-        class="primary"
+        class="bg-primary"
+        :loading="removing"
         @click="remove"
       >
         Delete forever
       </v-btn>
     </div>
-    <v-spacer slot="actions" />
-    <v-btn
-      slot="actions"
-      text
-      @click="$store.dispatch('popDialogStack')"
-    >
-      Cancel
-    </v-btn>
+    <template #actions>
+      <v-spacer />
+      <v-btn
+        variant="text"
+        @click="dialogStackStore.popDialogStack()"
+      >
+        Cancel
+      </v-btn>
+    </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
+import { useRouter } from 'vue-router';
+
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  id: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    id: String,
-  },
-  data() {
-    return {
-      inputName: undefined,
-    }
-  },
-  computed: {
-    nameMatch() {
-      if (!this.name) return true;
-      let uppername = this.name.toUpperCase();
-      let upperInputName = this.inputName && this.inputName.toUpperCase();
-      return uppername === upperInputName;
-    },
-  },
-  meteor: {
-    name() {
-      let creature = Creatures.findOne(this.id, { fields: { name: 1 } });
-      return creature && creature.name;
-    },
-  },
-  methods: {
-    remove() {
-      this.$router.push('/characterList');
-      this.$store.dispatch('popDialogStack');
-      removeCreature.call({ charId: this.id }, (error) => {
-        if (error) {
-          console.error(error);
-          snackbar({ text: error.message || error.toString() });
-        }
-      });
-    }
+});
+
+const router = useRouter();
+
+const inputName = ref(undefined);
+const removing = ref(false);
+
+const name = autorun(() => {
+  let creature = Creatures.findOne(props.id, { fields: { name: 1 } });
+  return creature && creature.name;
+}).result;
+
+const nameMatch = computed(() => {
+  if (!name.value) return true;
+  let uppername = name.value.toUpperCase();
+  let upperInputName = inputName.value && inputName.value.toUpperCase();
+  return uppername === upperInputName;
+});
+
+async function remove() {
+  removing.value = true;
+  try {
+    await removeCreature.callAsync({ charId: props.id });
+    await router.push('/characterList');
+    await dialogStackStore.popDialogStack();
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.message || error.toString() });
+  } finally {
+    removing.value = false;
   }
-};
+}
 </script>
 
 <style lang="css" scoped>

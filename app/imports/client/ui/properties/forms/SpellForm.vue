@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="spell-form">
     <v-row dense>
       <v-col
@@ -11,7 +11,7 @@
           label="Always prepared"
           :value="model.alwaysPrepared"
           :error-messages="errors.alwaysPrepared"
-          @change="change('alwaysPrepared', ...arguments)"
+          @change="(value, ack) => change('alwaysPrepared', value, ack)"
         />
       </v-col>
       <v-col
@@ -25,7 +25,7 @@
           label="Prepared"
           :value="model.prepared"
           :error-messages="errors.prepared"
-          @change="change('prepared', ...arguments)"
+          @change="(value, ack) => change('prepared', value, ack)"
         />
       </v-col>
       <v-col
@@ -39,7 +39,7 @@
           label="Cast without spell slots"
           :value="model.castWithoutSpellSlots"
           :error-messages="errors.castWithoutSpellSlots"
-          @change="change('castWithoutSpellSlots', ...arguments)"
+          @change="(value, ack) => change('castWithoutSpellSlots', value, ack)"
         />
       </v-col>
     </v-row>
@@ -54,7 +54,7 @@
           :items="spellLevels"
           :value="model.level"
           :error-messages="errors.level"
-          @change="change('level', ...arguments)"
+          @change="(value, ack) => change('level', value, ack)"
         />
       </v-col>
       <v-col
@@ -66,7 +66,7 @@
           :items="magicSchools"
           :value="model.school"
           :error-messages="errors.school"
-          @change="change('school', ...arguments)"
+          @change="(value, ack) => change('school', value, ack)"
         />
       </v-col>
       <v-col
@@ -77,7 +77,7 @@
           label="Casting Time"
           :value="model.castingTime"
           :error-messages="errors.castingTime"
-          @change="change('castingTime', ...arguments)"
+          @change="(value, ack) => change('castingTime', value, ack)"
         />
       </v-col>
       <v-col
@@ -88,7 +88,7 @@
           label="Range"
           :value="model.range"
           :error-messages="errors.range"
-          @change="change('range', ...arguments)"
+          @change="(value, ack) => change('range', value, ack)"
         />
       </v-col>
       <v-col
@@ -99,7 +99,7 @@
           label="Duration"
           :value="model.duration"
           :error-messages="errors.duration"
-          @change="change('duration', ...arguments)"
+          @change="(value, ack) => change('duration', value, ack)"
         />
       </v-col>
     </v-row>
@@ -113,7 +113,7 @@
           label="Verbal"
           :value="model.verbal"
           :error-messages="errors.verbal"
-          @change="change('verbal', ...arguments)"
+          @change="(value, ack) => change('verbal', value, ack)"
         />
       </v-col>
       <v-col
@@ -125,7 +125,7 @@
           label="Somatic"
           :value="model.somatic"
           :error-messages="errors.somatic"
-          @change="change('somatic', ...arguments)"
+          @change="(value, ack) => change('somatic', value, ack)"
         />
       </v-col>
       <v-col
@@ -137,7 +137,7 @@
           label="Concentration"
           :value="model.concentration"
           :error-messages="errors.concentration"
-          @change="change('concentration', ...arguments)"
+          @change="(value, ack) => change('concentration', value, ack)"
         />
       </v-col>
       <v-col
@@ -149,7 +149,7 @@
           label="Ritual"
           :value="model.ritual"
           :error-messages="errors.ritual"
-          @change="change('ritual', ...arguments)"
+          @change="(value, ack) => change('ritual', value, ack)"
         />
       </v-col>
     </v-row>
@@ -159,7 +159,7 @@
           label="Material"
           :value="model.material"
           :error-messages="errors.material"
-          @change="change('material', ...arguments)"
+          @change="(value, ack) => change('material', value, ack)"
         />
       </v-col>
     </v-row>
@@ -177,7 +177,7 @@
             {name: 'Self', value: 'self'},
           ]"
           :error-messages="errors.target"
-          @change="change('target', ...arguments)"
+          @change="(value, ack) => change('target', value, ack)"
         />
       </v-col>
       <v-col
@@ -190,7 +190,7 @@
             class="ml-4"
             label="Attack roll"
             :value="attackSwitch"
-            @change="e => attackSwitch = e"
+            @update:model-value="e => attackSwitch = e"
           />
           <computed-field
             v-else
@@ -204,6 +204,7 @@
           >
             <template #prepend>
               <v-btn
+                variant="text"
                 :disabled="!!(model.attackRoll && model.attackRoll.calculation)"
                 icon
                 style="margin-top: -12px;"
@@ -268,7 +269,7 @@
               style="flex-basis: 300px;"
               :value="model.usesUsed"
               :error-messages="errors.uses"
-              @change="change('usesUsed', ...arguments)"
+              @change="(value, ack) => change('usesUsed', value, ack)"
             />
           </v-col>
         </v-row>
@@ -276,7 +277,7 @@
           hint="When number of uses used should be reset to zero"
           :value="model.reset"
           :error-messages="errors.reset"
-          @change="change('reset', ...arguments)"
+          @change="(value, ack) => change('reset', value, ack)"
         />
       </form-section>
       <slot />
@@ -284,91 +285,102 @@
   </div>
 </template>
 
-<script lang="js">
-import FormSection, { FormSections } from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref, computed } from 'vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import ResourcesForm from '/imports/client/ui/properties/forms/ResourcesForm.vue';
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 
-export default {
-  components: {
-    FormSections,
-    FormSection,
-    ResourcesForm,
-    ResetSelector,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data() {
-    return {
-      magicSchools: [
-        {
-          text: 'Abjuration',
-          value: 'abjuration',
-        }, {
-          text: 'Conjuration',
-          value: 'conjuration',
-        }, {
-          text: 'Divination',
-          value: 'divination',
-        }, {
-          text: 'Enchantment',
-          value: 'enchantment',
-        }, {
-          text: 'Evocation',
-          value: 'evocation',
-        }, {
-          text: 'Illusion',
-          value: 'illusion',
-        }, {
-          text: 'Necromancy',
-          value: 'necromancy',
-        }, {
-          text: 'Transmutation',
-          value: 'transmutation',
-        },
-      ],
-      spellLevels: [
-        {
-          text: 'Cantrip',
-          value: 0,
-        }, {
-          text: 'Level 1',
-          value: 1,
-        }, {
-          text: 'Level 2',
-          value: 2,
-        }, {
-          text: 'Level 3',
-          value: 3,
-        }, {
-          text: 'Level 4',
-          value: 4,
-        }, {
-          text: 'Level 5',
-          value: 5,
-        }, {
-          text: 'Level 6',
-          value: 6,
-        }, {
-          text: 'Level 7',
-          value: 7,
-        }, {
-          text: 'Level 8',
-          value: 8,
-        }, {
-          text: 'Level 9',
-          value: 9,
-        },
-      ],
-      attackSwitch: false,
-    };
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    isAttack() {
-      return this.attackSwitch || !!this.model.attackRoll?.calculation
-    }
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+const magicSchools = ref([
+  {
+    title: 'Abjuration',
+    value: 'abjuration',
+  }, {
+    title: 'Conjuration',
+    value: 'conjuration',
+  }, {
+    title: 'Divination',
+    value: 'divination',
+  }, {
+    title: 'Enchantment',
+    value: 'enchantment',
+  }, {
+    title: 'Evocation',
+    value: 'evocation',
+  }, {
+    title: 'Illusion',
+    value: 'illusion',
+  }, {
+    title: 'Necromancy',
+    value: 'necromancy',
+  }, {
+    title: 'Transmutation',
+    value: 'transmutation',
+  },
+]);
+
+const spellLevels = ref([
+  {
+    title: 'Cantrip',
+    value: 0,
+  }, {
+    title: 'Level 1',
+    value: 1,
+  }, {
+    title: 'Level 2',
+    value: 2,
+  }, {
+    title: 'Level 3',
+    value: 3,
+  }, {
+    title: 'Level 4',
+    value: 4,
+  }, {
+    title: 'Level 5',
+    value: 5,
+  }, {
+    title: 'Level 6',
+    value: 6,
+  }, {
+    title: 'Level 7',
+    value: 7,
+  }, {
+    title: 'Level 8',
+    value: 8,
+  }, {
+    title: 'Level 9',
+    value: 9,
+  },
+]);
+
+const attackSwitch = ref(false);
+
+const isAttack = computed(() => {
+  return attackSwitch.value || !!props.model.attackRoll?.calculation
+});
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
   }
-};
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

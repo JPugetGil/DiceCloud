@@ -22,27 +22,26 @@
         <div
           v-if="model.value !== undefined"
         >
-          <v-layout
+          <div
             v-if="model.quantity > 1"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.cash
+              $cash
             </v-icon>
             <coin-value
               :value="model.value * model.quantity"
             />
-          </v-layout>
-          <v-layout align-center>
+          </div>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.two_coins
+              $two_coins
             </v-icon>
             <coin-value
               class="mr-2"
@@ -54,33 +53,32 @@
             >
               each
             </span>
-          </v-layout>
+          </div>
         </div>
       </div>
-  
+
       <div class="weight ml-4">
         <div
           v-if="model.weight !== undefined"
         >
-          <v-layout
+          <div
             v-if="model.quantity > 1"
-            align-center
-            class="mb-2"
+            class="d-flex flex-1-1 align-center mb-2"
           >
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.injustice
+              $injustice
             </v-icon>
             {{ totalWeight }} lb
-          </v-layout>
-          <v-layout align-center>
+          </div>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.weight
+              $weight
             </v-icon>
             {{ model.weight }} lb
             <span
@@ -89,7 +87,7 @@
             >
               each
             </span>
-          </v-layout>
+          </div>
         </div>
       </div>
     </div>
@@ -101,64 +99,55 @@
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { computed} from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
 
-export default {
-  components: {
-    CoinValue,
-    PropertyDescription,
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  mixins: [treeNodeViewMixin],
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    preparingSpells: Boolean,
-  },
-  data() {
-    return {
-      incrementLoading: false,
+  selected: Boolean,
+  hideIcon: Boolean,
+  preparingSpells: Boolean,
+});
+
+
+
+
+const title = computed(() => {
+  const model = props.model;
+  if (!model) return;
+  if (model.quantity !== 1) {
+    if (model.plural) {
+      return `${model.quantity} ${model.plural}`;
+    } else if (model.name) {
+      return `${model.quantity} ${model.name}`;
     }
-  },
-  computed: {
-    hasClickListener() {
-      return this.$listeners && !!this.$listeners.click;
-    },
-    title() {
-      let model = this.model;
-      if (!model) return;
-      if (model.quantity !== 1) {
-        if (model.plural) {
-          return `${model.quantity} ${model.plural}`;
-        } else if (model.name) {
-          return `${model.quantity} ${model.name}`;
-        }
-      } else if (model.name) {
-        return model.name;
-      }
-      let prop = PROPERTIES[model.type]
-      return prop && prop.name;
-    },
-    totalValue() {
-      return stripFloatingPointOddities(this.model.value * this.model.quantity);
-    },
-    totalWeight() {
-      return stripFloatingPointOddities(this.model.weight * this.model.quantity);
-    },
-    attunementText() {
-      if (this.model.requiresAttunement) {
-        if (this.model.attuned) return 'Attuned';
-        return 'Requires attunement';
-      }
-      return undefined;
-    }
-  },
-}
+  } else if (model.name) {
+    return model.name;
+  }
+  const prop = PROPERTIES[model.type];
+  return prop && prop.name;
+});
+
+
+const totalWeight = computed(() => {
+  return stripFloatingPointOddities(props.model.weight * props.model.quantity);
+});
+
+const attunementText = computed(() => {
+  if (props.model.requiresAttunement) {
+    if (props.model.attuned) return 'Attuned';
+    return 'Requires attunement';
+  }
+  return undefined;
+});
 </script>
 
 <style lang="css" scoped>

@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="folder-viewer">
     <v-row
       dense
@@ -15,11 +15,16 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-export default {
-  mixins: [propertyViewerMixin],
-}
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>
 
 <style lang="css" scoped>

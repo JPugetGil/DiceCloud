@@ -1,8 +1,8 @@
-<template lang="html">
+<template>
   <div
     :class="{
-      'theme--dark': theme.isDark,
-      'theme--light': !theme.isDark,
+      'v-theme--dark': theme.isDark,
+      'v-theme--light': !theme.isDark,
     }"
   >
     <v-menu
@@ -10,15 +10,15 @@
       transition="slide-y-transition"
       :disabled="!context.editPermission"
     >
-      <template #activator="{ on }">
+      <template #activator="{ props: activatorProps }">
         <div
-          class="layout align-center justify-start px-2"
+          class="d-flex flex-1-1 align-center justify-start px-2"
           style="height: 100%;"
           :class="{
-            'error--text': insufficient,
+            'text-error': insufficient,
             'clickable': context.creatureId && context.editPermission,
           }"
-          v-on="on"
+          v-bind="activatorProps"
         >
           <svg-icon
             v-if="model.itemIcon"
@@ -41,14 +41,14 @@
             </div>
             <div
               v-if="(typeof model.available) == 'number'"
-              class="text--disabled text-no-wrap text-truncate ml-1 flex-shrink-0"
+              class="text-disabled text-no-wrap text-truncate ml-1 flex-shrink-0"
             >
               ({{ model.available }})
             </div>
           </template>
           <div
             v-else
-            class="error--text text-no-wrap text-truncate flex"
+            class="text-error text-no-wrap text-truncate flex-1-1"
           >
             Select item
           </div>
@@ -67,7 +67,7 @@
     </v-menu>
     <div
       v-else
-      class="layout align-center justify-start"
+      class="d-flex flex-1-1 align-center justify-start"
     >
       <div
         class="mr-2"
@@ -84,51 +84,42 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed, inject } from 'vue';
 import SelectItemToConsume from '/imports/client/ui/properties/components/actions/SelectItemToConsume.vue';
-export default {
-  components: {
-    SelectItemToConsume,
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  inject: {
-    context: {
-      default: {},
-    },
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+  action: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      default: () => ({}),
-    },
-    action: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    insufficient(){
-      return this.quantity > this.model.available;
-    },
-    quantity(){
-      return this.model.quantity && this.model.quantity.value || 0;
-    },
-  },
-}
+});
+
+const context = inject('context', {});
+const theme = useThemeState();
+
+const quantity = computed(() => {
+  return props.model.quantity && props.model.quantity.value || 0;
+});
+
+const insufficient = computed(() => {
+  return quantity.value > props.model.available;
+});
 </script>
 
 <style lang="css" scoped>
 .clickable {
   cursor: pointer;
 }
-.theme--light .clickable:hover {
+.v-theme--light .clickable:hover {
   background: rgba(0,0,0,.04);
 }
-.theme--dark .clickable:hover {
+.v-theme--dark .clickable:hover {
   background: hsla(0,0%,100%,.08);
 }
 </style>

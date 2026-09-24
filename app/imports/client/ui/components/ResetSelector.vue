@@ -12,35 +12,41 @@
   />
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
 
-export default {
-  props: {
-    value: [String, Number, Date, Array, Object, Boolean],
-    errorMessages: [String, Array],
-    hint: {
-      type: String,
-      default: undefined,
+defineProps({
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  hint: {
+    type: String,
+    default: undefined,
+  }
+});
+
+defineEmits(['change']);
+
+const resetOptions = autorun(() => {
+  const eventActions = createListOfProperties({
+    type: 'action',
+    actionType: 'event',
+  }, true);
+  const defaultEvents = [
+    {
+      title: 'Short rest',
+      value: 'shortRest',
+    }, {
+      title: 'Long rest',
+      value: 'longRest',
     }
-  },
-  meteor: {
-    resetOptions() {
-      const eventActions = createListOfProperties({
-        type: 'action',
-        actionType: 'event',
-      }, true);
-      const defaultEvents = [
-        {
-          text: 'Short rest',
-          value: 'shortRest',
-        }, {
-          text: 'Long rest',
-          value: 'longRest',
-        }
-      ];
-      return [...defaultEvents, ...eventActions];
-    },
-  },
-}
+  ];
+  return [...defaultEvents, ...eventActions];
+}).result;
 </script>

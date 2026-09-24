@@ -1,11 +1,11 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
         New Collection
       </v-toolbar-title>
     </template>
-    <template>
+    <template #default>
       <text-field
         label="Name"
         :value="libraryCollection.name"
@@ -30,12 +30,12 @@
         @change="librariesChanged"
       />
     </template>
-    <template slot="actions">
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         :disabled="!valid"
-        @click="$store.dispatch('popDialogStack', libraryCollection)"
+        @click="dialogStackStore.popDialogStack(libraryCollection)"
       >
         Insert Collection
       </v-btn>
@@ -43,64 +43,65 @@
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Libraries from '/imports/api/library/Libraries';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
-  },
-  data(){ return {
-    libraryCollection: {
-      name: 'New Collection',
-      description: undefined,
-      libraries: [],
+const dialogStackStore = useDialogStackStore();
+
+
+const libraryCollection = ref({
+  name: 'New Collection',
+  description: undefined,
+  libraries: [],
+});
+
+const valid = ref(true);
+
+const libraryOptions = autorun(() => {
+  const userId = Meteor.userId();
+  return Libraries.find(
+    {
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
     },
-    valid: true,
-  }},
-  meteor: {
-    libraryOptions() {
-      const userId = Meteor.userId();
-      return Libraries.find(
-        {
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        },
-        {sort: {name: 1}}
-      ).map(library => {
-        return {
-          text: library.name,
-          value: library._id,
-        };
-      });
-    }
-  },
-  methods: {
-    nameChanged(val, ack){
-      if (val){
-        this.libraryCollection.name = val;
-        this.valid = true,
-        ack();
-      } else {
-        this.valid = false;
-        ack('Name is required')
-      }
-    },
-    descriptionChanged(val, ack){
-      this.libraryCollection.description = val;
-      ack();
-    },
-    librariesChanged(val, ack){
-      this.libraryCollection.libraries = val;
-      ack();
-    },
-  },
-};
+    { sort: { name: 1 } }
+  ).map(library => {
+    return {
+      title: library.name,
+      value: library._id,
+    };
+  });
+}).result;
+
+function nameChanged(val, ack) {
+  if (val) {
+    libraryCollection.value.name = val;
+    valid.value = true;
+    ack();
+  } else {
+    valid.value = false;
+    ack('Name is required');
+  }
+}
+
+function descriptionChanged(val, ack) {
+  libraryCollection.value.description = val;
+  ack();
+}
+
+function librariesChanged(val, ack) {
+  libraryCollection.value.libraries = val;
+  ack();
+}
 </script>
 
 <style lang="css" scoped>

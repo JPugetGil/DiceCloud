@@ -1,8 +1,11 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
-import { Migrations } from 'meteor/percolate:migrations';
+// `Migrations` is a server-only global (percolate:migrations exports it through
+// Meteor's global-imports on the server only), and run() below bails out on the
+// client before touching it. Importing it here instead put the server-only
+// package into the client's module graph, which the client build cannot resolve.
 
 const migrateTo = new ValidatedMethod({
   name: 'admin.migrateTo',
@@ -19,10 +22,10 @@ const migrateTo = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 10000,
   },
-  run({ version }) {
+  async run({ version }) {
     if (Meteor.isClient) return;
-    assertAdmin(this.userId);
-    Migrations.migrateTo(version);
+    await assertAdmin(this.userId);
+    await Migrations.migrateTo(version);
   },
 });
 

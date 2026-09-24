@@ -1,7 +1,7 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
-import { SyncedCron } from 'meteor/littledata:synced-cron';
+import { SyncedCron } from 'meteor/quave:synced-cron';
 
 Meteor.startup(() => {
   const collections = [
@@ -12,21 +12,20 @@ Meteor.startup(() => {
   /**
    * Deletes all soft removed documents that were removed more than 1 day ago
    * and were not restored
-   * @return {Number} Number of documents removed
    */
-  const deleteOldSoftRemovedDocs = function () {
+  const deleteOldSoftRemovedDocs = async function () {
     const now = new Date();
     const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-    collections.forEach(collection => {
-      collection.remove({
-        removed: true,
-        removedAt: { $lt: yesterday } // dates *before* yesterday
-      }, function (error) {
-        if (error) {
-          console.error(JSON.stringify(error, null, 2));
-        }
-      });
-    });
+    for (const collection of collections) {
+      try {
+        await collection.removeAsync({
+          removed: true,
+          removedAt: { $lt: yesterday } // dates *before* yesterday
+        });
+      } catch (error) {
+        console.error(JSON.stringify(error, null, 2));
+      }
+    }
   };
 
   SyncedCron.add({
@@ -41,10 +40,10 @@ Meteor.startup(() => {
 
   // Add a method to manually trigger removal
   Meteor.methods({
-    deleteOldSoftRemovedDocs() {
-      assertAdmin(this.userId);
+    async deleteOldSoftRemovedDocs() {
+      await assertAdmin(this.userId);
       this.unblock();
-      deleteOldSoftRemovedDocs();
+      await deleteOldSoftRemovedDocs();
     },
   });
 });

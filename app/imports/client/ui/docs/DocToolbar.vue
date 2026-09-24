@@ -1,11 +1,10 @@
-<template lang="html">
+<template>
   <v-app-bar
-    app
     color="secondary"
-    dark
+    theme="dark"
     tabs
     extended
-    dense
+    density="compact"
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-toolbar-title>
@@ -20,6 +19,7 @@
     </v-app-bar-nav-icon>
     <v-btn
       v-if="canEdit"
+      variant="text"
       icon
       @click="toggleEdit"
     >
@@ -33,30 +33,33 @@
   </v-app-bar>
 </template>
 
-<script lang="js">
-import { mapMutations } from 'vuex';
+<script setup>
 import { Session } from 'meteor/session';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
 
-export default {
-  meteor: {
-    editing() {
-      return Session.get('editingDocs');
-    },
-    canEdit() {
-      const user = Meteor.user();
-      if (!user) return false;
-      return user.roles?.includes('docsWriter');
-    }
-  },
-  methods: {
-    ...mapMutations([
-      'toggleDrawer',
-      'toggleRightDrawer',
-    ]),
-    toggleEdit() {
-      if (!this.canEdit) return;
-      Session.set('editingDocs', !Session.get('editingDocs'));
-    },
-  },
+const appStore = useAppStore();
+
+
+const editing = autorun(() => Session.get('editingDocs')).result;
+
+const canEdit = autorun(() => {
+  const user = Meteor.user();
+  if (!user) return false;
+  return user.roles?.includes('docsWriter');
+}).result;
+
+function toggleDrawer() {
+  appStore.toggleDrawer();
+}
+
+function toggleRightDrawer() {
+  appStore.toggleRightDrawer();
+}
+
+function toggleEdit() {
+  if (!canEdit.value) return;
+  Session.set('editingDocs', !Session.get('editingDocs'));
 }
 </script>

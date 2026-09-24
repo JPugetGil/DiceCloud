@@ -1,1 +1,4 @@
 build
+# Local agent configuration and data tools, kept out of the repository
+/.github/
+/tools/

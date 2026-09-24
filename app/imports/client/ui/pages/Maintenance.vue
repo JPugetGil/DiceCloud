@@ -1,9 +1,7 @@
 <template>
-  <v-layout
+  <div
+    class="d-flex flex-1-1 flex-column align-center justify-center"
     style="height: 100%;"
-    column
-    align-center
-    justify-center
   >
     <h1
       v-if="maintenanceMode"
@@ -30,14 +28,12 @@
     >
       {{ maintenanceMode.reason }}
     </h1>
-  </v-layout>
+  </div>
 </template>
 
-<script lang="js">
-  import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
-  export default {
-    data(){return {
-      maintenanceMode: MAINTENANCE_MODE,
-    }},
-  }
+<script setup>
+import { ref } from 'vue';
+import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
+
+const maintenanceMode = ref(MAINTENANCE_MODE);
 </script>

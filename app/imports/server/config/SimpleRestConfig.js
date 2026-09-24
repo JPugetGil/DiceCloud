@@ -1,5 +1,5 @@
-import { JsonRoutes, RestMiddleware } from 'meteor/simple:json-routes';
-import { SimpleRest } from 'meteor/simple:rest';
+import { JsonRoutes } from 'meteor/simple:json-routes';
+import handleErrorAsJson from '/imports/server/rest/middleware/handleErrorAsJson';
 
 Meteor.startup(() => {
   // Enable cross origin requests for all endpoints
@@ -12,22 +12,12 @@ Meteor.startup(() => {
   });
 });
 
-SimpleRest.configure({
-  // No default collection methods get end points
-  collections: [],
-});
-
 // All errors are handled as JSON
-JsonRoutes.ErrorMiddleware.use(RestMiddleware.handleErrorAsJson);
+JsonRoutes.ErrorMiddleware.use(handleErrorAsJson);
 
-// Hack to stop simple:rest adding routes automatically unless their URL
-// has been explicitly set to 'api/...'
-const oldAdd = JsonRoutes.add;
-JsonRoutes.add = function (method, path, handler) {
-  if (path.substring(0, 4) !== 'api/') {
-    return;
-  }
-  oldAdd(method, path, handler);
-}
+// The guard that used to live here only existed to suppress the routes
+// simple:rest registered on its own for every ValidatedMethod. That package has
+// no Meteor 3 release and RestMethodMixin was never used, so it is gone and the
+// only routes left are the ones this app registers explicitly under 'api/'.
 
 import '/imports/server/rest/restLogin';

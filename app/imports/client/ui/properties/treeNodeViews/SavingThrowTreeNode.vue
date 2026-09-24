@@ -1,11 +1,11 @@
-<template lang="html">
-  <div class="layout align-center justify-start">
+<template>
+  <div class="d-flex flex-1-1 align-center justify-start">
     <property-icon
       v-if="!hideIcon"
       class="mr-2"
       :model="model"
       :color="model.color"
-      :class="selected && 'primary--text'"
+      :class="selected && 'text-primary'"
     />
     <div class="text-no-wrap text-truncate">
       <template v-if="model.dc && Number.isFinite(model.dc.value)">
@@ -16,21 +16,26 @@
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { computed } from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 
-export default {
-mixins: [treeNodeViewMixin],
-computed: {
-  title() {
-    let model = this.model;
-    if (!model) return;
-    if (model.name) return model.name;
-    if (model.stat) return model.stat;
-    let prop = PROPERTIES[model.type]
-    return prop && prop.name;
-    }
-  }
-}
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  selected: Boolean,
+  hideIcon: Boolean,
+});
+
+const title = computed(() => {
+  let model = props.model;
+  if (!model) return;
+  if (model.name) return model.name;
+  if (model.stat) return model.stat;
+  let prop = PROPERTIES[model.type]
+  return prop && prop.name;
+});
 </script>

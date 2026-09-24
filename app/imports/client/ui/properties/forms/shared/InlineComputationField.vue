@@ -1,20 +1,22 @@
-<template lang="html">
+<template>
   <div class="inline-computation-field">
     <text-area
       :value="model.text"
       v-bind="$attrs"
       @change="(value, ack) => $emit('change', {path: ['text'], value, ack})"
     />
-    <template v-for="calc in model.inlineCalculations">
+    <template
+      v-for="calc in model.inlineCalculations"
+      :key="calc && calc.calculation"
+    >
       <div
         v-if="calc && calc.calculation && (
           (calc.errors && calc.errors.length) || calc.parseError
         )"
-        :key="calc.calculation"
         class="mb-4"
       >
         <div
-          class="warning--text mb-2 ml-4"
+          class="text-warning mb-2 ml-4"
           style="font-family: monospace;"
         >
           { {{ calc.calculation }} }
@@ -32,20 +34,17 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import CalculationErrorList from '/imports/client/ui/properties/forms/shared/CalculationErrorList.vue';
 
-export default {
-  components: {
-    CalculationErrorList,
+defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  props: {
-    model: {
-      type: Object,
-      default: () => ({}),
-    },
-  },
-}
+});
+
+defineEmits(['change']);
 </script>
 
 <style lang="css" scoped>

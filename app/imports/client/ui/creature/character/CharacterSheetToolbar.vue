@@ -1,40 +1,37 @@
-<template lang="html">
+<template>
   <v-app-bar
-    app
     class="character-sheet-toolbar"
     :color="toolbarColor"
-    :dark="isDark"
-    :light="!isDark"
-    clipped-right
-    :extended="$vuetify.breakpoint.smAndUp"
-    :tabs="$vuetify.breakpoint.smAndUp"
-    dense
+    :theme="isDark ? 'dark' : 'light'"
+    :extended="smAndUp"
+    :tabs="smAndUp"
+    density="compact"
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-fade-transition mode="out-in">
-      <v-toolbar-title :key="$store.state.pageTitle">
-        {{ $store.state.pageTitle }}
+      <v-toolbar-title :key="appStore.pageTitle">
+        {{ appStore.pageTitle }}
       </v-toolbar-title>
     </v-fade-transition>
     <v-spacer />
     <v-fade-transition mode="out-in">
-      <v-layout
-        :key="$route.meta.title"
-        class="flex-shrink-0 flex-grow-0"
-        justify-end
+      <div
+        :key="route.meta.title"
+        class="d-flex justify-end flex-shrink-0 flex-grow-0"
       >
         <template v-if="creature">
           <shared-icon :model="creature" />
           <v-menu
-            bottom
-            left
+            location="bottom left"
+
             transition="slide-y-transition"
           >
-            <template #activator="{ on }">
+            <template #activator="{ props }">
               <v-btn
+                variant="text"
                 data-id="creature-menu"
                 icon
-                v-on="on"
+                v-bind="props"
               >
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
@@ -42,43 +39,44 @@
             <v-list>
               <v-list-item
                 v-if="!isOwner && ownerName"
-                two-line
+                lines="two"
                 disabled
               >
-                <v-list-item-avatar>
-                  <v-icon>
-                    mdi-account
-                  </v-icon>
-                </v-list-item-avatar>
-                <v-list-item-content>
-                  <v-list-item-title>
-                    {{ ownerName }}
-                  </v-list-item-title>
-                  <v-list-item-subtitle>
-                    Sheet owner
-                  </v-list-item-subtitle>
-                </v-list-item-content>
+                <template #prepend>
+                  <v-avatar>
+                    <v-icon>
+                      mdi-account
+                    </v-icon>
+                  </v-avatar>
+                </template>
+
+                <v-list-item-title>
+                  {{ ownerName }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  Sheet owner
+                </v-list-item-subtitle>
               </v-list-item>
               <v-list-item
                 v-if="!isOwner"
                 @click="unshareWithMe"
               >
                 <v-list-item-title>
-                  <v-icon left>
+                  <v-icon start>
                     mdi-cancel
                   </v-icon> Unshare with me
                 </v-list-item-title>
               </v-list-item>
               <v-list-item :to="printUrl">
                 <v-list-item-title>
-                  <v-icon left>
+                  <v-icon start>
                     mdi-printer
                   </v-icon> Print
                 </v-list-item-title>
               </v-list-item>
               <v-list-item @click="showCharacterForm">
                 <v-list-item-title>
-                  <v-icon left>
+                  <v-icon start>
                     mdi-pencil
                   </v-icon> Edit details
                 </v-list-item-title>
@@ -88,7 +86,7 @@
                 @click="showShareDialog"
               >
                 <v-list-item-title>
-                  <v-icon left>
+                  <v-icon start>
                     mdi-share-variant
                   </v-icon> Sharing
                 </v-list-item-title>
@@ -98,7 +96,7 @@
                 @click="deleteCharacter"
               >
                 <v-list-item-title>
-                  <v-icon left>
+                  <v-icon start>
                     mdi-delete
                   </v-icon> Delete
                 </v-list-item-title>
@@ -109,196 +107,197 @@
             <v-icon>mdi-forum</v-icon>
           </v-app-bar-nav-icon>
         </template>
-      </v-layout>
-    </v-fade-transition>
-    <v-fade-transition
-      v-if="$vuetify.breakpoint.smAndUp"
-      slot="extension"
-      mode="out-in"
-    >
-      <div
-        :key="$route.meta.title"
-        class="layout"
-      >
-        <v-tabs
-          v-if="creature && creature.settings"
-          :key=" '' +
-            creature.settings.hideSpellsTab +
-            creature.settings.showTreeTab
-          "
-          class="flex"
-          style="min-width: 0"
-          centered
-          grow
-          max="100px"
-          :color="$vuetify.theme.themes.dark.primary"
-          :value="$store.getters.tabById($route.params.id)"
-          :background-color="toolbarColor"
-          @change="e => $store.commit(
-            'setTabForCharacterSheet',
-            {id: $route.params.id, tab: e}
-          )"
-        >
-          <v-tab>
-            Stats
-          </v-tab>
-          <v-tab>
-            Actions
-          </v-tab>
-          <v-tab v-if="!creature.settings.hideSpellsTab">
-            Spells
-          </v-tab>
-          <v-tab>
-            Inventory
-          </v-tab>
-          <v-tab>
-            Features
-          </v-tab>
-          <v-tab>
-            Journal
-          </v-tab>
-          <v-tab>
-            Build
-          </v-tab>
-          <v-tab v-if="creature.settings.showTreeTab">
-            Tree
-          </v-tab>
-        </v-tabs>
-        <v-spacer />
-        <character-sheet-fab
-          direction="bottom"
-          class="character-sheet-extension-fab"
-          :edit-permission="editPermission"
-        />
       </div>
     </v-fade-transition>
+    <template #extension>
+      <v-fade-transition
+        v-if="smAndUp"
+
+        mode="out-in"
+      >
+        <div
+          :key="route.meta.title"
+          class="d-flex flex-1-1"
+        >
+          <v-tabs
+            v-if="creature && creature.settings"
+            :key=" '' +
+              creature.settings.hideSpellsTab +
+              creature.settings.showTreeTab
+            "
+            class="flex-1-1"
+            style="min-width: 0"
+            align-tabs="center"
+            grow
+            :color="creature.color ? undefined : 'primary'"
+            :model-value="appStore.tabById(route.params.id)"
+            :bg-color="toolbarColor"
+            @update:model-value="e => appStore.setTabForCharacterSheet({id: route.params.id, tab: e})"
+          >
+            <v-tab>
+              Stats
+            </v-tab>
+            <v-tab>
+              Actions
+            </v-tab>
+            <v-tab v-if="!creature.settings.hideSpellsTab">
+              Spells
+            </v-tab>
+            <v-tab>
+              Inventory
+            </v-tab>
+            <v-tab>
+              Features
+            </v-tab>
+            <v-tab>
+              Journal
+            </v-tab>
+            <v-tab>
+              Build
+            </v-tab>
+            <v-tab v-if="creature.settings.showTreeTab">
+              Tree
+            </v-tab>
+          </v-tabs>
+          <v-spacer />
+          <character-sheet-fab
+            direction="bottom"
+            class="character-sheet-extension-fab"
+            :edit-permission="editPermission"
+          />
+        </div>
+      </v-fade-transition>
+    </template>
   </v-app-bar>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed} from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { autorun } from 'vue-meteor-tracker';
+import { Meteor } from 'meteor/meteor';
+import { useDisplay, useTheme } from 'vuetify';
+
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
-import { mapMutations } from 'vuex';
-import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { updateUserSharePermissions } from '/imports/api/sharing/sharing';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 import CharacterSheetFab from '/imports/client/ui/creature/character/CharacterSheetFab.vue';
-import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    CharacterSheetFab,
-    SharedIcon,
-  },
-  inject: {
-    context: { default: {} }
-  },
-  computed: {
-    creatureId() {
-      return this.$route.params.id;
+const appStore = useAppStore();
+const dialogStackStore = useDialogStackStore();
+
+const route = useRoute();
+const router = useRouter();
+const { smAndUp } = useDisplay();
+const theme = useTheme();
+
+
+const creatureId = computed(() => route.params.id);
+
+const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
+
+const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
+
+const isOwner = autorun(() => {
+  if (!creature.value) return false;
+  return Meteor.userId() === creature.value.owner;
+}).result;
+
+const ownerName = autorun(() => {
+  if (!creature.value) return undefined;
+  return Meteor.users.findOne(creature.value.owner)?.username;
+}).result;
+
+// Without a creature colour, the same #212121 as the other app bars in both
+// themes: they are dark in light mode too (`theme="dark"`), and white text on it
+// is 16:1 where the light theme's secondary (#424242) gave 10:1. The active tab
+// then takes the dark theme's primary, which is made for dark surfaces
+const toolbarColor = computed(() => {
+  if (creature.value && creature.value.color) {
+    return creature.value.color;
+  } else {
+    return theme.themes.value.dark.colors.secondary;
+  }
+});
+
+const isDark = computed(() => isDarkColor(toolbarColor.value));
+
+const printUrl = computed(() => {
+  if (!creature.value) return '';
+  return `/print-character/${creature.value._id}/${getCreatureUrlName(creature.value)}`;
+});
+
+function toggleDrawer() {
+  appStore.toggleDrawer();
+}
+
+function toggleRightDrawer() {
+  appStore.toggleRightDrawer();
+}
+
+function showCharacterForm() {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-form-dialog',
+    elementId: 'creature-menu',
+    data: {
+      _id: creatureId.value,
     },
-    toolbarColor() {
-      if (this.creature && this.creature.color) {
-        return this.creature.color;
-      } else {
-        return getThemeColor('secondary');
+  });
+}
+
+function showShareDialog() {
+  dialogStackStore.pushDialogStack({
+    component: 'share-dialog',
+    elementId: 'creature-menu',
+    data: {
+      docRef: {
+        id: creatureId.value,
+        collection: 'creatures',
       }
     },
-    isDark() {
-      return isDarkColor(this.toolbarColor);
+  });
+}
+
+function deleteCharacter() {
+  dialogStackStore.pushDialogStack({
+    component: 'delete-confirmation-dialog',
+    elementId: 'creature-menu',
+    data: {
+      name: creature.value.name,
+      typeName: 'Character'
     },
-    printUrl() {
-      return `/print-character/${this.creature._id}/${getCreatureUrlName(this.creature)}`;
-    },
-  },
-  methods: {
-    ...mapMutations([
-      'toggleDrawer',
-      'toggleRightDrawer',
-    ]),
-    showCharacterForm() {
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-form-dialog',
-        elementId: 'creature-menu',
-        data: {
-          _id: this.creatureId,
-        },
-      });
-    },
-    showShareDialog() {
-      this.$store.commit('pushDialogStack', {
-        component: 'share-dialog',
-        elementId: 'creature-menu',
-        data: {
-          docRef: {
-            id: this.creatureId,
-            collection: 'creatures',
-          }
-        },
-      });
-    },
-    deleteCharacter() {
-      let that = this;
-      this.$store.commit('pushDialogStack', {
-        component: 'delete-confirmation-dialog',
-        elementId: 'creature-menu',
-        data: {
-          name: this.creature.name,
-          typeName: 'Character'
-        },
-        callback(confirmation) {
-          if (!confirmation) return;
-          removeCreature.call({ charId: that.creatureId }, (error) => {
-            if (error) {
-              console.error(error);
-            } else {
-              that.$router.push('/characterList');
-            }
-          });
-        }
-      });
-    },
-    unshareWithMe() {
-      updateUserSharePermissions.call({
-        docRef: {
-          collection: 'creatures',
-          id: this.creatureId,
-        },
-        userId: Meteor.userId(),
-        role: 'none',
-      }, (error) => {
-        if (error) {
-          console.error(error);
-        } else {
-          this.$router.push('/characterList');
-        }
-      });
-    },
-  },
-  meteor: {
-    creature() {
-      return Creatures.findOne(this.creatureId);
-    },
-    editPermission() {
+    async callback(confirmation) {
+      if (!confirmation) return;
       try {
-        assertEditPermission(this.creature, Meteor.userId());
-        return true;
-      } catch (e) {
-        return false;
+        await removeCreature.callAsync({ charId: creatureId.value });
+        await router.push('/characterList');
+      } catch (error) {
+        console.error(error);
       }
-    },
-    isOwner() {
-      if (!this.creature) return;
-      return Meteor.userId() === this.creature.owner;
-    },
-    ownerName() {
-      if (!this.creature) return;
-      const username = Meteor.users.findOne(this.creature.owner)?.username;
-      return username;
-    },
-  },
+    }
+  });
+}
+
+async function unshareWithMe() {
+  try {
+    await updateUserSharePermissions.callAsync({
+      docRef: {
+        collection: 'creatures',
+        id: creatureId.value,
+      },
+      userId: Meteor.userId(),
+      role: 'none',
+    });
+    await router.push('/characterList');
+  } catch (error) {
+    console.error(error);
+  }
 }
 </script>
 

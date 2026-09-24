@@ -1,23 +1,21 @@
-<template lang="html">
+<template>
   <v-icon v-if="value !== undefined">
     {{ displayedIcon }}
   </v-icon>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import getProficiencyIcon from '/imports/client/ui/utility/getProficiencyIcon';
 
-export default {
-  props: {
-    value: {
-      type: Number,
-      default: undefined,
-    },
+const props = defineProps({
+  value: {
+    type: Number,
+    default: undefined,
   },
-  computed: {
-    displayedIcon(){
-      return getProficiencyIcon(this.value);
-    }
-  }
-}
+});
+
+const displayedIcon = computed(() => {
+  return getProficiencyIcon(props.value);
+});
 </script>

@@ -1,57 +1,52 @@
-<template lang="html">
+<template>
   <v-btn
     :loading="loading"
     :disabled="context.editPermission === false"
-    outlined
+    variant="outlined"
     :data-id="`rest-btn-${type}`"
     style="width: 160px;"
     @click="rest"
   >
-    <v-icon left>
+    <v-icon start>
       {{ type === 'shortRest' ? 'mdi-music-rest-quarter' : 'mdi-bed' }}
     </v-icon>
     {{ type === 'shortRest' ? 'Short Rest' : 'Long Rest' }}
   </v-btn>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, inject } from 'vue';
 import doAction from '/imports/client/ui/creature/actions/doAction';
 
-export default {
-  inject: {
-    context: { default: {} }
+const props = defineProps({
+  type: {
+    type: String,
+    required: true,
   },
-  props:{
-    type: {
-      type: String,
-      required: true,
-    },
-    creatureId: {
-      type: String,
-      required: true,
-    },
+  creatureId: {
+    type: String,
+    required: true,
   },
-  data(){return {
-    loading: false,
-  }},
-  methods: {
-    rest(){
-      this.loading = true;
-      doAction({
-        creatureId: this.creatureId,
-        $store: this.$store, 
-        elementId: `rest-btn-${this.type}`, 
-        task: {
-          subtaskFn: 'reset',
-          targetIds: [this.creatureId],
-          eventName: this.type,
-        },
-      }).catch(e => {
-        console.error(e);
-      }).finally(() => {
-        this.loading = false;
-      });
-    }
-  }
+});
+
+const context = inject('context', {});
+
+const loading = ref(false);
+
+async function rest() {
+  loading.value = true;
+  await doAction({
+    creatureId: props.creatureId,
+    elementId: `rest-btn-${props.type}`,
+    task: {
+      subtaskFn: 'reset',
+      targetIds: [props.creatureId],
+      eventName: props.type,
+    },
+  }).catch(e => {
+    console.error(e);
+  }).finally(() => {
+    loading.value = false;
+  });
 }
 </script>

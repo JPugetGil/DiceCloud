@@ -8,6 +8,7 @@
   >
     <v-img
       v-if="creature.picture"
+      cover
       :src="creature.picture"
     />
     <v-card-title class="text-h6">
@@ -21,33 +22,31 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
 import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    CardHighlight,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  creature: {
+    type: Object,
+    required: true,
   },
-  props: {
-    creature: {
-      type: Object,
-      required: true,
+});
+
+
+const hover = ref(false);
+
+function showCharacterForm() {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-form-dialog',
+    elementId: 'creature-summary',
+    data: {
+      _id: props.creature._id,
     },
-  },
-  data(){ return {
-    hover: false,
-  }},
-  methods: {
-      showCharacterForm(){
-        this.$store.commit('pushDialogStack', {
-          component: 'creature-form-dialog',
-          elementId: 'creature-summary',
-          data: {
-            _id: this.creature._id,
-          },
-        });
-      },
-  }
+  });
 }
 </script>
 

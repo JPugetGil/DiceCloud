@@ -21,14 +21,13 @@ function assertDocFound(doc, ref) {
   }
 }
 
+// fetchDocByRef is async itself now; this name is kept for existing callers.
 export function fetchDocByRefAsync(ref: Reference, options?: Mongo.Options<object>): Promise<TreeDoc> {
-  const doc = getCollectionByName(ref.collection).findOneAsync(ref.id, options);
-  assertDocFound(doc, ref);
-  return doc;
+  return fetchDocByRef<TreeDoc>(ref, options);
 }
 
-export function fetchDocByRef<T extends object = TreeDoc>(ref: Reference, options?: Mongo.Options<object>): T {
-  const doc: T = getCollectionByName<T>(ref.collection).findOne(ref.id, options);
+export async function fetchDocByRef<T extends object = TreeDoc>(ref: Reference, options?: Mongo.Options<object>): Promise<T> {
+  const doc: T = await getCollectionByName<T>(ref.collection).findOneAsync(ref.id, options);
   assertDocFound(doc, ref);
   return doc;
 }
@@ -459,7 +458,7 @@ export async function moveDocWithinRoot(doc: TreeDoc, collection: Mongo.Collecti
   });
 
   await writeBulkOperations(collection, bulkOps);
-  return rebuildNestedSets(collection, doc.root.id);
+  return await rebuildNestedSets(collection, doc.root.id);
 }
 
 export async function moveDocBetweenRoots(doc: TreeDoc, collection: Mongo.Collection<TreeDoc>, newRoot: Reference, newPosition: number) {
@@ -623,9 +622,9 @@ export async function changeParent(doc: TreeDoc, parent: TreeDoc | null, collect
   await collection.updateAsync(doc._id, update);
 
   // Rebuild the nested sets of everything on the root document(s)
-  rebuildNestedSets(collection, doc.root.id);
+  await rebuildNestedSets(collection, doc.root.id);
   if (rootChange) {
-    rebuildNestedSets(collection, parent.root.id);
+    await rebuildNestedSets(collection, parent.root.id);
   }
 }
 
@@ -674,8 +673,8 @@ export function setDocToLastOrder(collection: Mongo.Collection<TreeDoc>, doc: Tr
   doc.left = Number.MAX_SAFE_INTEGER;
 }
 
-export function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, rootId: string) {
-  const docs = collection.find({
+export async function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, rootId: string) {
+  const docs = await collection.find({
     'root.id': rootId,
     removed: { $ne: true }
   }, {
@@ -684,14 +683,14 @@ export function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, rootId:
       //Reverse sorting so that arrays can be used as stacks with the first item on top
       left: 1,
     },
-  }).fetch();
+  }).fetchAsync();
 
   const operations = calculateNestedSetOperations(docs);
   return writeBulkOperations(collection, operations);
 }
 
-export function rebuildCreatureNestedSets(creatureId) {
-  const docs = getProperties(creatureId);
+export async function rebuildCreatureNestedSets(creatureId) {
+  const docs = await getProperties(creatureId);
   const operations = calculateNestedSetOperations(docs);
   return writeBulkOperations(CreatureProperties as Mongo.Collection<TreeDoc, TreeDoc>, operations);
 }
@@ -826,39 +825,33 @@ export function applyNestedSetProperties<T extends TreeDoc>(docs: T[]): Forest<T
  * @param operations An array of bulk operations to write
  * @returns Promise<undefined>
  */
-function writeBulkOperations(collection: Mongo.Collection<TreeDoc>, operations) {
+async function writeBulkOperations(collection: Mongo.Collection<TreeDoc>, operations) {
   if (Meteor.isServer) {
-    if (!operations.length) return Promise.resolve();
-    return new Promise((resolve, reject) => {
-      collection.rawCollection().bulkWrite(
-        operations,
-        { ordered: false },
-        function (e) {
-          if (e) {
-            reject(e);
-          } else {
-            resolve(undefined);
-          }
-        }
-      );
-    });
+    if (!operations.length) return;
+    // The MongoDB driver Meteor 3 ships (v6) dropped callback support: it
+    // performs the write and returns a promise, and a callback is never
+    // called, so a callback-style write here never settles
+    await collection.rawCollection().bulkWrite(operations, { ordered: false });
+    return;
   } else {
     // Don't do latency compensation if there are too many operations, it just causes client
     // lag without much benefit
-    operations.forEach(op => {
+    // for...of rather than forEach: an async callback handed to forEach is
+    // never awaited, so these updates would overlap instead of running in order.
+    for (const op of operations) {
       if (op.updateOne) {
-        collection.update(
+        await collection.updateAsync(
           op.updateOne.filter,
           op.updateOne.update,
         );
       } else if (op.updateMany) {
-        collection.update(
+        await collection.updateAsync(
           op.updateMany.filter,
           op.updateMany.update,
           { multi: true },
         )
       }
-    });
+    }
   }
   return Promise.resolve();
 }

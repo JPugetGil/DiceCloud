@@ -2,7 +2,7 @@ import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineAc
 import mutationToPropUpdates from './mutationToPropUpdates';
 import mutationToLogUpdates from '/imports/api/engine/action/functions/mutationToLogUpdates';
 import { union, uniq } from 'lodash';
-import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
+import CreatureLogs, { trimCreatureLogs } from '/imports/api/creature/log/CreatureLogs';
 import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeCreature from '/imports/api/engine/computeCreature';
@@ -26,18 +26,20 @@ export default async function writeActionResults(action: EngineAction) {
   const logPromise = CreatureLogs.insertAsync({
     content: logContents,
     creatureId: action.creatureId,
-    tabletopId: action.tabletopId,
     actionId: action._id,
+  }).then(() => {
+    // Not in the client's simulation of the method: the server's result replaces it
+    if (Meteor.isServer) return trimCreatureLogs(action.creatureId);
   });
 
   // Write the bulk updates, force them to sequential mode means we immediately get the results
   // in the subscription, rather than waiting for oplog tailing to catch up
-  const bulkWritePromise = bulkWrite(creaturePropUpdates, CreatureProperties, true);
+  const bulkWritePromise = await bulkWrite(creaturePropUpdates, CreatureProperties, true);
 
   await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
 
   // Recompute the creatures involved
-  const recomputePromises = uniq([action.creatureId, ...allTargetIds]).map(creatureId => computeCreature(creatureId));
+  const recomputePromises = uniq([action.creatureId, ...allTargetIds]).map(async creatureId => await computeCreature(creatureId));
 
   return Promise.all(recomputePromises);
 }

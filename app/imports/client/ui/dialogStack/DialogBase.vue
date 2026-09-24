@@ -1,6 +1,6 @@
 <template>
-  <v-layout
-    column
+  <div
+    class="d-flex flex-1-1 flex-column"
     style="height: 100%;"
   >
     <slot
@@ -8,24 +8,26 @@
       :flat="!offsetTop"
     />
     <v-toolbar
-      v-if="!$scopedSlots['replace-toolbar']"
+      v-if="!$slots['replace-toolbar']"
       :color="computedColor"
-      :dark="isDark"
-      :light="!isDark"
+      :theme="isDark ? 'dark' : 'light'"
       class="base-dialog-toolbar"
       :flat="!offsetTop"
     >
       <v-btn
+        variant="text"
         icon
         @click="back"
       >
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
       <slot name="toolbar" />
-      <slot
-        slot="extension"
-        name="toolbar-extension"
-      />
+      <template #extension>
+        <slot
+
+          name="toolbar-extension"
+        />
+      </template>
     </v-toolbar>
     <div
       v-if="$slots['unwrapped-content']"
@@ -46,53 +48,53 @@
     <v-card-actions v-if="$slots.actions">
       <slot name="actions" />
     </v-card-actions>
-  </v-layout>
+  </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
 import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  props: {
-    color: {
-      type: String,
-      default: undefined,
-    },
-    overrideBackButton: {
-      type: Function,
-      default: undefined,
-    },
-    darkBody: Boolean,
+const props = defineProps({
+  color: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      offsetTop: 0,
-    }
+  overrideBackButton: {
+    type: Function,
+    default: undefined,
   },
-  computed: {
-    isDark() {
-      return isDarkColor(this.computedColor);
-    },
-    computedColor() {
-      return this.color || getThemeColor('secondary');
-    }
-  },
-  methods: {
-    onScroll(e) {
-      this.offsetTop = e.target.scrollTop
-    },
-    back() {
-      if (this.overrideBackButton) {
-        this.overrideBackButton();
-      } else {
-        this.close();
-      }
-    },
-    close() {
-      this.$store.dispatch('popDialogStack');
-    },
-  },
+  darkBody: Boolean,
+});
+
+const offsetTop = ref(0);
+
+const dialogStackStore = useDialogStackStore();
+
+const isDark = computed(() => {
+  return isDarkColor(computedColor.value);
+});
+
+const computedColor = computed(() => {
+  return props.color || getThemeColor('secondary');
+});
+
+function onScroll(e) {
+  offsetTop.value = e.target.scrollTop
+}
+
+function back() {
+  if (props.overrideBackButton) {
+    props.overrideBackButton();
+  } else {
+    close();
+  }
+}
+
+function close() {
+  dialogStackStore.popDialogStack();
 }
 </script>
 
@@ -112,7 +114,7 @@ export default {
   background-color: #fafafa;
 }
 
-.theme--dark #base-dialog-body.dark-body {
+.v-theme--dark #base-dialog-body.dark-body {
   background-color: #303030;
 }
 </style>

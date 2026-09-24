@@ -1,6 +1,7 @@
 <template>
   <v-fade-transition
     group
+    tag="div"
     leave-absolute
     hide-on-leave
     class="column-layout wide-columns"
@@ -32,89 +33,92 @@
   </v-fade-transition>
 </template>
 
-<script lang="js">
+<script setup>
+import { inject } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import SlotCard from '/imports/client/ui/creature/slots/SlotCard.vue';
 import PointBuyCard from '/imports/client/ui/properties/components/pointBuy/PointBuyCard.vue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    SlotCard,
-    PointBuyCard,
-  },
-  inject: {
-    context: { default: {} }
-  },
-  methods: {
-    ignoreProp(_id){
-      updateCreatureProperty.call({
-        _id,
-        path: ['ignored'],
-        value: true
-      }, error => {
-        if (error){
-          console.error(error);
-          snackbar({text: error.reason || error.message || error.toString()});
-        }
-      });
-    },
-    editPointBuy(_id){
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `point-buy-card-${_id}`,
-        data: {
-          _id,
-          startInEditTab: true,
-        },
-      });
-    },
-  },
-  meteor: {
-    slots() {
-      const folderIds = CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.context.creatureId),
-        type: 'folder',
-        hideStatsGroup: true,
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, { fields: { _id: 1 } }).map(folder => folder._id);
+const dialogStackStore = useDialogStackStore();
 
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.context.creatureId),
-        'parentId': { $nin: folderIds },
-        type: 'propertySlot',
-        ignored: { $ne: true },
-        $and: [
-          { 
-            $or: [
-              {'slotCondition.value': {$nin: [false, 0, '']}},
-              {'slotCondition.value': {$exists: false}},
-            ]
-          },{
-            $or: [
-              { 'quantityExpected.value': {$in: [false, 0, '', undefined]} },
-              { 'quantityExpected.value': {exists: false} },
-              {spaceLeft: {$gt: 0}},
-            ]
-          },
-        ],        
-        removed: {$ne: true},
-        inactive: {$ne: true},
-      });
-    },
-    pointBuys(){
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.context.creatureId),
-        type: 'pointBuy',
-        ignored: { $ne: true },       
-        removed: {$ne: true},
-        inactive: {$ne: true},
-      });
-    },
+const context = inject('context', {});
+
+const slots = autorun(() => {
+  const folderIds = CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(context.creatureId),
+    type: 'folder',
+    hideStatsGroup: true,
+    removed: { $ne: true },
+    inactive: { $ne: true },
+  }, { fields: { _id: 1 } }).map(folder => folder._id);
+
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(context.creatureId),
+    'parentId': { $nin: folderIds },
+    type: 'propertySlot',
+    ignored: { $ne: true },
+    $and: [
+      {
+        $or: [
+          {'slotCondition.value': {$nin: [false, 0, '']}},
+          {'slotCondition.value': {$exists: false}},
+        ]
+      },{
+        $or: [
+          { 'quantityExpected.value': {$in: [false, 0, '', undefined]} },
+          { 'quantityExpected.value': {exists: false} },
+          {spaceLeft: {$gt: 0}},
+        ]
+      },
+    ],
+    removed: {$ne: true},
+    inactive: {$ne: true},
+  }).fetch();
+}).result;
+
+const pointBuys = autorun(() => {
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(context.creatureId),
+    type: 'pointBuy',
+    ignored: { $ne: true },
+    removed: {$ne: true},
+    inactive: {$ne: true},
+  }).fetch();
+}).result;
+
+async function ignoreProp(_id) {
+  try {
+    await updateCreatureProperty.callAsync({
+      _id,
+      path: ['ignored'],
+      value: true
+    });
+  } catch (error) {
+    console.error(error);
+    snackbar({text: error.reason || error.message || error.toString()});
   }
+}
+
+function editPointBuy(_id) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `point-buy-card-${_id}`,
+    data: {
+      _id,
+      startInEditTab: true,
+    },
+  });
+}
+
+// fillSlot was referenced in the template but not defined in the original Options API component.
+// We define it here to prevent Vue 3 compilation errors.
+function fillSlot(_id) {
+  console.warn('fillSlot was not implemented in the original component', _id);
 }
 </script>
 

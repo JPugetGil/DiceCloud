@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="skill-viewer">
     <v-row
       dense
@@ -92,7 +92,7 @@
       </property-field>
     </v-row>
     <v-row
-      v-if="proficiencies.length"
+      v-if="proficiencies && proficiencies.length"
       dense
     >
       <property-field
@@ -114,8 +114,9 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { computed, inject } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import numberToSignedString from '../../../../api/utility/numberToSignedString';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import AttributeEffect from '/imports/client/ui/properties/components/attributes/AttributeEffect.vue';
@@ -123,113 +124,107 @@ import SkillProficiency from '/imports/client/ui/properties/components/skills/Sk
 import getProficiencyIcon from '/imports/client/ui/utility/getProficiencyIcon';
 import sortEffects from '/imports/client/ui/utility/sortEffects';
 import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/PropertyTargetTags.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    AttributeEffect,
-    SkillProficiency,
-    PropertyTargetTags,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: { default: {} }
-  },
-  data() {
-    return {
-      proficiencyText: {
-        0: 'Not proficient',
-        1: 'Proficient',
-        0.49: 'Half proficiency bonus rounded down',
-        0.5: 'Half proficiency bonus rounded up',
-        2: 'Double proficiency bonus',
-      },
-      skillTypes: {
-        skill: 'Skill',
-        save: 'Save',
-        check: 'Check',
-        tool: 'Tool',
-        weapon: 'Weapon',
-        armor: 'Armor',
-        language: 'Language',
-        utility: 'Utility',
-      },
-    }
-  },
-  computed: {
-    displayedModifier() {
-      let mod = this.model.value;
-      if (this.model.fail) {
-        return 'fail';
-      } else {
-        return numberToSignedString(mod);
-      }
-    },
-    icon() {
-      return getProficiencyIcon(this.model.proficiency);
-    },
-    passiveScore() {
-      return 10 + this.model.value + this.model.passiveBonus;
-    },
-    effects() {
-      if (!this.model.effectIds) return [];
-      const effects = CreatureProperties.find({ _id: { $in: this.model.effectIds } }).fetch();
-      return sortEffects(effects);
-    },
-  },
-  methods: {
-    numberToSignedString,
-    isFinite: Number.isFinite,
-    clickEffect(id) {
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `${id}`,
-        data: { _id: id },
-      });
-    },
-  },
-  meteor: {
-    proficiencies() {
-      if (!this.model.proficiencyIds) return [];
-      return CreatureProperties.find({
-          _id: {$in: this.model.proficiencyIds},
-      }, {
-        sort: {left: 1}
-      }).fetch();
-    },
-    ability() {
-      let creatureId = this.context.creatureId;
-      let ability = this.model.ability;
-      if (!creatureId || !ability) return;
-      let abilityProp = CreatureProperties.findOne({
-        ...getFilter.descendantsOfRoot(creatureId),
-        variableName: ability,
-        type: 'attribute',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-        overridden: { $ne: true },
-      });
-      if (!abilityProp) return;
-      return {
-        _id: abilityProp._id,
-        name: abilityProp.name,
-        operation: 'base',
-        amount: { value: abilityProp.modifier },
-        stats: [this.model.variableName],
-        root: abilityProp.root,
-      }
-    },
-    proficiencyBonus() {
-      return CreatureProperties.findOne({
-        ...getFilter.descendantsOfRoot(this.context.creatureId),
-        variableName: 'proficiencyBonus',
-        overridden: { $ne: true },
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      })?.value;
-    },
-  },
+});
+
+const context = inject('context', {});
+
+const proficiencyText = {
+  0: 'Not proficient',
+  1: 'Proficient',
+  0.49: 'Half proficiency bonus rounded down',
+  0.5: 'Half proficiency bonus rounded up',
+  2: 'Double proficiency bonus',
+};
+
+const skillTypes = {
+  skill: 'Skill',
+  save: 'Save',
+  check: 'Check',
+  tool: 'Tool',
+  weapon: 'Weapon',
+  armor: 'Armor',
+  language: 'Language',
+  utility: 'Utility',
+};
+
+const isFinite = Number.isFinite;
+
+
+const icon = computed(() => getProficiencyIcon(props.model.proficiency));
+
+const passiveScore = computed(() => 10 + props.model.value + props.model.passiveBonus);
+
+const effects = computed(() => {
+  if (!props.model.effectIds) return [];
+  const effectsList = CreatureProperties.find({ _id: { $in: props.model.effectIds } }).fetch();
+  return sortEffects(effectsList);
+});
+
+function clickEffect(id) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `${id}`,
+    data: { _id: id },
+  });
 }
+
+const { result: proficiencies } = autorun(() => {
+  if (!props.model.proficiencyIds) return [];
+  return CreatureProperties.find({
+    _id: { $in: props.model.proficiencyIds },
+  }, {
+    sort: { left: 1 }
+  }).fetch();
+});
+
+const { result: ability } = autorun(() => {
+  let creatureId = context.creatureId;
+  let abilityVar = props.model.ability;
+  if (!creatureId || !abilityVar) return;
+  
+  let abilityProp = CreatureProperties.findOne({
+    ...getFilter.descendantsOfRoot(creatureId),
+    variableName: abilityVar,
+    type: 'attribute',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+    overridden: { $ne: true },
+  });
+  
+  if (!abilityProp) return;
+  
+  return {
+    _id: abilityProp._id,
+    name: abilityProp.name,
+    operation: 'base',
+    amount: { value: abilityProp.modifier },
+    stats: [props.model.variableName],
+    root: abilityProp.root,
+  };
+});
+
+const { result: proficiencyBonus } = autorun(() => {
+  if (!context.creatureId) return;
+  return CreatureProperties.findOne({
+    ...getFilter.descendantsOfRoot(context.creatureId),
+    variableName: 'proficiencyBonus',
+    overridden: { $ne: true },
+    removed: { $ne: true },
+    inactive: { $ne: true },
+  })?.value;
+});
 </script>
 
 <style lang="css" scoped>

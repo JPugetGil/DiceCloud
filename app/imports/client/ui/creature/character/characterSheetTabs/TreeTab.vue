@@ -1,6 +1,6 @@
-<template lang="html">
+<template>
   <div
-    class="tree-tab pa-4 layout column align-center"
+    class="tree-tab pa-4 d-flex flex-1-1 flex-column align-center"
     style="height: calc(100vh - 96px); display: flex;"
   >
     <v-card
@@ -8,10 +8,10 @@
       data-id="creature-tree-card"
     >
       <tree-detail-layout>
-        <template slot="tree">
+        <template #tree>
           <v-toolbar
             flat
-            dark
+            theme="dark"
             style="flex-grow: 0;"
           >
             <tree-search-input
@@ -23,14 +23,16 @@
             <v-switch
               v-if="context.editPermission !== false"
               v-model="organize"
+              hide-details
+              density="compact"
               label="Organize"
               class="mx-3"
               :disabled="organizeDisabled"
-              style="flex-grow: 0; height: 32px;"
+              style="flex-grow: 0;"
             />
           </v-toolbar>
           <creature-properties-tree
-            class="pt-2 flex"
+            class="pt-2 flex-1-1"
             style="overflow-y: auto;"
             :root="{collection: 'creatures', id: creatureId}"
             :organize="organize"
@@ -39,7 +41,7 @@
             @selected="clickNode"
           />
         </template>
-        <template slot="detail">
+        <template #detail>
           <creature-property-dialog
             embedded
             :_id="selectedNodeId"
@@ -53,87 +55,70 @@
   </div>
 </template>
 
-<script lang="js">
-  import TreeDetailLayout from '/imports/client/ui/components/TreeDetailLayout.vue';
-  import CreaturePropertiesTree from '/imports/client/ui/creature/creatureProperties/CreaturePropertiesTree.vue';
-  import CreaturePropertyDialog from '/imports/client/ui/creature/creatureProperties/CreaturePropertyDialog.vue';
-  import TreeSearchInput from '/imports/client/ui/components/tree/TreeSearchInput.vue';
-  import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-  import { getPropertyName } from '/imports/constants/PROPERTIES';
+<script setup lang="js">
+import { ref, watch, inject } from 'vue';
+import { useDisplay } from 'vuetify';
+import { autorun } from 'vue-meteor-tracker';
+import TreeDetailLayout from '/imports/client/ui/components/TreeDetailLayout.vue';
+import CreaturePropertiesTree from '/imports/client/ui/creature/creatureProperties/CreaturePropertiesTree.vue';
+import CreaturePropertyDialog from '/imports/client/ui/creature/creatureProperties/CreaturePropertyDialog.vue';
+import TreeSearchInput from '/imports/client/ui/components/tree/TreeSearchInput.vue';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-  export default {
-    components: {
-      TreeDetailLayout,
-      TreeSearchInput,
-      CreaturePropertiesTree,
-      CreaturePropertyDialog,
-    },
-    inject: {
-      context: { default: {} }
-    },
-    props: {
-      creatureId: {
-        type: String,
-        required: true,
+const dialogStackStore = useDialogStackStore();
+
+defineProps({
+  creatureId: {
+    type: String,
+    required: true,
+  },
+});
+
+const context = inject('context', {});
+const display = useDisplay();
+
+const organize = ref(false);
+const organizeDisabled = ref(false);
+const selectedNodeId = ref(undefined);
+const filter = ref(undefined);
+
+watch(filter, (newFilter) => {
+  if (newFilter) {
+    organize.value = false;
+    organizeDisabled.value = true;
+  } else {
+    organizeDisabled.value = false;
+  }
+});
+
+watch(display.mdAndUp, (mdAndUp) => {
+  if (!mdAndUp) {
+    selectedNodeId.value = undefined;
+  }
+});
+
+function clickNode(id) {
+  if (display.mdAndUp.value) {
+    selectedNodeId.value = id;
+  } else {
+    dialogStackStore.pushDialogStack({
+      component: 'creature-property-dialog',
+      elementId: `tree-node-${id}`,
+      data: {
+        _id: id,
       },
-    },
-    data(){ return {
-      organize: false,
-      organizeDisabled: false,
-      selectedNodeId: undefined,
-      fab: false,
-      filter: undefined,
-    };},
-    watch: {
-      filter(filter){
-        if (filter) {
-          this.organize = false;
-          this.organizeDisabled = true;
-        } else {
-          this.organizeDisabled = false;
-        }
-      },
-      '$vuetify.breakpoint.mdAndUp'(mdAndUp){
-        if (!mdAndUp){
-          this.selectedNodeId = undefined;
-        }
-      },
-    },
-    methods: {
-      clickNode(id){
-        if (this.$vuetify.breakpoint.mdAndUp){
-          this.selectedNodeId = id;
-        } else {
-          this.$store.commit('pushDialogStack', {
-            component: 'creature-property-dialog',
-            elementId: `tree-node-${id}`,
-            data: {
-              _id: id,
-            },
-          });
-        }
-      },
-      editCreatureProperty(){
-        this.$store.commit('pushDialogStack', {
-          component: 'creature-property-dialog',
-          elementId: 'selected-node-card',
-          data: {
-            _id: this.selectedNodeId,
-            startInEditTab: true,
-          },
-        });
-      },
-      getPropertyName,
-    },
-    meteor: {
-      selectedNode(){
-        return CreatureProperties.findOne({
-          _id: this.selectedNodeId,
-          removed: {$ne: true}
-        });
-      }
-    }
-  };
+    });
+  }
+}
+
+
+const { result: selectedNode } = autorun(() => {
+  return CreatureProperties.findOne({
+    _id: selectedNodeId.value,
+    removed: { $ne: true },
+  });
+});
 </script>
 
 <style lang="css" scoped>

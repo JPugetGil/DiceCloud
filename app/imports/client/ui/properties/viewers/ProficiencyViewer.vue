@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="proficiency-viewer">
     <v-row dense>
       <property-field
@@ -28,27 +28,26 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { computed } from 'vue';
 import ProficiencyIcon from '/imports/client/ui/properties/shared/ProficiencyIcon.vue';
 import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/PropertyTargetTags.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    ProficiencyIcon,
-    PropertyTargetTags,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  computed: {
-    proficiencyText(){
-      switch (this.model.value){
-        case 0.49: return 'Half proficiency bonus rounded down';
-        case 0.5: return 'Half proficiency bonus';
-        case 1: return 'Proficient';
-        case 2: return 'Double proficiency bonus';
-        default: return '';
-      }
-    }
+});
+
+const proficiencyText = computed(() => {
+  switch (props.model.value){
+    case 0.49: return 'Half proficiency bonus rounded down';
+    case 0.5: return 'Half proficiency bonus';
+    case 1: return 'Proficient';
+    case 2: return 'Double proficiency bonus';
+    default: return '';
   }
-}
+});
 </script>

@@ -1,16 +1,18 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
         Community Libraries
       </v-toolbar-title>
     </template>
-    <library-browser slot="unwrapped-content" />
-    <template slot="actions">
+    <template #unwrapped-content>
+      <library-browser />
+    </template>
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
-        @click="$store.dispatch('popDialogStack')"
+        variant="text"
+        @click="dialogStackStore.popDialogStack()"
       >
         Done
       </v-btn>
@@ -18,16 +20,12 @@
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import LibraryBrowser from '/imports/client/ui/pages/LibraryBrowser.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
-    LibraryBrowser,
-  },
-};
+const dialogStackStore = useDialogStackStore();
 </script>
 
 <style lang="css" scoped>

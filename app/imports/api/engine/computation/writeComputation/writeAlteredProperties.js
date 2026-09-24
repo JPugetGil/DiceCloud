@@ -1,9 +1,8 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import propertySchemasIndex from '/imports/api/properties/computedOnlyPropertySchemasIndex';
 import bulkWrite, { addSetOp, addUnsetOp, newOperation } from '/imports/api/engine/shared/bulkWrite';
-import updateTabletopPropCount from '/imports/api/tabletop/functions/denormalizeTabletopPropCount'
 
-export default function writeAlteredProperties(computation) {
+export default async function writeAlteredProperties(computation) {
   let bulkWriteOperations = [];
   // Loop through all properties on the memo
   computation.props.forEach(changed => {
@@ -34,11 +33,9 @@ export default function writeAlteredProperties(computation) {
       bulkWriteOperations.push(op);
     }
   });
-  const writePromise = bulkWrite(bulkWriteOperations, CreatureProperties);
+  const writePromise = await bulkWrite(bulkWriteOperations, CreatureProperties);
   //if (bulkWriteOperations.length) console.log(`Wrote ${bulkWriteOperations.length} props`);
 
-  // Update the relevant tabletop's property count
-  if (computation.creature?.tabletopId) updateTabletopPropCount(computation.creature?.tabletopId);
 
   return writePromise;
 }

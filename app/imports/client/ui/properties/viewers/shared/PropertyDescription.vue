@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <markdown-text
     v-if="text && model"
     :markdown="textValue"
@@ -12,37 +12,31 @@
   </property-field>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    MarkdownText,
-    PropertyField,
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-    name: {
-      type: String,
-      default: undefined,
-    },
-    text: Boolean,
+  name: {
+    type: String,
+    default: undefined,
   },
-  computed: {
-    textValue() {
-      if (!this.model) return;
-      if (typeof this.model.value === 'string') {
-        return this.model.value;
-      } else {
-        return this.model.text
-      }
-    },
-  },
-}
+  text: Boolean,
+});
+
+const textValue = computed(() => {
+  if (!props.model) return;
+  if (typeof props.model.value === 'string') {
+    return props.model.value;
+  } else {
+    return props.model.text;
+  }
+});
 </script>
 
 <style lang="css">

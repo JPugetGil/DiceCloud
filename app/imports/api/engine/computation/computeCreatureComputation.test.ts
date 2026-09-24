@@ -5,7 +5,6 @@ import CreatureProperties, { CreatureProperty } from '/imports/api/creature/crea
 import computeTests from '/imports/api/engine/computation/computeComputation/tstFns';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
-import { createTestCreature } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 describe('Compute computation', function () {
   it('Computes something at all', async function () {
@@ -15,7 +14,7 @@ describe('Compute computation', function () {
       writers: [],
     });
     const computation = buildComputationFromProps(testProperties, creature, {});
-    computeCreatureComputation(computation);
+    await computeCreatureComputation(computation);
     assert.exists(computation);
   });
   computeTests.forEach(test => it(test.text, test.fn));

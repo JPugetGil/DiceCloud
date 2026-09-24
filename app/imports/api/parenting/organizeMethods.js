@@ -1,5 +1,6 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
+import { Meteor } from 'meteor/meteor';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 import { assertDocEditPermission, assertEditPermission } from '/imports/api/sharing/sharingPermissions';
@@ -37,9 +38,9 @@ const moveBetweenRoots = new ValidatedMethod({
     let collection = getCollectionByName(docRef.collection);
     // The user must be able to edit both the doc and its parent to move it
     // successfully
-    assertDocEditPermission(doc, this.userId);
+    await assertDocEditPermission(doc, this.userId);
     const newRoot = await fetchDocByRefAsync(newRootRef);
-    assertEditPermission(newRoot, this.userId);
+    await assertEditPermission(newRoot, this.userId);
 
 
     // Move the doc
@@ -53,7 +54,7 @@ const moveBetweenRoots = new ValidatedMethod({
 
     // Mark the creatures for recompute
     if (!skipRecompute && creatureIdsToRecalculate.length) {
-      Creatures.updateAsync({
+      await Creatures.updateAsync({
         _id: { $in: creatureIdsToRecalculate },
       }, {
         $set: { dirty: true },
@@ -91,7 +92,7 @@ const moveWithinRoot = new ValidatedMethod({
     let collection = getCollectionByName(docRef.collection);
 
     // The user must be able to edit the doc
-    assertDocEditPermission(doc, this.userId);
+    await assertDocEditPermission(doc, this.userId);
 
     // Move the doc
     await moveDocWithinRoot(doc, collection, newPosition);
@@ -101,7 +102,7 @@ const moveWithinRoot = new ValidatedMethod({
 
     // Mark the creatures for recompute
     if (!skipRecompute && creatureIdToRecalculate) {
-      Creatures.updateAsync({
+      await Creatures.updateAsync({
         _id: creatureIdToRecalculate,
       }, {
         $set: { dirty: true },
@@ -119,4 +120,29 @@ function getCreatureAncestorId(doc) {
   }
 }
 
-export { moveBetweenRoots, moveWithinRoot };
+// `organizeDoc` was dropped in 4c778fa2 ("Rewrote parenting organize methods to
+// avoid rebuilds"), which replaced parent/order based moves with the root and
+// position based methods above. Two call sites were never ported:
+// creatureProperties/methods/equipItem.js and the "move to parent" action in
+// client/ui/library/LibraryNodeDialog.vue. Both still do
+// `organizeDoc.callAsync(...)`.
+//
+// Meteor's CommonJS interop quietly resolved that stale named import to
+// `undefined`, so those two calls have been throwing a TypeError at runtime
+// ever since. A module bundler resolves imports statically and refuses to build
+// at all, so this keeps the build honest while preserving the existing behaviour:
+// the call still fails, just with an error that says why.
+//
+// TODO: port both call sites to moveWithinRoot/moveBetweenRoots (or add a
+// parent-based method back) and delete this stub.
+const organizeDoc = {
+  callAsync() {
+    throw new Meteor.Error(
+      'organize-doc-removed',
+      'organizeDoc was removed when parenting moved to nested sets. This call ' +
+      'site still needs to be ported to moveWithinRoot or moveBetweenRoots.'
+    );
+  },
+};
+
+export { moveBetweenRoots, moveWithinRoot, organizeDoc };

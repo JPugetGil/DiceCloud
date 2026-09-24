@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="point-buy-spend-form">
     <v-row
       v-if="model.values && model.values.length"
@@ -77,8 +77,8 @@
         cols="12"
         class="text-h4 mb-4 pr-8 d-flex justify-end"
         :class="{
-          'error--text': model.spent > (model.total && model.total.value),
-          'warning--text': model.spent < (model.total && model.total.value),
+          'text-error': model.spent > (model.total && model.total.value),
+          'text-warning': model.spent < (model.total && model.total.value),
         }"
       >
         {{ estimatedCost !== undefined ? estimatedCost : model.spent }}
@@ -90,61 +90,70 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref } from 'vue';
 import CalculationErrorList from '/imports/client/ui/properties/forms/shared/CalculationErrorList.vue';
 import { resolveCalculationNode } from '/imports/api/engine/computation/computeComputation/computeByType/computeCalculation';
 import { Tracker } from 'meteor/tracker'
 
-export default {
-  components: {
-    CalculationErrorList,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data() {
-    return {
-      estimatedCost: undefined,
-      useEstimate: false,
-    };
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  methods: {
-    max(row) {
-      return row.max ? row.max && row.max.value : this.model.max && this.model.max.value;
-    },
-    min(row) {
-      return row.min ? row.min && row.min.value : this.model.min && this.model.min.value;
-    },
-    async dragSlider(row, value) {
-      const currentSpent = this.model.spent;
-      let newSpent = currentSpent - row.spent;
-      const costFunction = EJSON.clone(row.cost || this.model.cost);
-      if (!costFunction?.parseNode) return;
-      if (costFunction) costFunction.parseLevel = 'reduce';
-      await resolveCalculationNode(costFunction, costFunction.parseNode, { value });
-      if (Number.isFinite(costFunction.value)) {
-        newSpent += costFunction.value;
-        if (this.useEstimate) this.estimatedCost = newSpent;
-      }
-    },
-    startSlider() {
-      this.useEstimate = true;
-    },
-    endSlider() {
-      this.useEstimate = false;
-    },
-    releaseSlider(i, value, ack) {
-      const newAck = (error, result) => {
-        Tracker.afterFlush(() => {
-          this.estimatedCost = undefined;
-        });
-        ack?.(error, result);
-      }
-      this.$emit('change', {
-        path: ['values', i, 'value'],
-        value,
-        ack: newAck
-      });
-    },
-  },
-};
+});
+
+const emit = defineEmits(['change']);
+
+const estimatedCost = ref(undefined);
+
+const useEstimate = ref(false);
+
+function max(row) {
+  return row.max ? row.max && row.max.value : props.model.max && props.model.max.value;
+}
+
+function min(row) {
+  return row.min ? row.min && row.min.value : props.model.min && props.model.min.value;
+}
+
+async function dragSlider(row, value) {
+  const currentSpent = props.model.spent;
+  let newSpent = currentSpent - row.spent;
+  const costFunction = EJSON.clone(row.cost || props.model.cost);
+  if (!costFunction?.parseNode) return;
+  if (costFunction) costFunction.parseLevel = 'reduce';
+  await resolveCalculationNode(costFunction, costFunction.parseNode, { value });
+  if (Number.isFinite(costFunction.value)) {
+    newSpent += costFunction.value;
+    if (useEstimate.value) estimatedCost.value = newSpent;
+  }
+}
+
+function startSlider() {
+  useEstimate.value = true;
+}
+
+function endSlider() {
+  useEstimate.value = false;
+}
+
+function releaseSlider(i, value, ack) {
+  const newAck = (error, result) => {
+    Tracker.afterFlush(() => {
+      estimatedCost.value = undefined;
+    });
+    ack?.(error, result);
+  }
+  emit('change', {
+    path: ['values', i, 'value'],
+    value,
+    ack: newAck
+  });
+}
+
 </script>

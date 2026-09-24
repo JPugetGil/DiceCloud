@@ -5,25 +5,25 @@ import {
   assertOwnership as ownership
 } from '/imports/api/sharing/sharingPermissions';
 
-function getCreature(creature, fields) {
+async function getCreature(creature, fields) {
   if (typeof creature === 'string') {
-    return Creatures.findOne(creature, { fields });
+    return await Creatures.findOneAsync(creature, { fields });
   } else {
     return creature;
   }
 }
 
-export function assertOwnership(creature, userId) {
-  creature = getCreature(creature, { owner: 1 });
+export async function assertOwnership(creature, userId) {
+  creature = await getCreature(creature, { owner: 1 });
   ownership(creature, userId);
 }
 
-export function assertEditPermission(creature, userId) {
-  creature = getCreature(creature, { owner: 1, writers: 1 });
-  editPermission(creature, userId);
+export async function assertEditPermission(creature, userId) {
+  creature = await getCreature(creature, { owner: 1, writers: 1 });
+  await editPermission(creature, userId);
 }
 
-export function assertViewPermission(creature, userId) {
-  creature = getCreature(creature, { owner: 1, readers: 1, writers: 1, public: 1 });
-  viewPermission(creature, userId);
+export async function assertViewPermission(creature, userId) {
+  creature = await getCreature(creature, { owner: 1, readers: 1, writers: 1, public: 1 });
+  await viewPermission(creature, userId);
 }

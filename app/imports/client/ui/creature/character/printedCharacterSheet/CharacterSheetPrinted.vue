@@ -2,9 +2,9 @@
   <div class="character-sheet-printed fill-height">
     <v-fade-transition mode="out-in">
       <div
-        v-if="!$subReady.singleCharacter"
+        v-if="!singleCharacterReady"
         key="character-loading"
-        class="fill-height layout justify-center align-center"
+        class="fill-height d-flex flex-1-1 justify-center align-center"
       >
         <v-progress-circular
           indeterminate
@@ -13,11 +13,7 @@
         />
       </div>
       <div v-else-if="!creature">
-        <v-layout
-          column
-          align-center
-          justify-center
-        >
+        <div class="d-flex flex-1-1 flex-column align-center justify-center">
           <h2 style="margin: 48px 28px 16px">
             Character not found
           </h2>
@@ -25,11 +21,12 @@
             Either this character does not exist, or you don't have permission
             to view it.
           </h3>
-        </v-layout>
+        </div>
       </div>
       <v-theme-provider
         v-else
-        light
+        theme="light"
+        with-background
       >
         <div class="page pa-3">
           <div
@@ -40,13 +37,13 @@
             <div class="creature-name mr-3">
               {{ creature.name }}
             </div>
-            <div class="text-right flex mr-4">
+            <div class="text-right flex-1-1 mr-4">
               <div v-if="creature.alignment || background">
                 {{ creature.alignment }} {{ background }}
               </div>
-              <dir v-if="race || creature.gender">
+              <div v-if="race || creature.gender">
                 {{ creature.gender }} {{ race }}
-              </dir>
+              </div>
               <div v-if="level && classes && classes.length === 1">
                 Level {{ level }} {{ classes[0].name }}
               </div>
@@ -73,7 +70,7 @@
           />
           <printed-spells
             v-if="!creature.settings.hideSpellsTab"
-            class="page-break-before" 
+            class="page-break-before"
             :creature-id="creatureId"
           />
         </div>
@@ -82,160 +79,155 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed, watch, onMounted, onBeforeUnmount, provide, reactive } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { Meteor } from 'meteor/meteor';
+
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import PrintedStats from '/imports/client/ui/creature/character/printedCharacterSheet/PrintedStats.vue';
 import PrintedInventory from '/imports/client/ui/creature/character/printedCharacterSheet/PrintedInventory.vue';
 import PrintedSpells from '/imports/client/ui/creature/character/printedCharacterSheet/PrintedSpells.vue';
-import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
+
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import QrcodeVue from 'qrcode.vue'
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
 
-export default {
-  components: {
-    PrintedStats,
-    PrintedInventory,
-    PrintedSpells,
-    QrcodeVue,
-  },
-  computed: {
-    creatureId() {
-      return this.$route.params.id
-    },
-    creatureUrl() {
-      let props = this.$router.resolve({ 
-        name: 'characterSheet',
-        params: { id: this.creatureId},
-      });
-      return new URL(props?.href, 'https://dicecloud.com').href
-    },
-    level() {
-      return this.variables?.level?.value;
-    },
-    highestLevels(){
-      let highestLevels = {};
-      let highestLevelsList = [];
-      this.classLevels.forEach(classLevel => {
-        let name = classLevel.variableName;
-        if (
-          !highestLevels[name] ||
-          highestLevels[name].level < classLevel.level
-        ){
-          highestLevels[name] = classLevel;
-        }
-      });
-      for (let name in highestLevels){
-        highestLevelsList.push(highestLevels[name]);
+const appStore = useAppStore();
+
+const route = useRoute();
+const router = useRouter();
+
+const creatureId = computed(() => route.params.id);
+
+const { ready: singleCharacterReady } = subscribe(() => ['singleCharacter', creatureId.value]);
+
+const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
+const variables = autorun(() => CreatureVariables.findOne({ _creatureId: creatureId.value }) || {}).result;
+
+const race = autorun(() => {
+  if (variables.value?.race?.value?.valueType === 'string') return variables.value.race.value.value;
+  const prop = CreatureProperties.findOne({
+    ...getFilter.descendantsOfRoot(creatureId.value),
+    tags: 'race',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+    overridden: { $ne: true },
+  });
+  if (prop?.name) return prop.name;
+  return '';
+}).result;
+
+const background = autorun(() => {
+  if (variables.value?.background?.value?.valueType === 'string') return variables.value.background.value.value;
+  const prop = CreatureProperties.findOne({
+    ...getFilter.descendantsOfRoot(creatureId.value),
+    tags: 'background',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+    overridden: { $ne: true },
+  });
+  if (prop?.name) return prop.name;
+  return '';
+}).result;
+
+const classProperties = autorun(() => CreatureProperties.find({
+  ...getFilter.descendantsOfRoot(creatureId.value),
+  type: 'class',
+  removed: {$ne: true},
+  inactive: {$ne: true},
+}, {
+  sort: {left: 1}
+}).fetch()).result;
+
+const classLevels = autorun(() => {
+  const classVariableNames = classProperties.value ? classProperties.value.map(c => c.variableName) : [];
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(creatureId.value),
+    type: 'classLevel',
+    variableName: {$nin: classVariableNames},
+    removed: {$ne: true},
+    inactive: {$ne: true},
+  }, {
+    sort: {left: 1}
+  }).fetch();
+}).result;
+
+const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
+
+provide('context', reactive({
+  creatureId,
+  editPermission,
+}));
+
+const creatureUrl = computed(() => {
+  let props = router.resolve({
+    name: 'characterSheet',
+    params: { id: creatureId.value },
+  });
+  return new URL(props?.href, 'https://dicecloud.com').href;
+});
+
+const level = computed(() => variables.value?.level?.value);
+
+const highestLevels = computed(() => {
+  let highestLevelsMap = {};
+  let highestLevelsList = [];
+  if (classLevels.value) {
+    classLevels.value.forEach(classLevel => {
+      let name = classLevel.variableName;
+      if (
+        !highestLevelsMap[name] ||
+        highestLevelsMap[name].level < classLevel.level
+      ){
+        highestLevelsMap[name] = classLevel;
       }
-      highestLevelsList.sort((a, b) => a.level - b.level);
-      return highestLevelsList;
-    },
-    classes() {
-      return [
-        ...this.highestLevels,
-        ...this.classProperties
-      ].sort((a, b) => a.order - b.order);
-    },
-  },
-  reactiveProvide: {
-    name: 'context',
-    include: ['creatureId', 'editPermission'],
-  },
-  watch: {
-    'creature.name'(value) {
-      this.$store.commit('setPageTitle', value ? ('Print ' + value) : 'Print Character Sheet');
-    },
-  },
-  mounted() {
-    this.$store.commit('setPageTitle',
-      (this.creature && this.creature.name) ?
-        ('Print ' + this.creature.name) :
-        'Print Character Sheet'
-    );
-    this.nameObserver = Creatures.find({
-      creatureId: this.creatureId,
-    }, {
-      fields: { name: 1 },
-    }).observe({
-      added: ({ name }) =>
-        this.$store.commit('setPageTitle', name ? ('Print ' + name) : 'Print Character Sheet'),
-      changed: ({ name }) =>
-        this.$store.commit('setPageTitle', name ? ('Print ' + name) : 'Print Character Sheet'),
     });
-  },
-  beforeDestroy() {
-    this.nameObserver.stop();
-  },
-  meteor: {
-    $subscribe: {
-      'singleCharacter'() {
-        return [this.creatureId];
-      },
-    },
-    creature() {
-      return Creatures.findOne(this.creatureId);
-    },
-    variables() {
-      return CreatureVariables.findOne({ _creatureId: this.creatureId }) || {};
-    },
-    race() {
-      if (this.variables?.race?.value?.valueType === 'string') return this.variables.race.value.value;
-      const prop = CreatureProperties.findOne({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        tags: 'race',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-        overridden: { $ne: true },
-      });
-      if (prop?.name) return prop.name;
-      return '';
-    },
-    background() {
-      if (this.variables?.background?.value?.valueType === 'string') return this.variables.background.value.value;
-      const prop = CreatureProperties.findOne({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        tags: 'background',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-        overridden: { $ne: true },
-      });
-      if (prop?.name) return prop.name;
-      return '';
-    },
-    classProperties(){
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'class',
-        removed: {$ne: true},
-        inactive: {$ne: true},
-      }, {
-        sort: {left: 1}
-      }).fetch();
-    },
-    classLevels() {
-      const classVariableNames = this.classProperties.map(c => c.variableName)
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'classLevel',
-        variableName: {$nin: classVariableNames},
-        removed: {$ne: true},
-        inactive: {$ne: true},
-      }, {
-        sort: {left: 1}
-      });
-    },
-    editPermission() {
-      try {
-        assertEditPermission(this.creature, Meteor.userId());
-        return true;
-      } catch (e) {
-        return false;
-      }
-    },
-  },
-}
+  }
+  for (let name in highestLevelsMap){
+    highestLevelsList.push(highestLevelsMap[name]);
+  }
+  highestLevelsList.sort((a, b) => a.level - b.level);
+  return highestLevelsList;
+});
+
+const classes = computed(() => {
+  return [
+    ...(highestLevels.value || []),
+    ...(classProperties.value || [])
+  ].sort((a, b) => a.order - b.order);
+});
+
+watch(() => creature.value?.name, (value) => {
+  appStore.setPageTitle(value ? ('Print ' + value) : 'Print Character Sheet');
+});
+
+let nameObserver = null;
+
+onMounted(() => {
+  appStore.setPageTitle((creature.value && creature.value.name) ?
+      ('Print ' + creature.value.name) :
+      'Print Character Sheet'
+  );
+  nameObserver = Creatures.find({
+    creatureId: creatureId.value,
+  }, {
+    fields: { name: 1 },
+  }).observe({
+    added: ({ name }) =>
+      appStore.setPageTitle(name ? ('Print ' + name) : 'Print Character Sheet'),
+    changed: ({ name }) =>
+      appStore.setPageTitle(name ? ('Print ' + name) : 'Print Character Sheet'),
+  });
+});
+
+onBeforeUnmount(() => {
+  if (nameObserver) nameObserver.stop();
+});
 </script>
 
 <style>
@@ -377,11 +369,11 @@ export default {
   }
 }
 @media print {
-  @page { 
+  @page {
       size: auto;
-      margin: 8mm;  
+      margin: 8mm;
   }
-  body {  
+  body {
       margin: 0;
       padding: 2mm;
   }
@@ -396,7 +388,7 @@ export default {
     padding-left: 0 !important;
     padding-right: 4px !important;
   }
-  .v-main, .v-application, .v-application--wrap, .character-sheet-printed {
+  .v-main, .v-application, .v-application__wrap, .character-sheet-printed {
     display: block !important;
     background-color: white !important;
   }

@@ -1,9 +1,6 @@
-<template
-  lang="html"
-  functional
->
+<template>
   <component
-    :is="model.type"
+    :is="components[model.type]"
     v-if="model && components[model.type]"
   />
   <v-card v-else-if="model">
@@ -13,18 +10,17 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
 import ActionCard from '/imports/client/ui/properties/components/actions/ActionCard.vue';
 
-export default {
-  components: {
-    action: ActionCard,
+const components = {
+  action: ActionCard,
+};
+
+defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-  },
-}
+});
 </script>

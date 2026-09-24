@@ -1,11 +1,12 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
         {{ model && model.name }}
       </v-toolbar-title>
       <v-spacer />
       <v-btn
+        variant="text"
         icon
         data-id="share-library-button"
         :disabled="!isOwner"
@@ -14,6 +15,7 @@
         <v-icon>mdi-share-variant</v-icon>
       </v-btn>
       <v-btn
+        variant="text"
         icon
         data-id="delete-library-button"
         :disabled="!isOwner"
@@ -26,21 +28,22 @@
       <v-list-item
         v-if="!isOwner"
         class="px-0"
-        two-line
+        lines="two"
       >
-        <v-list-item-avatar>
-          <v-icon>
-            mdi-account
-          </v-icon>
-        </v-list-item-avatar>
-        <v-list-item-content>
-          <v-list-item-title>
-            {{ ownerName || '?' }}
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Collection owner
-          </v-list-item-subtitle>
-        </v-list-item-content>
+        <template #prepend>
+          <v-avatar>
+            <v-icon>
+              mdi-account
+            </v-icon>
+          </v-avatar>
+        </template>
+
+        <v-list-item-title>
+          {{ ownerName || '?' }}
+        </v-list-item-title>
+        <v-list-item-subtitle>
+          Collection owner
+        </v-list-item-subtitle>
       </v-list-item>
       <text-field
         label="name"
@@ -70,12 +73,12 @@
         @change="(libraries, ack) => updateLibraryCollection({libraries}, ack)"
       />
     </template>
-    <template slot="actions">
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         data-id="delete-library-button"
-        @click="$store.dispatch('popDialogStack')"
+        @click="dialogStackStore.popDialogStack()"
       >
         Done
       </v-btn>
@@ -83,102 +86,106 @@
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { useRouter } from 'vue-router';
+import { Meteor } from 'meteor/meteor';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
-import LibraryCollections, { updateLibraryCollection, removeLibraryCollection } from '/imports/api/library/LibraryCollections';
+import LibraryCollections, { updateLibraryCollection as updateLibraryCollectionApi, removeLibraryCollection } from '/imports/api/library/LibraryCollections';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import Libraries from '/imports/api/library/Libraries';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    DialogBase,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  _id: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    _id: String,
-  },
-  methods: {
-    updateLibraryCollection(update, ack) {
-      updateLibraryCollection.call({ _id: this._id, update }, (error) => {
-        ack(error && error.reason || error);
-      });
+});
+
+const router = useRouter();
+
+subscribe(() => ['libraries']);
+subscribe(() => ['libraryCollection', props._id]);
+
+const model = autorun(() => LibraryCollections.findOne(props._id)).result;
+
+const libraryOptions = autorun(() => {
+  const userId = Meteor.userId();
+  return Libraries.find(
+    {
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
     },
-    remove() {
-      let that = this;
-      this.$store.commit('pushDialogStack', {
-        component: 'delete-confirmation-dialog',
-        elementId: 'delete-library-button',
-        data: {
-          name: this.model.name,
-          typeName: 'Collection'
-        },
-        callback(confirmation) {
-          if (!confirmation) return;
-          removeLibraryCollection.call({ _id: that._id }, (error) => {
-            if (error) {
-              console.error(error);
-              snackbar({
-                text: error.reason,
-              });
-            } else {
-              that.$router.push({ name: 'library', replace: true });
-              that.$store.dispatch('popDialogStack');
-            }
-          });
-        }
-      });
-    },
-    share() {
-      this.$store.commit('pushDialogStack', {
-        component: 'share-dialog',
-        elementId: 'share-library-button',
-        data: {
-          docRef: {
-            id: this._id,
-            collection: 'libraryCollections',
-          }
-        },
-      });
-    },
-  },
-  meteor: {
-    '$subscribe': {
-      libraries: [],
-      libraryCollection() {
-        return [this._id]
-      },
-    },
-    model() {
-      return LibraryCollections.findOne(this._id);
-    },
-    libraryOptions() {
-      const userId = Meteor.userId();
-      return Libraries.find(
-        {
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        },
-        { sort: { name: 1 } }
-      ).map(library => {
-        return {
-          text: library.name,
-          value: library._id,
-        };
-      });
-    },
-    isOwner() {
-      if (!this.model) return;
-      return Meteor.userId() === this.model.owner;
-    },
-    ownerName() {
-      if (!this.model) return;
-      const username = Meteor.users.findOne(this.model.owner)?.username;
-      return username;
-    },
+    { sort: { name: 1 } }
+  ).map(library => {
+    return {
+      title: library.name,
+      value: library._id,
+    };
+  });
+}).result;
+
+const isOwner = autorun(() => {
+  if (!model.value) return;
+  return Meteor.userId() === model.value.owner;
+}).result;
+
+const ownerName = autorun(() => {
+  if (!model.value) return;
+  return Meteor.users.findOne(model.value.owner)?.username;
+}).result;
+
+async function updateLibraryCollection(update, ack) {
+  try {
+    await updateLibraryCollectionApi.callAsync({ _id: props._id, update });
+    ack();
+  } catch (error) {
+    ack((error && error.reason) || error);
   }
+}
+
+function remove() {
+  dialogStackStore.pushDialogStack({
+    component: 'delete-confirmation-dialog',
+    elementId: 'delete-library-button',
+    data: {
+      name: model.value?.name,
+      typeName: 'Collection'
+    },
+    async callback(confirmation) {
+      if (!confirmation) return;
+      try {
+        await removeLibraryCollection.callAsync({ _id: props._id });
+        await router.push({ name: 'library', replace: true });
+        await dialogStackStore.popDialogStack();
+      } catch (error) {
+        console.error(error);
+        snackbar({
+          text: error.reason,
+        });
+      }
+    }
+  });
+}
+
+function share() {
+  dialogStackStore.pushDialogStack({
+    component: 'share-dialog',
+    elementId: 'share-library-button',
+    data: {
+      docRef: {
+        id: props._id,
+        collection: 'libraryCollections',
+      }
+    },
+  });
 }
 </script>
 

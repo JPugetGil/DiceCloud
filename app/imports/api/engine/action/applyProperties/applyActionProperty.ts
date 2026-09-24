@@ -124,8 +124,8 @@ async function applyAttackToTarget(
     advantage
   } = await rollAttack(attack, scope, taskResult.pushScope, userInput);
 
-  const targetScope = getVariables(targetId);
-  const targetArmor = getNumberFromScope('armor', targetScope)
+  const targetScope = await getVariables(targetId);
+  const targetArmor = await getNumberFromScope('armor', targetScope)
 
   if (targetArmor !== undefined) {
     let name = criticalHit ? 'Critical Hit!' :
@@ -244,16 +244,16 @@ async function rollAttack(attack, scope: any, resultPushScope, userInput: InputP
   resultPushScope['~attackDiceRoll'] = { value };
   const result = value + attack.value;
   resultPushScope['~attackRoll'] = { value: result };
-  const { criticalHit, criticalMiss } = applyCrits(value, scope, resultPushScope);
+  const { criticalHit, criticalMiss } = await applyCrits(value, scope, resultPushScope);
   return { resultPrefix, result, value, criticalHit, criticalMiss, advantage };
 }
 
-function applyCrits(value, scope, resultPushScope) {
-  const scopeCritTarget = getNumberFromScope('~criticalHitTarget', scope);
+async function applyCrits(value, scope, resultPushScope) {
+  const scopeCritTarget = await getNumberFromScope('~criticalHitTarget', scope);
   const criticalHitTarget = scopeCritTarget !== undefined &&
     Number.isFinite(scopeCritTarget) ? scopeCritTarget : 20;
 
-  const scopeCritMissTarget = getNumberFromScope('~criticalMissTarget', scope);
+  const scopeCritMissTarget = await getNumberFromScope('~criticalMissTarget', scope);
   const criticalMissTarget = scopeCritMissTarget !== undefined &&
     Number.isFinite(scopeCritMissTarget) ? scopeCritMissTarget : 1;
 

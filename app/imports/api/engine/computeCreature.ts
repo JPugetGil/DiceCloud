@@ -8,15 +8,15 @@ import type CreatureComputation from './computation/CreatureComputation';
 export default async function computeCreature(creatureId: string) {
   if (Meteor.isClient) return;
   // console.log('compute ' + creatureId);
-  const computation = buildCreatureComputation(creatureId);
+  const computation = await buildCreatureComputation(creatureId);
   await computeComputation(computation, creatureId);
 }
 
 async function computeComputation(computation: CreatureComputation, creatureId: string) {
   try {
     await computeCreatureComputation(computation);
-    const writePromise = writeAlteredProperties(computation);
-    const scopeWritePromise = writeScope(creatureId, computation);
+    const writePromise = await writeAlteredProperties(computation);
+    const scopeWritePromise = await writeScope(creatureId, computation);
     await Promise.all([writePromise, scopeWritePromise]);
   } catch (e: any) {
     const errorText = e.reason || e.message || e.toString();
@@ -31,7 +31,7 @@ async function computeComputation(computation: CreatureComputation, creatureId: 
     });
   } finally {
     checkPropertyCount(computation)
-    writeErrorsAndPropCount(creatureId, computation.errors, computation.props.length);
+    await writeErrorsAndPropCount(creatureId, computation.errors, computation.props.length);
   }
 }
 

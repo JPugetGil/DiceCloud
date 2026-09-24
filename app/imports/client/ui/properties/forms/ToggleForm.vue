@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="toggle-form">
     <v-row dense>
       <v-col
@@ -10,7 +10,7 @@
           :value="model.variableName"
           hint="Use this name in calculations to reference this attribute"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
 
@@ -53,7 +53,7 @@
             {name: 'Descendants', value: false},
             {name: 'By target tags', value: true},
           ]"
-          @change="change('targetByTags', ...arguments)"
+          @change="(value, ack) => change('targetByTags', value, ack)"
         />
       </v-col>
       <v-col cols="12">
@@ -81,7 +81,7 @@
             label="Show on character sheet"
             :value="model.showUI"
             :error-messages="errors.showUI"
-            @change="change('showUI', ...arguments)"
+            @change="(value, ack) => change('showUI', value, ack)"
           />
         </v-col>
       </form-section>
@@ -90,41 +90,55 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { computed } from 'vue';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    TagTargeting,
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  computed: {
-    radioSelection() {
-      if (this.model.disabled) {
-        return 'disabled';
-      } else if (this.model.enabled) {
-        return 'enabled'
-      } else {
-        return 'calculated';
-      }
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  methods: {
-    radioChange(value, ack) {
-      if (value === 'enabled') {
-        this.$emit('change', { path: ['enabled'], value: true, ack });
-        this.$emit('change', { path: ['disabled'], value: false, ack });
-      } else if (value === 'disabled') {
-        this.$emit('change', { path: ['disabled'], value: true, ack });
-        this.$emit('change', { path: ['enabled'], value: false, ack });
-      } else if (value === 'calculated') {
-        this.$emit('change', { path: ['disabled'], value: false, ack });
-        this.$emit('change', { path: ['enabled'], value: false, ack });
-      }
-    }
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+const radioSelection = computed(() => {
+  if (props.model.disabled) {
+    return 'disabled';
+  } else if (props.model.enabled) {
+    return 'enabled'
+  } else {
+    return 'calculated';
   }
-};
+});
+
+function radioChange(value, ack) {
+  if (value === 'enabled') {
+    emit('change', { path: ['enabled'], value: true, ack });
+    emit('change', { path: ['disabled'], value: false, ack });
+  } else if (value === 'disabled') {
+    emit('change', { path: ['disabled'], value: true, ack });
+    emit('change', { path: ['enabled'], value: false, ack });
+  } else if (value === 'calculated') {
+    emit('change', { path: ['disabled'], value: false, ack });
+    emit('change', { path: ['enabled'], value: false, ack });
+  }
+}
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

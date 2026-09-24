@@ -1,9 +1,9 @@
-<template lang="html">
+<template>
   <property-field
     v-if="model.targetByTags"
     name="Targeted tags"
   >
-    <div 
+    <div
       class="py-1"
     >
       <div class="d-flex flex-wrap">
@@ -12,7 +12,7 @@
           :key="index"
           class="mr-1"
           disabled
-          small
+          size="small"
         >
           {{ tag }}
         </v-chip>
@@ -30,7 +30,7 @@
             :key="index"
             class="mr-1"
             disabled
-            small
+            size="small"
           >
             {{ extraTag }}
           </v-chip>
@@ -40,18 +40,13 @@
   </property-field>
 </template>
 
-<script lang="js">
+<script setup>
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    PropertyField,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-}
+});
 </script>

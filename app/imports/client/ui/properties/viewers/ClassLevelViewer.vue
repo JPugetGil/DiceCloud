@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="class-level-viewer">
     <v-row
       dense
@@ -29,17 +29,19 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import { inject } from 'vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-}
+});
+
+const context = inject('context', {});
 </script>
 
 <style lang="css" scoped>

@@ -28,15 +28,16 @@
               @change="(value, ack) => change({path: ['urlName'], value, ack})"
             />
             <v-menu
-              bottom
-              left
+              location="bottom left"
+
               transition="slide-y-transition"
             >
-              <template #activator="{ on }">
+              <template #activator="{ props: activatorProps }">
                 <v-btn
+                  variant="text"
                   icon
                   style="height: 56px; width: 56px;"
-                  v-on="on"
+                  v-bind="activatorProps"
                 >
                   <v-icon>mdi-dots-vertical</v-icon>
                 </v-btn>
@@ -45,14 +46,13 @@
                 <v-list-item
                   @click="remove()"
                 >
-                  <v-list-item-content>
-                    <v-list-item-title>
-                      Delete
-                    </v-list-item-title>
-                  </v-list-item-content>
-                  <v-list-item-action>
+                  <v-list-item-title>
+                    Delete
+                  </v-list-item-title>
+
+                  <template #append>
                     <v-icon>mdi-delete</v-icon>
-                  </v-list-item-action>
+                  </template>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -114,7 +114,7 @@
         >
           <smart-btn
             single-click
-            outlined
+            variant="outlined"
             color="accent"
             style="width: 100%; height: 240px;"
             @click="ack => add({ ack })"
@@ -127,84 +127,81 @@
   </v-row>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import Docs, {
   insertDoc,
-  pullFromDoc,
-  pushToDoc,
   restoreDoc,
   softRemoveDoc,
   updateDoc,
 } from '/imports/api/docs/Docs';
-import { get } from 'lodash';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import DocCard from '/imports/client/ui/docs/DocCard.vue';
 import getDocLink from '/imports/client/ui/docs/getDocLink';
 
-export default {
-  components: {
-    DocCard
+const props = defineProps({
+  doc: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    doc: {
-      type: Object,
-      default: undefined,
-    },
-    childDocs: {
-      type: Array,
-      required: true,
-    },
+  childDocs: {
+    type: Array,
+    required: true,
   },
-  computed: {
-    docId() {
-      return this.doc?._id;
-    },
-  },
-  methods: {
-    change({ path, value, ack }) {
-      updateDoc.call({ _id: this.docId, path, value }, ack);
-      if (path[0] === 'urlName' && path.length === 1 && value) {
-        this.$router.push(getDocLink(this.doc, value));
-      }
-    },
-    push({ path, value, ack }) {
-      pushToDoc.call({ _id: this.docId, path, value }, ack);
-    },
-    pull({ path, ack }) {
-      let itemId = get(this.model, path)._id;
-      path.pop();
-      pullFromDoc.call({ _id: this.docId, path, itemId }, ack);
-    },
-    add({ ack }) {
-      insertDoc.call({
-        doc: {
-          name: 'New Doc',
-        },
-        parentId: this.docId,
-      }, ack);
-    },
-    remove({ ack }) {
-      const _id = this.docId;
-      const docName = this.doc.name;
-      let parentHref = '/docs';
-      if (this.doc.parent) {
-        const parent = Docs.findOne({ _id: this.doc.parentId });
-        parentHref = parent?.href || parentHref;
-      }
-      softRemoveDoc.call({ _id }, (error) => {
-        ack?.(error);
-        if (!error) {
-          snackbar({
-            text: `Deleted ${docName}`,
-            callbackName: 'undo',
-            callback() {
-              restoreDoc.call({ _id });
-            },
-          });
-        }
-      });
-      this.$router.push(parentHref);
-    },
+});
+
+const router = useRouter();
+
+const docId = computed(() => props.doc?._id);
+
+async function change({ path, value, ack }) {
+  try {
+    await updateDoc.callAsync({ _id: docId.value, path, value });
+    ack?.();
+    if (path[0] === 'urlName' && path.length === 1 && value) {
+      await router.push(getDocLink(props.doc, value));
+    }
+  } catch (error) {
+    ack?.(error);
+  }
+}
+
+async function add({ ack }) {
+  try {
+    await insertDoc.callAsync({
+      doc: { name: 'New Doc' },
+      parentId: docId.value,
+    });
+    ack?.();
+  } catch (error) {
+    ack?.(error);
+  }
+}
+
+async function remove({ ack } = {}) {
+  const _id = docId.value;
+  const docName = props.doc.name;
+  let parentHref = '/docs';
+  // Docs record their parent as parentId; checking a `parent` field (which no
+  // doc has) meant a deleted child always returned to /docs
+  if (props.doc.parentId) {
+    const parent = Docs.findOne({ _id: props.doc.parentId });
+    parentHref = parent?.href || parentHref;
+  }
+  try {
+    await softRemoveDoc.callAsync({ _id });
+    ack?.();
+    snackbar({
+      text: `Deleted ${docName}`,
+      callbackName: 'undo',
+      callback() {
+        restoreDoc.callAsync({ _id }).catch(console.error);
+      },
+    });
+    await router.push(parentHref);
+  } catch (error) {
+    ack?.(error);
   }
 }
 </script>

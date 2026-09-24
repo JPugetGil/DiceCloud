@@ -4,15 +4,15 @@
     class="d-flex flex-column "
   >
     <v-btn
-      outlined
+      variant="outlined"
       block
       class="image-upload-button flex-grow-1"
       v-bind="$attrs"
       style="min-height: 64px;"
       :loading="uploadingInProgress"
-      @click="$refs.hiddenFileInput.click()"
+      @click="hiddenFileInput?.click()"
     >
-      <v-icon left>
+      <v-icon start>
         mdi-file-upload-outline
       </v-icon>
       <div>
@@ -20,7 +20,7 @@
       </div>
       <template #loader>
         <v-progress-circular
-          :value="progress"
+          :model-value="progress"
           :indeterminate="uploadIndeterminate"
         />
       </template>
@@ -34,7 +34,7 @@
     </v-btn>
     <v-alert
       v-if="fileUploadError"
-      outlined
+      variant="outlined"
       type="error"
       class="mb-0 mt-4"
     >
@@ -43,99 +43,100 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, watch } from 'vue';
 import UserImages from '/imports/api/files/userImages/UserImages';
-import getThumbHash from '/imports/client/ui/utility/getThumbHash.js'
+import getThumbHash from '/imports/client/ui/utility/getThumbHash.js';
 
-export default {
-  data(){return {
-    progress: 0,
-    file: undefined,
-    uploadingInProgress: false,
-    fileUploadError: undefined,
-  }},
-  watch: {
-    async file(file){
-      if (!file) return;
-      let self = this;
-      let thumbHash = undefined;
+const emit = defineEmits(['uploaded']);
 
-      // Start the loading state here, because we are loading and processing the image into
-      // a thumb hash
-      self.uploadingInProgress = true;
-      self.uploadIndeterminate = true;
+const progress = ref(0);
+const file = ref(undefined);
+const uploadingInProgress = ref(false);
+const fileUploadError = ref(undefined);
+const uploadIndeterminate = ref(false);
 
-      // ThumbHashes are nice to have, but don't break upload if they fail
-      try {
-        thumbHash = await getThumbHash(file);
-      } catch (e) {
-        console.error('Failed to generate thumbHash')
-        console.error(e);
-      }
+const hiddenFileInput = ref(null);
 
-      // Start the image insert process
-      const uploadInstance = UserImages.insert({
-        file: file,
-        chunkSize: 'dynamic',
-        allowWebWorkers: true,
-        meta: {
-          createdAt: new Date(),
-          thumbHash,
-        },
-      }, false);
+watch(file, async (newFile) => {
+  if (!newFile) return;
+  let thumbHash = undefined;
 
-      uploadInstance.on('start', function () {
-        self.progress = 0;
-        self.uploadIndeterminate = false;
-        // Remove errors
-        self.fileUploadError = undefined;
-      });
+  // Start the loading state here, because we are loading and processing the image into
+  // a thumb hash
+  uploadingInProgress.value = true;
+  uploadIndeterminate.value = true;
 
-      uploadInstance.on('end', function (error, fileObj) {
-        self.resetState();
-        self.$emit('uploaded', UserImages.link(fileObj));
-      });
+  // ThumbHashes are nice to have, but don't break upload if they fail
+  try {
+    thumbHash = await getThumbHash(newFile);
+  } catch (e) {
+    console.error('Failed to generate thumbHash');
+    console.error(e);
+  }
 
-      uploadInstance.on('uploaded', function (error, fileObj) {
-        self.progress = 0;
-      });
-
-      uploadInstance.on('error', function (error, fileObj) {
-        self.fileUploadError = error.reason || error.message || error.toString();
-      });
-
-      uploadInstance.on('progress', function (progress, fileObj) {
-        // Update our progress bar with actual progress
-        self.uploadIndeterminate = false;
-        self.progress = progress;
-      });
-
-      try {
-        uploadInstance.start(); // Must manually start the upload
-      } catch (error) {
-        self.fileUploadError = error.reason || error.message || error.toString();
-        self.resetState();
-      }
+  // Start the image insert process
+  const uploadInstance = UserImages.insert({
+    file: newFile,
+    chunkSize: 'dynamic',
+    allowWebWorkers: true,
+    meta: {
+      createdAt: new Date(),
+      thumbHash,
     },
-  },
-  methods: {
-    inputChange(e) {
-      if (!e.target) return;
-      const { files: selectedFiles } = e.target;
-      if (!selectedFiles) return;
-      this.file = selectedFiles[0];
-      return;
-    },
-    resetState() {
-      // Remove file from input
-      this.file = undefined;
-      this.$refs.hiddenFileInput.value = '';
-      // stop progress
-      this.uploadingInProgress = false;
-      this.progress = 0;
-    },
-  },
+  }, false);
 
+  uploadInstance.on('start', function () {
+    progress.value = 0;
+    uploadIndeterminate.value = false;
+    // Remove errors
+    fileUploadError.value = undefined;
+  });
+
+  uploadInstance.on('end', function (error, fileObj) {
+    resetState();
+    emit('uploaded', UserImages.link(fileObj));
+  });
+
+  uploadInstance.on('uploaded', function () {
+    progress.value = 0;
+  });
+
+  uploadInstance.on('error', function (error) {
+    fileUploadError.value = error.reason || error.message || error.toString();
+  });
+
+  uploadInstance.on('progress', function (prog) {
+    // Update our progress bar with actual progress
+    uploadIndeterminate.value = false;
+    progress.value = prog;
+  });
+
+  try {
+    uploadInstance.start(); // Must manually start the upload
+  } catch (error) {
+    fileUploadError.value = error.reason || error.message || error.toString();
+    resetState();
+  }
+});
+
+function inputChange(e) {
+  if (!e.target) return;
+  const { files: selectedFiles } = e.target;
+  if (!selectedFiles) return;
+  file.value = selectedFiles[0];
+  return;
+}
+
+function resetState() {
+  // Remove file from input
+  file.value = undefined;
+  if (hiddenFileInput.value) {
+    hiddenFileInput.value.value = '';
+  }
+  // stop progress
+  uploadingInProgress.value = false;
+  progress.value = 0;
 }
 </script>
 

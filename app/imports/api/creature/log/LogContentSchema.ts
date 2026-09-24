@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import RollDetailsSchema from '/imports/api/properties/subSchemas/RollDetailsSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
@@ -14,7 +14,7 @@ export interface LogContent {
   }
 }
 
-let LogContentSchema = new SimpleSchema({
+const LogContentSchema = new SimpleSchema({
   // The name of the field, included in discord webhook message
   name: {
     type: String,

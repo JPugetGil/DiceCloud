@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
@@ -62,96 +62,93 @@ const LIBRARY_NODE_TREE_FIELDS = {
 export { LIBRARY_NODE_TREE_FIELDS };
 
 Meteor.publish('libraryCollection', function (libraryCollectionId) {
-  this.autorun(function () {
-    let userId = this.userId;
+  // A single autorun. This used to nest three, and under reactive-publish 1.1
+  // the nesting raced: the collection document was sometimes removed just
+  // after it was added and the page rendered empty. The inner autoruns read
+  // nothing reactive of their own, so flattening loses no reactivity.
+  this.autorun(async function () {
+    const userId = this.userId;
     if (!userId) return [];
-    this.autorun(function () {
-      const libraryCollectionCursor = LibraryCollections.find({
-        _id: libraryCollectionId,
+    const libraryCollectionSelector = {
+      _id: libraryCollectionId,
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
+    };
+    const libraryCollection = (await LibraryCollections.find(libraryCollectionSelector).fetchAsync())[0];
+    if (!libraryCollection) return [LibraryCollections.find(libraryCollectionSelector)];
+    return [
+      LibraryCollections.find(libraryCollectionSelector),
+      Libraries.find({
+        _id: { $in: libraryCollection.libraries },
         $or: [
           { owner: userId },
           { writers: userId },
           { readers: userId },
           { public: true },
         ]
-      });
-      const libraryCollection = libraryCollectionCursor.fetch()[0];
-      if (!libraryCollection) return [libraryCollectionCursor];
-      this.autorun(function () {
-        const libraryCursor = Libraries.find({
-          _id: { $in: libraryCollection.libraries },
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        }, {
-          sort: { name: 1 }
-        });
-        return [
-          libraryCollectionCursor,
-          libraryCursor,
-          Meteor.users.find(
-            libraryCollection.owner,
-            { fields: { username: 1 } }
-          ),
-        ];
-      });
-    });
-  })
+      }, {
+        sort: { name: 1 }
+      }),
+      Meteor.users.find(
+        libraryCollection.owner,
+        { fields: { username: 1 } }
+      ),
+    ];
+  });
 });
 
 Meteor.publish('libraries', function () {
-  this.autorun(function () {
+  // One autorun: nesting them under reactive-publish 1.1 raced and could
+  // retract the published libraries. See the note in slotFillers.js.
+  this.autorun(async function () {
     let userId = this.userId;
     if (!userId) {
       return [];
     }
-    const user = Meteor.users.findOne(userId, {
+    const user = await Meteor.users.findOneAsync(userId, {
       fields: { subscribedLibraries: 1, subscribedLibraryCollections: 1 }
     });
 
-    this.autorun(function () {
-      // Get the collections the user is subscribed to
-      const subCollections = user && user.subscribedLibraryCollections || [];
-      const libraryCollectionsCursor = LibraryCollections.find({
-        $or: [
-          { owner: userId },
-          { writers: userId },
-          { readers: userId },
-          { _id: { $in: subCollections }, public: true },
-        ]
-      }, {
-        sort: { name: 1 }
-      });
-
-      // Collate all the libraryIds in those collections
-      let collectionLibIds = [];
-      libraryCollectionsCursor.forEach(libCollection => {
-        collectionLibIds = union(collectionLibIds, libCollection.libraries);
-      });
-
-      // Get the libraries the user is subscribed to directly
-      const subs = user && user.subscribedLibraries || [];
-
-      // Combine all the library Ids
-      const libIds = union(collectionLibIds, subs);
-
-      this.autorun(function () {
-        const librariesCursor = Libraries.find({
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { _id: { $in: libIds }, public: true },
-          ]
-        }, {
-          sort: { name: 1 }
-        });
-        return [librariesCursor, libraryCollectionsCursor];
-      });
+    // Get the collections the user is subscribed to
+    const subCollections = user && user.subscribedLibraryCollections || [];
+    const libraryCollectionsCursor = LibraryCollections.find({
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { _id: { $in: subCollections }, public: true },
+      ]
+    }, {
+      sort: { name: 1 }
     });
+
+    // Collate all the libraryIds in those collections
+    let collectionLibIds = [];
+    await libraryCollectionsCursor.forEachAsync(libCollection => {
+      collectionLibIds = union(collectionLibIds, libCollection.libraries);
+    });
+
+    // Get the libraries the user is subscribed to directly
+    const subs = user && user.subscribedLibraries || [];
+
+    // Combine all the library Ids
+    const libIds = union(collectionLibIds, subs);
+
+    const librariesCursor = Libraries.find({
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { _id: { $in: libIds }, public: true },
+      ]
+    }, {
+      sort: { name: 1 }
+    });
+    return [librariesCursor, libraryCollectionsCursor];
   });
 });
 
@@ -184,10 +181,10 @@ Meteor.publish('browseLibraries', function () {
 Meteor.publish('library', function (libraryId) {
   if (!libraryId) return [];
   libraryIdSchema.validate({ libraryId });
-  this.autorun(function () {
+  this.autorun(async function () {
     let userId = this.userId;
-    let library = Libraries.findOne(libraryId);
-    try { assertViewPermission(library, userId) }
+    let library = await Libraries.findOneAsync(libraryId);
+    try { await assertViewPermission(library, userId) }
     catch (e) {
       return this.error(e);
     }
@@ -228,11 +225,11 @@ Meteor.publish('libraryNodes', function (libraryId, extraFields) {
   } catch (e) {
     return this.error(e);
   }
-  this.autorun(function () {
+  this.autorun(async function () {
     let userId = this.userId;
-    let library = Libraries.findOne(libraryId);
+    let library = await Libraries.findOneAsync(libraryId);
     try {
-      assertViewPermission(library, userId)
+      await assertViewPermission(library, userId)
     } catch (e) {
       return this.error(e);
     }
@@ -261,11 +258,11 @@ const nodeIdSchema = new SimpleSchema({
 Meteor.publish('libraryNode', function (libraryNodeId) {
   if (!libraryNodeId) return [];
   nodeIdSchema.validate({ libraryNodeId });
-  this.autorun(function () {
+  this.autorun(async function () {
     const userId = this.userId;
     const nodeCursor = LibraryNodes.find({ _id: libraryNodeId });
-    let node = nodeCursor.fetch()[0];
-    try { assertDocViewPermission(node, userId) }
+    let node = (await nodeCursor.fetchAsync())[0];
+    try { await assertDocViewPermission(node, userId) }
     catch (e) {
       return this.error(e);
     }
@@ -276,10 +273,10 @@ Meteor.publish('libraryNode', function (libraryNodeId) {
 Meteor.publish('softRemovedLibraryNodes', function (libraryId) {
   if (!libraryId) return [];
   libraryIdSchema.validate({ libraryId });
-  this.autorun(function () {
+  this.autorun(async function () {
     let userId = this.userId;
-    let library = Libraries.findOne(libraryId);
-    try { assertViewPermission(library, userId) }
+    let library = await Libraries.findOneAsync(libraryId);
+    try { await assertViewPermission(library, userId) }
     catch (e) {
       return this.error(e);
     }
@@ -295,13 +292,13 @@ Meteor.publish('softRemovedLibraryNodes', function (libraryId) {
   });
 });
 
-Meteor.publish('descendantLibraryNodes', function (nodeId) {
-  let node = LibraryNodes.findOne(nodeId);
+Meteor.publish('descendantLibraryNodes', async function (nodeId) {
+  let node = await LibraryNodes.findOneAsync(nodeId);
   let libraryId = node?.root.id;
   if (!libraryId || !node) return [];
-  this.autorun(function () {
+  this.autorun(async function () {
     let userId = this.userId;
-    try { assertDocViewPermission(node, userId) }
+    try { await assertDocViewPermission(node, userId) }
     catch (e) {
       return this.error(e);
     }

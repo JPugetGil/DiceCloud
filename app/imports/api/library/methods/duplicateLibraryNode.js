@@ -1,5 +1,5 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { assertDocEditPermission } from '/imports/api/sharing/sharingPermissions';
@@ -8,9 +8,13 @@ import {
   getFilter
 } from '/imports/api/parenting/parentingFunctions';
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
+import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 
 var snackbar;
 if (Meteor.isClient) {
+  // require(), not import: this module is only pulled in on one side of the
+  // wire, and a static import would bundle it into both
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   snackbar = require(
     '/imports/client/ui/components/snackbars/SnackbarQueue'
   ).snackbar
@@ -31,19 +35,19 @@ const duplicateLibraryNode = new ValidatedMethod({
     numRequests: 4,
     timeInterval: 6000,
   },
-  run({ _id }) {
-    let libraryNode = LibraryNodes.findOne(_id);
+  async run({ _id }) {
+    let libraryNode = await LibraryNodes.findOneAsync(_id);
     if (!libraryNode) throw new Meteor.Error('not-found', 'Library node was not found');
 
-    assertDocEditPermission(libraryNode, this.userId);
+    await assertDocEditPermission(libraryNode, this.userId);
 
-    let nodes = LibraryNodes.find({
+    let nodes = await LibraryNodes.find({
       ...getFilter.descendants(libraryNode),
       removed: { $ne: true },
     }, {
       limit: DUPLICATE_CHILDREN_LIMIT + 1,
       sort: { left: 1 },
-    }).fetch();
+    }).fetchAsync();
 
     if (nodes.length > DUPLICATE_CHILDREN_LIMIT) {
       nodes.pop();
@@ -61,10 +65,10 @@ const duplicateLibraryNode = new ValidatedMethod({
     // Order the root node
     libraryNode.left += 0.5;
 
-    LibraryNodes.batchInsert(allNodes);
+    await batchInsertAsync(LibraryNodes, allNodes);
 
     // Tree structure changed by inserts, reorder the tree
-    rebuildNestedSets(LibraryNodes, libraryNode.root.id);
+    await rebuildNestedSets(LibraryNodes, libraryNode.root.id);
 
     return libraryNode._id;
   },

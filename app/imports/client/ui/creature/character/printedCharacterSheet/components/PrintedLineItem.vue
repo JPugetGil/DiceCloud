@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="printed-line-item d-flex align-start mb-0">
     <div class="quantity">
       {{ model.quantity !== 1 ? model.quantity : undefined }}
@@ -49,52 +49,50 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
 
-export default {
-  components: {
-    CoinValue,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-  computed: {
-    title() {
-      let model = this.model;
-      if (!model) return;
-      if (model.quantity !== 1) {
-        if (model.plural) {
-          return model.plural;
-        } else if (model.name) {
-          return model.name;
-        }
-      } else if (model.name) {
-        return model.name;
-      }
-      let prop = PROPERTIES[model.type]
-      return prop && prop.name;
-    },
-    totalValue() {
-      return stripFloatingPointOddities(this.model.value * this.model.quantity);
-    },
-    totalWeight() {
-      return stripFloatingPointOddities(this.model.weight * this.model.quantity);
-    },
-    attunementText() {
-      if (this.model.requiresAttunement) {
-        if (this.model.attuned) return 'Attuned';
-        return 'Requires attunement';
-      }
-      return undefined;
+});
+
+const title = computed(() => {
+  const model = props.model;
+  if (!model) return;
+  if (model.quantity !== 1) {
+    if (model.plural) {
+      return model.plural;
+    } else if (model.name) {
+      return model.name;
     }
-  },
-}
+  } else if (model.name) {
+    return model.name;
+  }
+  const prop = PROPERTIES[model.type];
+  return prop && prop.name;
+});
+
+const totalValue = computed(() => {
+  return stripFloatingPointOddities(props.model.value * props.model.quantity);
+});
+
+const totalWeight = computed(() => {
+  return stripFloatingPointOddities(props.model.weight * props.model.quantity);
+});
+
+const attunementText = computed(() => {
+  if (props.model.requiresAttunement) {
+    if (props.model.attuned) return 'Attuned';
+    return 'Requires attunement';
+  }
+  return undefined;
+});
 </script>
 
 <style lang="css" scoped>

@@ -19,28 +19,25 @@
         <div
           v-if="model.value !== undefined"
         >
-          <v-layout align-center>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.two_coins
+              $two_coins
             </v-icon>
             <coin-value
               class="mr-2"
               :value="model.value"
             />
-          </v-layout>
+          </div>
 
-          <v-layout
-            align-center
-            class="mb-2"
-          >
+          <div class="d-flex flex-1-1 align-center mb-2">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.cash
+              $cash
             </v-icon>
             <coin-value
               :value="model.contentsValue"
@@ -50,33 +47,30 @@
             >
               contents
             </span>
-          </v-layout>
+          </div>
         </div>
       </div>
-  
+
       <div class="weight ml-4">
         <div
           v-if="model.weight !== undefined"
         >
-          <v-layout align-center>
+          <div class="d-flex flex-1-1 align-center">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.weight
+              $weight
             </v-icon>
             {{ model.weight }} lb
-          </v-layout>
+          </div>
 
-          <v-layout
-            align-center
-            class="mb-2"
-          >
+          <div class="d-flex flex-1-1 align-center mb-2">
             <v-icon
               class="mr-2"
-              small
+              size="small"
             >
-              $vuetify.icons.injustice
+              $injustice
             </v-icon>
             {{ model.contentsWeight }} lb
             <span
@@ -84,43 +78,30 @@
             >
               contents
             </span>
-          </v-layout>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
-import PROPERTIES from '/imports/constants/PROPERTIES';
+<script setup>
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
-import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
-import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 
-export default {
-  components: {
-    CoinValue,
-    PropertyDescription,
+defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  mixins: [treeNodeViewMixin],
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    preparingSpells: Boolean,
-  },
-  data() {
-    return {
-      incrementLoading: false,
-    }
-  },
-  computed: {
-    hasClickListener() {
-      return this.$listeners && !!this.$listeners.click;
-    },
-  },
-}
+  selected: Boolean,
+  hideIcon: Boolean,
+  preparingSpells: Boolean,
+});
+
+
+
+
 </script>
 
 <style lang="css" scoped>

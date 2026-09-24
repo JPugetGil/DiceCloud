@@ -2,12 +2,12 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 
 Meteor.publish('characterList', function () {
-  this.autorun(function () {
+  this.autorun(async function () {
     var userId = this.userId;
     if (!userId) {
       return [];
     }
-    const user = Meteor.users.findOne(this.userId, {
+    const user = await Meteor.users.findOneAsync(this.userId, {
       fields: { subscribedCharacters: 1 }
     });
     const subs = user && user.subscribedCharacters || [];

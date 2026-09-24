@@ -2,11 +2,7 @@
   <div class="character-sheet fill-height">
     <v-fade-transition mode="out-in">
       <div v-if="!creature">
-        <v-layout
-          column
-          align-center
-          justify-center
-        >
+        <div class="d-flex flex-1-1 flex-column align-center justify-center">
           <h2 style="margin: 48px 28px 16px">
             Character not found
           </h2>
@@ -14,71 +10,62 @@
             Either this character does not exist, or you don't have permission
             to view it.
           </h3>
-        </v-layout>
+        </div>
       </div>
       <div
         v-else
         key="character-tabs"
         class="card-background fill-height"
       >
-        <v-tabs-items
+        <v-window
           :key=" '' +
             creature.settings.hideSpellsTab +
             creature.settings.showTreeTab
           "
-          :value="$store.getters.tabById(creatureId)"
-          @change="e => $store.commit(
-            'setTabForCharacterSheet',
-            {id: creatureId, tab: e}
-          )"
+          :model-value="appStore.tabById(creatureId)"
+          @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
         >
-          <v-tab-item>
+          <v-window-item>
             <stats-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item>
+          </v-window-item>
+          <v-window-item>
             <actions-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item v-if="!creature.settings.hideSpellsTab">
+          </v-window-item>
+          <v-window-item v-if="!creature.settings.hideSpellsTab">
             <spells-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item>
+          </v-window-item>
+          <v-window-item>
             <inventory-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item>
+          </v-window-item>
+          <v-window-item>
             <features-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item>
+          </v-window-item>
+          <v-window-item>
             <character-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item>
+          </v-window-item>
+          <v-window-item>
             <build-tab :creature-id="creatureId" />
-          </v-tab-item>
-          <v-tab-item v-if="creature.settings.showTreeTab">
+          </v-window-item>
+          <v-window-item v-if="creature.settings.showTreeTab">
             <tree-tab :creature-id="creatureId" />
-          </v-tab-item>
-        </v-tabs-items>
+          </v-window-item>
+        </v-window>
       </div>
     </v-fade-transition>
     <character-sheet-fab
-      v-if="!embedded && $vuetify.breakpoint.xsOnly"
+      v-if="!embedded && xs"
       direction="top"
       fixed
-      bottom
-      right
       class="character-sheet-bottom-fab"
       :edit-permission="editPermission"
     />
     <v-bottom-navigation
-      v-if="!embedded && $vuetify.breakpoint.xsOnly && creature && creature.settings"
-      app
+      v-if="!embedded && xs && creature && creature.settings"
       shift
       mandatory
       class="bottom-nav-btns"
-      :value="$store.getters.tabById(creatureId)"
-      @change="e => $store.commit(
-        'setTabForCharacterSheet',
-        {id: creatureId, tab: e}
-      )"
+      :model-value="appStore.tabById(creatureId)"
+      @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
     >
       <v-btn>
         <span>Stats</span>
@@ -116,7 +103,13 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { computed, watch, onMounted, onBeforeUnmount, provide, reactive } from 'vue';
+import { useRoute } from 'vue-router';
+import { useDisplay } from 'vuetify';
+import { autorun } from 'vue-meteor-tracker';
+import { Meteor } from 'meteor/meteor';
+
 //TODO add a "no character found" screen if shown on a false address
 // or on a character the user does not have permission to view
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -127,97 +120,79 @@ import SpellsTab from '/imports/client/ui/creature/character/characterSheetTabs/
 import CharacterTab from '/imports/client/ui/creature/character/characterSheetTabs/JournalTab.vue';
 import BuildTab from '/imports/client/ui/creature/character/characterSheetTabs/BuildTab.vue';
 import TreeTab from '/imports/client/ui/creature/character/characterSheetTabs/TreeTab.vue';
-import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import CharacterSheetFab from '/imports/client/ui/creature/character/CharacterSheetFab.vue';
 import ActionsTab from '/imports/client/ui/creature/character/characterSheetTabs/ActionsTab.vue';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    StatsTab,
-    FeaturesTab,
-    ActionsTab,
-    SpellsTab,
-    InventoryTab,
-    CharacterTab,
-    BuildTab,
-    TreeTab,
-    CharacterSheetFab,
+const appStore = useAppStore();
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
   },
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
-    },
-    embedded: Boolean,
-  },
-  // @ts-expect-error reactive provide not typed
-  reactiveProvide: {
-    name: 'context',
-    include: ['creatureId', 'editPermission'],
-  },
-  computed: {
-    activeTab: {
-      get() {
-        return this.tabs;
-      },
-      set(newTab) {
-        this.$emit('update:tabs', newTab);
-      },
-    },
-  },
-  watch: {
-    'creature.name'(value) {
-      this.$store.commit('setPageTitle', value || 'Character Sheet');
-    },
-  },
-  mounted() {
-    this.$store.commit('setPageTitle', this.creature && this.creature.name || 'Character Sheet');
-    this.nameObserver = Creatures.find({
-      creatureId: this.creatureId,
-    }, {
-      fields: { name: 1 },
+  embedded: Boolean,
+});
+
+defineEmits(['update:tabs']);
+
+const route = useRoute();
+const { xs } = useDisplay();
+
+const creature = autorun(() => Creatures.findOne(props.creatureId, {
+  fields: { variables: 0 }
+})).result;
+
+const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
+
+provide('context', reactive({
+  creatureId: computed(() => props.creatureId),
+  editPermission,
+}));
+
+watch(() => creature.value?.name, (value) => {
+  appStore.setPageTitle(value || 'Character Sheet');
+});
+
+let nameObserver;
+let logObserver;
+
+onMounted(() => {
+  appStore.setPageTitle((creature.value && creature.value.name) || 'Character Sheet');
+  
+  nameObserver = Creatures.find({
+    creatureId: props.creatureId,
+  }, {
+    fields: { name: 1 },
+  }).observe({
+    added: ({ name }) =>
+      appStore.setPageTitle(name || 'Character Sheet'),
+    changed: ({ name }) =>
+      appStore.setPageTitle(name || 'Character Sheet'),
+  });
+
+  if (route.name === 'characterSheet') {
+    logObserver = CreatureLogs.find({
+      creatureId: props.creatureId,
     }).observe({
-      added: ({ name }) =>
-        this.$store.commit('setPageTitle', name || 'Character Sheet'),
-      changed: ({ name }) =>
-        this.$store.commit('setPageTitle', name || 'Character Sheet'),
+      added({ content }) {
+        if (appStore.rightDrawer) return;
+        if (dialogStackStore.dialogs.length) return;
+        snackbar({ content });
+      },
     });
-    if (this.$route.name === 'characterSheet') {
-      let that = this;
-      this.logObserver = CreatureLogs.find({
-        creatureId: this.creatureId,
-      }).observe({
-        added({ content }) {
-          if (!that.$subReady.singleCharacter) return;
-          if (that.$store.state.rightDrawer) return;
-          if (that.$store.state.dialogStack.dialogs.length) return;
-          snackbar({ content });
-        },
-      });
-    }
-  },
-  beforeDestroy() {
-    this.nameObserver?.stop();
-    this.logObserver?.stop();
-  },
-  meteor: {
-    creature() {
-      return Creatures.findOne(this.creatureId, {
-        fields: { variables: 0 }
-      });
-    },
-    editPermission() {
-      try {
-        assertEditPermission(this.creature, Meteor.userId());
-        return true;
-      } catch (e) {
-        return false;
-      }
-    },
-  },
-}
+  }
+});
+
+onBeforeUnmount(() => {
+  nameObserver?.stop();
+  logObserver?.stop();
+});
 </script>
 
 <style scoped>

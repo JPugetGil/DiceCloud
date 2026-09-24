@@ -1,8 +1,8 @@
-<template lang="html">
+<template>
   <div class="point-buy-viewer">
     <v-row dense>
       <property-field
-        v-for="(row, i) in model.values"
+        v-for="row in model.values"
         :key="row._id"
         :name="row.name"
         :value="row.value"
@@ -11,35 +11,18 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-import { getPropertyName } from '/imports/constants/PROPERTIES';
-import { timingOptions, eventOptions, actionPropertyTypeOptions } from '/imports/api/properties/Triggers';
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    slotTypeName(){
-      if (!this.model.slotType) return;
-      return getPropertyName(this.model.slotType);
-    },
-    timingText(){
-      if (!this.model.timing) return;
-      return timingOptions[this.model.timing];
-    },
-    actionPropertyText(){
-      if (!this.model.actionPropertyType) return;
-      return actionPropertyTypeOptions[this.model.actionPropertyType];
-    },
-    eventText(){
-      if (!this.model.event) return;
-      return eventOptions[this.model.event];
-    },
-  }
-}
+});
+
+
+
+
+
 </script>

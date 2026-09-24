@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     v-if="computedErrors.length"
     class="error-list"
@@ -14,7 +14,7 @@
         :icon="errorIcon(error.type)"
         :color="errorColor(error.type)"
         class="mb-2"
-        dense
+        density="compact"
         text
       >
         <pre>{{ error.message }}</pre>
@@ -23,52 +23,51 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    errors: {
-      type: Array,
-      default: undefined,
-    },
-    calculations: {
-      type: Array,
-      default: undefined,
-    },
+<script setup>
+import { computed } from 'vue';
+
+const props = defineProps({
+  errors: {
+    type: Array,
+    default: undefined,
   },
-  computed: {
-    computedErrors(){
-      if (this.errors) {
-        return this.errors;
-      } else if (this.calculations){
-        let errors = [];
-        this.calculations.forEach(calc => {
-          if (calc.errors) errors.push(...calc.errors)
-        });
-        return errors;
-      } else {
-        return [];
-      }
-    },
+  calculations: {
+    type: Array,
+    default: undefined,
   },
-  methods: {
-    errorIcon(type){
-      if (type === 'subsitution'){
-        return 'mdi-information';
-      } else if (type === 'evaluation'){
-        return 'mdi-alert-circle';
-      } else {
-        return 'mdi-alert'
-      }
-    },
-    errorColor(type){
-      if (type === 'subsitution'){
-        return 'info';
-      } else if (type === 'evaluation'){
-        return 'warning';
-      } else {
-        return 'error'
-      }
-    },
+});
+
+const computedErrors = computed(() => {
+  if (props.errors) {
+    return props.errors;
+  } else if (props.calculations){
+    let errors = [];
+    props.calculations.forEach(calc => {
+      if (calc.errors) errors.push(...calc.errors)
+    });
+    return errors;
+  } else {
+    return [];
+  }
+});
+
+function errorIcon(type) {
+  if (type === 'subsitution'){
+    return 'mdi-information';
+  } else if (type === 'evaluation'){
+    return 'mdi-alert-circle';
+  } else {
+    return 'mdi-alert'
+  }
+}
+
+function errorColor(type) {
+  if (type === 'subsitution'){
+    return 'info';
+  } else if (type === 'evaluation'){
+    return 'warning';
+  } else {
+    return 'error'
   }
 }
 </script>

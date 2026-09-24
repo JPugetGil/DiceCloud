@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <action-viewer
     :model="model"
     class="spell-viewer"
@@ -30,35 +30,31 @@
   </action-viewer>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { computed } from 'vue';
 import ActionViewer from './ActionViewer.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-const levelText = [
-  'cantrip', '1st-level', '2nd-level', '3rd-level', '4th-level', '5th-level',
-  '6th-level', '7th-level', '8th-level', '9th-level'
-];
-
-export default {
-  components: {
-    ActionViewer,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  computed: {
-    levelText() {
-      return levelText[this.model.level]
-    },
-    spellComponents() {
-      let components = [];
-      if (this.model.ritual) components.push('Ritual');
-      if (this.model.concentration) components.push('Concentration');
-      if (this.model.verbal) components.push('Verbal');
-      if (this.model.somatic) components.push('Somatic');
-      if (this.model.material) components.push(`Material (${this.model.material})`);
-      return components.join(', ');
-    },
-  }
-}
+});
+
+const levelText = computed(() => {
+  return levelText[props.model.level]
+});
+
+const spellComponents = computed(() => {
+  let components = [];
+  if (props.model.ritual) components.push('Ritual');
+  if (props.model.concentration) components.push('Concentration');
+  if (props.model.verbal) components.push('Verbal');
+  if (props.model.somatic) components.push('Somatic');
+  if (props.model.material) components.push(`Material (${props.model.material})`);
+  return components.join(', ');
+});
 </script>
 
 <style lang="css" scoped>

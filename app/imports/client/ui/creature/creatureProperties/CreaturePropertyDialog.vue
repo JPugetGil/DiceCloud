@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <dialog-base>
     <template #replace-toolbar="{flat}">
       <property-toolbar
@@ -15,9 +15,9 @@
     </template>
     <template v-if="model">
       <div
-        class="layout mb-4"
+        class="d-flex flex-1-1 mb-4"
       >
-        <breadcrumbs
+        <property-breadcrumbs
           :model="model"
           :editing="editing"
           :embedded="embedded"
@@ -44,7 +44,7 @@
             @select-sub-property="selectSubProperty"
           />
         </div>
-        <property-viewer 
+        <property-viewer
           v-else
           :key="_id"
           :model="model"
@@ -54,16 +54,18 @@
         />
       </v-fade-transition>
     </template>
-    <template #actions>
+    <template
+      v-if="!embedded"
+      #actions
+    >
       <div
-        v-if="!embedded"
-        class="layout"
+        class="d-flex flex-1-1"
       >
         <v-spacer />
         <v-btn
-          text
+          variant="text"
           color="accent"
-          @click="$store.dispatch('popDialogStack')"
+          @click="dialogStackStore.popDialogStack()"
         >
           Close
         </v-btn>
@@ -72,7 +74,11 @@
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, watch, provide, reactive, nextTick } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
+
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import pushToProperty from '/imports/api/creature/creatureProperties/methods/pushToProperty';
 import pullFromProperty from '/imports/api/creature/creatureProperties/methods/pullFromProperty';
@@ -86,227 +92,215 @@ import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
-import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
+
 import { get } from 'lodash';
 import equipItem from '/imports/api/creature/creatureProperties/methods/equipItem';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
-import Breadcrumbs from '/imports/client/ui/creature/creatureProperties/Breadcrumbs.vue';
+import PropertyBreadcrumbs from '/imports/client/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import PropertyViewer from '/imports/client/ui/properties/shared/PropertyViewer.vue';
 import copyPropertyToLibrary from '/imports/api/creature/creatureProperties/methods/copyPropertyToLibrary';
-import doAction from '/imports/client/ui/creature/actions/doAction';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    PropertyForm,
-    DialogBase,
-    PropertyToolbar,
-    Breadcrumbs,
-    PropertyViewer,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  _id: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    _id: String,
-    embedded: Boolean, // This dialog is embedded in a page
-    startInEditTab: Boolean,
-  },
-  data(){ return {
-    editing: !!this.startInEditTab,
-    // CurrentId lags behind Id by one tick so that events fired by destroying
-    // forms keyed to the old ID are applied before the new ID overwrites it
-    currentId: undefined,
-  }},
-  meteor: {
-    model(){
-      return CreatureProperties.findOne(this.currentId);
-    },
-    editPermission(){
-      try {
-        assertEditPermission(this.creature, Meteor.userId());
-        return true;
-      } catch (e) {
-        return false;
-      }
-    },
-  },
-  computed: {
-    creature(){
-      if (!this.model) return;
-      return Creatures.findOne(this.model.root.id);
-    },
-    creatureId(){
-      return this.creature && this.creature._id;
-    },
-    typeName(){
-      if (!this.model) return;
-      return getPropertyName(this.model.type)
+  embedded: Boolean, // This dialog is embedded in a page
+  startInEditTab: Boolean,
+});
+
+const emit = defineEmits(['duplicated', 'removed', 'select-sub-property']);
+
+
+const editing = ref(!!props.startInEditTab);
+// CurrentId lags behind Id by one tick so that events fired by destroying
+// forms keyed to the old ID are applied before the new ID overwrites it
+const currentId = ref(undefined);
+
+watch(() => props._id, (newId) => {
+  nextTick(() => {
+    currentId.value = newId;
+  });
+}, { immediate: true });
+
+const model = autorun(() => CreatureProperties.findOne(currentId.value)).result;
+
+const creature = computed(() => {
+  if (!model.value) return;
+  return Creatures.findOne(model.value.root.id);
+});
+
+const creatureId = computed(() => {
+  return creature.value && creature.value._id;
+});
+
+const editPermission = autorun(() => {
+  if (!creature.value) return false;
+  return hasEditPermission(creature.value, Meteor.user());
+}).result;
+
+const typeName = computed(() => {
+  if (!model.value) return;
+  return getPropertyName(model.value.type);
+});
+
+provide('context', reactive({
+  creatureId,
+  editPermission,
+}));
+
+async function duplicate() {
+  try {
+    const id = await duplicateProperty.callAsync({ _id: currentId.value });
+    if (props.embedded) {
+      emit('duplicated', id);
+    } else {
+      dialogStackStore.popDialogStack();
     }
-  },
-  watch: {
-    _id: {
-      immediate: true,
-      handler(newId) {
-        this.$nextTick(() => {
-          this.currentId = newId;
-        });
-      }
-    },
-  },
-  reactiveProvide: {
-    name: 'context',
-    include: ['creatureId', 'editPermission'],
-  },
-  methods: {
-    getPropertyName,
-    duplicate(){
-      duplicateProperty.call({_id: this.currentId}, (error, id) => {
-        if (error) {
-          console.error(error);
-        }
-        if (this.embedded){
-          this.$emit('duplicated', id);
-        } else {
-          this.$store.dispatch('popDialogStack');
-        }
-      });
-    },
-    change(arg) {
-      const { path, value, ack } = arg;
-      if (path && path[0] === 'equipped'){
-        equipItem.call({_id: this.currentId, equipped: value}, ack);
-        return;
-      }
-      updateCreatureProperty.call({_id: this.currentId, path, value}, ack);
-    },
-    damage({operation, value, ack}){
-      const model = this.model;
-      doAction({
-        creatureId: model.root.id,
-        $store: this.$store,
-        elementId: '??',
-        task: {
-          subtaskFn: 'damageProp',
-          prop: model,
-          targetIds: [model.root.id],
-          params: {
-            title: getPropertyTitle(model),
-            operation: operation,
-            value,
-            targetProp: model,
-          }
-        },
-      }).then(() =>{
-        ack?.();
-      }).catch((error) => {
-        if (ack) {
-          ack(error);
-        } else  {
-          snackbar({ text: error.reason || error.message || error.toString() });
-          console.error(error);
-        }
-      });
-    },
-    push({path, value, ack}){
-      pushToProperty.call({_id: this.currentId, path, value}, ack);
-    },
-    pull({path, ack}){
-      let itemId = get(this.model, path)._id;
-      path.pop();
-      pullFromProperty.call({_id: this.currentId, path, itemId}, ack);
-    },
-    remove(){
-      const _id = this.currentId;
-      softRemoveProperty.call({_id});
-      if (this.embedded){
-        this.$emit('removed');
-      } else {
-        this.$store.dispatch('popDialogStack');
-      }
-      snackbar({
-        text: `Deleted ${getPropertyTitle(this.model)}`,
-        callbackName: 'undo',
-        callback(){
-          restoreProperty.call({_id});
-        },
-      });
-    },
-    selectSubProperty(_id) {
-      if (this.embedded) {
-        this.$emit('select-sub-property', _id);
-        return;
-      }
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `tree-node-${_id}`,
-        data: {
-          _id,
-          startInEditTab: this.editing,
-        },
-      });
-    },
-    copyToLibrary() {
-      const thisId = this._id;
-      this.$store.commit('pushDialogStack', {
-        component: 'move-library-node-dialog',
-        elementId: 'property-toolbar-menu-button',
-        data: {
-          action: 'Copy',
-        },
-        callback(parentId){
-          if (!parentId) return;
-          copyPropertyToLibrary.call({
-            propId: thisId,
-            parentRef: {
-              collection: 'libraryNodes',
-              id: parentId
-            },
-          }, (error) => {
-            if (error) {
-              console.error(error);
-              snackbar({
-                text: error.reason || error.message || error.toString(),
-              });
-            } else {
-              snackbar({
-                text: 'Copied successfully',
-              });
-            }
-          });
-        }
-      });
-    },
-    addProperty({elementId, suggestedType}){
-      let parentPropertyId = this.model._id;
-      this.$store.commit('pushDialogStack', {
-        component: 'insert-property-dialog',
-        elementId,
-        data: {
-          parentDoc: this.model,
-          creatureId: this.creatureId,
-          suggestedType,
-          noBackdropClose: true,
-        },
-        callback(result){
-          if (!result) return;
-          let parentRef = {
-            id: parentPropertyId,
-            collection: 'creatureProperties',
-          };
-          if (Array.isArray(result)){
-            let nodeIds = result;
-            let id = insertPropertyFromLibraryNode.call({ nodeIds, parentRef });
-            return `tree-node-${id}`;
-          } else {
-            let creatureProperty = result;
-            // Insert the property
-            let id = insertProperty.call({creatureProperty, parentRef});
-            return `tree-node-${id}`;
-          }
-        }
-      });
-    },
+  } catch (error) {
+    console.error(error);
   }
-};
+}
+
+async function change(arg) {
+  const { path, value, ack } = arg;
+  try {
+    if (path && path[0] === 'equipped') {
+      await equipItem.callAsync({ _id: currentId.value, equipped: value });
+    } else {
+      await updateCreatureProperty.callAsync({ _id: currentId.value, path, value });
+    }
+    ack?.();
+  } catch (error) {
+    if (ack) {
+      ack(error);
+    } else {
+      console.error(error);
+    }
+  }
+}
+
+
+async function push({ path, value, ack }) {
+  try {
+    await pushToProperty.callAsync({ _id: currentId.value, path, value });
+    ack?.();
+  } catch (error) {
+    ack?.(error);
+  }
+}
+
+async function pull({ path, ack }) {
+  let itemId = get(model.value, path)._id;
+  path.pop();
+  try {
+    await pullFromProperty.callAsync({ _id: currentId.value, path, itemId });
+    ack?.();
+  } catch (error) {
+    ack?.(error);
+  }
+}
+
+async function remove() {
+  const id = currentId.value;
+  try {
+    await softRemoveProperty.callAsync({ _id: id });
+    if (props.embedded) {
+      emit('removed');
+    } else {
+      await dialogStackStore.popDialogStack();
+    }
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message || error.toString() });
+    return;
+  }
+  snackbar({
+    text: `Deleted ${getPropertyTitle(model.value)}`,
+    callbackName: 'undo',
+    callback() {
+      return restoreProperty.callAsync({ _id: id });
+    },
+  });
+}
+
+function selectSubProperty(_id) {
+  if (props.embedded) {
+    emit('select-sub-property', _id);
+    return;
+  }
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `tree-node-${_id}`,
+    data: {
+      _id,
+      startInEditTab: editing.value,
+    },
+  });
+}
+
+function copyToLibrary() {
+  const thisId = props._id;
+  dialogStackStore.pushDialogStack({
+    component: 'move-library-node-dialog',
+    elementId: 'property-toolbar-menu-button',
+    data: {
+      action: 'Copy',
+    },
+    async callback(parentId) {
+      if (!parentId) return;
+      try {
+        await copyPropertyToLibrary.callAsync({
+          propId: thisId,
+          parentRef: {
+            collection: 'libraryNodes',
+            id: parentId
+          },
+        });
+        snackbar({ text: 'Copied successfully' });
+      } catch (error) {
+        console.error(error);
+        snackbar({ text: error.reason || error.message || error.toString() });
+      }
+    }
+  });
+}
+
+function addProperty({ elementId, suggestedType }) {
+  let parentPropertyId = model.value._id;
+  dialogStackStore.pushDialogStack({
+    component: 'insert-property-dialog',
+    elementId,
+    data: {
+      parentDoc: model.value,
+      creatureId: creatureId.value,
+      suggestedType,
+      noBackdropClose: true,
+    },
+    async callback(result) {
+      if (!result) return;
+      let parentRef = {
+        id: parentPropertyId,
+        collection: 'creatureProperties',
+      };
+      if (Array.isArray(result)) {
+        let nodeIds = result;
+        let id = await insertPropertyFromLibraryNode.callAsync({ nodeIds, parentRef });
+        return `tree-node-${id}`;
+      } else {
+        let creatureProperty = result;
+        // Insert the property
+        let id = await insertProperty.callAsync({ creatureProperty, parentRef });
+        return `tree-node-${id}`;
+      }
+    }
+  });
+}
 </script>
 
 <style lang="css" scoped>

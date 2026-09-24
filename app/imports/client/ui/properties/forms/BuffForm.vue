@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="buff-form">
     <inline-computation-field
       label="Description"
@@ -27,7 +27,7 @@
         {name: 'Self', value: 'self'},
       ]"
       :error-messages="errors.target"
-      @change="change('target', ...arguments)"
+      @change="(value, ack) => change('target', value, ack)"
     />
     <form-sections type="buff">
       <form-section
@@ -48,7 +48,7 @@
               label="Hide remove button"
               :value="model.hideRemoveButton"
               :error-messages="errors.hideRemoveButton"
-              @change="change('hideRemoveButton', ...arguments)"
+              @change="(value, ack) => change('hideRemoveButton', value, ack)"
             />
           </v-col>
           <v-col
@@ -60,7 +60,7 @@
               label="Don't freeze variables"
               :value="model.skipCrystalization"
               :error-messages="errors.skipCrystalization"
-              @change="change('skipCrystalization', ...arguments)"
+              @change="(value, ack) => change('skipCrystalization', value, ack)"
             />
           </v-col>
         </v-row>
@@ -70,7 +70,7 @@
           label="Don't show in log"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -78,11 +78,29 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

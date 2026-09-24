@@ -1,7 +1,7 @@
 <template>
   <v-alert
     border="bottom"
-    colored-border
+    border-color="warning"
     elevation="2"
     type="warning"
     class="dependency-loop-error"
@@ -45,56 +45,49 @@
   </v-alert>
 </template>
 
-<script lang="js">
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
+<script setup lang="js">
+import { autorun } from 'vue-meteor-tracker';
 import { reverse } from 'lodash';
 
-export default {
-  components: {
-    TreeNodeView,
-  },
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    }
-  },
-  meteor: {
-    loopProperties() {
-      if (!this.model) return;
-      const propAddresses = this.model.details?.nodes || [];
-      const props = propAddresses.map(propAddress => {
-        const [id, ...path] = propAddress.split('.');
-        const prop = CreatureProperties.findOne(id);
-        if (prop) {
-          prop.path = path && path.join('.');
-          if (prop.name && prop.path) prop.name += ` [${prop.path}]`;
-          return prop;
-        } else {
-          return { name: propAddress };
-        }
-      });
-      return reverse(props);
-    }
-  },
-  methods: {
-    click(id){
-      // Otherwise open it as a new dialog
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `breadcrumb-${id}`,
-        data: {_id: id},
-      });
-    },
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   }
+});
+
+
+
+const { result: loopProperties } = autorun(() => {
+  if (!props.model) return;
+  const propAddresses = props.model.details?.nodes || [];
+  const properties = propAddresses.map(propAddress => {
+    const [id, ...path] = propAddress.split('.');
+    const prop = CreatureProperties.findOne(id);
+    if (prop) {
+      prop.path = path && path.join('.');
+      if (prop.name && prop.path) prop.name += ` [${prop.path}]`;
+      return prop;
+    } else {
+      return { name: propAddress };
+    }
+  });
+  return reverse(properties);
+});
+
+function click(id) {
+  // Otherwise open it as a new dialog
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `breadcrumb-${id}`,
+    data: { _id: id },
+  });
 }
 </script>
 

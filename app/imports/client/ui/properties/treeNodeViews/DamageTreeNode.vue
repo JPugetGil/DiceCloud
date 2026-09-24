@@ -1,14 +1,14 @@
-<template lang="html">
+<template>
   <div>
     <div
-      class="layout align-center justify-start"
+      class="d-flex flex-1-1 align-center justify-start"
       style="height:40px;"
     >
       <v-icon
         v-if="!hideIcon"
         class="mr-2"
         :color="model.color"
-        :class="selected && 'primary--text'"
+        :class="selected && 'text-primary'"
       >
         {{ icon }}
       </v-icon>
@@ -21,22 +21,24 @@
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { computed } from 'vue';
 import { getPropertyIcon } from '/imports/constants/PROPERTIES';
-import InlineEffect from '../components/effects/InlineEffect.vue';
 
-export default {
-  components: {InlineEffect},
-  mixins: [treeNodeViewMixin],
-  computed: {
-    icon() {
-      if (this.model.damageType === 'healing') {
-        return 'mdi-hospital-box-outline'
-      } else {
-        return getPropertyIcon('damage');
-      }
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-}
+  selected: Boolean,
+  hideIcon: Boolean,
+});
+
+const icon = computed(() => {
+  if (props.model.damageType === 'healing') {
+    return 'mdi-hospital-box-outline'
+  } else {
+    return getPropertyIcon('damage');
+  }
+});
 </script>

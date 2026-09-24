@@ -1,33 +1,32 @@
-<template lang="html">
+<template>
   <v-expansion-panels
     v-model="expand"
-    accordion
+    variant="accordion"
     tile
     multiple
-    hover
   >
     <slot />
   </v-expansion-panels>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    type: {
-      type: String,
-      default: undefined,
-    }
+<script setup lang="js">
+import { ref, watch } from 'vue';
+import { useAppStore } from '/imports/client/ui/piniaAppStore';
+
+const props = defineProps({
+  type: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      expand: this.$store.getters.formExpansionByType(this.type),
-    };
-  },
-  watch: {
-    expand(value) {
-      if (!this.type) return;
-      this.$store.commit('setFormExpansion', {type: this.type, value});
-    }
-  }
-}
+});
+
+const appStore = useAppStore();
+
+// A copy: the panels write to this model, and only settled values are stored
+const expand = ref([...appStore.formExpansionByType(props.type)]);
+
+watch(expand, value => {
+  if (!props.type) return;
+  appStore.setFormExpansion({ type: props.type, value });
+});
 </script>

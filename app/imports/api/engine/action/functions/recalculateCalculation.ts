@@ -33,13 +33,20 @@ export default async function recalculateCalculation(
     calcObj.unaffected = toPrimitiveOrString(calcObj.valueNode);
   }
   // Apply all the effects and proficiencies
+  // The aggregators are synchronous, so the linked properties are fetched
+  // first: handed getSingleProperty's promises, every effect reads as having
+  // no operation and is skipped
+  const linkedProps = new Map<string, any>();
+  for (const id of [...(calcObj.effectIds ?? []), ...(calcObj.proficiencyIds ?? [])]) {
+    linkedProps.set(id, await getSingleProperty(action.creatureId, id));
+  }
   aggregateCalculationEffects(
     calcObj,
-    (id: string) => getSingleProperty(action.creatureId, id)
+    (id: string) => linkedProps.get(id)
   );
   aggregateCalculationProficiencies(
     calcObj,
-    (id: string) => getSingleProperty(action.creatureId, id),
+    (id: string) => linkedProps.get(id),
     scope['proficiencyBonus']?.value || 0
   );
 

@@ -1,0 +1,27 @@
+{
+  "name": "dicecloud-e2e",
+  "private": true,
+  "description": "Browser checks against a running DiceCloud development server",
+  "scripts": {
+    "setup": "node setup.js",
+    "test": "node run-all.js",
+    "check:routes": "node checks/routes.js",
+    "check:flows": "node checks/flows.js",
+    "check:actions": "node checks/actions.js",
+    "check:docs": "node checks/docs-navigation.js",
+    "check:forms": "node checks/property-forms.js",
+    "check:dialogs": "node checks/dialogs.js",
+    "check:login-services": "node checks/login-services.js",
+    "check:contrast": "node checks/contrast.js",
+    "check:palette": "node checks/palette.js",
+    "check:accessibility": "node checks/accessibility.js"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "mongodb": "4.17.2",
+    "playwright": "1.63.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

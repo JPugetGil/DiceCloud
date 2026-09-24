@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="trigger-viewer">
     <v-row dense>
       <property-field
@@ -39,35 +39,34 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+<script setup>
+import {computed } from 'vue';
 import { timingOptions, eventOptions, actionPropertyTypeOptions } from '/imports/api/properties/Triggers';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    slotTypeName(){
-      if (!this.model.slotType) return;
-      return getPropertyName(this.model.slotType);
-    },
-    timingText(){
-      if (!this.model.timing) return;
-      return timingOptions[this.model.timing];
-    },
-    actionPropertyText(){
-      if (!this.model.actionPropertyType) return;
-      return actionPropertyTypeOptions[this.model.actionPropertyType];
-    },
-    eventText(){
-      if (!this.model.event) return;
-      return eventOptions[this.model.event];
-    },
-  }
-}
+});
+
+
+
+const timingText = computed(() => {
+  if (!props.model.timing) return;
+  return timingOptions[props.model.timing];
+});
+
+const actionPropertyText = computed(() => {
+  if (!props.model.actionPropertyType) return;
+  return actionPropertyTypeOptions[props.model.actionPropertyType];
+});
+
+const eventText = computed(() => {
+  if (!props.model.event) return;
+  return eventOptions[props.model.event];
+});
 </script>

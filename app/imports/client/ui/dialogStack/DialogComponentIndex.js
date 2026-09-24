@@ -1,7 +1,7 @@
+import { defineAsyncComponent } from 'vue';
 // Load commonly used dialogs immediately
 import ActionDialog from '/imports/client/ui/creature/actions/ActionDialog.vue';
 import CharacterCreationDialog from '/imports/client/ui/creature/character/CharacterCreationDialog.vue';
-import CharacterSheetDialog from '/imports/client/ui/tabletop/CharacterSheetDialog.vue';
 import CreatureFormDialog from '/imports/client/ui/creature/CreatureFormDialog.vue';
 import CreaturePropertyDialog from '/imports/client/ui/creature/creatureProperties/CreaturePropertyDialog.vue';
 import CreaturePropertyFromLibraryDialog from '/imports/client/ui/creature/creatureProperties/CreaturePropertyFromLibraryDialog.vue';
@@ -18,24 +18,23 @@ import SelectLibraryNodeDialog from '/imports/client/ui/library/SelectLibraryNod
 import SlotFillDialog from '/imports/client/ui/creature/slots/SlotFillDialog.vue';
 import TransferOwnershipDialog from '/imports/client/ui/sharing/TransferOwnershipDialog.vue';
 
-// Lazily load less common dialogs
-const ArchiveDialog = () => import('/imports/client/ui/creature/archive/ArchiveDialog.vue');
-const CastSpellWithSlotDialog = () => import('/imports/client/ui/properties/components/spells/CastSpellWithSlotDialog.vue');
-const CharacterImportDialog = () => import('/imports/client/ui/creature/character/CharacterImportDialog.vue');
-const CreatureFromLibraryDialog = () => import('/imports/client/ui/tabletop/CreatureFromLibraryDialog.vue');
-const DeleteUserAccountDialog = () => import('/imports/client/ui/user/DeleteUserAccountDialog.vue');
-const DependencyGraphDialog = () => import('/imports/client/ui/creature/dependencyGraph/DependencyGraphDialog.vue');
-const ImageInputDialog = () => import('../files/userImages/ImageInputDialog.vue');
-const LibraryCollectionCreationDialog = () => import('/imports/client/ui/library/LibraryCollectionCreationDialog.vue');
-const LibraryCollectionEditDialog = () => import('/imports/client/ui/library/LibraryCollectionEditDialog.vue');
-const LibraryCreationDialog = () => import('/imports/client/ui/library/LibraryCreationDialog.vue');
-const LibraryEditDialog = () => import('/imports/client/ui/library/LibraryEditDialog.vue');
-const LibraryNodeDialog = () => import('/imports/client/ui/library/LibraryNodeDialog.vue');
-const MoveLibraryNodeDialog = () => import('/imports/client/ui/library/MoveLibraryNodeDialog.vue');
-const SelectCreaturesDialog = () => import('/imports/client/ui/tabletop/SelectCreaturesDialog.vue');
-const ShareDialog = () => import('/imports/client/ui/sharing/ShareDialog.vue');
-const TabletopDialog = () => import('/imports/client/ui/tabletop/TabletopDialog.vue');
-const UsernameDialog = () => import('/imports/client/ui/user/UsernameDialog.vue');
+// Lazily load less common dialogs. Vue 3 needs defineAsyncComponent for this:
+// a bare `() => import()` is taken for a functional component, and the dialog
+// rendered as the text "[object Promise]". Vue 2 accepted the bare factory.
+const ArchiveDialog = defineAsyncComponent(() => import('/imports/client/ui/creature/archive/ArchiveDialog.vue'));
+const CastSpellWithSlotDialog = defineAsyncComponent(() => import('/imports/client/ui/properties/components/spells/CastSpellWithSlotDialog.vue'));
+const CharacterImportDialog = defineAsyncComponent(() => import('/imports/client/ui/creature/character/CharacterImportDialog.vue'));
+const DeleteUserAccountDialog = defineAsyncComponent(() => import('/imports/client/ui/user/DeleteUserAccountDialog.vue'));
+const DependencyGraphDialog = defineAsyncComponent(() => import('/imports/client/ui/creature/dependencyGraph/DependencyGraphDialog.vue'));
+const ImageInputDialog = defineAsyncComponent(() => import('../files/userImages/ImageInputDialog.vue'));
+const LibraryCollectionCreationDialog = defineAsyncComponent(() => import('/imports/client/ui/library/LibraryCollectionCreationDialog.vue'));
+const LibraryCollectionEditDialog = defineAsyncComponent(() => import('/imports/client/ui/library/LibraryCollectionEditDialog.vue'));
+const LibraryCreationDialog = defineAsyncComponent(() => import('/imports/client/ui/library/LibraryCreationDialog.vue'));
+const LibraryEditDialog = defineAsyncComponent(() => import('/imports/client/ui/library/LibraryEditDialog.vue'));
+const LibraryNodeDialog = defineAsyncComponent(() => import('/imports/client/ui/library/LibraryNodeDialog.vue'));
+const MoveLibraryNodeDialog = defineAsyncComponent(() => import('/imports/client/ui/library/MoveLibraryNodeDialog.vue'));
+const ShareDialog = defineAsyncComponent(() => import('/imports/client/ui/sharing/ShareDialog.vue'));
+const UsernameDialog = defineAsyncComponent(() => import('/imports/client/ui/user/UsernameDialog.vue'));
 
 export default {
   ActionDialog,
@@ -43,9 +42,7 @@ export default {
   CastSpellWithSlotDialog,
   CharacterCreationDialog,
   CharacterImportDialog,
-  CharacterSheetDialog,
   CreatureFormDialog,
-  CreatureFromLibraryDialog,
   CreaturePropertyDialog,
   CreaturePropertyFromLibraryDialog,
   CreatureRootDialog,
@@ -66,11 +63,9 @@ export default {
   LibraryEditDialog,
   LibraryNodeDialog,
   MoveLibraryNodeDialog,
-  SelectCreaturesDialog,
   SelectLibraryNodeDialog,
   ShareDialog,
   SlotFillDialog,
-  TabletopDialog,
   TransferOwnershipDialog,
   UsernameDialog,
 };
