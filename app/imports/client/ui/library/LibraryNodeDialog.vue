@@ -80,14 +80,14 @@
             variant="text"
             @click="dialogStackStore.popDialogStack(false)"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </v-btn>
           <v-spacer />
           <v-btn
             variant="text"
             @click="dialogStackStore.popDialogStack(true)"
           >
-            Select
+            {{ $t('common.select') }}
           </v-btn>
         </template>
         <v-btn
@@ -95,7 +95,7 @@
           variant="text"
           @click="dialogStackStore.popDialogStack()"
         >
-          Done
+          {{ $t('common.done') }}
         </v-btn>
       </div>
     </template>
@@ -118,7 +118,7 @@ import LibraryNodes, {
 import duplicateLibraryNode from '/imports/api/library/methods/duplicateLibraryNode';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import PropertyToolbar from '/imports/client/ui/components/propertyToolbar.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import { get } from 'lodash';
 
 import { organizeDoc } from '/imports/api/parenting/organizeMethods';
@@ -129,6 +129,9 @@ import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import PropertyViewer from '/imports/client/ui/properties/shared/PropertyViewer.vue';
 import PropertyBreadcrumbs from '/imports/client/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -255,7 +258,7 @@ function copy() {
     component: 'move-library-node-dialog',
     elementId: 'property-toolbar-menu-button',
     data: {
-      action: 'Copy',
+      action: t('common.copy'),
     },
     async callback(parentId) {
       if (!parentId) return;
@@ -267,7 +270,7 @@ function copy() {
             id: parentId
           },
         });
-        snackbar({ text: 'Copied successfully' });
+        snackbar({ text: t('common.copiedSuccessfully') });
       } catch (error) {
         console.error(error);
         snackbar({ text: error.reason || error.message || error.toString() });
@@ -351,7 +354,7 @@ async function remove() {
     dialogStackStore.popDialogStack();
   }
   snackbar({
-    text: `Deleted ${getPropertyTitle(model.value)}`,
+    text: t('common.deleted', { name: getPropertyTitle(model.value) }),
     callbackName: 'undo',
     callback() {
       return restoreLibraryNode.callAsync({ _id });

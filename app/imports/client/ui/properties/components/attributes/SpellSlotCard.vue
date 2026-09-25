@@ -4,7 +4,7 @@
       v-if="spellSlots.length"
       lines="two"
     >
-      <v-list-subheader>Spell Slots</v-list-subheader>
+      <v-list-subheader>{{ $t('cards.spellSlots') }}</v-list-subheader>
       <spell-slot-list-tile
         v-for="spellSlot in spellSlots"
         :key="spellSlot._id"
@@ -24,7 +24,7 @@
         data-id="cast-spell-btn"
         @click="castSpell"
       >
-        Cast a spell
+        {{ $t('cards.castASpell') }}
       </v-btn>
     </div>
   </v-card>

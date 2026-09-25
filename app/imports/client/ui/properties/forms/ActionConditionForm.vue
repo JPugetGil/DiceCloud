@@ -5,8 +5,8 @@
       md="6"
     >
       <computed-field
-        label="Condition"
-        hint="This must be true for the action to be taken"
+        :label="$t('forms.condition')"
+        :hint="$t('forms.actionCondition.hint')"
         :model="model.condition"
         :error-messages="errors.condition"
         @change="({path, value, ack}) =>
@@ -18,7 +18,7 @@
       md="6"
     >
       <text-field
-        label="Condition error text"
+        :label="$t('forms.actionCondition.errorText')"
         :value="model.conditionNote"
         :error-messages="errors.conditionNote"
         @change="(value, ack) => $emit('change', {path: ['conditionNote'], value, ack})"

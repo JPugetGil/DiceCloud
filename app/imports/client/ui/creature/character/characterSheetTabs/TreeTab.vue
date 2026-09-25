@@ -25,7 +25,7 @@
               v-model="organize"
               hide-details
               density="compact"
-              label="Organize"
+              :label="$t('tree.organize')"
               class="mx-3"
               :disabled="organizeDisabled"
               style="flex-grow: 0;"

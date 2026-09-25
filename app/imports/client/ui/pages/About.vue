@@ -10,10 +10,7 @@
             class="text-white ma-2 text-center"
             style="max-width: 1200px;"
           >
-            DiceCloud is a single-developer project started in 2014 with the aim of
-            being a character sheet that stayed in sync between the DM and their
-            players, and made it clear where every value in the sheet came from, and
-            how it was calculated.
+            {{ $t('about.intro') }}
           </p>
         </div>
       </v-parallax>
@@ -21,16 +18,15 @@
     <section class="d-flex flex-1-1 flex-column align-center ma-2 mt-4">
       <div>
         <h3 class="text-h5 mb-2">
-          Special Thanks
+          {{ $t('about.specialThanks') }}
         </h3>
         <p>
-          <b>Sam;</b> without her love, DiceCloud could not hope to exist
+          <b>Sam;</b> {{ $t('about.samThanks') }}
         </p><p>
-          <b>The "Heroes" of Asaea</b> The D&amp;D party whose joy was the fuel
-          powering the early versions of DiceCloud.
+          <b>{{ $t('about.heroes') }}</b> {{ $t('about.heroesThanks') }}
         </p>
         <h3 class="text-h6">
-          Supporters
+          {{ $t('about.supporters') }}
         </h3>
         <v-list
           avatar

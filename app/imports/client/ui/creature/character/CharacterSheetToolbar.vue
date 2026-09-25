@@ -54,7 +54,7 @@
                   {{ ownerName }}
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  Sheet owner
+                  {{ $t('sheet.owner') }}
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item
@@ -64,21 +64,21 @@
                 <v-list-item-title>
                   <v-icon start>
                     mdi-cancel
-                  </v-icon> Unshare with me
+                  </v-icon> {{ $t('sheet.unshareWithMe') }}
                 </v-list-item-title>
               </v-list-item>
               <v-list-item :to="printUrl">
                 <v-list-item-title>
                   <v-icon start>
                     mdi-printer
-                  </v-icon> Print
+                  </v-icon> {{ $t('common.print') }}
                 </v-list-item-title>
               </v-list-item>
               <v-list-item @click="showCharacterForm">
                 <v-list-item-title>
                   <v-icon start>
                     mdi-pencil
-                  </v-icon> Edit details
+                  </v-icon> {{ $t('sheet.editDetails') }}
                 </v-list-item-title>
               </v-list-item>
               <v-list-item
@@ -88,7 +88,7 @@
                 <v-list-item-title>
                   <v-icon start>
                     mdi-share-variant
-                  </v-icon> Sharing
+                  </v-icon> {{ $t('common.sharing') }}
                 </v-list-item-title>
               </v-list-item>
               <v-list-item
@@ -98,7 +98,7 @@
                 <v-list-item-title>
                   <v-icon start>
                     mdi-delete
-                  </v-icon> Delete
+                  </v-icon> {{ $t('common.delete') }}
                 </v-list-item-title>
               </v-list-item>
             </v-list>
@@ -135,28 +135,28 @@
             @update:model-value="e => appStore.setTabForCharacterSheet({id: route.params.id, tab: e})"
           >
             <v-tab>
-              Stats
+              {{ $t('tabs.stats') }}
             </v-tab>
             <v-tab>
-              Actions
+              {{ $t('tabs.actions') }}
             </v-tab>
             <v-tab v-if="!creature.settings.hideSpellsTab">
-              Spells
+              {{ $t('tabs.spells') }}
             </v-tab>
             <v-tab>
-              Inventory
+              {{ $t('tabs.inventory') }}
             </v-tab>
             <v-tab>
-              Features
+              {{ $t('tabs.features') }}
             </v-tab>
             <v-tab>
-              Journal
+              {{ $t('tabs.journal') }}
             </v-tab>
             <v-tab>
-              Build
+              {{ $t('tabs.build') }}
             </v-tab>
             <v-tab v-if="creature.settings.showTreeTab">
-              Tree
+              {{ $t('tabs.tree') }}
             </v-tab>
           </v-tabs>
           <v-spacer />
@@ -188,6 +188,9 @@ import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
@@ -270,7 +273,7 @@ function deleteCharacter() {
     elementId: 'creature-menu',
     data: {
       name: creature.value.name,
-      typeName: 'Character'
+      typeName: t('common.character')
     },
     async callback(confirmation) {
       if (!confirmation) return;

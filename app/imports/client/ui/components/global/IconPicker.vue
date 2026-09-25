@@ -40,7 +40,7 @@
         <div class="d-flex flex-1-1 align-center">
           <text-field
             ref="iconSearchField"
-            label="Search icons"
+            :label="$t('components.searchIcons')"
             append-icon="mdi-magnify"
             clearable
             hide-details
@@ -52,7 +52,7 @@
             variant="text"
             @click="select()"
           >
-            clear
+            {{ $t('components.clearLower') }}
           </v-btn>
         </div>
         <div

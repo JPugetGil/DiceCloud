@@ -5,9 +5,9 @@
         cols="12"
       >
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
-          hint="Use this name in calculations to reference this class"
+          :hint="$t('forms.class.variableNameHint')"
           :error-messages="errors.variableName"
           @change="(value, ack) => change('variableName', value, ack)"
         />
@@ -15,7 +15,7 @@
     </v-row>
 
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -23,23 +23,23 @@
     />
 
     <form-sections type="class">
-      <form-section name="Class levels from libraries">
+      <form-section :name="$t('forms.class.levelsFromLibraries')">
         <tag-targeting
           :model="model"
           :errors="errors"
           tag-field="slotTags"
-          tag-hint="Find class levels that have all of these tags"
-          or-hint="Also find class levels that have all of these tags instead"
-          not-hint="Ignore class levels that have any of these tags"
+          :tag-hint="$t('forms.class.tagHint')"
+          :or-hint="$t('forms.class.orHint')"
+          :not-hint="$t('forms.class.notHint')"
           @change="e => $emit('change', e)"
           @push="e => $emit('push', e)"
           @pull="e => $emit('pull', e)"
         />
 
         <computed-field
-          label="Active condition"
-          hint="A calculation to determine if this class can have class levels added to it"
-          placeholder="Always active"
+          :label="$t('forms.class.activeCondition')"
+          :hint="$t('forms.class.activeConditionHint')"
+          :placeholder="$t('forms.alwaysActive')"
           :model="model.slotCondition"
           :error-messages="errors.slotCondition"
           @change="({path, value, ack}) =>

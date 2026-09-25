@@ -2,28 +2,28 @@
   <div class="slot-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Condition result"
+        :name="$t('viewers.conditionResult')"
         :value="model.slotCondition && (model.slotCondition.value || model.slotCondition.calculation)"
       />
       <property-field
-        name="Fill with type"
+        :name="$t('viewers.fillWithType')"
         :value="slotTypeName"
       />
       <property-field
-        name="Quantity"
+        :name="$t('forms.quantity')"
         :calculation="model.quantityExpected"
       />
       <property-field
-        name="Unique"
+        :name="$t('forms.slot.unique')"
         :value="uniqueText"
       />
       <property-field
-        name="Tags Required"
+        :name="$t('forms.tagsRequired')"
         :cols="{cols: 12}"
       >
         <div>
@@ -40,19 +40,19 @@
         </div>
       </property-field>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
       <property-field
         v-if="context.creatureId && (!model.quantityExpected || !model.quantityExpected.value || model.spaceLeft)"
-        name="Fill"
+        :name="$t('viewers.fill')"
         :cols="{cols: 12}"
       >
         <fill-slot-button :model="model">
           <v-icon start>
             mdi-plus
           </v-icon>
-          Fill Slot
+          {{ $t('viewers.fillSlot') }}
         </fill-slot-button>
       </property-field>
     </v-row>
@@ -61,7 +61,7 @@
 
 <script setup>
 import { inject, computed } from 'vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import FillSlotButton from '/imports/client/ui/creature/buildTree/FillSlotButton.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';

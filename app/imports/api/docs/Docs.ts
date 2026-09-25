@@ -10,6 +10,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { restore } from '/imports/api/parenting/softRemove';
 import { getFilter, rebuildNestedSets, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
 import ChildSchema, { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import { withoutLegacyOrigin } from '/imports/api/docs/docUrls';
 
 // Give the docs a common root, so they can share parenting logic
 export const DOC_ROOT_ID = 'DDDDDDDDDDDDDDDDD'
@@ -110,6 +111,13 @@ if (Meteor.isClient) {
         await rebuildNestedSets(Docs, DOC_ROOT_ID);
       } catch (error) {
         console.error('Error loading default docs:', error);
+      }
+    } else {
+      // Docs seeded from older defaults link to dicecloud.com: point them at
+      // this server
+      const legacyDocs = await Docs.find({ description: { $regex: 'https://dicecloud\\.com' } }).fetchAsync();
+      for (const doc of legacyDocs) {
+        await Docs.updateAsync(doc._id, { $set: { description: withoutLegacyOrigin(doc.description) } });
       }
     }
   });

@@ -3,7 +3,7 @@
     <template #toolbar>
       <v-toolbar-title class="mr-4">
         <template v-if="tab === 2">
-          New
+          {{ $t('insert.new') }}
         </template>{{ typeName }}
       </v-toolbar-title>
       <v-spacer />
@@ -41,16 +41,16 @@
         v-model="tab"
       >
         <v-tab :disabled="!!forcedType">
-          {{ typeName || 'Type' }}
+          {{ typeName || $t('insert.type') }}
         </v-tab>
         <v-tab :disabled="!type">
-          Create
+          {{ $t('insert.create') }}
         </v-tab>
         <v-tab
           v-if="!hideLibraryTab"
           :disabled="!type"
         >
-          Library
+          {{ $t('insert.library') }}
         </v-tab>
       </v-tabs>
     </template>
@@ -153,7 +153,7 @@
                   class="ma-4"
                   @click="loadMore"
                 >
-                  Load More
+                  {{ $t('common.loadMore') }}
                 </v-btn>
               </div>
             </v-fade-transition>
@@ -176,7 +176,7 @@
         :disabled="!valid"
         @click="dialogStackStore.popDialogStack(model)"
       >
-        create
+        {{ $t('insert.createLower') }}
       </v-btn>
       <v-btn
         v-else-if="tab === 2"
@@ -188,7 +188,7 @@
         <template v-if="selectedNodeIds.length >= 15">
           {{ selectedNodeIds.length }}/20
         </template>
-        Insert
+        {{ $t('common.insert') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -202,7 +202,8 @@ import { autorun, subscribe } from 'vue-meteor-tracker';
 import subscriptionData from '/imports/client/ui/utility/subscriptionData';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
-import PROPERTIES, { getPropertyName } from '/imports/constants/PROPERTIES';
+import PROPERTIES from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import LibraryNodeExpansionContent from '/imports/client/ui/library/LibraryNodeExpansionContent.vue';
 import propertySchemasIndex from '/imports/api/properties/propertySchemasIndex';
@@ -211,6 +212,9 @@ import PropertySelector from '/imports/client/ui/properties/shared/PropertySelec
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -276,7 +280,7 @@ const schema = shallowRef(null);
 const validationContext = shallowRef(null);
 
 // Computed Properties
-const typeName = computed(() => getPropertyName(type.value) || 'Property');
+const typeName = computed(() => getPropertyName(type.value) || t('common.property'));
 const docsPath = computed(() => {
   const propDef = PROPERTIES[type.value];
   return propDef && propDef.docsPath;
@@ -353,7 +357,7 @@ const libraryNames = autorun(() => {
 
 // Methods
 function changeType(newType) {
-  searchLibraryNodesHandle.setData('type', newType);
+  searchLibraryNodesHandle.value?.setData('type', newType);
   if (!newType) return;
   tab.value = 1;
   schema.value = propertySchemasIndex[newType];
@@ -437,8 +441,8 @@ function helpDialog() {
 }
 
 function searchChanged(val, ack) {
-  searchLibraryNodesHandle.setData('searchTerm', val);
-  searchLibraryNodesHandle.setData('limit', undefined);
+  searchLibraryNodesHandle.value?.setData('searchTerm', val);
+  searchLibraryNodesHandle.value?.setData('limit', undefined);
   selectedNode.value = undefined;
   searchValue.value = val;
   setTimeout(ack, 200);
@@ -446,7 +450,7 @@ function searchChanged(val, ack) {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  searchLibraryNodesHandle.setData('limit', currentLimit.value + 32);
+  searchLibraryNodesHandle.value?.setData('limit', currentLimit.value + 32);
 }
 
 function openPropertyDetails(id) {

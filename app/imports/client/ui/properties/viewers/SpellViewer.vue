@@ -4,27 +4,27 @@
     class="spell-viewer"
   >
     <property-field
-      name="School"
+      :name="$t('forms.spell.school')"
       :value="model.school"
     />
     <property-field
-      name="Level"
+      :name="$t('forms.level')"
       :value="levelText"
     />
     <property-field
-      name="Casting time"
+      :name="$t('printed.castingTimeName')"
       :value="model.castingTime"
     />
     <property-field
-      name="Range"
+      :name="$t('forms.spell.range')"
       :value="model.range"
     />
     <property-field
-      name="Components"
+      :name="$t('viewers.components')"
       :value="spellComponents"
     />
     <property-field
-      name="Duration"
+      :name="$t('viewers.duration')"
       :value="model.duration"
     />
   </action-viewer>
@@ -34,6 +34,9 @@
 import { computed } from 'vue';
 import ActionViewer from './ActionViewer.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -48,11 +51,11 @@ const levelText = computed(() => {
 
 const spellComponents = computed(() => {
   let components = [];
-  if (props.model.ritual) components.push('Ritual');
-  if (props.model.concentration) components.push('Concentration');
-  if (props.model.verbal) components.push('Verbal');
-  if (props.model.somatic) components.push('Somatic');
-  if (props.model.material) components.push(`Material (${props.model.material})`);
+  if (props.model.ritual) components.push(t('spellComponents.ritual'));
+  if (props.model.concentration) components.push(t('spellComponents.concentration'));
+  if (props.model.verbal) components.push(t('spellComponents.verbal'));
+  if (props.model.somatic) components.push(t('spellComponents.somatic'));
+  if (props.model.material) components.push(t('viewers.materialWith', { material: props.model.material }));
   return components.join(', ');
 });
 </script>

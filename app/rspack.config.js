@@ -28,17 +28,6 @@ module.exports = defineConfig(Meteor => {
         'ngraph.events$': ngraphEventsCjs,
       },
     },
-    ...Meteor.isServer && {
-      // discord.js pulls in prism-media for voice support, which reaches for
-      // ffmpeg-static and the optional ws speedups. None of them are installed,
-      // and none are used: leaving the requires external keeps prism-media's own
-      // try/catch fallbacks in charge, as they are in a plain Node app.
-      externals: {
-        'ffmpeg-static': 'commonjs ffmpeg-static',
-        bufferutil: 'commonjs bufferutil',
-        'utf-8-validate': 'commonjs utf-8-validate',
-      },
-    },
     ...Meteor.isClient && {
       plugins: [
         new VueLoaderPlugin(),
@@ -49,6 +38,12 @@ module.exports = defineConfig(Meteor => {
           __VUE_OPTIONS_API__: 'true',
           __VUE_PROD_DEVTOOLS__: JSON.stringify(Meteor.isDevelopment),
           __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+          // vue-i18n's esm-bundler build: Composition API only
+          __VUE_I18N_FULL_INSTALL__: 'true',
+          __VUE_I18N_LEGACY_API__: 'false',
+          __INTLIFY_PROD_DEVTOOLS__: 'false',
+          __INTLIFY_JIT_COMPILATION__: 'true',
+          __INTLIFY_DROP_MESSAGE_COMPILER__: 'false',
         }),
       ],
       module: {

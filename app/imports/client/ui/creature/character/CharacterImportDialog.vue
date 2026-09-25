@@ -2,15 +2,15 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Import character
+        {{ $t('importCharacter.title') }}
       </v-toolbar-title>
     </template>
     <div>
       <h2 class="mb-4">
-        Import a character from another instance of DiceCloud
+        {{ $t('importCharacter.text') }}
       </h2>
       <p>
-        The character needs to have their sharing permission set to "anyone can view"
+        {{ $t('importCharacter.sharingHint') }}
       </p>
       <text-field
         :value="currentUrl"
@@ -25,7 +25,7 @@
             color="primary"
             @click="importCharacterData"
           >
-            Import
+            {{ $t('common.import') }}
           </v-btn>
         </v-slide-x-transition>
       </div>
@@ -35,7 +35,7 @@
         variant="text"
         @click="$emit('pop')"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -46,6 +46,9 @@ import { ref} from 'vue';
 import { subscribe } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import importCharacterFromDiceCloudInstance from '/imports/api/creature/creatures/methods/importCharacterFromDiceCloudInstance';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['pop']);
 
@@ -60,7 +63,7 @@ subscribe('libraries');
 async function setUrl(val, ack) {
   const regex = /(https?:\/\/)([\w|.]+)\/character\/([^/]+)\/(.+)/;
   if (!regex.test(val)) {
-    ack('Not a valid character URL');
+    ack(t('importCharacter.invalidUrl'));
     return;
   }
   const newUrl = val.replace(regex, '$1$2/api/creature/$3');
@@ -75,7 +78,7 @@ async function setUrl(val, ack) {
   }
   if (fetchedCharacterData.error) {
     if (fetchedCharacterData.reason === 'No user ID. Are you logged in?') {
-      ack('This character\'s sharing settings are not set to allow anyone to view');
+      ack(t('importCharacter.notShared'));
     } else {
       ack(fetchedCharacterData.reason ?? fetchedCharacterData.error);
     }

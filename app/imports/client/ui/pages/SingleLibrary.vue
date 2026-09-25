@@ -14,6 +14,9 @@ import SingleCardLayout from '/imports/client/ui/layouts/SingleCardLayout.vue';
 import LibraryAndNode from '/imports/client/ui/library/LibraryAndNode.vue';
 import Libraries from '/imports/api/library/Libraries';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 
@@ -26,10 +29,10 @@ const library = autorun(() => {
 }).result;
 
 watch(() => library.value?.name, (newName) => {
-  appStore.setPageTitle(newName || 'Library');
+  appStore.setPageTitle(newName || t('pageTitle.library'));
 });
 
 onMounted(() => {
-  appStore.setPageTitle(library.value?.name || 'Library');
+  appStore.setPageTitle(library.value?.name || t('pageTitle.library'));
 });
 </script>

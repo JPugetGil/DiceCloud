@@ -22,27 +22,27 @@
       </div>
     </div>
     <div v-if="model.level">
-      {{ levelText }} {{ model.school }} {{ model.ritual ? '(ritual)' : '' }}
+      {{ levelText }} {{ model.ritual ? $t('printed.ritual') : '' }}
     </div>
     <div v-else>
-      {{ model.school }} cantrip {{ model.ritual ? '(ritual)' : '' }}
+      {{ $t('printed.cantripOf', { school }) }} {{ model.ritual ? $t('printed.ritual') : '' }}
     </div>
     <div
       v-if="rollBonus"
     >
-      <b>To hit:</b> {{ rollBonus }}
+      <b>{{ $t('printed.toHitLabel') }}</b> {{ rollBonus }}
     </div>
     <div>
-      <b>Casting time:</b> {{ model.castingTime }}
+      <b>{{ $t('printed.castingTime') }}</b> {{ model.castingTime }}
     </div>
     <div>
-      <b>Range:</b> {{ model.range }}
+      <b>{{ $t('printed.range') }}</b> {{ model.range }}
     </div>
     <div>
-      <b>Components:</b> {{ spellComponents }}
+      <b>{{ $t('printed.components') }}</b> {{ spellComponents }}
     </div>
     <div class="mb-4">
-      <b>Duration:</b> {{ model.duration }}
+      <b>{{ $t('printed.duration') }}</b> {{ model.duration }}
     </div>
     <property-description
       text
@@ -59,9 +59,13 @@
 import { computed } from 'vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
+import { translateOr } from '/imports/client/ui/i18n';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import romanize from '/imports/client/ui/utility/romanize';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const LEVEL_TEXT = [
   'cantrip', '1st-level', '2nd-level', '3rd-level', '4th-level', '5th-level',
@@ -75,9 +79,15 @@ const props = defineProps({
   },
 });
 
-const levelText = computed(() => {
-  return LEVEL_TEXT[props.model.level] || `level ${props.model.level}`;
-});
+// Spell schools are stored in English, lower case
+const school = computed(() => props.model.school
+  && translateOr(`spellSchools.${props.model.school}`, props.model.school).toLowerCase());
+
+const levelText = computed(() => t('printed.levelOf', {
+  levelText: LEVEL_TEXT[props.model.level] || t('printed.spellLevel', { level: props.model.level }),
+  level: props.model.level,
+  school: school.value,
+}));
 
 const romanLevel = computed(() => {
   return romanize(props.model.level) || props.model.level;

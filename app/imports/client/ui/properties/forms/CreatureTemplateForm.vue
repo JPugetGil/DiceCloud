@@ -6,8 +6,8 @@
         md="6"
       >
         <smart-image-input
-          label="Picture"
-          hint="A link to a high resolution image"
+          :label="$t('creatureForm.picture')"
+          :hint="$t('creatureForm.pictureHint')"
           :value="model.picture"
           :error-messages="errors.picture"
           @change="(value, ack) => $emit('change', {path: ['picture'], value, ack})"
@@ -18,8 +18,8 @@
         md="6"
       >
         <smart-image-input
-          label="Avatar"
-          hint="A link to a smaller, square image to use as an avatar"
+          :label="$t('creatureForm.avatar')"
+          :hint="$t('creatureForm.avatarHint')"
           :value="model.avatarPicture"
           :error-messages="errors.avatarPicture"
           @change="(value, ack) => $emit('change', {path: ['avatarPicture'], value, ack})"
@@ -27,8 +27,8 @@
       </v-col>
     </v-row>
     <inline-computation-field
-      label="Description"
-      hint="A brief description of the creature, shown in the log when it is summoned"
+      :label="$t('common.description')"
+      :hint="$t('forms.creature.descriptionHint')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>

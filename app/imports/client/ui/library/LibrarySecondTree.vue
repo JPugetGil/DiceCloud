@@ -48,7 +48,7 @@
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
-          Select Library
+          {{ $t('library.selectLibrary') }}
         </v-toolbar-title>
       </v-toolbar>
     </v-fade-transition>

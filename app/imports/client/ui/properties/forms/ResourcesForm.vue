@@ -4,7 +4,7 @@
       v-if="model.conditions && model.conditions.length"
       class="text-subtitle-1"
     >
-      Conditions
+      {{ $t('forms.resources.conditions') }}
     </div>
     <action-conditions-list-form
       :model="model.conditions"
@@ -16,7 +16,7 @@
       v-if="model.attributesConsumed && model.attributesConsumed.length"
       class="text-subtitle-1"
     >
-      Attributes
+      {{ $t('forms.resources.attributes') }}
     </div>
     <attributes-consumed-list-form
       :model="model.attributesConsumed"
@@ -28,7 +28,7 @@
       v-if="model.itemsConsumed && model.itemsConsumed.length"
       class="text-subtitle-1"
     >
-      Ammo
+      {{ $t('forms.resources.ammo') }}
     </div>
     <items-consumed-list-form
       :model="model.itemsConsumed"
@@ -55,13 +55,13 @@
       </template>
       <v-list>
         <v-list-item @click="addCondition">
-          <v-list-item-title>Add Condition</v-list-item-title>
+          <v-list-item-title>{{ $t('forms.resources.addCondition') }}</v-list-item-title>
         </v-list-item>
         <v-list-item @click="addAttributesConsumed">
-          <v-list-item-title>Add Resource</v-list-item-title>
+          <v-list-item-title>{{ $t('forms.resources.addResource') }}</v-list-item-title>
         </v-list-item>
         <v-list-item @click="addItemsConsumed">
-          <v-list-item-title>Add Ammo</v-list-item-title>
+          <v-list-item-title>{{ $t('forms.resources.addAmmo') }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>

@@ -1,3 +1,5 @@
+import { unref } from 'vue';
+
 /**
  * Reads one field of a subscription's data, synchronously and reactively.
  *
@@ -8,8 +10,15 @@
  * does not export that collection; it hangs it off the connection when the
  * first subscription is made, which has always happened by the time a handle
  * exists to pass in.
+ *
+ * `handle` may be the Meteor handle or the ref that vue-meteor-tracker's
+ * `subscribe(() => [...])` returns as `sub`. Passing the ref used to read
+ * `ref.subscriptionId` (undefined), so every slot fill dialog showed an empty
+ * list. Call this inside an `autorun`, not a `computed`: the minimongo read is
+ * reactive to Tracker only.
  */
 export default function subscriptionData(handle, path) {
+  handle = unref(handle);
   const collection = Meteor.connection._subscriptionData;
   if (!handle || !collection) return undefined;
   const data = collection.findOne(handle.subscriptionId, { fields: { [path]: 1 } });

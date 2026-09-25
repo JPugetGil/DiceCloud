@@ -37,6 +37,9 @@
 <script setup>
 import { computed } from 'vue';
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -75,12 +78,12 @@ const displayedValue = computed(() => {
 });
 
 const displayedStats = computed(() => {
-  if (!props.model.stats) return 'Selected stats';
+  if (!props.model.stats) return t('treeNodes.selectedStats');
   return props.model.stats.join(', ');
 });
 
 const displayedTags = computed(() => {
-  if (!props.model.targetTags) return 'Selected tags';
+  if (!props.model.targetTags) return t('treeNodes.selectedTags');
   const tags = props.model.targetTags.join(', ');
   if (!props.model.extraTags) return tags;
   const extraTags = props.model.extraTags.map(ex => {

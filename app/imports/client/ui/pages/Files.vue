@@ -2,7 +2,7 @@
   <v-container>
     <v-row dense>
       <v-col cols="12">
-        <v-list-subheader> Archived Characters </v-list-subheader>
+        <v-list-subheader> {{ $t('files.archivedCharacters') }} </v-list-subheader>
       </v-col>
 
       <v-col
@@ -36,7 +36,7 @@
             {{ archiveFileError }}
           </template>
           <template v-else>
-            Upload archive
+            {{ $t('files.uploadArchive') }}
           </template>
           <v-progress-linear
             v-if="archiveUploadInProgress"
@@ -61,7 +61,7 @@
     </v-row>
     <v-row dense>
       <v-col cols="12">
-        <v-list-subheader> Images </v-list-subheader>
+        <v-list-subheader> {{ $t('files.images') }} </v-list-subheader>
       </v-col>
       <v-col
         cols="12"
@@ -91,7 +91,7 @@
     <!--
     <v-row dense>
       <v-col cols="12">
-        <v-list-subheader> Images </v-list-subheader>
+        <v-list-subheader> {{ $t('files.images') }} </v-list-subheader>
       </v-col>
       <template v-if="userImages && userImages.length">
         <v-col
@@ -135,6 +135,9 @@ import UserImageCard from '/imports/client/ui/files/userImages/UserImageCard.vue
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { archiveSchema } from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import migrateArchive from '/imports/migrations/archive/migrateArchive';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // TODO Mark files that don't have versions.${version}.meta.pipePath set as broken links
 // TODO show user images
@@ -201,11 +204,11 @@ function inputArchiveFile() {
   archiveFileInput.value.value = null;
   if (!file) return;
   if (file.type !== 'application/json') {
-    archiveFileError.value = 'File must be .json';
+    archiveFileError.value = t('files.mustBeJson');
     return;
   }
   if (file.size > 10000000) {
-    archiveFileError.value = 'File too large';
+    archiveFileError.value = t('files.tooLarge');
     return;
   }
   archiveFile.value = file;
@@ -220,7 +223,7 @@ function inputArchiveFile() {
     try {
       data = JSON.parse(fr.result);
     } catch (e) {
-      archiveFileError.value = 'File could not be parsed';
+      archiveFileError.value = t('files.parseFailed');
       archiveUploadInProgress.value = false;
       console.error(e);
       return;
@@ -231,7 +234,7 @@ function inputArchiveFile() {
       data = archiveSchema.clean(data);
       archiveSchema.validate(data);
     } catch (e) {
-      archiveFileError.value = 'File failed validation: ' + (e.reason || e.message || e.toString());
+      archiveFileError.value = t('files.validationFailed', { reason: e.reason || e.message || e.toString() });
       archiveUploadInProgress.value = false;
       console.error(e);
       return;

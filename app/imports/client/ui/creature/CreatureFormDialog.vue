@@ -5,7 +5,7 @@
   >
     <template #toolbar>
       <v-toolbar-title>
-        Character Details
+        {{ $t('creatureForm.characterDetails') }}
       </v-toolbar-title>
       <v-spacer />
       <color-picker
@@ -27,7 +27,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Done
+        {{ $t('common.done') }}
       </v-btn>
     </template>
   </dialog-base>

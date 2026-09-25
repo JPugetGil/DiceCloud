@@ -18,7 +18,7 @@
       v-if="Number.isFinite(model.uses)"
       class="action-sub-title d-flex align-center"
     >
-      {{ model.uses }} uses
+      {{ $t('printed.uses', { uses: model.uses }) }}
     </div>
     <div>
       <div
@@ -31,14 +31,14 @@
           :key="attributeConsumed._id"
           class="d-flex flex-1-1 align-center justify-start"
         >
-          Cost: {{ attributeConsumed.quantity && attributeConsumed.quantity.value }} {{ attributeConsumed.statName || attributeConsumed.variableName }}
+          {{ $t('printed.cost', { quantity: attributeConsumed.quantity && attributeConsumed.quantity.value, stat: attributeConsumed.statName || attributeConsumed.variableName }) }}
         </div>
         <div
           v-for="itemConsumed in model.resources.itemsConsumed"
           :key="itemConsumed._id"
         >
           <template v-if="itemConsumed.itemName">
-            Uses: {{ itemConsumed.quantity && itemConsumed.quantity.value || 0 }} {{ itemConsumed.itemName || itemConsumed.tag }}
+            {{ $t('printed.usesItem', { quantity: itemConsumed.quantity && itemConsumed.quantity.value || 0, item: itemConsumed.itemName || itemConsumed.tag }) }}
           </template>
         </div>
       </div>
@@ -53,7 +53,7 @@
           {{ rollBonus }}
         </span>
         <span>
-          to hit
+          {{ $t('printed.toHit') }}
         </span>
       </div>
       <tree-node-list
@@ -73,7 +73,8 @@
 <script setup>
 import { ref, computed} from 'vue';
 import { autorun } from 'vue-meteor-tracker';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
+import { translateOr } from '/imports/client/ui/i18n';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
@@ -118,14 +119,7 @@ const cardClasses = computed(() => {
 });
 
 const actionTypeName = computed(() => {
-  return {
-    'action': 'Action',
-    'bonus': 'Bonus Action',
-    'attack': 'Attack',
-    'reaction': 'Reaction',
-    'free': 'Free Action',
-    'long': 'Long Action'
-  }[props.model.actionType] || props.model.actionType;
+    return translateOr(`actionTypes.${props.model.actionType}`, props.model.actionType);
 });
 
 const children = autorun(() => {

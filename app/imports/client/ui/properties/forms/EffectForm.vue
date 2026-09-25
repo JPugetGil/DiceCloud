@@ -6,7 +6,7 @@
         md="6"
       >
         <smart-select
-          label="Operation"
+          :label="$t('forms.operation')"
           append-icon="mdi-menu-down"
           :hint="operationHint"
           :error-messages="errors.operation"
@@ -40,16 +40,16 @@
       >
         <text-field
           v-if="model.operation === 'conditional'"
-          label="Text"
-          hint="The text to display on the affected stats"
+          :label="$t('forms.text')"
+          :hint="$t('forms.effect.textHint')"
           :value="model.text"
           :error-messages="errors.text"
           @change="(...args) => change('text', ...args)"
         />
         <computed-field
           v-else
-          label="Value"
-          hint="Number or calculation to determine the value of this effect"
+          :label="$t('forms.value')"
+          :hint="$t('forms.effect.valueHint')"
           :disabled="!needsValue"
           :model="model.amount"
           :error-messages="errors.amount"
@@ -60,11 +60,11 @@
     </v-row>
 
     <smart-toggle
-      label="Target properties"
+      :label="$t('forms.targetProperties')"
       :value="radioGroup"
       :options="[
-        {name: 'Target by variable name', value: 'stats'},
-        {name: 'Target by tags', value: 'tags'},
+        {name: $t('forms.targetByVariable'), value: 'stats'},
+        {name: $t('forms.targetByTags'), value: 'tags'},
       ]"
       @change="changeTargetByTags"
     />
@@ -72,12 +72,12 @@
     <v-slide-y-transition hide-on-leave>
       <smart-combobox
         v-if="!model.targetByTags"
-        label="Stats"
+        :label="$t('forms.effect.stats')"
         class="mr-2"
         multiple
         small-chips
         deletable-chips
-        hint="Which stats will this effect apply to"
+        :hint="$t('forms.effect.statsHint')"
         persistent-hint
         :value="model.stats"
         :items="attributeList"
@@ -99,10 +99,10 @@
         cols="12"
       >
         <text-field
-          label="Target field"
+          :label="$t('forms.targetField')"
           :value="model.targetField"
-          hint="Target a specific calculation field on the affected properties"
-          placeholder="Default field"
+          :hint="$t('forms.targetFieldHint')"
+          :placeholder="$t('forms.defaultField')"
           persistent-placeholder
           :error-messages="errors.targetField"
           @change="(...args) => change('targetField', ...args)"
@@ -125,6 +125,9 @@ import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargetin
 import { useAttributeList } from '/imports/client/ui/properties/forms/shared/lists/useAttributeList';
 import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -150,17 +153,17 @@ const ICON_SPIN_DURATION = 300;
 const displayedIcon = ref('add');
 const iconClass = ref('');
 const operations = [
-  { value: 'base', title: 'Base Value' },
-  { value: 'add', title: 'Add' },
-  { value: 'mul', title: 'Multiply' },
-  { value: 'min', title: 'Minimum' },
-  { value: 'max', title: 'Maximum' },
-  { value: 'set', title: 'Set' },
-  { value: 'advantage', title: 'Advantage' },
-  { value: 'disadvantage', title: 'Disadvantage' },
-  { value: 'passiveAdd', title: 'Passive Bonus' },
-  { value: 'fail', title: 'Fail' },
-  { value: 'conditional', title: 'Conditional Benefit' },
+  { value: 'base', title: t('forms.effectOps.base') },
+  { value: 'add', title: t('forms.effectOps.add') },
+  { value: 'mul', title: t('forms.effectOps.mul') },
+  { value: 'min', title: t('forms.effectOps.min') },
+  { value: 'max', title: t('forms.effectOps.max') },
+  { value: 'set', title: t('forms.effectOps.set') },
+  { value: 'advantage', title: t('forms.effectOps.advantage') },
+  { value: 'disadvantage', title: t('forms.effectOps.disadvantage') },
+  { value: 'passiveAdd', title: t('forms.effectOps.passiveAdd') },
+  { value: 'fail', title: t('forms.effectOps.fail') },
+  { value: 'conditional', title: t('forms.effectOps.conditional') },
 ];
 
 const radioGroup = computed(() => {
@@ -186,17 +189,17 @@ const needsValue = computed(() => {
 
 const operationHint = computed(() => {
   switch (props.model.operation) {
-    case 'base': return 'Stats take their largest base value, and then apply all other effects';
-    case 'add': return 'Add this value to the stat';
-    case 'mul': return 'Multiply the stat by this value';
-    case 'min': return 'The stat will be at least this value';
-    case 'max': return 'The stat will not exceed this value';
-    case 'set': return 'The stat will be set to this value';
-    case 'advantage': return 'If this stat is the basis for a check, that check will be at advantage';
-    case 'disadvantage': return 'If this stat is the basis for a check, that check will be at advantage';
-    case 'passiveAdd': return 'This value will be added to the passive check';
-    case 'fail': return 'Targeted skills and checks will always fail';
-    case 'conditional': return 'Add a text note to this stat';
+    case 'base': return t('forms.effectHelp.base');
+    case 'add': return t('forms.effectHelp.add');
+    case 'mul': return t('forms.effectHelp.mul');
+    case 'min': return t('forms.effectHelp.min');
+    case 'max': return t('forms.effectHelp.max');
+    case 'set': return t('forms.effectHelp.set');
+    case 'advantage': return t('forms.effectHelp.advantage');
+    case 'disadvantage': return t('forms.effectHelp.disadvantage');
+    case 'passiveAdd': return t('forms.effectHelp.passiveAdd');
+    case 'fail': return t('forms.effectHelp.fail');
+    case 'conditional': return t('forms.effectHelp.conditional');
     default: return '';
   }
 });

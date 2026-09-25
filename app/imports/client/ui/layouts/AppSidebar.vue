@@ -8,7 +8,7 @@
         variant="text"
         to="/sign-in"
       >
-        Sign in
+        {{ $t('nav.signIn') }}
       </v-btn>
     </div>
     <v-list
@@ -32,7 +32,7 @@
                 <v-icon>mdi-cog</v-icon>
               </v-btn>
             </template>
-            <span>Account Settings</span>
+            <span>{{ $t('nav.accountSettings') }}</span>
           </v-tooltip>
         </template>
       </v-list-item>
@@ -69,6 +69,7 @@
 </template>
 
 <script setup lang="js">
+import { computed } from 'vue';
 import { subscribe, autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -76,6 +77,9 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import CreatureFolderList from '/imports/client/ui/creature/creatureList/CreatureFolderList.vue';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { uniq, flatten } from 'lodash';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const characterTransform = function (char) {
   char.url = `/character/${char._id}/${getCreatureUrlName(char)}`;
@@ -92,21 +96,22 @@ const userName = autorun(() => {
   return user && user.username || user && user._id;
 }).result;
 
-const links = autorun(() => {
-  let isLoggedIn = !!Meteor.userId();
+// computed, not autorun: the titles follow the language
+const links = computed(() => {
+  let isLoggedIn = !!signedIn.value;
   let links = [
-    { title: 'Home', icon: 'mdi-home', to: '/' },
-    { title: 'Characters', icon: 'mdi-account-group', to: '/character-list', requireLogin: true },
-    { title: 'Library', icon: 'mdi-library-shelves', to: '/library', requireLogin: true },
+    { title: t('nav.home'), icon: 'mdi-home', to: '/' },
+    { title: t('nav.characters'), icon: 'mdi-account-group', to: '/character-list', requireLogin: true },
+    { title: t('nav.library'), icon: 'mdi-library-shelves', to: '/library', requireLogin: true },
     //{ title: 'Friends', icon: 'mdi-account-multiple', to: '/friends', requireLogin: true },
-    { title: 'Files', icon: 'mdi-file-multiple', to: '/my-files', requireLogin: true, },
-    { title: 'Documentation', icon: 'mdi-book-open-variant', to: '/docs' },
-    { title: 'Discord', icon: 'mdi-discord', to: '/discord' },
-    { title: 'About', icon: 'mdi-sign-text', to: '/about' },
-    { title: 'Github', icon: 'mdi-github', href: 'https://github.com/ThaumRystra/DiceCloud/' },
+    { title: t('nav.files'), icon: 'mdi-file-multiple', to: '/my-files', requireLogin: true, },
+    { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
+    { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
+    { title: t('nav.about'), icon: 'mdi-sign-text', to: '/about' },
+    { title: t('nav.github'), icon: 'mdi-github', href: 'https://github.com/ThaumRystra/DiceCloud/' },
   ];
   return links.filter(link => !link.requireLogin || isLoggedIn);
-}).result;
+});
 
 const folders = autorun(() => {
   const userId = Meteor.userId();

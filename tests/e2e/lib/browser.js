@@ -17,7 +17,8 @@ function normalize(text) {
 async function openPage({ signedIn = true, colorScheme = 'dark', viewport = { width: 1400, height: 900 } } = {}) {
   assertSafeTarget();
   const browser = await chromium.launch();
-  const context = await browser.newContext({ viewport, colorScheme });
+  // E2E_LOCALE=fr runs a check in French: the app follows the browser language
+  const context = await browser.newContext({ viewport, colorScheme, locale: process.env.E2E_LOCALE });
   const page = await context.newPage();
   const messages = [];
   page.on('console', m => {

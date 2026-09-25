@@ -6,8 +6,8 @@
         md="6"
       >
         <computed-field
-          label="Maximum prepared spells"
-          hint="How many spells can be prepared"
+          :label="$t('forms.spellList.maxPrepared')"
+          :hint="$t('forms.spellList.maxPreparedHint')"
           :model="model.maxPrepared"
           :error-messages="errors.maxPrepared"
           @change="({path, value, ack}) =>
@@ -19,9 +19,9 @@
         md="6"
       >
         <smart-combobox
-          label="Spellcasting ability"
+          :label="$t('forms.spellList.ability')"
           :value="model.ability"
-          hint="Which ability is used to cast spells in this spell list"
+          :hint="$t('forms.spellList.abilityHint')"
           :items="abilityScoreList"
           :error-messages="errors.ability"
           @change="changeAbility"
@@ -32,8 +32,8 @@
         md="6"
       >
         <computed-field
-          label="Spell save DC"
-          hint="The spell save DC of spells in this list"
+          :label="$t('forms.spellList.dc')"
+          :hint="$t('forms.spellList.dcHint')"
           :model="model.dc"
           :error-messages="errors.dc"
           @change="({path, value, ack}) =>
@@ -45,8 +45,8 @@
         md="6"
       >
         <computed-field
-          label="Attack roll bonus"
-          hint="The attack roll bonus of spell attacks made by spells in this list"
+          :label="$t('forms.spellList.attackBonus')"
+          :hint="$t('forms.spellList.attackBonusHint')"
           :model="model.attackRollBonus"
           :error-messages="errors.attackRollBonus"
           @change="({path, value, ack}) =>
@@ -56,7 +56,7 @@
     </v-row>
 
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>

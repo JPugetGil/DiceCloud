@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        {{ mode === 'archive' ? 'Archive' : 'Restore' }}
+        {{ mode === 'archive' ? $t('common.archive') : $t('common.restore') }}
       </v-toolbar-title>
       <v-spacer />
       <v-btn-toggle
@@ -10,13 +10,13 @@
         mandatory
       >
         <v-btn value="archive">
-          <span>Archive</span>
+          <span>{{ $t('common.archive') }}</span>
           <v-icon end>
             mdi-archive-arrow-down
           </v-icon>
         </v-btn>
         <v-btn value="restore">
-          <span>Restore</span>
+          <span>{{ $t('common.restore') }}</span>
           <v-icon end>
             mdi-archive-arrow-up-outline
           </v-icon>
@@ -39,13 +39,13 @@
         color="primary"
         @click="archiveAction"
       >
-        {{ mode === 'archive' ? 'Archive' : 'Restore' }}
+        {{ mode === 'archive' ? $t('common.archive') : $t('common.restore') }}
       </v-btn>
       <v-btn
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Close
+        {{ $t('common.close') }}
       </v-btn>
     </template>
   </dialog-base>

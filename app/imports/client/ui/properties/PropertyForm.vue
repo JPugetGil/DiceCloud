@@ -9,7 +9,7 @@
         <text-field
           v-if="schemaHasName"
           ref="focusFirst"
-          label="Name"
+          :label="$t('common.name')"
           style="flex-basis: 320px;"
           :value="model.name"
           :error-messages="errors.name"
@@ -32,7 +32,7 @@
     >
       <form-section
         v-if="context.isLibraryForm"
-        name="Library"
+        :name="$t('forms.property.library')"
       >
         <v-row
           v-if="context.isLibraryForm"
@@ -43,7 +43,7 @@
             md="6"
           >
             <smart-switch
-              label="Can fill slots"
+              :label="$t('forms.property.canFillSlots')"
               :value="model.fillSlots"
               :error-messages="errors.fillSlots"
               @change="(value, ack) => $emit('change', {path: ['fillSlots'], value, ack})"
@@ -54,7 +54,7 @@
             md="6"
           >
             <smart-switch
-              label="Searchable from character sheet"
+              :label="$t('forms.property.searchable')"
               :value="model.searchable"
               :error-messages="errors.searchable"
               @change="(value, ack) => $emit('change', {path: ['searchable'], value, ack})"
@@ -65,10 +65,10 @@
             md="6"
           >
             <smart-select
-              label="Slot fill type"
+              :label="$t('forms.property.slotFillType')"
               style="flex-basis: 300px;"
               clearable
-              hint="The property type that this slot filler pretends to be when being searched for by a slot"
+              :hint="$t('forms.property.slotFillTypeHint')"
               :items="slotTypes"
               :value="model.slotFillerType"
               :error-messages="errors.slotFillerType"
@@ -80,10 +80,10 @@
             md="6"
           >
             <text-field
-              label="Slot quantity filled"
+              :label="$t('forms.property.slotQuantity')"
               type="number"
               min="0"
-              hint="How many properties this counts as when filling a slot"
+              :hint="$t('forms.property.slotQuantityHint')"
               :value="model.slotQuantityFilled"
               :error-messages="errors.slotQuantityFilled"
               @change="(value, ack) => $emit('change', {path: ['slotQuantityFilled'], value, ack})"
@@ -95,9 +95,9 @@
           >
             <text-field
               v-if="context.isLibraryForm"
-              label="Condition"
-              hint="A caclulation to determine if this property can be added to a character"
-              placeholder="Always active"
+              :label="$t('forms.condition')"
+              :hint="$t('forms.property.conditionHint')"
+              :placeholder="$t('forms.alwaysActive')"
               :value="model.slotFillerCondition"
               :error-messages="errors.slotFillerCondition"
               @change="(value, ack) => $emit('change', {path: ['slotFillerCondition'], value, ack})"
@@ -109,9 +109,9 @@
           >
             <text-field
               v-if="context.isLibraryForm"
-              label="Condition Error Text"
-              hint="Text to display if the condition isn't met"
-              placeholder="Always active"
+              :label="$t('forms.property.conditionErrorText')"
+              :hint="$t('forms.property.conditionErrorTextHint')"
+              :placeholder="$t('forms.alwaysActive')"
               :value="model.slotFillerConditionNote"
               :error-messages="errors.slotFillerConditionNote"
               @change="(value, ack) => $emit('change', {path: ['slotFillerConditionNote'], value, ack})"
@@ -121,11 +121,11 @@
             cols="12"
           >
             <smart-combobox
-              label="Library Tags"
+              :label="$t('forms.property.libraryTags')"
               multiple
               small-chips
               deletable-chips
-              hint="Used to let slots find this property in a library"
+              :hint="$t('forms.property.libraryTagsHint')"
               :value="model.libraryTags"
               :error-messages="errors.libraryTags"
               @change="(value, ack) => $emit('change', {path: ['libraryTags'], value, ack})"
@@ -142,11 +142,11 @@
         cols="12"
       >
         <smart-combobox
-          label="Tags"
+          :label="$t('forms.tags')"
           multiple
           small-chips
           deletable-chips
-          hint="Tags let other properties target this property with interactions"
+          :hint="$t('forms.property.tagsHint')"
           :value="model.tags"
           :error-messages="errors.tags"
           @change="(value, ack) => $emit('change', {path: ['tags'], value, ack})"
@@ -163,7 +163,7 @@
         style="gap: 8px"
       >
         <outlined-input
-          name="Child properties"
+          :name="$t('forms.property.childProperties')"
           style="width: 100%"
           class="pa-2 no-hover"
         >
@@ -187,7 +187,7 @@
             <v-icon start>
               mdi-plus
             </v-icon>
-            {{ suggestion.details.name }}
+            {{ getPropertyName(suggestion.type) }}
           </v-btn>
           <v-btn
             :disabled="noChildInsert || context.editPermission === false"
@@ -202,13 +202,13 @@
             >
               mdi-plus
             </v-icon>
-            {{ suggestedChildren.length ? '...Other' : 'Child' }}
+            {{ suggestedChildren.length ? $t('forms.property.otherChild') : $t('forms.property.child') }}
           </v-btn>
           <div
             v-if="noChildInsert"
             class="ma-2 text-disabled"
           >
-            Children can be added after this property is created
+            {{ $t('forms.property.childrenAfterCreate') }}
           </div>
         </outlined-input>
       </v-col>
@@ -228,6 +228,7 @@ import IconColorMenu from '/imports/client/ui/properties/forms/shared/IconColorM
 import DescendantPropertiesTree from '/imports/client/ui/creature/creatureProperties/DescendantPropertiesTree.vue';
 import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
 import { getSuggestedChildren } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
@@ -257,7 +258,7 @@ const context = inject('context', {});
 
 const slotTypes = [];
 for (let key in PROPERTIES) {
-  slotTypes.push({ title: PROPERTIES[key].name, value: key });
+  slotTypes.push({ title: getPropertyName(key), value: key });
 }
 
 const suggestedChildren = computed(() => {

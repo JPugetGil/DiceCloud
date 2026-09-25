@@ -34,7 +34,7 @@
               variant="text"
               to="/community-libraries"
             >
-              Browse community libraries
+              {{ $t('library.browseCommunity') }}
             </v-btn>
             <v-btn
               variant="text"
@@ -43,7 +43,7 @@
               :loading="loadingInsertLibraryCollection"
               @click="insertLibraryCollectionDialog"
             >
-              Add Collection
+              {{ $t('library.addCollection') }}
             </v-btn>
           </div>
           <v-btn

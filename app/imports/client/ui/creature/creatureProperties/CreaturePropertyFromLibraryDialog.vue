@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Add from library
+        {{ $t('library.addFromLibrary') }}
       </v-toolbar-title>
     </template>
     <template #unwrapped-content>
@@ -19,7 +19,7 @@
         color="primary"
         @click="dialogStackStore.popDialogStack(node)"
       >
-        Insert
+        {{ $t('common.insert') }}
       </v-btn>
     </template>
   </dialog-base>

@@ -2,18 +2,18 @@
   <div class="toggle-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
         v-if="model.disabled || model.enabled"
-        name="State"
-        :value="model.enabled ? 'Enabled' : 'Disabled'"
+        :name="$t('viewers.state')"
+        :value="model.enabled ? $t('forms.toggle.enabled') : $t('forms.toggle.disabled')"
       />
       <template v-else-if="model.condition">
         <property-field
-          name="Condition"
+          :name="$t('forms.condition')"
           :calculation="model.condition"
         />
         <property-target-tags

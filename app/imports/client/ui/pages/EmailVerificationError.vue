@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex flex-1-1 flex-column align-center justify-center">
       <h2 style="margin: 48px 28px 16px">
-        Email Verification Error
+        {{ $t('email.verificationError') }}
       </h2>
       <h3>
         {{ error.reason || error.message || error }}

@@ -42,34 +42,34 @@
           {{ ownerName || '?' }}
         </v-list-item-title>
         <v-list-item-subtitle>
-          Collection owner
+          {{ $t('library.collectionOwner') }}
         </v-list-item-subtitle>
       </v-list-item>
       <text-field
-        label="name"
+        :label="$t('library.nameLower')"
         :value="model.name"
         @change="(name, ack) => updateLibraryCollection({name}, ack)"
       />
       <text-area
-        label="Description"
+        :label="$t('common.description')"
         :value="model.description"
         @change="(description, ack) => updateLibraryCollection({description}, ack)"
       />
       <smart-switch
         :value="model.showInMarket"
         :disabled="!isOwner"
-        label="Show in community library browser"
+        :label="$t('library.showInBrowser')"
         @change="(showInMarket, ack) => updateLibraryCollection({showInMarket}, ack)"
       />
       <smart-select
-        label="Libraries"
+        :label="$t('library.libraries')"
         :items="libraryOptions"
         :value="model.libraries"
         :debounce-time="0"
         multiple
         chips
         deletable-chips
-        no-data-text="No libraries found"
+        :no-data-text="$t('library.noLibrariesFound')"
         @change="(libraries, ack) => updateLibraryCollection({libraries}, ack)"
       />
     </template>
@@ -80,7 +80,7 @@
         data-id="delete-library-button"
         @click="dialogStackStore.popDialogStack()"
       >
-        Done
+        {{ $t('common.done') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -95,6 +95,9 @@ import LibraryCollections, { updateLibraryCollection as updateLibraryCollectionA
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import Libraries from '/imports/api/library/Libraries';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -157,7 +160,7 @@ function remove() {
     elementId: 'delete-library-button',
     data: {
       name: model.value?.name,
-      typeName: 'Collection'
+      typeName: t('library.collection')
     },
     async callback(confirmation) {
       if (!confirmation) return;

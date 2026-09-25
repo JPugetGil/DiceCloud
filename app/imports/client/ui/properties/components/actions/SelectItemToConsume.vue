@@ -13,7 +13,7 @@
   </v-list>
   <v-card v-else>
     <v-card-text>
-      No active items found with the tag "{{ itemConsumed.tag }}"
+      {{ $t('cards.noItemsWithTag', { tag: itemConsumed.tag }) }}
     </v-card-text>
   </v-card>
 </template>

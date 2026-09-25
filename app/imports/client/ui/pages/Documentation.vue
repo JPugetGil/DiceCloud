@@ -25,7 +25,7 @@
           />
           <v-card v-else-if="!doc">
             <v-card-title>
-              Help document not found for {{ title }}
+              {{ $t('docs.helpNotFound', { title }) }}
             </v-card-title>
           </v-card>
         </v-fade-transition>
@@ -39,9 +39,13 @@ import { computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import Docs from '/imports/api/docs/Docs';
+import { expandRootUrl } from '/imports/api/docs/docUrls';
 import { propsByDocsPath } from '/imports/constants/PROPERTIES';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 
@@ -63,7 +67,7 @@ const title = computed(() => {
         return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase() + ' ';
       }
     );
-    return titleCase || 'DiceCloud Docs';
+    return titleCase || t('pageTitle.docs');
   }
 });
 
@@ -71,7 +75,7 @@ const { ready: docsReady } = subscribe(() => ['docs', path.value]);
 
 const doc = autorun(() => {
   const document = Docs.findOne(path.value);
-  return document && document.description;
+  return document && expandRootUrl(document.description);
 }).result;
 
 watch(title, (value) => {

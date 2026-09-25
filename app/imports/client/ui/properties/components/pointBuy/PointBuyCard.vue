@@ -14,7 +14,7 @@
       :active="hover"
     />
     <v-card-title>
-      {{ model.name || 'Point Buy' }}
+      {{ model.name || $t('cards.pointBuy') }}
     </v-card-title>
     <v-card-text>
       {{ model.spent }}

@@ -16,7 +16,7 @@
         </v-icon>
       </v-avatar>
       <span class="ml-3">
-        {{ property.name }}
+        {{ getPropertyName(type) || property.name }}
       </span>
     </v-card-title>
     <v-expand-transition>
@@ -24,7 +24,7 @@
         v-if="showPropertyHelp"
         class="mx-4"
       >
-        {{ property.helpText }}
+        {{ getPropertyHelpText(type) || property.helpText }}
         <div style="height: 16px;" />
         <div
           v-if="property.examples"
@@ -41,11 +41,17 @@
 <script setup>
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
+import { getPropertyName, getPropertyHelpText } from '/imports/client/ui/i18n/propertyNames';
 
 defineProps({
   property: {
     type: Object,
     required: true,
+  },
+  // The property type, for its name and help in the interface's language
+  type: {
+    type: String,
+    default: undefined,
   },
   disabled: Boolean,
 });

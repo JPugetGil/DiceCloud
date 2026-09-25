@@ -50,6 +50,9 @@ import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
 import LogEntry from '/imports/client/ui/log/LogEntry.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   creatureId: {
@@ -131,7 +134,7 @@ async function recalculate() {
     return;
   } catch (e){
     console.warn(e);
-    inputError.value = 'Compilation error';
+    inputError.value = t('log.compilationError');
     return;
   }
 }

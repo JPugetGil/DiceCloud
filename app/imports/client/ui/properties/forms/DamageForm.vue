@@ -7,8 +7,8 @@
       >
         <computed-field
           ref="focusFirst"
-          label="Damage"
-          hint="A calculation including dice rolls of the damage to deal to the target when activated by an action"
+          :label="$t('forms.attribute.damage')"
+          :hint="$t('forms.damage.damageHint')"
           :model="model.amount"
           :error-messages="errors.amount"
           @change="({path, value, ack}) =>
@@ -20,9 +20,9 @@
         md="6"
       >
         <smart-combobox
-          label="Damage Type"
+          :label="$t('forms.damage.damageType')"
           style="flex-basis: 200px;"
-          hint="Use the Healing type to restore hit points"
+          :hint="$t('forms.damage.damageTypeHint')"
           :rules="damageTypeRules"
           :items="DAMAGE_TYPES"
           :value="model.damageType"
@@ -33,11 +33,11 @@
       </v-col>
       <v-col cols="12">
         <smart-toggle
-          label="Target creature"
+          :label="$t('forms.targetCreature')"
           :value="model.target"
           :options="[
-            {name: 'Action Target', value: 'target'},
-            {name: 'Self', value: 'self'},
+            {name: $t('forms.actionTarget'), value: 'target'},
+            {name: $t('forms.self'), value: 'self'},
           ]"
           :error-messages="errors.target"
           @change="(...args) => change('target', ...args)"
@@ -46,7 +46,7 @@
       <v-col cols="12">
         <smart-switch
           class="mt-0"
-          label="Saving throw"
+          :label="$t('forms.damage.savingThrow')"
           :value="!!model.save"
           :error-messages="errors.save"
           @change="(val, ack) => $emit('change', {
@@ -67,8 +67,8 @@
           md="6"
         >
           <computed-field
-            label="DC"
-            hint="Saving throw DC"
+            :label="$t('check.dc')"
+            :hint="$t('forms.dcHint')"
             :model="model.save.dc"
             :error-messages="errors['save.dc']"
             @change="({path, value, ack}) =>
@@ -80,8 +80,8 @@
           md="6"
         >
           <smart-combobox
-            label="Save"
-            hint="Which stat the saving throw targets"
+            :label="$t('forms.save')"
+            :hint="$t('forms.saveHint')"
             :value="model.save.stat"
             :items="saveList"
             :error-messages="errors['save.stat']"
@@ -92,9 +92,9 @@
         <v-col cols="12">
           <computed-field
             v-if="!!model.save"
-            label="Damage on successful save"
-            hint="Use &quot;~damage&quot; to reference the damage that would normally be dealt"
-            placeholder="Half damage"
+            :label="$t('forms.damage.onSave')"
+            :hint="$t('forms.damage.onSaveHint')"
+            :placeholder="$t('forms.damage.halfDamage')"
             persistent-placeholder
             :model="model.save.damageFunction"
             :error-messages="errors['save.damageFunction']"
@@ -105,11 +105,11 @@
       </v-row>
     </v-expand-transition>
     <form-sections type="damage">
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <v-row>
           <v-col cols="12">
             <smart-switch
-              label="Don't show in log"
+              :label="$t('forms.dontShowInLog')"
               :value="model.silent"
               :error-messages="errors.silent"
               @change="(...args) => change('silent', ...args)"
@@ -130,6 +130,9 @@ import { useSaveList } from '/imports/client/ui/properties/forms/shared/lists/us
 import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
   model: {
@@ -159,9 +162,9 @@ const saveList = useSaveList();
 
 const damageTypeRules = [
   value => {
-    if (!value) return 'Damage type is required';
+    if (!value) return t('forms.damage.typeRequired');
     if (!VARIABLE_NAME_REGEX.test(value)) {
-      return `${value} is not a valid damage name`;
+      return t('forms.damage.invalidType', { value });
     }
   }
 ];

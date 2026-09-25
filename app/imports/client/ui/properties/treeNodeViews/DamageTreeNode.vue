@@ -13,15 +13,17 @@
         {{ icon }}
       </v-icon>
       <div class="text-no-wrap text-truncate">
-        {{ model.amount && model.amount.value }}
-        {{ model.damageType }}<span v-if="model.damageType !== 'healing'">&nbsp;damage</span>
-        <span v-if="model.target === 'self'">to self</span>
+        {{ model.damageType === 'healing'
+          ? $t('treeNodes.healing', { amount: model.amount && model.amount.value })
+          : $t('treeNodes.damage', { amount: model.amount && model.amount.value, type: damageTypeName(model.damageType) }) }}
+        <span v-if="model.target === 'self'">{{ $t('treeNodes.toSelf') }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { damageTypeName } from '/imports/client/ui/i18n';
 import { computed } from 'vue';
 import { getPropertyIcon } from '/imports/constants/PROPERTIES';
 

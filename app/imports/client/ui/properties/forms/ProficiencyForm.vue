@@ -6,7 +6,7 @@
         md="6"
       >
         <proficiency-select
-          label="Proficiency"
+          :label="$t('propertyTypes.proficiency.name')"
           style="flex-basis: 300px;"
           :clearable="false"
           :value="model.value"
@@ -18,11 +18,11 @@
         md="6"
       >
         <smart-toggle
-          label="Target properties"
+          :label="$t('forms.targetProperties')"
           :value="model.targetByTags ? 'tags' : 'skills'"
           :options="[
-            {name: 'Target by variable name', value: 'skills'},
-            {name: 'Target by tags', value: 'tags'},
+            {name: $t('forms.targetByVariable'), value: 'skills'},
+            {name: $t('forms.targetByTags'), value: 'tags'},
           ]"
           @change="(val, ack) => {
             if (val === 'skills') val = undefined;
@@ -45,12 +45,12 @@
           />
           <smart-combobox
             v-else
-            label="Skills"
+            :label="$t('forms.proficiency.skills')"
             class="mr-2"
             multiple
             small-chips
             deletable-chips
-            hint="Which skills does this proficiency apply to"
+            :hint="$t('forms.proficiency.skillsHint')"
             :value="model.stats"
             :items="skillList"
             :error-messages="errors.stats"
@@ -64,10 +64,10 @@
           cols="12"
         >
           <text-field
-            label="Target field"
+            :label="$t('forms.targetField')"
             :value="model.targetField"
-            hint="Target a specific calculation field on the affected properties"
-            placeholder="Default field"
+            :hint="$t('forms.targetFieldHint')"
+            :placeholder="$t('forms.defaultField')"
             persistent-placeholder
             :error-messages="errors.targetField"
             @change="(value, ack) => change('targetField', value, ack)"

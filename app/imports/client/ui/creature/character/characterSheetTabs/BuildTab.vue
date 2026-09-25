@@ -29,7 +29,7 @@
       >
         <v-card class="pb-4">
           <v-card-title style="height: 68px;">
-            Slots
+            {{ $t('build.slots') }}
             <v-spacer />
             <v-menu
               location="bottom left"
@@ -58,7 +58,7 @@
                   <v-icon class="mr-2">
                     mdi-file-hidden
                   </v-icon>
-                  {{ hiddenCount }} hidden {{ hiddenCount > 1 ? 'properties' : 'property' }}
+                  {{ $t('build.hiddenProperties', { count: hiddenCount }, hiddenCount) }}
                 </v-list-subheader>
                 <v-list-item
                   v-for="pointBuy in hiddenPointBuys"
@@ -96,7 +96,7 @@
             v-if="variables.level"
             class="text-h6"
           >
-            Level {{ variables.level.value }}
+            {{ $t('build.level', { level: variables.level.value }) }}
           </v-card-title>
           <v-list lines="two">
             <v-list-item>
@@ -106,7 +106,7 @@
                     variables.milestoneLevels.value
                 "
               >
-                {{ variables.milestoneLevels.value }} Milestone levels
+                {{ $t('build.milestoneLevels', { count: variables.milestoneLevels.value }) }}
               </v-list-item-title>
               <v-list-item-title
                 v-if="
@@ -116,11 +116,7 @@
                       variables.xp.value)
                 "
               >
-                {{
-                  variables.xp &&
-                    variables.xp.value ||
-                    0
-                }} XP
+                {{ $t('build.xp', { xp: variables.xp && variables.xp.value || 0 }) }}
               </v-list-item-title>
 
               <template #append>
@@ -170,10 +166,10 @@
                     mdi-plus
                   </v-icon>
                   <template v-if="cls.missingLevels && cls.missingLevels.length">
-                    Get Missing Levels
+                    {{ $t('build.getMissingLevels') }}
                   </template>
                   <template v-else>
-                    Level Up
+                    {{ $t('build.levelUp') }}
                   </template>
                 </v-btn>
               </template>

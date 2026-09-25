@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Add Experience
+        {{ $t('xp.addExperience') }}
       </v-toolbar-title>
     </template>
     <experience-form
@@ -23,7 +23,7 @@
           :disabled="!valid"
           @click="insertExperience"
         >
-          Insert
+          {{ $t('common.insert') }}
         </v-btn>
       </div>
     </template>

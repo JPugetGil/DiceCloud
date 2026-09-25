@@ -48,7 +48,7 @@
               {{ model.actionType }}
             </div>
             <div v-if="Number.isFinite(model.usesLeft)">
-              {{ model.usesLeft }} uses
+              {{ $t('cards.uses', { count: model.usesLeft }) }}
             </div>
           </template>
         </div>
@@ -102,7 +102,7 @@
 import { ref, computed, inject } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import doAction from '/imports/client/ui/creature/actions/doAction';
 import ActionConditionView from '/imports/client/ui/properties/components/actions/ActionConditionView.vue';
@@ -116,6 +116,9 @@ import { getFilter, docsToForest as nodeArrayToTree } from '/imports/api/parenti
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
 import useThemeState from '/imports/client/ui/utility/useThemeState';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -172,9 +175,9 @@ const targetingError = computed(() => {
   // Can always do an action without a target
   if (!props.targets || !props.targets.length) return undefined;
   if (props.targets.length > 1 && props.model.target !== 'multipleTargets'){
-    return 'Single target';
+    return t('targets.singleTarget');
   } else if (props.model.target === 'self' && props.targets[0] !== props.model.ancestors[0]._id){
-    return 'Can only target self';
+    return t('targets.canOnlyTargetSelf');
   }
   return undefined;
 });

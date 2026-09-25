@@ -9,14 +9,14 @@
         v-if="model.value !== undefined"
         center
         large
-        name="Roll bonus"
+        :name="$t('viewers.rollBonus')"
         :value="isFinite(model.value) ?
           numberToSignedString(model.value) :
           model.value"
       />
       <property-field
         v-if="model.proficiency !== undefined"
-        name="Proficiency"
+        :name="$t('propertyTypes.proficiency.name')"
       >
         <v-icon
           style="height: 12px"
@@ -29,29 +29,29 @@
         </div>
       </property-field>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Ability"
+        :name="$t('check.ability')"
         mono
         :value="model.ability"
       />
       <property-field
-        name="Skill type"
+        :name="$t('viewers.skillType')"
         :value="skillTypes[model.skillType]"
       />
       <property-field
         v-if="'passiveBonus' in model"
-        name="Passive score"
+        :name="$t('viewers.passiveScore')"
         :value="passiveScore"
       />
       <property-field
         v-if="model.overridden"
         :cols="{cols: 6, md: 12}"
-        name="Overridden"
-        value="Overriden by another property with the same variable name"
+        :name="$t('viewers.overridden')"
+        :value="$t('viewers.overriddenText')"
       />
       <property-target-tags
         :model="model"
@@ -59,7 +59,7 @@
     </v-row>
     <v-row dense>
       <property-description
-        name="description"
+        :name="$t('viewers.descriptionLower')"
         :model="model.description"
       />
     </v-row>
@@ -69,7 +69,7 @@
     >
       <property-field
         :cols="{col: 12}"
-        name="Effects"
+        :name="$t('viewers.effects')"
       >
         <v-list style="width: 100%">
           <attribute-effect
@@ -97,7 +97,7 @@
     >
       <property-field
         :cols="{col: 12}"
-        name="Proficiencies"
+        :name="$t('viewers.proficiencies')"
       >
         <v-list style="width: 100%">
           <skill-proficiency
@@ -128,6 +128,9 @@ import PropertyField from '/imports/client/ui/properties/viewers/shared/Property
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -141,22 +144,22 @@ const props = defineProps({
 const context = inject('context', {});
 
 const proficiencyText = {
-  0: 'Not proficient',
-  1: 'Proficient',
-  0.49: 'Half proficiency bonus rounded down',
-  0.5: 'Half proficiency bonus rounded up',
-  2: 'Double proficiency bonus',
+  0: t('proficiencyLevels.none'),
+  1: t('proficiencyLevels.proficient'),
+  0.49: t('proficiencyLevels.halfDown'),
+  0.5: t('proficiencyLevels.halfUp'),
+  2: t('proficiencyLevels.double'),
 };
 
 const skillTypes = {
-  skill: 'Skill',
-  save: 'Save',
-  check: 'Check',
-  tool: 'Tool',
-  weapon: 'Weapon',
-  armor: 'Armor',
-  language: 'Language',
-  utility: 'Utility',
+  skill: t('skillTypes.skill'),
+  save: t('skillTypes.save'),
+  check: t('skillTypes.check'),
+  tool: t('skillTypes.tool'),
+  weapon: t('skillTypes.weapon'),
+  armor: t('skillTypes.armor'),
+  language: t('skillTypes.language'),
+  utility: t('skillTypes.utility'),
 };
 
 const isFinite = Number.isFinite;

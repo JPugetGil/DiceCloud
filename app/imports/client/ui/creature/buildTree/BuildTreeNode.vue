@@ -136,6 +136,9 @@ import softRemoveProperty from '/imports/api/creature/creatureProperties/methods
 import restoreProperty from '/imports/api/creature/creatureProperties/methods/restoreProperty';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 import { isAncestor } from '/imports/api/parenting/parentingFunctions';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineOptions({
   name: 'BuildTreeNode',
@@ -267,7 +270,7 @@ async function remove(model) {
     return;
   }
   snackbar({
-    text: `Deleted ${getPropertyTitle(model)}`,
+    text: t('common.deleted', { name: getPropertyTitle(model) }),
     callbackName: 'undo',
     callback() {
       return restoreProperty.callAsync({ _id });

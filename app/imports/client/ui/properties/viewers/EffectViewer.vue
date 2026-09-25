@@ -1,7 +1,7 @@
 <template>
   <div class="effect-viewer">
     <v-row dense>
-      <property-field name="Operation">
+      <property-field :name="$t('forms.operation')">
         <div
           class="d-flex flex-1-1"
           style="overflow: hidden;"
@@ -14,7 +14,7 @@
       </property-field>
       <property-field
         v-if="model.operation !== 'conditional'"
-        name="Amount"
+        :name="$t('viewers.amount')"
         :value="displayedValue || ' '"
       />
       <property-target-tags
@@ -23,7 +23,7 @@
       />
       <property-field
         v-else
-        name="Stats"
+        :name="$t('viewers.stats')"
       >
         <div class="d-flex flex-wrap">
           <v-chip
@@ -37,7 +37,7 @@
       </property-field>
       <property-field
         v-if="model.operation === 'conditional'"
-        name="Text"
+        :name="$t('forms.text')"
         :cols="{cols: 12}"
         :value="model.text || ' '"
       />
@@ -51,6 +51,9 @@ import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/Pro
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
 import { isFinite } from 'lodash';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -73,17 +76,17 @@ const effectIcon = computed(() => {
 
 const operation = computed(() => {
   switch (props.model.operation) {
-    case 'base': return 'Base value';
-    case 'add': return 'Add';
-    case 'mul': return 'Multiply';
-    case 'min': return 'Minimum';
-    case 'max': return 'Maximum';
-    case 'set': return 'Set';
-    case 'advantage': return 'Advantage';
-    case 'disadvantage': return 'Disadvantage';
-    case 'passiveAdd': return 'Passive bonus';
-    case 'fail': return 'Always fail';
-    case 'conditional': return 'Conditional benefit';
+    case 'base': return t('effectOps.base');
+    case 'add': return t('effectOps.add');
+    case 'mul': return t('effectOps.mul');
+    case 'min': return t('effectOps.min');
+    case 'max': return t('effectOps.max');
+    case 'set': return t('effectOps.set');
+    case 'advantage': return t('effectOps.advantage');
+    case 'disadvantage': return t('effectOps.disadvantage');
+    case 'passiveAdd': return t('effectOps.passiveAdd');
+    case 'fail': return t('effectOps.fail');
+    case 'conditional': return t('effectOps.conditional');
     default: return props.model.operation;
   }
 });

@@ -13,7 +13,7 @@
         md="1"
         class="text-truncate d-flex justify-center"
       >
-        Cost
+        {{ $t('forms.pointBuy.cost') }}
       </v-col>
     </v-row>
     <v-row

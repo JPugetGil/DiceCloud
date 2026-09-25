@@ -6,8 +6,8 @@
         :color="$vuetify.theme.themes.dark.colors.accent"
         grow
       >
-        <v-tab>User Files</v-tab>
-        <v-tab>From URL</v-tab>
+        <v-tab>{{ $t('files.userFiles') }}</v-tab>
+        <v-tab>{{ $t('files.fromUrl') }}</v-tab>
       </v-tabs>
     </template>
     <template #unwrapped-content>
@@ -68,7 +68,7 @@
           <v-card-text class="fill-height d-flex flex-column justify-center align-center">
             <v-text-field
               v-model="inputHref"
-              label="Direct link to image"
+              :label="$t('files.directLink')"
               class="flex-grow-0"
               style="width: 100%"
             />
@@ -88,14 +88,14 @@
         <v-icon start>
           mdi-check
         </v-icon>
-        Save
+        {{ $t('common.save') }}
       </v-btn>
       <v-btn
         v-else
         variant="text"
         @click="emit('pop')"
       >
-        Close
+        {{ $t('common.close') }}
       </v-btn>
     </template>
   </dialog-base>

@@ -30,13 +30,13 @@
         v-for="(tags, index) in tagsSearched.or"
         :key="index"
         :tags="tags"
-        :prefix="index ? 'OR' : undefined"
+        :prefix="index ? $t('common.or') : undefined"
       />
       <property-tags
         v-for="(tags, index) in tagsSearched.not"
         :key="index"
         :tags="tags"
-        prefix="NOT"
+        :prefix="$t('common.not')"
       />
     </p>
     <v-expansion-panels
@@ -96,7 +96,7 @@
                     libraryNode._disabledByQuantityFilled
                 }"
               >
-                {{ libraryNode.slotQuantityFilled }} slots
+                {{ $t('slots.slotCount', { count: libraryNode.slotQuantityFilled }) }}
               </div>
               <template v-if="open">
                 <v-btn
@@ -126,13 +126,13 @@
         variant="outlined"
         @click="loadMore"
       >
-        Load More
+        {{ $t('common.loadMore') }}
       </v-btn>
     </div>
     <template v-if="!showDisabled && disabledNodeCount">
       <div class="d-flex flex-1-1 flex-column align-center justify-center ma-3">
         <div>
-          Requirements of {{ disabledNodeCount }} properties were not met
+          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }) }}
         </div>
         <v-btn
           class="mt-2"
@@ -140,7 +140,7 @@
           color="accent"
           @click="showDisabled = true"
         >
-          Show All
+          {{ $t('common.showAll') }}
         </v-btn>
       </div>
     </template>
@@ -149,7 +149,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
       <v-spacer />
       <v-btn
@@ -162,10 +162,10 @@
           {{ totalQuantitySelected }} / {{ model.spaceLeft }}
         </template>
         <template v-if="classId">
-          Insert
+          {{ $t('common.insert') }}
         </template>
         <template v-else>
-          Close Test
+          {{ $t('slots.closeTest') }}
         </template>
       </v-btn>
     </template>
@@ -183,8 +183,7 @@ import LibraryNodes from '/imports/api/library/LibraryNodes';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue'
-import resolve from '/imports/parser/resolve';
-import { prettifyParseError, parse } from '/imports/parser/parser';
+import evaluateSlotFillerConditions from '/imports/client/ui/creature/slots/slotFillerConditions';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/client/ui/library/LibraryNodeExpansionContent.vue';
 import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
@@ -215,7 +214,6 @@ const selectedNodeIds = ref([]);
 const searchInput = ref(undefined);
 const searchValue = ref(undefined);
 const showDisabled = ref(false);
-const disabledNodeCount = ref(undefined);
 
 provide('context', reactive({
   creatureId: computed(() => props.creatureId),
@@ -325,44 +323,17 @@ const libraryNodeFilter = autorun(() => {
   return EJSON.parse(filterString);
 }).result;
 
-const libraryNodes = autorun(() => {
+// Class levels that match, flagged with what can be decided synchronously
+const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!classFillersReady.value) return [];
   let nodes = LibraryNodes.find(libraryNodeFilter.value, {
     sort: { level: 1, name: 1, order: 1 }
   }).fetch();
-  let disabledCount = 0;
-  // Mark classFillers whose condition isn't met or are too big to fit
-  // the quantity to fill
-  nodes.forEach(async node => {
+  // Mark classFillers that are too big to fit the quantity to fill
+  nodes.forEach(node => {
     if (node.cache?.node) {
       node.level = node.cache.node.level;
-    }
-    if (node.slotFillerCondition) {
-      try {
-        let parseNode = parse(node.slotFillerCondition);
-        const { result: resultNode } = await resolve('reduce', parseNode, variables.value);
-        if (resultNode?.parseType === 'constant') {
-          if (!resultNode.value) {
-            node._disabledBySlotFillerCondition = true;
-            node._conditionError = node.slotFillerConditionNote || node.slotFillerCondition;
-            disabledCount += 1;
-            disabledNodeCount.value = disabledCount;
-          }
-        } else {
-          node._disabledBySlotFillerCondition = true;
-          node._conditionError = node.slotFillerConditionNote || toString(resultNode);
-          disabledCount += 1;
-          disabledNodeCount.value = disabledCount;
-        }
-      } catch (e) {
-        console.warn(e);
-        let error = prettifyParseError(e);
-        node._disabledBySlotFillerCondition = true;
-        node._conditionError = 'Condition error: ' + error;
-        disabledCount += 1;
-        disabledNodeCount.value = disabledCount;
-      }
     }
     let quantityToFill = node.type === 'slotFiller' ? node.slotQuantityFilled : 1;
     if (
@@ -375,9 +346,30 @@ const libraryNodes = autorun(() => {
     }
   });
   nodes.sort((a, b) => a.level - b.level);
-  disabledNodeCount.value = disabledCount;
   return nodes;
 }).result;
+
+// slotFillerCondition needs the async parser, so its verdicts arrive separately
+const conditionErrors = ref(new Map());
+watch([matchingNodes, variables], async () => {
+  const nodes = matchingNodes.value;
+  const errors = await evaluateSlotFillerConditions(nodes, variables.value);
+  if (nodes !== matchingNodes.value) return;
+  conditionErrors.value = errors;
+}, { immediate: true });
+
+const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
+  const conditionError = conditionErrors.value.get(node._id);
+  if (!conditionError) return node;
+  return {
+    ...node,
+    _disabledBySlotFillerCondition: true,
+    _conditionError: conditionError,
+  };
+}));
+
+const disabledNodeCount = computed(() => libraryNodes.value
+  .filter(node => node._disabledBySlotFillerCondition).length);
 
 const activeCount = autorun(() => {
   if (!libraryNodes.value) return;
@@ -446,7 +438,7 @@ watch(activeCount, (val) => {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  classFillersSubHandle.setData('limit', currentLimit.value + 50);
+  classFillersSubHandle.value?.setData('limit', currentLimit.value + 50);
 }
 
 function openPropertyDetails(id) {

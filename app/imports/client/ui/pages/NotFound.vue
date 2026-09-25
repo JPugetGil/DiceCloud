@@ -7,7 +7,7 @@
       404
     </h1>
     <h1 class="ma-4 text-h3">
-      No page was found for this address
+      {{ $t('notFound.text') }}
     </h1>
   </div>
 </template>

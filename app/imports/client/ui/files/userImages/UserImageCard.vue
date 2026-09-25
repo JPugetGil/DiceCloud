@@ -31,7 +31,7 @@
         <v-list>
           <v-list-item @click="removeUserFile">
             <v-list-item-title>
-              Delete file
+              {{ $t('files.deleteFile') }}
               <v-icon end>
                 mdi-delete
               </v-icon>

@@ -2,7 +2,7 @@
   <div class="container-viewer">
     <v-row dense>
       <property-field
-        name="Value"
+        :name="$t('viewers.value')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden;">
@@ -33,13 +33,13 @@
               :value="model.contentsValue"
             />
             <span class="text-subtitle-1">
-              contents
+              {{ $t('common.contents') }}
             </span>
           </div>
         </div>
       </property-field>
       <property-field
-        name="Weight"
+        :name="$t('forms.weight')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden;">
@@ -54,7 +54,7 @@
               $weight
             </v-icon>
             <span class="text-subtitle-1 mr-2">
-              {{ model.weight }} lb
+              {{ $t('common.weightLb', { weight: model.weight }) }}
             </span>
           </div>
           <div
@@ -68,17 +68,17 @@
               $injustice
             </v-icon>
             <span class="text-subtitle-1 mr-2">
-              {{ model.contentsWeight }} lb
+              {{ $t('common.weightLb', { weight: model.contentsWeight }) }}
             </span>
             <span class="text-subtitle-1">
-              contents
+              {{ $t('common.contents') }}
             </span>
           </div>
         </div>
       </property-field>
       <property-field
         v-if="model.carried"
-        value="Carried"
+        :value="$t('forms.carried')"
       />
       <property-field v-if="model.contentsWeightless">
         <v-icon
@@ -87,10 +87,10 @@
         >
           $weightless
         </v-icon>
-        <span class="ml-1">Contents weightless</span>
+        <span class="ml-1">{{ $t('viewers.contentsWeightless') }}</span>
       </property-field>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

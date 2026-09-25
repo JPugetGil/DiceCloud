@@ -29,6 +29,9 @@ import { autorun } from 'vue-meteor-tracker';
 import ProficiencyIcon from '/imports/client/ui/properties/shared/ProficiencyIcon.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   proficiencyId: {
@@ -42,7 +45,7 @@ const emit = defineEmits(['click']);
 const model = autorun(() => CreatureProperties.findOne(props.proficiencyId)).result;
 
 const displayedText = computed(() => {
-  return model.value?.name || (model.value?.type == 'proficiency' ? 'Proficiency' : 'Skill');
+  return model.value?.name || (model.value?.type == 'proficiency' ? t('propertyTypes.proficiency.name') : t('viewers.skill'));
 });
 
 const displayedValue = computed(() => {

@@ -3,7 +3,7 @@
     <div class="d-flex flex-1-1 justify-space-around">
       <div>
         <smart-switch
-          label="Equipped"
+          :label="$t('forms.equipped')"
           :value="model.equipped"
           :error-messages="errors.equipped"
           @change="(value, ack) => change('equipped', value, ack)"
@@ -16,7 +16,7 @@
         md="6"
       >
         <text-field
-          label="Quantity"
+          :label="$t('forms.quantity')"
           type="number"
           min="0"
           prepend-inner-icon="$abacus"
@@ -30,10 +30,10 @@
         md="6"
       >
         <text-field
-          label="Plural name"
+          :label="$t('forms.item.pluralName')"
           :value="model.plural"
           :error-messages="errors.plural"
-          hint="The plural name of your item. If your item's name is 'sword' plural name would be 'swords'"
+          :hint="$t('forms.item.pluralNameHint')"
           @change="(value, ack) => change('plural', value, ack)"
         />
       </v-col>
@@ -43,11 +43,11 @@
         md="6"
       >
         <text-field
-          label="Value"
-          suffix="gp"
+          :label="$t('forms.value')"
+          :suffix="$t('forms.gp')"
           type="number"
           min="0"
-          hint="The value of the item in gold pieces, using decimals for values less than 1 gp"
+          :hint="$t('forms.valueGpHint')"
           prepend-inner-icon="$two_coins"
           :value="model.value"
           :error-messages="errors.value"
@@ -59,12 +59,12 @@
         md="6"
       >
         <text-field
-          label="Weight"
-          suffix="lb"
+          :label="$t('forms.weight')"
+          :suffix="$t('forms.lb')"
           type="number"
           min="0"
           prepend-inner-icon="$weight"
-          hint="The weight of a single item in lbs. Can be a decimal value"
+          :hint="$t('forms.item.weightHint')"
           :value="model.weight"
           :error-messages="errors.weight"
           @change="(value, ack) => change('weight', value, ack)"
@@ -73,7 +73,7 @@
     </v-row>
 
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -82,7 +82,7 @@
 
     <form-sections type="item">
       <form-section
-        name="Behavior"
+        :name="$t('forms.behavior')"
       >
         <v-row dense>
           <v-col
@@ -90,7 +90,7 @@
             md="6"
           >
             <smart-switch
-              label="Show increment button"
+              :label="$t('forms.item.showIncrement')"
               :value="model.showIncrement"
               :error-messages="errors.showIncrement"
               @change="(value, ack) => change('showIncrement', value, ack)"
@@ -101,7 +101,7 @@
             md="6"
           >
             <smart-switch
-              label="Don't show in log"
+              :label="$t('forms.dontShowInLog')"
               :value="model.silent"
               :error-messages="errors.silent"
               @change="(value, ack) => change('silent', value, ack)"
@@ -110,7 +110,7 @@
         </v-row>
       </form-section>
       <form-section
-        name="Attunement"
+        :name="$t('forms.item.attunement')"
       >
         <v-row dense>
           <v-col
@@ -118,7 +118,7 @@
             md="6"
           >
             <smart-switch
-              label="Requires attunement"
+              :label="$t('attunement.required')"
               :value="model.requiresAttunement"
               :error-messages="errors.requiresAttunement"
               @change="(value, ack) => change('requiresAttunement', value, ack)"
@@ -131,7 +131,7 @@
               md="6"
             >
               <smart-switch
-                label="Attuned"
+                :label="$t('attunement.attuned')"
                 :value="model.attuned"
                 :error-messages="errors.attuned"
                 @change="(value, ack) => change('attuned', value, ack)"

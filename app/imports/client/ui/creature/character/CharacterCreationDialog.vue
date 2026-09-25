@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        New Character
+        {{ $t('newCharacter.title') }}
       </v-toolbar-title>
     </template>
     <template #unwrapped-content>
@@ -18,7 +18,7 @@
             :complete="step > 1"
             :value="1"
             :rules="[() => biographyAlert || true]"
-            title="Biography"
+            :title="$t('newCharacter.biography')"
             :subtitle="biographyAlert || undefined"
           />
           <v-divider />
@@ -26,7 +26,7 @@
             editable
             :complete="step > 2"
             :value="2"
-            title="Libraries"
+            :title="$t('creatureForm.libraries')"
           />
         </v-stepper-header>
 
@@ -35,24 +35,24 @@
             <v-text-field
               v-model="name"
               variant="outlined"
-              label="Name"
+              :label="$t('common.name')"
               class="mt-1"
               :error="!name"
             />
             <v-text-field
               v-model="alignment"
               variant="outlined"
-              label="Alignment"
+              :label="$t('creatureForm.alignment')"
             />
             <v-text-field
               v-model="gender"
               variant="outlined"
-              label="Gender"
+              :label="$t('creatureForm.gender')"
             />
             <v-text-field
               v-model.number="startingLevel"
               variant="outlined"
-              label="Level"
+              :label="$t('newCharacter.level')"
               type="number"
               min="0"
               @keydown.tab="step++"
@@ -61,7 +61,7 @@
           <v-stepper-window-item :value="2">
             <v-switch
               v-model="allSubscribedLibraries"
-              label="All user libraries"
+              :label="$t('creatureForm.allUserLibraries')"
             />
             <library-list
               selection
@@ -81,14 +81,14 @@
         variant="text"
         @click="$emit('pop')"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
       <v-btn
         v-if="step > 1"
         variant="text"
         @click="step--"
       >
-        Back
+        {{ $t('common.back') }}
       </v-btn>
       <v-spacer />
       <v-btn
@@ -96,7 +96,7 @@
         color="accent"
         @click="step++"
       >
-        Next
+        {{ $t('common.next') }}
       </v-btn>
       <v-btn
         :disabled="!!biographyAlert"
@@ -105,7 +105,7 @@
         :color="step < 2? '' : 'accent'"
         @click="submit"
       >
-        Create
+        {{ $t('common.create') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -123,6 +123,9 @@ import insertCreature from '/imports/api/creature/creatures/methods/insertCreatu
 import LibraryList from '/imports/client/ui/library/LibraryList.vue';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 
@@ -130,7 +133,7 @@ const emit = defineEmits(['pop']);
 const router = useRouter();
 
 const step = ref(1);
-const name = ref('New Character');
+const name = ref(t('newCharacter.defaultName'));
 const gender = ref('');
 const alignment = ref('');
 const startingLevel = ref(1);
@@ -141,7 +144,7 @@ const allSubscribedLibraries = ref(true);
 const creating = ref(false);
 
 const biographyAlert = computed(() => {
-  if (!name.value) return 'Name required';
+  if (!name.value) return t('newCharacter.nameRequired');
   return undefined;
 });
 

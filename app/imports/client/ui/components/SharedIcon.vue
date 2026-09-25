@@ -19,6 +19,9 @@
 import { computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -47,9 +50,9 @@ const accessIcon = computed(() => {
 
 const accessText = computed(() => {
   switch (accessRights.value) {
-    case 'writer': return 'Shared with edit permission';
-    case 'reader': return 'Shared as view-only';
-    case 'public': return 'Shared publically';
+    case 'writer': return t('sharing.sharedWrite');
+    case 'reader': return t('sharing.sharedRead');
+    case 'public': return t('sharing.sharedPublic');
     default: return '';
   }
 });

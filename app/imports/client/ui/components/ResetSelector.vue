@@ -1,6 +1,6 @@
 <template>
   <smart-select
-    label="Reset"
+    :label="$t('common.reset')"
     clearable
     style="flex-basis: 300px;"
     :hint="hint"
@@ -15,6 +15,9 @@
 <script setup lang="js">
 import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
   value: {
@@ -40,10 +43,10 @@ const resetOptions = autorun(() => {
   }, true);
   const defaultEvents = [
     {
-      title: 'Short rest',
+      title: t('common.shortRest'),
       value: 'shortRest',
     }, {
-      title: 'Long rest',
+      title: t('common.longRest'),
       value: 'longRest',
     }
   ];

@@ -3,11 +3,11 @@
     <v-row dense>
       <property-field
         mono
-        name="Variable name"
+        :name="$t('viewers.variableNameLower')"
         :value="model.variableName"
       />
       <property-field
-        name="Calculation"
+        :name="$t('viewers.calculation')"
         :value="model.calculation"
       />
     </v-row>

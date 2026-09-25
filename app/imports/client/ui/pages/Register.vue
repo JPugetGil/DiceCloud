@@ -14,7 +14,7 @@
         <v-text-field
           v-model="email"
           type="text"
-          label="Email"
+          :label="$t('auth.email')"
           :rules="emailRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -25,7 +25,7 @@
         <v-text-field
           v-model="username"
           type="text"
-          label="Username"
+          :label="$t('auth.username')"
           :rules="usernameRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -36,7 +36,7 @@
         <v-text-field
           v-model="password"
           type="password"
-          label="Password"
+          :label="$t('auth.password')"
           :rules="passwordRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -47,7 +47,7 @@
         <v-text-field
           v-model="password2"
           type="password"
-          label="Password Again"
+          :label="$t('auth.passwordAgain')"
           :rules="password2Rules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -64,7 +64,7 @@
             color="accent"
             @click="submit"
           >
-            Register
+            {{ $t('auth.register') }}
           </v-btn>
         </div>
       </div>
@@ -80,7 +80,7 @@
           color="accent"
           @click="googleLogin"
         >
-          Register with Google
+          {{ $t('auth.registerWithGoogle') }}
         </v-btn>
       </div>
     </template>
@@ -93,6 +93,9 @@ import { useRoute, useRouter } from 'vue-router';
 import useLoginServiceConfigured from '/imports/client/ui/utility/useLoginServiceConfigured';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -101,21 +104,21 @@ const form = ref(null);
 const valid = ref(true);
 const username = ref('');
 const usernameRules = [
-  v => !!v || 'Name is required',
+  v => !!v || t('auth.nameRequired'),
 ];
 const email = ref('');
 const emailRules = [
-  v => !!v || 'E-mail is required',
-  v => /.+@.+/.test(v) || 'E-mail must be valid',
+  v => !!v || t('auth.emailRequired'),
+  v => /.+@.+/.test(v) || t('auth.emailInvalid'),
 ];
 const password = ref('');
 const passwordRules = [
-  v => !!v || 'Password is required',
+  v => !!v || t('auth.passwordRequired'),
 ];
 const password2 = ref('');
 const password2Rules = [
-  v => !!v || 'Password is required',
-  v => v == password.value || 'Passwords don\'t match',
+  v => !!v || t('auth.passwordRequired'),
+  v => v == password.value || t('auth.passwordsDontMatch'),
 ];
 const error = ref('');
 const googleError = ref('');

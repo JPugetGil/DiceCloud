@@ -56,7 +56,11 @@
   import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
   import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
   import { useAppStore } from '/imports/client/ui/piniaAppStore';
-  import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+  import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
@@ -134,8 +138,8 @@ const dialogStackStore = useDialogStackStore();
   }
 
   function getPropertyLabel(type) {
-    if (type === 'buff') return 'Buff or Condition';
-    return type ? PROPERTIES[type].name : 'Property';
+    if (type === 'buff') return t('sheet.buffOrCondition');
+    return type ? getPropertyName(type) : t('common.property');
   }
 
   async function addProperty(forcedType) {

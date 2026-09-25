@@ -5,11 +5,11 @@
         <v-card-text>
           <div class="d-flex flex-column align-center">
             <v-file-input
-              label="Metadata JSON"
+              :label="$t('icons.metadataJson')"
               @update:model-value="metadataFileChanged"
             />
             <v-file-input
-              label="Sprite JSON"
+              :label="$t('icons.spriteJson')"
               @update:model-value="spriteFileChanged"
             />
             <icon-picker

@@ -2,31 +2,31 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        New Collection
+        {{ $t('library.newCollection') }}
       </v-toolbar-title>
     </template>
     <template #default>
       <text-field
-        label="Name"
+        :label="$t('common.name')"
         :value="libraryCollection.name"
         :debounce-time="0"
         @change="nameChanged"
       />
       <text-area
-        label="Description"
+        :label="$t('common.description')"
         :value="libraryCollection.description"
         :debounce-time="0"
         @change="descriptionChanged"
       />
       <smart-select
-        label="Libraries"
+        :label="$t('library.libraries')"
         :items="libraryOptions"
         :value="libraryCollection.libraries"
         :debounce-time="0"
         multiple
         chips
         deletable-chips
-        no-data-text="No libraries found"
+        :no-data-text="$t('library.noLibrariesFound')"
         @change="librariesChanged"
       />
     </template>
@@ -37,7 +37,7 @@
         :disabled="!valid"
         @click="dialogStackStore.popDialogStack(libraryCollection)"
       >
-        Insert Collection
+        {{ $t('library.insertCollection') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -50,12 +50,15 @@ import { autorun } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Libraries from '/imports/api/library/Libraries';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
 
 const libraryCollection = ref({
-  name: 'New Collection',
+  name: t('library.newCollection'),
   description: undefined,
   libraries: [],
 });
@@ -89,7 +92,7 @@ function nameChanged(val, ack) {
     ack();
   } else {
     valid.value = false;
-    ack('Name is required');
+    ack(t('common.nameRequired'));
   }
 }
 

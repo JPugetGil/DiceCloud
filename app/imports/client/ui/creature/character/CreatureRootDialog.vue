@@ -58,7 +58,7 @@
           color="accent"
           @click="dialogStackStore.popDialogStack()"
         >
-          Close
+          {{ $t('common.close') }}
         </v-btn>
       </div>
     </template>

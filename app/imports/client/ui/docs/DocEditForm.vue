@@ -11,7 +11,7 @@
             md="6"
           >
             <text-field
-              label="Title"
+              :label="$t('docs.title')"
               :value="doc.name"
               @change="(value, ack) => change({path: ['name'], value, ack})"
             />
@@ -22,9 +22,9 @@
             class="d-flex"
           >
             <text-field
-              label="URL title"
+              :label="$t('docs.urlTitle')"
               :value="doc.urlName"
-              hint="Only letters, numbers, and dashes"
+              :hint="$t('docs.urlTitleHint')"
               @change="(value, ack) => change({path: ['urlName'], value, ack})"
             />
             <v-menu
@@ -47,7 +47,7 @@
                   @click="remove()"
                 >
                   <v-list-item-title>
-                    Delete
+                    {{ $t('common.delete') }}
                   </v-list-item-title>
 
                   <template #append>
@@ -62,7 +62,7 @@
             md="6"
           >
             <smart-switch
-              label="Published"
+              :label="$t('docs.published')"
               :value="doc.published"
               @change="(value, ack) => change({path: ['published'], value, ack})"
             />
@@ -73,7 +73,7 @@
             class="d-flex align-center"
           >
             <icon-picker
-              label="Icon"
+              :label="$t('docs.icon')"
               :value="doc.icon"
               @change="(value, ack) => change({path: ['icon'], value, ack})"
             />
@@ -82,7 +82,7 @@
             cols="12"
           >
             <text-area
-              label="Body"
+              :label="$t('docs.body')"
               :rows="20"
               :value="doc.description"
               @change="(value, ack) => change({path: ['description'], value, ack})"
@@ -119,7 +119,7 @@
             style="width: 100%; height: 240px;"
             @click="ack => add({ ack })"
           >
-            Add child
+            {{ $t('docs.addChild') }}
           </smart-btn>
         </v-col>
       </v-row>
@@ -139,6 +139,9 @@ import Docs, {
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import DocCard from '/imports/client/ui/docs/DocCard.vue';
 import getDocLink from '/imports/client/ui/docs/getDocLink';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   doc: {
@@ -170,7 +173,7 @@ async function change({ path, value, ack }) {
 async function add({ ack }) {
   try {
     await insertDoc.callAsync({
-      doc: { name: 'New Doc' },
+      doc: { name: t('docs.newDoc') },
       parentId: docId.value,
     });
     ack?.();
@@ -193,7 +196,7 @@ async function remove({ ack } = {}) {
     await softRemoveDoc.callAsync({ _id });
     ack?.();
     snackbar({
-      text: `Deleted ${docName}`,
+      text: t('common.deleted', { name: docName }),
       callbackName: 'undo',
       callback() {
         restoreDoc.callAsync({ _id }).catch(console.error);

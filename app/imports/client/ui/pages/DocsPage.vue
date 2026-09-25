@@ -27,7 +27,7 @@
           cols="12"
           md="8"
         >
-          <h1>Documentation not found</h1>
+          <h1>{{ $t('docs.notFound') }}</h1>
         </v-col>
       </v-row>
       <doc-edit-form
@@ -57,6 +57,9 @@ import DocViewer from '/imports/client/ui/docs/DocViewer.vue';
 import DocBreadcrumbs from '/imports/client/ui/docs/DocBreadcrumbs.vue';
 import { Session } from 'meteor/session';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 
@@ -102,9 +105,9 @@ const title = computed(() => {
   if (doc.value) {
     return doc.value.name;
   } else if (docNotFound.value) {
-    return 'Doc not found';
+    return t('pageTitle.docNotFound');
   } else {
-    return 'Documentation';
+    return t('pageTitle.documentation');
   }
 });
 

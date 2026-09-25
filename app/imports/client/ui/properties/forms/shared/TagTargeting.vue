@@ -15,7 +15,7 @@
         </v-icon>
       </v-btn>
       <smart-combobox
-        label="Tags Required"
+        :label="$t('forms.tagsRequired')"
         :hint="tagHint"
         class="mb-2"
         multiple
@@ -36,15 +36,15 @@
         class="target-tags d-flex flex-1-1 align-center justify-space-between"
       >
         <smart-select
-          label="Operation"
+          :label="$t('forms.operation')"
           style="width: 90px; flex-grow: 0;"
-          :items="['OR', 'NOT']"
+          :items="[{ title: $t('common.or'), value: 'OR' }, { title: $t('common.not'), value: 'NOT' }]"
           :value="extras.operation"
           :error-messages="errors[extraTagsField] && errors[extraTagsField][i]"
           @change="(value, ack) => change([extraTagsField, i, 'operation'], value, ack)"
         />
         <smart-combobox
-          label="Tags"
+          :label="$t('forms.tags')"
           :hint="extras.operation === 'OR' ? orHint : notHint"
           class="mx-2 mb-2"
           multiple
@@ -68,6 +68,7 @@
 </template>
 
 <script setup>
+import { t } from '/imports/client/ui/i18n';
 import { ref, computed } from 'vue';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 
@@ -90,15 +91,15 @@ const props = defineProps({
   },
   tagHint: {
     type: String,
-    default: 'Applied to properties that have all the listed tags',
+    default: () => t('forms.tagTargeting.tagHint'),
   },
   orHint: {
     type: String,
-    default: 'Also applied to properties that have all of these tags',
+    default: () => t('forms.tagTargeting.orHint'),
   },
   notHint: {
     type: String,
-    default: 'Ignore properties that have any of these tags',
+    default: () => t('forms.tagTargeting.notHint'),
   },
 });
 

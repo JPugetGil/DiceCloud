@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Select new location
+        {{ $t('library.selectNewLocation') }}
       </v-toolbar-title>
     </template>
     <template #unwrapped-content>
@@ -20,7 +20,7 @@
         color="primary"
         @click="dialogStackStore.popDialogStack(node._id)"
       >
-        {{ action || 'Move' }}
+        {{ action || $t('toolbar.moveTitle') }}
       </v-btn>
     </template>
   </dialog-base>

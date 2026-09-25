@@ -4,7 +4,7 @@
       <v-col cols="12">
         <outlined-input
           v-ripple
-          name="Linked Property"
+          :name="$t('forms.reference.linked')"
           class="pa-4 mb-6"
           data-id="change-ref"
           style="cursor: pointer;"

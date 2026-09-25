@@ -6,11 +6,11 @@
         md="6"
       >
         <text-field
-          label="Value"
-          suffix="gp"
+          :label="$t('forms.value')"
+          :suffix="$t('forms.gp')"
           type="number"
           min="0"
-          hint="The value of the item in gold pieces, using decimals for values less than 1 gp"
+          :hint="$t('forms.valueGpHint')"
           class="mx-1"
           style="flex-basis: 300px;"
           prepend-inner-icon="$two_coins"
@@ -24,8 +24,8 @@
         md="6"
       >
         <text-field
-          label="Weight"
-          suffix="lb"
+          :label="$t('forms.weight')"
+          :suffix="$t('forms.lb')"
           type="number"
           min="0"
           class="mx-1"
@@ -41,9 +41,9 @@
         sm="6"
       >
         <smart-switch
-          label="Carried"
+          :label="$t('forms.carried')"
           class="mx-3"
-          hint="Whether this container and its contents count towards the creature's weight carried"
+          :hint="$t('forms.container.carriedHint')"
           :value="model.carried"
           :error-messages="errors.carried"
           @change="(value, ack) => change('carried', value, ack)"
@@ -54,7 +54,7 @@
         sm="6"
       >
         <smart-switch
-          label="Contents are weightless"
+          :label="$t('forms.container.weightless')"
           :value="model.contentsWeightless"
           :error-messages="errors.contentsWeightless"
           @change="(value, ack) => change('contentsWeightless', value, ack)"
@@ -64,7 +64,7 @@
 
     <inline-computation-field
       class="mt-4"
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>

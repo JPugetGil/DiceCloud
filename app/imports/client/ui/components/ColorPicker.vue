@@ -84,14 +84,14 @@
           variant="text"
           @click="$emit('input')"
         >
-          Clear
+          {{ $t('common.clear') }}
         </v-btn>
         <v-spacer />
         <v-btn
           variant="text"
           @click="opened = false"
         >
-          Done
+          {{ $t('common.done') }}
         </v-btn>
       </v-card-actions>
     </v-card>

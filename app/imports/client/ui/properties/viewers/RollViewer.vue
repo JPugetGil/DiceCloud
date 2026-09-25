@@ -2,12 +2,12 @@
   <div class="roll-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Roll"
+        :name="$t('forms.roll.roll')"
         large
         center
         :calculation="model.roll"

@@ -34,7 +34,7 @@
       v-else
       class="add-image-text d-flex align-center justify-center"
     >
-      Add image
+      {{ $t('components.addImage') }}
       <v-icon
         end
       >

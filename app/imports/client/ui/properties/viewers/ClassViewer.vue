@@ -2,17 +2,17 @@
   <div class="class-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Condition"
+        :name="$t('forms.condition')"
         :value="model.slotCondition && (model.slotCondition.value || model.slotCondition.calculation)"
       />
       <property-field
         v-if="(model.slotTags && model.slotTags.length) || (model.extraTags && model.extraTags.length)"
-        name="Tags Required"
+        :name="$t('forms.tagsRequired')"
         :cols="{cols: 12}"
       >
         <div>
@@ -29,7 +29,7 @@
         </div>
       </property-field>
       <property-field
-        name="Missing Levels"
+        :name="$t('viewers.missingLevels')"
         mono
         :value="model.missingLevels &&
           (model.missingLevels.length || undefined) &&
@@ -38,12 +38,12 @@
       />
       <property-field
         v-if="context.creatureId"
-        name="Level"
+        :name="$t('forms.level')"
         :value="model.level"
       />
       <property-field
         v-if="context.creatureId"
-        name="Level Up"
+        :name="$t('build.levelUp')"
         :cols="{cols: 12}"
       >
         <v-btn
@@ -57,15 +57,15 @@
             mdi-plus
           </v-icon>
           <template v-if="model.missingLevels && model.missingLevels.length">
-            Get Missing Levels
+            {{ $t('build.getMissingLevels') }}
           </template>
           <template v-else>
-            Level Up
+            {{ $t('build.levelUp') }}
           </template>
         </v-btn>
       </property-field>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

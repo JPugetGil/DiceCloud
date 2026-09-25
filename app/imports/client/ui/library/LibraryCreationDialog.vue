@@ -2,17 +2,17 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        New Library
+        {{ $t('library.newLibraryTitle') }}
       </v-toolbar-title>
     </template>
     <text-field
-      label="Name"
+      :label="$t('common.name')"
       :value="library.name"
       :debounce-time="0"
       @change="nameChanged"
     />
     <text-area
-      label="Description"
+      :label="$t('common.description')"
       :value="library.description"
       :debounce-time="0"
       @change="descriptionChanged"
@@ -24,7 +24,7 @@
         :disabled="!valid"
         @click="dialogStackStore.popDialogStack(library)"
       >
-        Insert Library
+        {{ $t('library.insertLibrary') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -34,9 +34,12 @@
 import { ref} from 'vue';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const library = ref({
-  name: 'New Library',
+  name: t('library.newLibraryTitle'),
   description: undefined,
 });
 
@@ -51,7 +54,7 @@ function nameChanged(val, ack) {
     ack();
   } else {
     valid.value = false;
-    ack('Name is required')
+    ack(t('common.nameRequired'))
   }
 }
 

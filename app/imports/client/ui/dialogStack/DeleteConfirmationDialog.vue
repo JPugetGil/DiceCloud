@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Delete {{ typeName }}
+        {{ $t('deleteConfirm.title', { type: typeName }) }}
       </v-toolbar-title>
     </template>
     <div>
@@ -10,15 +10,15 @@
         type="warning"
         variant="outlined"
       >
-        This can't be undone
+        {{ $t('deleteConfirm.cantUndo') }}
       </v-alert>
       <p v-if="name">
-        Type "{{ name }}" to permanenetly delete.
+        {{ $t('deleteConfirm.typeName', { name }) }}
       </p>
       <v-text-field
         v-if="name"
         v-model="inputName"
-        label="Confirmation"
+        :label="$t('deleteConfirm.confirmation')"
         variant="outlined"
       />
       <div class="d-flex flex-1-1 justify-center">
@@ -27,7 +27,7 @@
           class="bg-primary"
           @click="dialogStackStore.popDialogStack(true);"
         >
-          Delete forever
+          {{ $t('deleteCharacter.deleteForever') }}
         </v-btn>
       </div>
     </div>
@@ -37,7 +37,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
     </template>
   </dialog-base>

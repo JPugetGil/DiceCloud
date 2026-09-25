@@ -2,7 +2,7 @@
   <div class="creature-viewer">
     <v-row dense>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

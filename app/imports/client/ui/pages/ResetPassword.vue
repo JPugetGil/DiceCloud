@@ -16,7 +16,7 @@
           <v-text-field
             v-model="password"
             type="password"
-            label="New Password"
+            :label="$t('auth.newPassword')"
             :rules="passwordRules"
             class="ma-2 w-100"
             style="max-width: 320px;"
@@ -27,7 +27,7 @@
           <v-text-field
             v-model="password2"
             type="password"
-            label="Password Again"
+            :label="$t('auth.passwordAgain')"
             :rules="password2Rules"
             class="ma-2 w-100"
             style="max-width: 320px;"
@@ -40,7 +40,7 @@
           v-else
           v-model="email"
           type="text"
-          label="Email"
+          :label="$t('auth.email')"
           :rules="emailRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -70,7 +70,7 @@
             color="accent"
             @click="submit"
           >
-            Reset Password
+            {{ $t('auth.resetPassword') }}
           </v-btn>
         </div>
       </div>
@@ -82,6 +82,9 @@
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Accounts } from 'meteor/accounts-base';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -90,17 +93,17 @@ const form = ref(null);
 const valid = ref(true);
 const email = ref('');
 const emailRules = [
-  v => !!v || 'E-mail is required',
-  v => /.+@.+/.test(v) || 'E-mail must be valid',
+  v => !!v || t('auth.emailRequired'),
+  v => /.+@.+/.test(v) || t('auth.emailInvalid'),
 ];
 const password = ref('');
 const passwordRules = [
-  v => !!v || 'Password is required',
+  v => !!v || t('auth.passwordRequired'),
 ];
 const password2 = ref('');
 const password2Rules = [
-  v => !!v || 'Password is required',
-  v => v == password.value || 'Passwords don\'t match',
+  v => !!v || t('auth.passwordRequired'),
+  v => v == password.value || t('auth.passwordsDontMatch'),
 ];
 const error = ref('');
 const info = ref('');
@@ -125,7 +128,7 @@ async function submit() {
       error.value = forgotError && forgotError.message;
       info.value = '';
       if (!forgotError) {
-        info.value = `Password reset link sent to ${email.value}`;
+        info.value = t('auth.resetLinkSent', { email: email.value });
         email.value = '';
         valid.value = true;
       }

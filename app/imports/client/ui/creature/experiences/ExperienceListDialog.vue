@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Experiences
+        {{ $t('xp.experiences') }}
       </v-toolbar-title>
       <v-spacer />
       <v-btn
@@ -38,7 +38,7 @@
         $baby_face
       </v-icon>
       <p class="text-h5">
-        No experiences
+        {{ $t('xp.noExperiences') }}
       </p>
     </div>
     <v-list v-else>
@@ -93,6 +93,9 @@ import { format } from 'date-fns';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Experiences, { removeExperience as removeExperienceMethod, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -121,12 +124,12 @@ const { result: experiences } = autorun(() => Experiences.find({
 function xpText(experience){
   let xpText = [];
   if (experience.levels === 1){
-    xpText.push('1 Milestone level');
+    xpText.push(t('xp.oneMilestoneLevel'));
   } else if (experience.levels){
-    xpText.push(`${experience.levels} Milestone levels`);
+    xpText.push(t('xp.milestoneLevels', { count: experience.levels }));
   }
   if (experience.xp || !experience.levels){
-    xpText.push(`${experience.xp || 0} XP`);
+    xpText.push(t('xp.amount', { xp: experience.xp || 0 }));
   }
   return xpText.join(', ');
 }

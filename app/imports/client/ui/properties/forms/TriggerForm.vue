@@ -6,9 +6,9 @@
         md="6"
       >
         <smart-select
-          label="Timing"
+          :label="$t('forms.trigger.timing')"
           style="flex-basis: 300px;"
-          hint="When this trigger will fire"
+          :hint="$t('forms.trigger.timingHint')"
           :items="timingOptions"
           :value="model.timing"
           :error-messages="errors.timing"
@@ -20,9 +20,9 @@
         md="6"
       >
         <smart-select
-          label="Event"
+          :label="$t('forms.trigger.event')"
           style="flex-basis: 300px;"
-          hint="What causes this trigger to fire"
+          :hint="$t('forms.trigger.eventHint')"
           :items="eventOptions"
           :value="model.event"
           :error-messages="errors.event"
@@ -34,9 +34,9 @@
         md="6"
       >
         <computed-field
-          label="Condition"
-          hint="A calculation to determine if this trigger should fire"
-          placeholder="Always active"
+          :label="$t('forms.condition')"
+          :hint="$t('forms.trigger.conditionHint')"
+          :placeholder="$t('forms.alwaysActive')"
           persistent-placeholder
           :model="model.condition"
           :error-messages="errors.condition"
@@ -51,9 +51,9 @@
           md="6"
         >
           <smart-select
-            label="Event Type"
+            :label="$t('forms.trigger.eventType')"
             style="flex-basis: 300px;"
-            hint="Which action event causes this trigger to fire"
+            :hint="$t('forms.trigger.eventTypeHint')"
             :items="actionPropertyTypeOptions"
             :value="model.actionPropertyType"
             :error-messages="errors.actionPropertyType"
@@ -74,8 +74,8 @@
 
     <inline-computation-field
       class="mt-6"
-      label="Description"
-      hint="The rest of the description that doesn't fit in the summary goes here"
+      :label="$t('common.description')"
+      :hint="$t('forms.feature.descriptionHint')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -84,10 +84,10 @@
 
     <form-sections type="trigger">
       <form-section
-        name="Log"
+        :name="$t('forms.log')"
       >
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
           @change="(value, ack) => change('silent', value, ack)"
@@ -109,6 +109,7 @@ import {
   timingOptions as TIMING_OPTIONS,
   actionPropertyTypeOptions as ACTION_PROPERTY_TYPE_OPTIONS,
 } from '/imports/api/properties/Triggers';
+import { translateOr } from '/imports/client/ui/i18n';
 
 defineProps({
   model: {
@@ -123,11 +124,14 @@ defineProps({
 
 const emit = defineEmits(['change', 'push', 'pull']);
 
-// The select items; the imported maps are { value: label }
-const toItems = options => Object.keys(options).map(value => ({ value, title: options[value] }));
-const eventOptions = toItems(EVENT_OPTIONS);
-const timingOptions = toItems(TIMING_OPTIONS);
-const actionPropertyTypeOptions = toItems(ACTION_PROPERTY_TYPE_OPTIONS);
+// The select items; the imported maps are { value: English label }
+const toItems = (options, group) => Object.keys(options).map(value => ({
+  value,
+  title: translateOr(`triggers.${group}.${value}`, options[value]),
+}));
+const eventOptions = toItems(EVENT_OPTIONS, 'event');
+const timingOptions = toItems(TIMING_OPTIONS, 'timing');
+const actionPropertyTypeOptions = toItems(ACTION_PROPERTY_TYPE_OPTIONS, 'actionPropertyType');
 
 function change(path, value, ack) {
   if (!Array.isArray(path)) {

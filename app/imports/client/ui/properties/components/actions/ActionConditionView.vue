@@ -7,7 +7,7 @@
       class="mr-2 text-no-wrap text-truncate"
       style="min-width: 24px; text-align: center;"
     >
-      {{ model.conditionNote || (model.condition && model.condition.calculation) || 'No condition specified' }}
+      {{ model.conditionNote || (model.condition && model.condition.calculation) || $t('cards.noCondition') }}
     </div>
   </div>
 </template>

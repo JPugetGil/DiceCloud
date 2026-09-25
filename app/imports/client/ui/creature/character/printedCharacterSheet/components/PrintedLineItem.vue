@@ -25,7 +25,7 @@
           <template
             v-if="model.weight"
           >
-            {{ model.weight }} lb
+            {{ $t('common.weightLb', { weight: model.weight }) }}
           </template>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <template
             v-if="model.weight"
           >
-            {{ totalWeight }} lb
+            {{ $t('common.weightLb', { weight: totalWeight }) }}
           </template>
         </div>
       </div>
@@ -54,6 +54,9 @@ import { computed } from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
 import CoinValue from '/imports/client/ui/components/CoinValue.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -88,8 +91,8 @@ const totalWeight = computed(() => {
 
 const attunementText = computed(() => {
   if (props.model.requiresAttunement) {
-    if (props.model.attuned) return 'Attuned';
-    return 'Requires attunement';
+    if (props.model.attuned) return t('attunement.attuned');
+    return t('attunement.required');
   }
   return undefined;
 });

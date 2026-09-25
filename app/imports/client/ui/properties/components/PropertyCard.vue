@@ -5,7 +5,7 @@
   />
   <v-card v-else-if="model">
     <v-card-title class="text--error">
-      A property card for the {{ model.type }} isn't defined. You should report this error.
+      {{ $t('cards.undefinedCard', { type: model.type }) }}
     </v-card-title>
   </v-card>
 </template>

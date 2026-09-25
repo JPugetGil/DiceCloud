@@ -25,6 +25,9 @@
 <script setup lang="js">
 import { ref, computed, watch, inject, onBeforeUnmount, nextTick, useAttrs } from 'vue';
 import { debounce as debounceFn } from 'lodash';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineOptions({
   inheritAttrs: false,
@@ -119,7 +122,7 @@ const acknowledgeChange = (err) => {
   } else if (err.message) {
     ackErrors.value = err.message;
   } else {
-    ackErrors.value = 'Something went wrong';
+    ackErrors.value = t('common.somethingWentWrong');
     console.error(err);
   }
 };
@@ -134,6 +137,10 @@ const debouncedChange = debounceFn(change, debounceTime.value);
 
 const onInput = (val) => {
   emit('input', val);
+  // v-text-field is controlled by safeValue, and Vue 3 re-applies an input's
+  // value on every render: unless safeValue follows the typing, the next render
+  // (a validation message appearing, say) wipes out what was typed
+  safeValue.value = val;
   inputValue.value = val;
   dirty.value = true;
 

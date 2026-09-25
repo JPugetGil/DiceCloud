@@ -4,16 +4,15 @@
   >
     <div class="double-border my-2">
       <div class="label text-center">
-        Inventory
+        {{ $t('tabs.inventory') }}
       </div>
       <div class="d-flex inventory-stat">
         <v-icon>$injustice</v-icon>
-        Weight Carried:
-        {{ weightCarried }} lb
+        {{ $t('printed.weightCarried', { weight: weightCarried }) }}
       </div>
       <div class="d-flex inventory-stat">
         <v-icon>$cash</v-icon>
-        Net worth:
+        {{ $t('printed.netWorth') }}
         <coin-value
           class="ml-2"
           :value="variables && variables.valueTotal && variables.valueTotal.value|| 0"
@@ -24,13 +23,12 @@
         class="d-flex inventory-stat"
       >
         <v-icon>$spell</v-icon>
-        Items attuned:
-        {{ variables.itemsAttuned && variables.itemsAttuned.value }}
+        {{ $t('printed.itemsAttuned', { count: variables.itemsAttuned && variables.itemsAttuned.value }) }}
       </div>
     </div>
     <div class="double-border my-2">
       <div class="label text-center">
-        Equipped
+        {{ $t('inventory.equipped') }}
       </div>
       <column-layout wide-columns>
         <printed-item
@@ -42,7 +40,7 @@
     </div>
     <div class="double-border my-2">
       <div class="label text-center">
-        Carried
+        {{ $t('inventory.carried') }}
       </div>
       <column-layout wide-columns>
         <printed-item

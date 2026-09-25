@@ -15,11 +15,10 @@
       <div v-else-if="!creature">
         <div class="d-flex flex-1-1 flex-column align-center justify-center">
           <h2 style="margin: 48px 28px 16px">
-            Character not found
+            {{ $t('sheet.notFound') }}
           </h2>
           <h3>
-            Either this character does not exist, or you don't have permission
-            to view it.
+            {{ $t('sheet.notFoundText') }}
           </h3>
         </div>
       </div>
@@ -45,10 +44,10 @@
                 {{ creature.gender }} {{ race }}
               </div>
               <div v-if="level && classes && classes.length === 1">
-                Level {{ level }} {{ classes[0].name }}
+                {{ $t('printed.levelClass', { level, className: classes[0].name }) }}
               </div>
               <div v-else-if="level">
-                Level {{ level }} ({{ classes.map(c => `${c.name} ${c.level}`).join(', ') }})
+                {{ $t('printed.levelClasses', { level, classes: classes.map(c => `${c.name} ${c.level}`).join(', ') }) }}
               </div>
             </div>
             <qrcode-vue
@@ -96,6 +95,9 @@ import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables
 import QrcodeVue from 'qrcode.vue'
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 
@@ -169,7 +171,7 @@ const creatureUrl = computed(() => {
     name: 'characterSheet',
     params: { id: creatureId.value },
   });
-  return new URL(props?.href, 'https://dicecloud.com').href;
+  return new URL(props?.href, Meteor.absoluteUrl()).href;
 });
 
 const level = computed(() => variables.value?.level?.value);
@@ -203,25 +205,26 @@ const classes = computed(() => {
 });
 
 watch(() => creature.value?.name, (value) => {
-  appStore.setPageTitle(value ? ('Print ' + value) : 'Print Character Sheet');
+  appStore.setPageTitle(printTitle(value));
 });
 
 let nameObserver = null;
 
+function printTitle(name) {
+  return name ? t('pageTitle.printCharacter', { name }) : t('pageTitle.printCharacterSheet');
+}
+
 onMounted(() => {
-  appStore.setPageTitle((creature.value && creature.value.name) ?
-      ('Print ' + creature.value.name) :
-      'Print Character Sheet'
-  );
+  appStore.setPageTitle(printTitle(creature.value?.name));
   nameObserver = Creatures.find({
     creatureId: creatureId.value,
   }, {
     fields: { name: 1 },
   }).observe({
     added: ({ name }) =>
-      appStore.setPageTitle(name ? ('Print ' + name) : 'Print Character Sheet'),
+      appStore.setPageTitle(printTitle(name)),
     changed: ({ name }) =>
-      appStore.setPageTitle(name ? ('Print ' + name) : 'Print Character Sheet'),
+      appStore.setPageTitle(printTitle(name)),
   });
 });
 

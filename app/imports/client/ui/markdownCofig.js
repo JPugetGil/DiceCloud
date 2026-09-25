@@ -6,5 +6,4 @@ marked.setOptions({
   silent: true,
   smartLists: true,
   smartypants: true,
-  //baseUrl: 'https://dicecloud.com',
 });

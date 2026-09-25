@@ -52,7 +52,7 @@
                 <v-card-text>
                   <v-switch
                     v-model="showSecondTree"
-                    label="Show second library tree"
+                    :label="$t('library.showSecondTree')"
                   />
                 </v-card-text>
               </v-card>
@@ -63,7 +63,7 @@
             v-model="organize"
             hide-details
             density="compact"
-            label="Organize"
+            :label="$t('tree.organize')"
             class="ml-1 mr-3"
             style="flex-grow: 0;"
           />

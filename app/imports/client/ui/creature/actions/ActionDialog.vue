@@ -30,7 +30,7 @@
           class="done-button"
           @click="finishAction"
         >
-          Done
+          {{ $t('common.done') }}
         </v-btn>
       </v-card>
     </v-slide-x-reverse-transition>

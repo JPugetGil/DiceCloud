@@ -10,7 +10,7 @@
         <template v-if="properties.suggested">
           <v-col cols="12">
             <v-list-subheader>
-              Suggested
+              {{ $t('selector.suggested') }}
             </v-list-subheader>
           </v-col>
           <template
@@ -25,6 +25,7 @@
             >
               <property-select-card
                 :property="property"
+                :type="type"
                 :disabled="type === currentType"
                 @click="$emit('select', type)"
               />
@@ -36,7 +37,7 @@
           cols="12"
         >
           <v-list-subheader>
-            More
+            {{ $t('selector.more') }}
           </v-list-subheader>
         </v-col>
         <template
@@ -51,6 +52,7 @@
           >
             <property-select-card
               :property="property"
+              :type="type"
               :disabled="type === currentType"
               @click="$emit('select', type)"
             />

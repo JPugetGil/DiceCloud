@@ -9,7 +9,7 @@
       <property-field
         v-if="model.value !== undefined ||
           fallbackValue !== undefined"
-        :name="model.damage !== undefined ? 'Value / Total': 'Value'"
+        :name="model.damage !== undefined ? $t('viewers.valueTotal') : $t('viewers.value')"
         center
       >
         <v-spacer />
@@ -48,7 +48,7 @@
       </property-field>
       <property-field
         v-if="model.modifier !== undefined"
-        name="Modifier"
+        :name="$t('viewers.modifier')"
         center
         :value="isFinite(model.modifier) ?
           numberToSignedString(model.modifier) :
@@ -59,34 +59,34 @@
         </div>
       </property-field>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Attribute type"
+        :name="$t('viewers.attributeType')"
         :value="attributeTypes[model.attributeType]"
       />
       <property-field
         v-if="model.attributeType === 'hitDice' && model.hitDiceSize"
-        name="Hit dice size"
+        :name="$t('viewers.hitDiceSize')"
         :value="model.hitDiceSize"
       />
       <property-field
         v-if="model.attributeType === 'hitDice'"
-        name="Constitution modifier"
+        :name="$t('viewers.conModifier')"
         :value="isFinite(model.constitutionMod) ?
           numberToSignedString(model.constitutionMod) :
           model.constitutionMod"
       />
       <property-field
         v-if="model.attributeType === 'spellSlot' && model.spellSlotLevel"
-        name="Spell slot level"
+        :name="$t('viewers.spellSlotLevel')"
         :value="model.spellSlotLevel.value !== undefined ? model.spellSlotLevel.value : model.spellSlotLevel.calculation"
       />
       <property-field
         v-if="model.attributeType === 'ability' && model.proficiency !== undefined"
-        name="Proficiency"
+        :name="$t('propertyTypes.proficiency.name')"
       >
         <v-icon
           style="height: 12px"
@@ -100,19 +100,19 @@
       </property-field>
       <property-field
         v-if="reset && model.attributeType !== 'hitDice'"
-        name="Reset"
+        :name="$t('viewers.reset')"
         :value="reset"
       />
       <property-field
         v-if="model.overridden"
         :cols="{cols: 6, md: 12}"
-        name="Overridden"
-        value="Overriden by another property with the same variable name"
+        :name="$t('viewers.overridden')"
+        :value="$t('viewers.overriddenText')"
       />
     </v-row>
     <v-row dense>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>
@@ -120,7 +120,7 @@
       <property-field
         v-if="effects && effects.length"
         :cols="{col: 12}"
-        name="Effects"
+        :name="$t('viewers.effects')"
       >
         <v-list style="width: 100%;">
           <attribute-effect
@@ -152,6 +152,9 @@ import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTi
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -163,22 +166,22 @@ const props = defineProps({
 const context = inject('context', {});
 
 const attributeTypes = ref({
-  ability: 'Ability score',
-  stat: 'Stat',
-  modifier: 'Modifier',
-  hitDice: 'Hit dice',
-  healthBar: 'Health bar',
-  resource: 'Resource',
-  spellSlot: 'Spell slot',
-  utility: 'Utility',
+  ability: t('attributeTypes.ability'),
+  stat: t('attributeTypes.stat'),
+  modifier: t('attributeTypes.modifier'),
+  hitDice: t('attributeTypes.hitDice'),
+  healthBar: t('attributeTypes.healthBar'),
+  resource: t('attributeTypes.resource'),
+  spellSlot: t('attributeTypes.spellSlot'),
+  utility: t('attributeTypes.utility'),
 });
 
 const proficiencyText = ref({
-  0: 'Not proficient',
-  1: 'Proficient',
-  0.49: 'Half proficiency bonus rounded down',
-  0.5: 'Half proficiency bonus rounded up',
-  2: 'Double proficiency bonus',
+  0: t('proficiencyLevels.none'),
+  1: t('proficiencyLevels.proficient'),
+  0.49: t('proficiencyLevels.halfDown'),
+  0.5: t('proficiencyLevels.halfUp'),
+  2: t('proficiencyLevels.double'),
 });
 
 const damagePropertyLoading = ref(false);
@@ -188,9 +191,9 @@ const dialogStackStore = useDialogStackStore();
 const reset = computed(() => {
   let reset = props.model.reset
   if (reset === 'shortRest'){
-    return 'Reset on a short rest';
+    return t('viewers.resetShortRest');
   } else if (reset === 'longRest'){
-    return 'Reset on a long rest';
+    return t('viewers.resetLongRest');
   }
   return undefined;
 });

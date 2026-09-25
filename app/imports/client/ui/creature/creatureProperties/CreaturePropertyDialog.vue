@@ -67,7 +67,7 @@
           color="accent"
           @click="dialogStackStore.popDialogStack()"
         >
-          Close
+          {{ $t('common.close') }}
         </v-btn>
       </div>
     </template>
@@ -89,7 +89,7 @@ import duplicateProperty from '/imports/api/creature/creatureProperties/methods/
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import PropertyToolbar from '/imports/client/ui/components/propertyToolbar.vue';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 
@@ -102,6 +102,9 @@ import insertPropertyFromLibraryNode from '/imports/api/creature/creaturePropert
 import PropertyViewer from '/imports/client/ui/properties/shared/PropertyViewer.vue';
 import copyPropertyToLibrary from '/imports/api/creature/creatureProperties/methods/copyPropertyToLibrary';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -221,7 +224,7 @@ async function remove() {
     return;
   }
   snackbar({
-    text: `Deleted ${getPropertyTitle(model.value)}`,
+    text: t('common.deleted', { name: getPropertyTitle(model.value) }),
     callbackName: 'undo',
     callback() {
       return restoreProperty.callAsync({ _id: id });
@@ -250,7 +253,7 @@ function copyToLibrary() {
     component: 'move-library-node-dialog',
     elementId: 'property-toolbar-menu-button',
     data: {
-      action: 'Copy',
+      action: t('common.copy'),
     },
     async callback(parentId) {
       if (!parentId) return;
@@ -262,7 +265,7 @@ function copyToLibrary() {
             id: parentId
           },
         });
-        snackbar({ text: 'Copied successfully' });
+        snackbar({ text: t('common.copiedSuccessfully') });
       } catch (error) {
         console.error(error);
         snackbar({ text: error.reason || error.message || error.toString() });

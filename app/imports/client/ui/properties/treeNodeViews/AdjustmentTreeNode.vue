@@ -14,14 +14,14 @@
         <span v-if="amount < 0">+</span>
         {{ absoluteAmount }} {{ model.stat }}
         <span v-if="typeof absoluteAmount === 'string' || amount >= 0">
-          damage
+          {{ $t('treeNodes.damageWord') }}
         </span>
         <span v-if="model.target === 'self'">
-          to self
+          {{ $t('treeNodes.toSelf') }}
         </span>
       </template>
       <template v-else>
-        <span>{{ model.stat || 'Attribute' }} damage</span>
+        <span>{{ $t('treeNodes.attributeDamage', { stat: model.stat || $t('forms.attributeLabel') }) }}</span>
       </template>
     </div>
   </div>

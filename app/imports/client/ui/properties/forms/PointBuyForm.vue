@@ -6,15 +6,15 @@
       @change="e => $emit('change', e)"
     />
     <form-sections type="pointBuy">
-      <form-section name="Point buy settings">
+      <form-section :name="$t('forms.pointBuy.settings')">
         <v-row dense>
           <v-col
             cols="12"
             md="6"
           >
             <computed-field
-              label="Min"
-              hint="The minimum value for each row"
+              :label="$t('forms.pointBuy.min')"
+              :hint="$t('forms.pointBuy.minHint')"
               placeholder="0"
               :model="model.min"
               :error-messages="errors.min"
@@ -27,8 +27,8 @@
             md="6"
           >
             <computed-field
-              label="Max"
-              hint="The maximum value for each row"
+              :label="$t('forms.pointBuy.max')"
+              :hint="$t('forms.pointBuy.maxHint')"
               placeholder="100"
               :model="model.max"
               :error-messages="errors.max"
@@ -41,8 +41,8 @@
             md="6"
           >
             <computed-field
-              label="Cost function"
-              hint="A function of `value` that determines the cost of each row"
+              :label="$t('forms.pointBuy.costFunction')"
+              :hint="$t('forms.pointBuy.costFunctionHint')"
               hide-value
               :model="model.cost"
               :error-messages="errors.cost"
@@ -55,8 +55,8 @@
             md="6"
           >
             <computed-field
-              label="Total available points"
-              hint="The total allowed cost of all rows"
+              :label="$t('forms.pointBuy.total')"
+              :hint="$t('forms.pointBuy.totalHint')"
               :model="model.total"
               :error-messages="errors.total"
               @change="({path, value, ack}) =>
@@ -65,7 +65,7 @@
           </v-col>
         </v-row>
       </form-section>
-      <form-section name="Rows">
+      <form-section :name="$t('forms.pointBuy.rows')">
         <v-slide-x-transition
           group
           leave-absolute
@@ -88,7 +88,7 @@
                 >
                   <text-field
                     ref="focusFirst"
-                    label="Row Name"
+                    :label="$t('forms.pointBuy.rowName')"
                     :value="row.name"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].name"
                     @change="(value, ack) => change(['values', i, 'name'], value, ack)"
@@ -99,9 +99,9 @@
                   md="6"
                 >
                   <text-field
-                    label="Variable name"
+                    :label="$t('forms.variableName')"
                     :value="row.variableName"
-                    hint="Use this name in calculations to reference this row of the table"
+                    :hint="$t('forms.pointBuy.rowVariableHint')"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].variableName"
                     @change="(value, ack) => change(['values', i, 'variableName'], value, ack)"
                   />
@@ -112,9 +112,9 @@
                   md="6"
                 >
                   <text-field
-                    label="Default value"
+                    :label="$t('forms.pointBuy.defaultValue')"
                     :value="row.value"
-                    hint="The starting value of the row"
+                    :hint="$t('forms.pointBuy.defaultValueHint')"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].value"
                     @change="(value, ack) => change(['values', i, 'value'], value, ack)"
                   />

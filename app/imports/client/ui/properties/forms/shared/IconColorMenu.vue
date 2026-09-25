@@ -3,7 +3,7 @@
     class="d-flex flex-wrap align-start"
   >
     <outlined-input
-      name="Icon"
+      :name="$t('forms.iconColor.icon')"
       class="mb-4"
     >
       <icon-picker
@@ -14,7 +14,7 @@
       />
     </outlined-input>
     <outlined-input
-      name="Color"
+      :name="$t('forms.iconColor.color')"
       class="mb-4 ml-2"
     >
       <color-picker

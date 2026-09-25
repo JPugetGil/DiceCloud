@@ -118,6 +118,12 @@ const userSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // Interface language, see imports/client/ui/i18n
+  'preferences.language': {
+    type: String,
+    allowedValues: ['en', 'fr'],
+    optional: true,
+  },
 });
 
 Meteor.users.attachSchema(userSchema);
@@ -153,6 +159,22 @@ Meteor.users.setDarkMode = new ValidatedMethod({
   async run({ darkMode }) {
     if (!this.userId) return;
     await Meteor.users.updateAsync(this.userId, { $set: { darkMode } });
+  },
+});
+
+Meteor.users.setLanguage = new ValidatedMethod({
+  name: 'users.setLanguage',
+  validate: new SimpleSchema({
+    language: { type: String, allowedValues: ['en', 'fr'] },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: {
+    numRequests: 5,
+    timeInterval: 2000,
+  },
+  async run({ language }) {
+    if (!this.userId) return;
+    await Meteor.users.updateAsync(this.userId, { $set: { 'preferences.language': language } });
   },
 });
 

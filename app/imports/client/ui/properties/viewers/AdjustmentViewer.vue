@@ -2,7 +2,7 @@
   <div class="adjustment-viewer">
     <v-row dense>
       <property-field
-        name="Amount"
+        :name="$t('viewers.amount')"
         center
         large
       >
@@ -12,14 +12,14 @@
         {{ displayedValue }}
       </property-field>
       <property-field
-        name="Attribute"
+        :name="$t('forms.attributeLabel')"
         mono
         :value="model.stat"
       />
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
     </v-row>
   </div>

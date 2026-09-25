@@ -2,25 +2,25 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Sharing
+        {{ $t('common.sharing') }}
       </v-toolbar-title>
     </template>
     <div v-if="model">
       <smart-select
-        label="Who can view"
+        :label="$t('sharing.whoCanView')"
         :items="[
-          {title: 'Only people I share with', value: 'false'},
-          {title: 'Anyone with link', value: 'true'}
+          {title: $t('sharing.onlyShared'), value: 'false'},
+          {title: $t('sharing.anyoneWithLink'), value: 'true'}
         ]"
         :value="!!model.public + ''"
         @change="(value, ack) => setSheetPublic({value, ack})"
       />
       <smart-select
         v-if="docRef.collection === 'libraries'"
-        label="Who can copy from this library"
+        :label="$t('sharing.whoCanCopy')"
         :items="[
-          {title: 'Only people with edit permission', value: 'false'},
-          {title: 'Anyone with read permission', value: 'true'}
+          {title: $t('sharing.onlyEditors'), value: 'false'},
+          {title: $t('sharing.anyoneReader'), value: 'true'}
         ]"
         :value="!!model.readersCanCopy + ''"
         @change="(value, ack) => setReadersCanCopy({value, ack})"
@@ -28,7 +28,7 @@
       <text-field
         v-if="model.public && docRef.collection === 'libraries'"
         readonly
-        label="Link"
+        :label="$t('sharing.link')"
         :value="locationOrigin + router.resolve({
           name: 'singleLibrary',
           params: { id: model._id },
@@ -36,7 +36,7 @@
       />
       <div class="d-flex flex-1-1">
         <text-field
-          label="Username or email"
+          :label="$t('auth.usernameOrEmail')"
           :value="userSearched"
           :debounce-time="300"
           @change="(value, ack) => getUser({value, ack})"
@@ -46,7 +46,7 @@
           :disabled="userFoundState !== 'found'"
           @click="updateSharing(userId, 'reader')"
         >
-          Share
+          {{ $t('common.share') }}
         </v-btn>
       </div>
       <v-list
@@ -61,7 +61,7 @@
             {{ user.username || user._id }}
           </v-list-item-title>
           <v-list-item-subtitle>
-            {{ user.permission === 'writer' ? 'Can edit' : 'Can view' }}
+            {{ user.permission === 'writer' ? $t('sharing.canEdit') : $t('sharing.canView') }}
           </v-list-item-subtitle>
 
           <template #append>
@@ -87,7 +87,7 @@
                   <template #prepend>
                     <v-icon>mdi-pencil</v-icon>
                   </template>
-                  <v-list-item-title>Can edit</v-list-item-title>
+                  <v-list-item-title>{{ $t('sharing.canEdit') }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   v-if="user.permission === 'writer'"
@@ -96,7 +96,7 @@
                   <template #prepend>
                     <v-icon>mdi-eye</v-icon>
                   </template>
-                  <v-list-item-title>View only</v-list-item-title>
+                  <v-list-item-title>{{ $t('sharing.viewOnly') }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   v-if="user.permission === 'writer'"
@@ -105,13 +105,13 @@
                   <template #prepend>
                     <v-icon>mdi-signature</v-icon>
                   </template>
-                  <v-list-item-title>Transfer Ownership</v-list-item-title>
+                  <v-list-item-title>{{ $t('sharing.transferOwnership') }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item @click="updateSharing(user._id, 'none')">
                   <template #prepend>
                     <v-icon>mdi-delete</v-icon>
                   </template>
-                  <v-list-item-title>Remove</v-list-item-title>
+                  <v-list-item-title>{{ $t('common.remove') }}</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -131,7 +131,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Done
+        {{ $t('common.done') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -149,6 +149,9 @@ import {
 } from '/imports/api/sharing/sharing';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -225,14 +228,14 @@ async function getUser({ value, ack }) {
     if (result) {
       if (result === model.value.owner) {
         userFoundState.value = 'failed';
-        ack('User is already the owner');
+        ack(t('sharing.alreadyOwner'));
       } else {
         userFoundState.value = 'found';
         ack();
       }
     } else {
       userFoundState.value = 'notFound';
-      ack('User not found');
+      ack(t('sharing.userNotFound'));
     }
   } catch (error) {
     ack(error && error.reason || error);

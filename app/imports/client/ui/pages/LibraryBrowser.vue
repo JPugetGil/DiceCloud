@@ -33,7 +33,7 @@
                   {{ card.name }}
                 </v-card-title>
                 <v-card-subtitle v-if="card.subscriberCount">
-                  {{ formatNumber(card.subscriberCount) }} subscribers
+                  {{ $t('library.subscribers', { count: formatNumber(card.subscriberCount) }) }}
                 </v-card-subtitle>
                 <v-card-text>
                   <markdown-text :markdown="card.description" />
@@ -47,7 +47,7 @@
                     :color="card.subscribed ? '': 'accent'"
                     @click="ack => changeSubscribe(card, ack)"
                   >
-                    {{ card.subscribed ? 'Unsubscribe' : 'Subscribe' }}
+                    {{ card.subscribed ? $t('library.unsubscribe') : $t('library.subscribe') }}
                   </smart-btn>
                 </v-card-actions>
               </v-card>
@@ -84,6 +84,9 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
 import Libraries from '/imports/api/library/Libraries';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import formatter from '/imports/client/ui/utility/numberFormatter';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const { ready: browseLibrariesReady } = subscribe('browseLibraries');
@@ -149,7 +152,7 @@ async function changeSubscribe(card, ack) {
       ack(error);
     }
   } else {
-    ack('Library or Library Collection not found');
+    ack(t('library.notFound'));
   }
 }
 </script>

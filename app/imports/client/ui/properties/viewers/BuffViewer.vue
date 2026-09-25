@@ -1,19 +1,19 @@
 <template>
   <div class="buff-viewer">
     <!--<property-field
-      name="Duration"
+      :name="$t('viewers.duration')"
       :value="model.duration"
     />-->
     <v-row dense>
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
     </v-row>
     <v-row dense>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

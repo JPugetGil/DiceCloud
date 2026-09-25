@@ -42,28 +42,28 @@
           {{ ownerName }}
         </v-list-item-title>
         <v-list-item-subtitle>
-          Library owner
+          {{ $t('library.libraryOwner') }}
         </v-list-item-subtitle>
       </v-list-item>
       <text-field
-        label="name"
+        :label="$t('library.nameLower')"
         :value="model.name"
         @change="updateName"
       />
       <text-area
-        label="Description"
+        :label="$t('common.description')"
         :value="model.description"
         @change="updateDescription"
       />
       <smart-switch
         :value="model.showInMarket"
         :disabled="!isOwner"
-        label="Show in community library browser"
+        :label="$t('library.showInBrowser')"
         @change="updateShowInMarket"
       />
     </template>
     <template v-if="removedDocs && removedDocs.length">
-      <h3>Recently Deleted Properties</h3>
+      <h3>{{ $t('library.recentlyDeleted') }}</h3>
       <v-list>
         <v-list-item
           v-for="removedModel in removedDocs"
@@ -79,7 +79,7 @@
               variant="text"
               @click="restore(removedModel._id)"
             >
-              Restore
+              {{ $t('common.restore') }}
             </v-btn>
           </template>
         </v-list-item>
@@ -97,7 +97,7 @@
         data-id="delete-library-button"
         @click="dialogStackStore.popDialogStack()"
       >
-        Done
+        {{ $t('common.done') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -114,6 +114,9 @@ import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeVi
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -183,7 +186,7 @@ function remove() {
     elementId: 'delete-library-button',
     data: {
       name: model.value?.name,
-      typeName: 'Library'
+      typeName: t('library.library')
     },
     async callback(confirmation) {
       if (!confirmation) return;

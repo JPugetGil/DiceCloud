@@ -36,6 +36,9 @@ import { autorun } from 'vue-meteor-tracker';
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
 import { isFinite } from 'lodash';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   hideBreadcrumbs: Boolean,
@@ -63,16 +66,16 @@ const effectIcon = computed(() => {
 
 const operation = computed(() => {
   switch(model.value?.operation) {
-    case 'base': return 'Base value';
-    case 'add': return 'Add';
-    case 'mul': return 'Multiply';
-    case 'min': return 'Minimum';
-    case 'max': return 'Maximum';
-    case 'advantage': return 'Advantage';
-    case 'disadvantage': return 'Disadvantage';
-    case 'passiveAdd': return 'Passive bonus';
-    case 'fail': return 'Always fail';
-    case 'conditional': return 'Conditional benefit';
+    case 'base': return t('effectOps.base');
+    case 'add': return t('effectOps.add');
+    case 'mul': return t('effectOps.mul');
+    case 'min': return t('effectOps.min');
+    case 'max': return t('effectOps.max');
+    case 'advantage': return t('effectOps.advantage');
+    case 'disadvantage': return t('effectOps.disadvantage');
+    case 'passiveAdd': return t('effectOps.passiveAdd');
+    case 'fail': return t('effectOps.fail');
+    case 'conditional': return t('effectOps.conditional');
     default: return '';
   }
 });

@@ -1,7 +1,7 @@
 <template>
   <property-field
     v-if="model.targetByTags"
-    name="Targeted tags"
+    :name="$t('viewers.targetedTags')"
   >
     <div
       class="py-1"

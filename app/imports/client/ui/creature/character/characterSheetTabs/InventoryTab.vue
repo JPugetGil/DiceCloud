@@ -20,7 +20,7 @@
               </template>
 
               <v-list-item-title>
-                Weight Carried
+                {{ $t('inventory.weightCarried') }}
               </v-list-item-title>
 
               <template #append>
@@ -37,7 +37,7 @@
               </template>
 
               <v-list-item-title>
-                Net worth
+                {{ $t('inventory.netWorth') }}
               </v-list-item-title>
 
               <template #append>
@@ -54,7 +54,7 @@
               </template>
 
               <v-list-item-title>
-                Items attuned
+                {{ $t('inventory.itemsAttuned') }}
               </v-list-item-title>
 
               <template #append>
@@ -70,7 +70,7 @@
         <toolbar-card transparent-toolbar>
           <template #toolbar>
             <v-toolbar-title>
-              Equipped
+              {{ $t('inventory.equipped') }}
             </v-toolbar-title>
           </template>
           <v-card-text class="px-0">
@@ -86,7 +86,7 @@
         <toolbar-card transparent-toolbar>
           <template #toolbar>
             <v-toolbar-title>
-              Carried
+              {{ $t('inventory.carried') }}
             </v-toolbar-title>
           </template>
           <v-card-text class="px-0">

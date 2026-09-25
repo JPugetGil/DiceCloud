@@ -1,7 +1,7 @@
 <template>
   <dialog-base>
     <text-field
-      label="Username"
+      :label="$t('auth.username')"
       :value="newUsername || username"
       @change="change"
     />
@@ -19,7 +19,7 @@
         :loading="loading"
         @click="setUsername"
       >
-        Update
+        {{ $t('common.update') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -31,6 +31,9 @@ import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const valid = ref(true);
 
@@ -52,7 +55,7 @@ async function change(username, ack) {
     const result = await Meteor.users.canPickUsername.callAsync({username});
     if (result){
       valid.value = false;
-      ack('Username is already taken');
+      ack(t('account.usernameTaken'));
     } else {
       valid.value = true;
       newUsername.value = username;

@@ -9,7 +9,7 @@
     />
     <div class="text-no-wrap text-truncate">
       <template v-if="model.dc && Number.isFinite(model.dc.value)">
-        DC {{ model.dc.value }}
+        {{ $t('treeNodes.dc', { dc: model.dc.value }) }}
       </template>
       {{ title }}
     </div>

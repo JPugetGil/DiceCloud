@@ -6,9 +6,9 @@
         md="6"
       >
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
-          hint="Use this name in calculations to reference this attribute"
+          :hint="$t('forms.variableNameAttributeHint')"
           :error-messages="errors.variableName"
           @change="(value, ack) => change('variableName', value, ack)"
         />
@@ -19,9 +19,9 @@
       >
         <computed-field
           ref="focusFirst"
-          label="Base Value"
+          :label="$t('forms.attribute.baseValue')"
           class="base-value-field"
-          hint="This is the value of the attribute before effects are applied. Can be a number or a calculation"
+          :hint="$t('forms.attribute.baseValueHint')"
           :model="model.baseValue"
           :error-messages="errors.baseValue"
           @change="({path, value, ack}) =>
@@ -30,7 +30,7 @@
       </v-col>
       <v-col cols="12">
         <smart-select
-          label="Type"
+          :label="$t('common.type')"
           :items="attributeTypes"
           :value="model.attributeType"
           :error-messages="errors.attributeType"
@@ -45,7 +45,7 @@
           cols="12"
         >
           <smart-select
-            label="Hit Dice Size"
+            :label="$t('forms.attribute.hitDiceSize')"
             :items="['d4', 'd6', 'd8', 'd10', 'd12', 'd20']"
             :value="model.hitDiceSize"
             :error-messages="errors.hitDiceSize"
@@ -58,7 +58,7 @@
           cols="12"
         >
           <computed-field
-            label="Spell slot level"
+            :label="$t('forms.attribute.spellSlotLevel')"
             :model="model.spellSlotLevel"
             :error-messages="errors.spellSlotLevel"
             @change="({path, value, ack}) =>
@@ -68,7 +68,7 @@
       </v-expand-transition>
     </v-row>
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -78,17 +78,17 @@
       <v-expand-transition>
         <form-section
           v-if="model.attributeType === 'healthBar'"
-          name="Health Bar"
+          :name="$t('forms.attribute.healthBar')"
         >
           <div class="d-flex flex-column align-center mb-4">
             <div class="text-caption mb-4">
-              Damaged Colors
+              {{ $t('forms.attribute.damagedColors') }}
             </div>
             <div
               class="d-flex flex-wrap align-center justify-start"
             >
               <outlined-input
-                name="Half"
+                :name="$t('forms.attribute.half')"
                 class="mb-4"
               >
                 <color-picker
@@ -99,7 +99,7 @@
                 />
               </outlined-input>
               <outlined-input
-                name="Empty"
+                :name="$t('forms.attribute.empty')"
                 class="mb-4 ml-2"
               >
                 <color-picker
@@ -117,9 +117,9 @@
               md="4"
             >
               <text-field
-                label="Damage order"
+                :label="$t('forms.attribute.damageOrder')"
                 type="number"
-                hint="Lower ordered health bars will take damage before higher ordered ones"
+                :hint="$t('forms.attribute.damageOrderHint')"
                 :disabled="model.healthBarNoDamage"
                 :value="model.healthBarDamageOrder"
                 :error-messages="errors.healthBarDamageOrder"
@@ -132,7 +132,7 @@
               sm="6"
             >
               <smart-switch
-                label="Ignore damage"
+                :label="$t('forms.attribute.ignoreDamage')"
                 :value="model.healthBarNoDamage"
                 :error-messages="errors.healthBarNoDamage"
                 @change="(value, ack) => change('healthBarNoDamage', value, ack)"
@@ -144,7 +144,7 @@
               sm="6"
             >
               <smart-switch
-                label="Prevent damage overflow"
+                :label="$t('forms.attribute.preventDamageOverflow')"
                 :value="model.healthBarNoDamageOverflow"
                 :error-messages="errors.healthBarNoDamageOverflow"
                 @change="(value, ack) => change('healthBarNoDamageOverflow', value, ack)"
@@ -155,9 +155,9 @@
               md="4"
             >
               <text-field
-                label="Healing order"
+                :label="$t('forms.attribute.healingOrder')"
                 type="number"
-                hint="Lower ordered health bars will take healing before higher ordered ones"
+                :hint="$t('forms.attribute.healingOrderHint')"
                 :disabled="model.healthBarNoHealing"
                 :value="model.healthBarHealingOrder"
                 :error-messages="errors.healthBarHealingOrder"
@@ -170,7 +170,7 @@
               sm="6"
             >
               <smart-switch
-                label="Ignore healing"
+                :label="$t('forms.attribute.ignoreHealing')"
                 :value="model.healthBarNoHealing"
                 :error-messages="errors.healthBarNoHealing"
                 @change="(value, ack) => change('healthBarNoHealing', value, ack)"
@@ -182,7 +182,7 @@
               sm="6"
             >
               <smart-switch
-                label="Prevent healing overflow"
+                :label="$t('forms.attribute.preventHealingOverflow')"
                 :value="model.healthBarNoHealingOverflow"
                 :error-messages="errors.healthBarNoHealingOverflow"
                 @change="(value, ack) => change('healthBarNoHealingOverflow', value, ack)"
@@ -191,17 +191,17 @@
           </v-row>
         </form-section>
       </v-expand-transition>
-      <form-section name="Damage">
+      <form-section :name="$t('forms.attribute.damage')">
         <v-row dense>
           <v-col
             cols="12"
             md="6"
           >
             <text-field
-              label="Damage"
+              :label="$t('forms.attribute.damage')"
               type="number"
               class="damage-field text-center"
-              hint="Damage reduces the attribute's final value"
+              :hint="$t('forms.attribute.damageHint')"
               :disabled="!context.isLibraryForm"
               :value="model.damage"
               :error-messages="errors.damage"
@@ -214,7 +214,7 @@
           >
             <reset-selector
               v-if="model.attributeType !== 'hitDice'"
-              hint="When damage should be reset to zero"
+              :hint="$t('forms.attribute.resetDamageHint')"
               :value="model.reset"
               :error-messages="errors.reset"
               @change="(value, ack) => change('reset', value, ack)"
@@ -222,7 +222,7 @@
           </v-col>
         </v-row>
       </form-section>
-      <form-section name="Behavior"> 
+      <form-section :name="$t('forms.behavior')"> 
         <v-row dense>
           <v-col
             cols="12"
@@ -231,7 +231,7 @@
           >
             <smart-switch
               v-if="model.attributeType !== 'hitDice'"
-              label="Allow decimal values"
+              :label="$t('forms.attribute.allowDecimal')"
               class="mx-4"
               :value="model.decimal"
               :error-messages="errors.decimal"
@@ -244,7 +244,7 @@
             md="4"
           >
             <smart-switch
-              label="Can be damaged into negative values"
+              :label="$t('forms.attribute.allowNegative')"
               class="mx-4"
               :value="model.ignoreLowerLimit"
               :error-messages="errors.ignoreLowerLimit"
@@ -257,7 +257,7 @@
             md="4"
           >
             <smart-switch
-              label="Can be incremented above total"
+              :label="$t('forms.attribute.allowAboveTotal')"
               class="mx-4"
               :value="model.ignoreUpperLimit"
               :error-messages="errors.ignoreUpperLimit"
@@ -270,7 +270,7 @@
             md="4"
           >
             <smart-switch
-              label="Hide when total is zero"
+              :label="$t('forms.attribute.hideWhenTotalZero')"
               class="mx-4"
               :value="model.hideWhenTotalZero"
               :error-messages="errors.hideWhenTotalZero"
@@ -283,7 +283,7 @@
             md="4"
           >
             <smart-switch
-              label="Hide when value is zero"
+              :label="$t('forms.attribute.hideWhenValueZero')"
               class="mx-4"
               :value="model.hideWhenValueZero"
               :error-messages="errors.hideWhenValueZero"
@@ -306,6 +306,9 @@ import FormSections from '/imports/client/ui/properties/forms/shared/FormSection
 import ColorPicker from '/imports/client/ui/components/ColorPicker.vue';
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
 import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -324,34 +327,34 @@ const context = inject('context', {});
 
 const attributeTypes = [
   {
-    title: 'Ability score',
+    title: t('attributeTypes.ability'),
     value: 'ability',
-    help: 'Ability scores are your primary attributes, like Strength and Intelligence',
+    help: t('attributeTypes.abilityHelp'),
   }, {
-    title: 'Stat',
+    title: t('attributeTypes.stat'),
     value: 'stat',
-    help: 'Stats are attributes with a numerical value like speed or carrying capacity',
+    help: t('attributeTypes.statHelp'),
   }, {
-    title: 'Modifier',
+    title: t('attributeTypes.modifier'),
     value: 'modifier',
-    help: 'Modifiers are attributes that are added to rolls, like proficiency bonus',
+    help: t('attributeTypes.modifierHelp'),
   }, {
-    title: 'Hit dice',
+    title: t('attributeTypes.hitDice'),
     value: 'hitDice',
   }, {
-    title: 'Health bar',
+    title: t('attributeTypes.healthBar'),
     value: 'healthBar',
   }, {
-    title: 'Resource',
+    title: t('attributeTypes.resource'),
     value: 'resource',
-    help: 'Resources are attributes that are spent to fuel actions, like sorcery points or ki'
+    help: t('attributeTypes.resourceHelp')
   }, {
-    title: 'Spell slot',
+    title: t('attributeTypes.spellSlot'),
     value: 'spellSlot',
   }, {
-    title: 'Utility',
+    title: t('attributeTypes.utility'),
     value: 'utility',
-    help: 'Utility attributes aren\'t displayed on your character sheet, but can be referenced or used in calculations',
+    help: t('attributeTypes.utilityHelp'),
   },
 ];
 

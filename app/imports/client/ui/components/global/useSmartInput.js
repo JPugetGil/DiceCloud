@@ -1,3 +1,4 @@
+import { t } from '/imports/client/ui/i18n';
 import { ref, computed, watch, inject, nextTick, onBeforeUnmount, useAttrs } from 'vue';
 import { debounce } from 'lodash';
 
@@ -91,7 +92,7 @@ export function useSmartInput(props, emit, options = {}) {
     } else if (err.message) {
       ackErrors.value = err.message;
     } else {
-      ackErrors.value = 'Something went wrong';
+      ackErrors.value = t('common.somethingWentWrong');
       console.error(err);
     }
   };
@@ -111,6 +112,10 @@ export function useSmartInput(props, emit, options = {}) {
   const input = (val) => {
     emit('input', val);
     emit('update:modelValue', val);
+    // The Vuetify input is controlled by safeValue, and Vue 3 re-applies its
+    // value on every render: safeValue must follow the user's input, or the next
+    // render undoes it
+    safeValue.value = val;
     inputValue.value = val;
     dirty.value = true;
 

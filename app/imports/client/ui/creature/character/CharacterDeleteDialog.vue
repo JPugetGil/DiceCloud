@@ -2,12 +2,12 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Delete Character
+        {{ $t('deleteCharacter.title') }}
       </v-toolbar-title>
     </template>
     <div>
       <p v-if="name">
-        Type "{{ name }}" to permanently delete the character
+        {{ $t('deleteCharacter.typeName', { name }) }}
       </p>
       <v-text-field
         v-if="name"
@@ -19,7 +19,7 @@
         :loading="removing"
         @click="remove"
       >
-        Delete forever
+        {{ $t('deleteCharacter.deleteForever') }}
       </v-btn>
     </div>
     <template #actions>
@@ -28,7 +28,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
     </template>
   </dialog-base>

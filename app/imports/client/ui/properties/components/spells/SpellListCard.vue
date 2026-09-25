@@ -15,7 +15,7 @@
         v-if="preparingSpells || preparedError"
         :class="{'text-error' : preparedError}"
       >
-        {{ numPrepared }}/{{ model.maxPrepared && model.maxPrepared.value || 0 }} spells prepared
+        {{ $t('cards.spellsPrepared', { prepared: numPrepared, max: model.maxPrepared && model.maxPrepared.value || 0 }) }}
       </v-toolbar-title>
       <v-spacer />
       <v-menu
@@ -39,7 +39,7 @@
           <v-switch
             v-model="preparingSpells"
             class="ma-2"
-            label="Change prepared spells"
+            :label="$t('cards.changePrepared')"
             hide-details
           />
         </v-list>

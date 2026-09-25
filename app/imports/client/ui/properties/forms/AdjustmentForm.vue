@@ -6,8 +6,8 @@
         md="6"
       >
         <smart-combobox
-          label="Attribute"
-          hint="The attribute that will be damaged or healed"
+          :label="$t('forms.attributeLabel')"
+          :hint="$t('forms.adjustment.attributeHint')"
           style="flex-basis: 300px;"
           :items="attributeList"
           :value="model.stat"
@@ -20,7 +20,7 @@
         md="6"
       >
         <computed-field
-          label="Amount"
+          :label="$t('forms.amount')"
           :hint="model.operation === 'set' ? setHint : damageHint"
           :model="model.amount"
           :error-messages="errors.amount"
@@ -35,12 +35,12 @@
         md="6"
       >
         <smart-toggle
-          label="Operation"
-          hint="Should the attribute be damaged by the amount, or set to the amount"
+          :label="$t('forms.operation')"
+          :hint="$t('forms.adjustment.operationHint')"
           :value="model.operation"
           :options="[
-            { name: 'Damage', value: 'increment' },
-            { name: 'Set', value: 'set' },
+            { name: $t('forms.adjustment.damage'), value: 'increment' },
+            { name: $t('forms.adjustment.set'), value: 'set' },
           ]"
           :error-messages="errors.operation"
           @change="(value, ack) => change('operation', value, ack)"
@@ -51,11 +51,11 @@
         md="6"
       >
         <smart-toggle
-          label="Target creature"
+          :label="$t('forms.targetCreature')"
           :value="model.target"
           :options="[
-            {name: 'Action Target', value: 'target'},
-            {name: 'Self', value: 'self'},
+            {name: $t('forms.actionTarget'), value: 'target'},
+            {name: $t('forms.self'), value: 'self'},
           ]"
           :error-messages="errors.target"
           @change="(value, ack) => change('target', value, ack)"
@@ -63,9 +63,9 @@
       </v-col>
     </v-row>
     <form-sections type="adjustment">
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
           @change="(value, ack) => change('silent', value, ack)"
@@ -81,6 +81,9 @@ import { useAttributeList } from '/imports/client/ui/properties/forms/shared/lis
 import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
   model: {
@@ -97,8 +100,8 @@ const emit = defineEmits(['change']);
 
 const attributeList = useAttributeList();
 
-const damageHint = 'The amount of damage to apply, negative values will heal';
-const setHint = 'The value to set the stat to';
+const damageHint = t('forms.adjustment.damageHint');
+const setHint = t('forms.adjustment.setHint');
 
 function change(field, value, ack) {
   emit('change', { path: [field], value, ack });

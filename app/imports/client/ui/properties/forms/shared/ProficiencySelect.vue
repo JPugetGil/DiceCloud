@@ -24,6 +24,9 @@
 <script setup>
 import { ref, watch } from 'vue';
 import getProficiencyIcon from '/imports/client/ui/utility/getProficiencyIcon';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const ICON_SPIN_DURATION = 300;
 
@@ -45,10 +48,10 @@ const displayedIcon = ref('mdi-radiobox-blank');
 const iconClass = ref('');
 
 const values = ref([
-  {value: 1, title: 'Proficient'},
-  {value: 0.49, title: 'Half proficiency bonus rounded down'},
-  {value: 0.5, title: 'Half proficiency bonus rounded up'},
-  {value: 2, title: 'Double proficiency bonus'},
+  {value: 1, title: t('proficiencyLevels.proficient')},
+  {value: 0.49, title: t('proficiencyLevels.halfDown')},
+  {value: 0.5, title: t('proficiencyLevels.halfUp')},
+  {value: 2, title: t('proficiencyLevels.double')},
 ]);
 
 watch(() => props.value, (newValue) => {

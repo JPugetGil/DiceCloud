@@ -3,6 +3,9 @@ import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
+import { useI18n } from 'vue-i18n';
+import i18n from '/imports/client/ui/i18n';
 import 'vuetify/styles';
 import SVG_ICONS from '/imports/constants/SVG_ICONS';
 import SvgIconByName from '/imports/client/ui/icons/SvgIconByName.vue';
@@ -18,6 +21,10 @@ for (const name in SVG_ICONS) {
 const vuetify = createVuetify({
   components,
   directives,
+  // Built-in texts follow the app's language
+  locale: {
+    adapter: createVueI18nAdapter({ i18n, useI18n }),
+  },
   theme: {
     defaultTheme: 'light',
     themes,

@@ -5,8 +5,8 @@
       md="6"
     >
       <text-field
-        label="Item"
-        hint="The item tag that will be consumed"
+        :label="$t('forms.itemConsumed.item')"
+        :hint="$t('forms.itemConsumed.itemHint')"
         style="flex-basis: 300px;"
         :value="model.tag"
         :error-messages="errors.tag"
@@ -18,8 +18,8 @@
       md="6"
     >
       <computed-field
-        label="Quantity"
-        hint="How many will be consumed"
+        :label="$t('forms.quantity')"
+        :hint="$t('forms.itemConsumed.quantityHint')"
         style="flex-basis: 300px;"
         :model="model.quantity"
         :error-messages="errors.quantity"

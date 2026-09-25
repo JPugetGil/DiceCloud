@@ -22,13 +22,13 @@
 
     <v-card>
       <v-card-title>
-        Search
+        {{ $t('common.search') }}
       </v-card-title>
       <v-card-text>
         <v-select
           v-model="typeFilterInput"
           variant="outlined"
-          label="Type"
+          :label="$t('common.type')"
           :items="filterOptions"
           multiple
           clearable
@@ -44,12 +44,12 @@
             <v-text-field
               v-model="fieldFilter.field"
               class="text--mono"
-              label="Field"
+              :label="$t('treeSearch.field')"
               variant="outlined"
             />
             <v-text-field
               v-model="fieldFilter.value"
-              label="Text"
+              :label="$t('treeSearch.text')"
               class="ml-2"
               variant="outlined"
             />
@@ -87,7 +87,7 @@
             <v-icon start>
               mdi-close
             </v-icon>
-            Clear
+            {{ $t('common.clear') }}
           </v-btn>
           <v-spacer />
           <v-btn
@@ -95,7 +95,7 @@
             color="primary"
             @click="menu = false"
           >
-            Find
+            {{ $t('common.find') }}
           </v-btn>
         </v-card-actions>
       </v-card-text>
@@ -106,6 +106,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import escapeRegex from '/imports/api/utility/escapeRegex';
 
 const props = defineProps({
@@ -124,7 +125,7 @@ const emit = defineEmits(['input', 'extra-fields-changed']);
 const baseFilterOptions = [];
 for (let key in PROPERTIES) {
   baseFilterOptions.push({
-    title: PROPERTIES[key].name,
+    title: getPropertyName(key),
     value: key,
   });
 }

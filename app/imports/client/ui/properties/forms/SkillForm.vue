@@ -6,10 +6,10 @@
         md="6"
       >
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
           style="flex-basis: 300px;"
-          hint="Use this name in formulae to reference this skill"
+          :hint="$t('forms.skill.variableNameHint')"
           :error-messages="errors.variableName"
           @change="(...args) => change('variableName', ...args)"
         />
@@ -19,10 +19,10 @@
         md="6"
       >
         <smart-combobox
-          label="Ability"
+          :label="$t('check.ability')"
           :value="model.ability"
           style="flex-basis: 300px;"
-          hint="Which ability is this skill based off of"
+          :hint="$t('forms.skill.abilityHint')"
           :items="abilityScoreList"
           :error-messages="errors.ability"
           @change="(...args) => change('ability', ...args)"
@@ -33,7 +33,7 @@
         md="6"
       >
         <smart-select
-          label="Type"
+          :label="$t('common.type')"
           clearable
           :items="skillTypes"
           :value="model.skillType"
@@ -45,7 +45,7 @@
       </v-col>
     </v-row>
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -53,14 +53,14 @@
     />
 
     <form-sections type="skill">
-      <form-section name="Base Values">
+      <form-section :name="$t('forms.skill.baseValues')">
         <v-row dense>
           <v-col
             cols="12"
             md="6"
           >
             <proficiency-select
-              label="Base Proficiency"
+              :label="$t('forms.skill.baseProficiency')"
               :value="model.baseProficiency"
               :error-messages="errors.baseProficiency"
               @change="(...args) => change('baseProficiency', ...args)"
@@ -71,8 +71,8 @@
             md="6"
           >
             <computed-field
-              label="Base Value"
-              hint="This is the value of the skill before effects are applied"
+              :label="$t('forms.attribute.baseValue')"
+              :hint="$t('forms.skill.baseValueHint')"
               :model="model.baseValue"
               :error-messages="errors.baseValue"
               @change="({path, value, ack}) =>
@@ -81,9 +81,9 @@
           </v-col>
         </v-row>
       </form-section>
-      <form-section name="Apply skill">
+      <form-section :name="$t('forms.skill.applySkill')">
         <smart-switch
-          label="Apply skill to targeted tags"
+          :label="$t('forms.skill.applyToTags')"
           :value="model.targetByTags"
           :error-messages="errors.targetByTags"
           @change="(...args) => change('targetByTags', ...args)"
@@ -113,6 +113,9 @@ import createListOfProperties from '/imports/client/ui/properties/forms/shared/l
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
 import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
   model: {
@@ -129,41 +132,41 @@ const emit = defineEmits(['change', 'push', 'pull']);
 
 const skillTypes = [
   {
-    title: 'Skill',
+    title: t('skillTypes.skill'),
     value: 'skill',
   }, {
-    title: 'Save',
+    title: t('skillTypes.save'),
     value: 'save',
   }, {
-    title: 'Check',
+    title: t('skillTypes.check'),
     value: 'check',
   }, {
-    title: 'Tool',
+    title: t('skillTypes.tool'),
     value: 'tool',
   }, {
-    title: 'Weapon',
+    title: t('skillTypes.weapon'),
     value: 'weapon',
   }, {
-    title: 'Armor',
+    title: t('skillTypes.armor'),
     value: 'armor',
   }, {
-    title: 'Language',
+    title: t('skillTypes.language'),
     value: 'language',
   }, {
-    title: 'Utility',
+    title: t('skillTypes.utility'),
     value: 'utility',
   },
 ];
 
 const skillTypeHints = {
-  skill: 'A normal character sheet skill like Athletics, Deception, or Investigation',
-  'save': 'A saving throw the character can make: Strength Save, etc.',
-  'check': 'An ability check that might include a proficiency bonus later eg. Initiative',
-  'tool': 'A tool proficiency. Be sure to add a base proficiency in the advanced section.',
-  'weapon': 'A weapon proficiency. Be sure to add a base proficiency in the advanced section.',
-  'armor': 'A armor proficiency. Be sure to add a base proficiency in the advanced section.',
-  'language': 'A language proficiency. Be sure to add a base proficiency in the advanced section.',
-  'utility': 'A skill that does not show up in the sheet, but can be used by other caclulations',
+  skill: t('skillTypeHints.skill'),
+  'save': t('skillTypeHints.save'),
+  'check': t('skillTypeHints.check'),
+  'tool': t('skillTypeHints.tool'),
+  'weapon': t('skillTypeHints.weapon'),
+  'armor': t('skillTypeHints.armor'),
+  'language': t('skillTypeHints.language'),
+  'utility': t('skillTypeHints.utility'),
 };
 
 const abilityScoreList = autorun(() => {

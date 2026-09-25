@@ -3,12 +3,12 @@
     <v-row>
       <property-field
         v-if="model.cache.error"
-        name="Error"
+        :name="$t('viewers.error')"
         :value="model.cache.error"
       />
       <property-field
         v-else-if="model.ref && model.ref.id"
-        name="Linked property"
+        :name="$t('viewers.linkedProperty')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">
@@ -31,7 +31,7 @@
       </property-field>
       <property-field
         v-if="model.cache.library && model.cache.library.name"
-        name="Library"
+        :name="$t('forms.library')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">

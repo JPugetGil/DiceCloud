@@ -14,7 +14,7 @@
         <v-text-field
           v-model="name"
           type="text"
-          label="Username or email"
+          :label="$t('auth.usernameOrEmail')"
           :rules="nameRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -25,7 +25,7 @@
         <v-text-field
           v-model="password"
           type="password"
-          label="Password"
+          :label="$t('auth.password')"
           :rules="passwordRules"
           class="ma-2 w-100"
           style="max-width: 320px;"
@@ -37,7 +37,7 @@
           variant="text"
           to="/reset-password"
         >
-          Reset Password
+          {{ $t('auth.resetPassword') }}
         </v-btn>
         <div
           v-if="error"
@@ -52,14 +52,14 @@
             class="ma-2"
             @click="submit"
           >
-            Sign In
+            {{ $t('auth.signIn') }}
           </v-btn>
           <v-btn
             color="accent"
             :to="{ name: 'register', query: { redirect: $route.query.redirect} }"
             class="ma-2"
           >
-            Register
+            {{ $t('auth.register') }}
           </v-btn>
         </div>
       </div>
@@ -76,7 +76,7 @@
           class="ma-2"
           @click="googleLogin"
         >
-          Sign in with Google
+          {{ $t('auth.signInWithGoogle') }}
         </v-btn>
       </div>
     </template>
@@ -88,6 +88,9 @@ import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useLoginServiceConfigured from '/imports/client/ui/utility/useLoginServiceConfigured';
 import { Meteor } from 'meteor/meteor';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -96,11 +99,11 @@ const form = ref(null);
 const valid = ref(true);
 const name = ref('');
 const nameRules = [
-  v => !!v || 'Name is required',
+  v => !!v || t('auth.nameRequired'),
 ];
 const password = ref('');
 const passwordRules = [
-  v => !!v || 'Password is required',
+  v => !!v || t('auth.passwordRequired'),
 ];
 const error = ref('');
 const googleError = ref('');

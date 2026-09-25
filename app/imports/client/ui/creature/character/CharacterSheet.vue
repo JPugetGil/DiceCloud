@@ -4,11 +4,10 @@
       <div v-if="!creature">
         <div class="d-flex flex-1-1 flex-column align-center justify-center">
           <h2 style="margin: 48px 28px 16px">
-            Character not found
+            {{ $t('sheet.notFound') }}
           </h2>
           <h3>
-            Either this character does not exist, or you don't have permission
-            to view it.
+            {{ $t('sheet.notFoundText') }}
           </h3>
         </div>
       </div>
@@ -68,35 +67,35 @@
       @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
     >
       <v-btn>
-        <span>Stats</span>
+        <span>{{ $t('tabs.stats') }}</span>
         <v-icon>mdi-chart-box</v-icon>
       </v-btn>
       <v-btn>
-        <span>Actions</span>
+        <span>{{ $t('tabs.actions') }}</span>
         <v-icon>mdi-lightning-bolt</v-icon>
       </v-btn>
       <v-btn v-if="!creature.settings.hideSpellsTab">
-        <span>Spells</span>
+        <span>{{ $t('tabs.spells') }}</span>
         <v-icon>mdi-fire</v-icon>
       </v-btn>
       <v-btn>
-        <span>Inventory</span>
+        <span>{{ $t('tabs.inventory') }}</span>
         <v-icon>mdi-cube</v-icon>
       </v-btn>
       <v-btn>
-        <span>Features</span>
+        <span>{{ $t('tabs.features') }}</span>
         <v-icon>mdi-text</v-icon>
       </v-btn>
       <v-btn>
-        <span>Journal</span>
+        <span>{{ $t('tabs.journal') }}</span>
         <v-icon>mdi-book-open-variant</v-icon>
       </v-btn>
       <v-btn>
-        <span>Build</span>
+        <span>{{ $t('tabs.build') }}</span>
         <v-icon>mdi-wrench</v-icon>
       </v-btn>
       <v-btn v-if="creature.settings.showTreeTab">
-        <span>Tree</span>
+        <span>{{ $t('tabs.tree') }}</span>
         <v-icon>mdi-file-tree</v-icon>
       </v-btn>
     </v-bottom-navigation>
@@ -127,6 +126,9 @@ import ActionsTab from '/imports/client/ui/creature/character/characterSheetTabs
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
@@ -156,14 +158,14 @@ provide('context', reactive({
 }));
 
 watch(() => creature.value?.name, (value) => {
-  appStore.setPageTitle(value || 'Character Sheet');
+  appStore.setPageTitle(value || t('pageTitle.characterSheet'));
 });
 
 let nameObserver;
 let logObserver;
 
 onMounted(() => {
-  appStore.setPageTitle((creature.value && creature.value.name) || 'Character Sheet');
+  appStore.setPageTitle((creature.value && creature.value.name) || t('pageTitle.characterSheet'));
   
   nameObserver = Creatures.find({
     creatureId: props.creatureId,
@@ -171,9 +173,9 @@ onMounted(() => {
     fields: { name: 1 },
   }).observe({
     added: ({ name }) =>
-      appStore.setPageTitle(name || 'Character Sheet'),
+      appStore.setPageTitle(name || t('pageTitle.characterSheet')),
     changed: ({ name }) =>
-      appStore.setPageTitle(name || 'Character Sheet'),
+      appStore.setPageTitle(name || t('pageTitle.characterSheet')),
   });
 
   if (route.name === 'characterSheet') {

@@ -46,6 +46,7 @@ meteor npm run check:contrast        # one check, by its npm script
 | `contrast` | WCAG contrast of links, the selected toggle option and app bar text, in both themes (4.5:1 text, 3:1 icons) | Links and selected options below 4.5:1 |
 | `palette` | Every theme colour role, as Vuetify applies it, against every surface of its theme and under its on- colour (see DESIGN_SYSTEM.md) | Brand red at 3.6:1 as text on dark cards |
 | `accessibility` | axe-core's WCAG AA colour-contrast rule over the main pages, in both themes | Light-theme labels and subtitles at 4.3:1 |
+| `slot-fill` | Opens a library slot in test mode and compares the fillers listed (and the "requirements not met" count) with what the database holds; skipped when the test account can use no library | Every slot fill dialog listing nothing ("Explore the Library!"); fillers offered although their requirements failed |
 
 The server's own log can hold errors a clean browser console hides. Keep the dev
 server's output (`meteor 2>&1 | tee /tmp/dicecloud-dev.log`) and run
@@ -70,6 +71,7 @@ meteor node tools/dom.js /account '.theme-preference'
 | `E2E_USERNAME` | `e2e-tester` | Must start with `e2e-` |
 | `E2E_PASSWORD` | `e2e-tester-password` | |
 | `E2E_ALLOW_REMOTE` | unset | `1` to allow a non-local app or database |
+| `E2E_LOCALE` | unset (English) | Browser language, e.g. `fr` to run a check in French; checks that read English text (`slot-fill`) expect English |
 
 ## Safety
 

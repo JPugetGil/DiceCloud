@@ -62,7 +62,7 @@
           <h1
             v-else
           >
-            Documentation
+            {{ $t('pageTitle.documentation') }}
           </h1>
         </div>
       </v-fade-transition>
@@ -70,7 +70,7 @@
         <markdown-text
           v-if="doc"
           :key="doc._id"
-          :markdown="doc.description"
+          :markdown="expandRootUrl(doc.description)"
           @click="mdClick"
         />
       </v-fade-transition>
@@ -102,6 +102,7 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
+import { expandRootUrl } from '/imports/api/docs/docUrls';
 import DocCard from '/imports/client/ui/docs/DocCard.vue';
 import DocListItem from '/imports/client/ui/docs/DocListItem.vue';
 import { find } from 'lodash';

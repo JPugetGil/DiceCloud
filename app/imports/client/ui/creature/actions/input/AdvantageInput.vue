@@ -6,10 +6,10 @@
       @update:model-value="emitInput"
     >
       <v-btn :value="-1">
-        Disadvantage
+        {{ $t('common.disadvantage') }}
       </v-btn>
       <v-btn :value="1">
-        Advantage
+        {{ $t('common.advantage') }}
       </v-btn>
     </v-btn-toggle>
     <div style="position: relative;">
@@ -29,7 +29,7 @@
         @click="emit('continue')"
       >
         <div>
-          Roll
+          {{ $t('common.roll') }}
         </div>
       </vertical-hex>
     </div>

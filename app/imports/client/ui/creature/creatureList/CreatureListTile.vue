@@ -76,6 +76,9 @@ import draggable from 'vuedraggable';
 import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
 import { moveBetweenRoots } from '/imports/api/parenting/organizeMethods';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -121,7 +124,7 @@ async function dropItem({ added }) {
       newPosition: 0.5,
     });
     snackbar({
-      text: `Moved ${item.name || 'item'} to ${props.model.name || 'another character'}`,
+      text: t('characterList.moved', { item: item.name || t('characterList.item'), target: props.model.name || t('characterList.anotherCharacter') }),
       callbackName: 'undo',
       callback: undo,
     });

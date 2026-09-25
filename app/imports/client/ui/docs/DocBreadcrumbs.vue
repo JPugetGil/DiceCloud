@@ -9,6 +9,9 @@
 import { computed } from 'vue';
 import Docs from '/imports/api/docs/Docs';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   doc: {
@@ -19,7 +22,7 @@ const props = defineProps({
 
 const items = computed(() => {
   const items = [{
-    title: 'Docs',
+    title: t('docs.docs'),
     to: '/docs',
     exact: true,
   }];

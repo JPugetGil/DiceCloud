@@ -8,7 +8,7 @@
       >
         <smart-switch
           class="ml-2"
-          label="Always prepared"
+          :label="$t('forms.spell.alwaysPrepared')"
           :value="model.alwaysPrepared"
           :error-messages="errors.alwaysPrepared"
           @change="(value, ack) => change('alwaysPrepared', value, ack)"
@@ -22,7 +22,7 @@
       >
         <smart-switch
           class="ml-2"
-          label="Prepared"
+          :label="$t('forms.spell.prepared')"
           :value="model.prepared"
           :error-messages="errors.prepared"
           @change="(value, ack) => change('prepared', value, ack)"
@@ -36,7 +36,7 @@
       >
         <smart-switch
           class="ml-2"
-          label="Cast without spell slots"
+          :label="$t('forms.spell.withoutSlots')"
           :value="model.castWithoutSpellSlots"
           :error-messages="errors.castWithoutSpellSlots"
           @change="(value, ack) => change('castWithoutSpellSlots', value, ack)"
@@ -49,8 +49,8 @@
         md="6"
       >
         <smart-select
-          label="Level"
-          hint="The spell level"
+          :label="$t('forms.level')"
+          :hint="$t('forms.spell.levelHint')"
           :items="spellLevels"
           :value="model.level"
           :error-messages="errors.level"
@@ -62,7 +62,7 @@
         md="6"
       >
         <smart-select
-          label="School"
+          :label="$t('forms.spell.school')"
           :items="magicSchools"
           :value="model.school"
           :error-messages="errors.school"
@@ -74,7 +74,7 @@
         md="6"
       >
         <text-field
-          label="Casting Time"
+          :label="$t('forms.spell.castingTime')"
           :value="model.castingTime"
           :error-messages="errors.castingTime"
           @change="(value, ack) => change('castingTime', value, ack)"
@@ -85,7 +85,7 @@
         md="6"
       >
         <text-field
-          label="Range"
+          :label="$t('forms.spell.range')"
           :value="model.range"
           :error-messages="errors.range"
           @change="(value, ack) => change('range', value, ack)"
@@ -96,7 +96,7 @@
         md="6"
       >
         <text-field
-          label="Duration"
+          :label="$t('forms.spell.duration')"
           :value="model.duration"
           :error-messages="errors.duration"
           @change="(value, ack) => change('duration', value, ack)"
@@ -110,7 +110,7 @@
         class="pt-1"
       >
         <smart-checkbox
-          label="Verbal"
+          :label="$t('spellComponents.verbal')"
           :value="model.verbal"
           :error-messages="errors.verbal"
           @change="(value, ack) => change('verbal', value, ack)"
@@ -122,7 +122,7 @@
         class="pt-1"
       >
         <smart-checkbox
-          label="Somatic"
+          :label="$t('spellComponents.somatic')"
           :value="model.somatic"
           :error-messages="errors.somatic"
           @change="(value, ack) => change('somatic', value, ack)"
@@ -134,7 +134,7 @@
         class="pt-1"
       >
         <smart-checkbox
-          label="Concentration"
+          :label="$t('spellComponents.concentration')"
           :value="model.concentration"
           :error-messages="errors.concentration"
           @change="(value, ack) => change('concentration', value, ack)"
@@ -146,7 +146,7 @@
         class="pt-1"
       >
         <smart-checkbox
-          label="Ritual"
+          :label="$t('spellComponents.ritual')"
           :value="model.ritual"
           :error-messages="errors.ritual"
           @change="(value, ack) => change('ritual', value, ack)"
@@ -156,7 +156,7 @@
     <v-row dense>
       <v-col cols="12">
         <text-field
-          label="Material"
+          :label="$t('spellComponents.material')"
           :value="model.material"
           :error-messages="errors.material"
           @change="(value, ack) => change('material', value, ack)"
@@ -169,12 +169,12 @@
         md="6"
       >
         <smart-toggle
-          label="Target creature"
+          :label="$t('forms.targetCreature')"
           :value="model.target"
           :options="[
-            {name: 'Single Target', value: 'singleTarget'},
-            {name: 'Multiple Targets', value: 'multipleTargets'},
-            {name: 'Self', value: 'self'},
+            {name: $t('forms.singleTarget'), value: 'singleTarget'},
+            {name: $t('forms.multipleTargets'), value: 'multipleTargets'},
+            {name: $t('forms.self'), value: 'self'},
           ]"
           :error-messages="errors.target"
           @change="(value, ack) => change('target', value, ack)"
@@ -188,15 +188,15 @@
           <v-switch
             v-if="!isAttack"
             class="ml-4"
-            label="Attack roll"
+            :label="$t('forms.attackRoll')"
             :value="attackSwitch"
             @update:model-value="e => attackSwitch = e"
           />
           <computed-field
             v-else
-            label="To Hit"
+            :label="$t('forms.spell.toHit')"
             prefix="1d20 + "
-            hint="The bonus to attack if this action has an attack roll"
+            :hint="$t('forms.spell.toHitHint')"
             :model="model.attackRoll"
             :error-messages="errors.attackRoll"
             @change="({path, value, ack}) =>
@@ -218,22 +218,22 @@
       </v-col>
     </v-row>
     <inline-computation-field
-      label="Summary"
-      hint="This will appear in the action card in the character sheet, summarise what the action does"
+      :label="$t('forms.summary')"
+      :hint="$t('forms.spell.summaryHint')"
       :model="model.summary"
       :error-messages="errors['summary.text']"
       @change="({path, value, ack}) =>
         $emit('change', {path: ['summary', ...path], value, ack})"
     />
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
         $emit('change', {path: ['description', ...path], value, ack})"
     />
     <form-sections type="spell">
-      <form-section name="Resources Consumed">
+      <form-section :name="$t('forms.resourcesConsumed')">
         <resources-form
           :model="model.resources"
           @change="({path, value, ack}) => $emit('change', {path: ['resources', ...path], value, ack})"
@@ -242,15 +242,15 @@
         />
       </form-section>
 
-      <form-section name="Limit Uses">
+      <form-section :name="$t('forms.limitUses')">
         <v-row dense>
           <v-col
             cols="12"
             md="6"
           >
             <computed-field
-              label="Uses"
-              hint="How many times this action can be used before needing to be reset"
+              :label="$t('forms.uses')"
+              :hint="$t('forms.usesHint')"
               class="mr-2"
               :model="model.uses"
               :error-messages="errors.uses"
@@ -263,9 +263,9 @@
             md="6"
           >
             <text-field
-              label="Uses used"
+              :label="$t('forms.usesUsed')"
               type="number"
-              hint="How many times this action has already been used: should be 0 in most cases"
+              :hint="$t('forms.usesUsedHint')"
               style="flex-basis: 300px;"
               :value="model.usesUsed"
               :error-messages="errors.uses"
@@ -274,7 +274,7 @@
           </v-col>
         </v-row>
         <reset-selector
-          hint="When number of uses used should be reset to zero"
+          :hint="$t('forms.resetUsesHint')"
           :value="model.reset"
           :error-messages="errors.reset"
           @change="(value, ack) => change('reset', value, ack)"
@@ -293,6 +293,9 @@ import ResourcesForm from '/imports/client/ui/properties/forms/ResourcesForm.vue
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
 import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -309,62 +312,62 @@ const emit = defineEmits(['change', 'push', 'pull']);
 
 const magicSchools = ref([
   {
-    title: 'Abjuration',
+    title: t('spellSchools.abjuration'),
     value: 'abjuration',
   }, {
-    title: 'Conjuration',
+    title: t('spellSchools.conjuration'),
     value: 'conjuration',
   }, {
-    title: 'Divination',
+    title: t('spellSchools.divination'),
     value: 'divination',
   }, {
-    title: 'Enchantment',
+    title: t('spellSchools.enchantment'),
     value: 'enchantment',
   }, {
-    title: 'Evocation',
+    title: t('spellSchools.evocation'),
     value: 'evocation',
   }, {
-    title: 'Illusion',
+    title: t('spellSchools.illusion'),
     value: 'illusion',
   }, {
-    title: 'Necromancy',
+    title: t('spellSchools.necromancy'),
     value: 'necromancy',
   }, {
-    title: 'Transmutation',
+    title: t('spellSchools.transmutation'),
     value: 'transmutation',
   },
 ]);
 
 const spellLevels = ref([
   {
-    title: 'Cantrip',
+    title: t('forms.spell.cantrip'),
     value: 0,
   }, {
-    title: 'Level 1',
+    title: t('forms.spell.levelN', { level: 1 }),
     value: 1,
   }, {
-    title: 'Level 2',
+    title: t('forms.spell.levelN', { level: 2 }),
     value: 2,
   }, {
-    title: 'Level 3',
+    title: t('forms.spell.levelN', { level: 3 }),
     value: 3,
   }, {
-    title: 'Level 4',
+    title: t('forms.spell.levelN', { level: 4 }),
     value: 4,
   }, {
-    title: 'Level 5',
+    title: t('forms.spell.levelN', { level: 5 }),
     value: 5,
   }, {
-    title: 'Level 6',
+    title: t('forms.spell.levelN', { level: 6 }),
     value: 6,
   }, {
-    title: 'Level 7',
+    title: t('forms.spell.levelN', { level: 7 }),
     value: 7,
   }, {
-    title: 'Level 8',
+    title: t('forms.spell.levelN', { level: 8 }),
     value: 8,
   }, {
-    title: 'Level 9',
+    title: t('forms.spell.levelN', { level: 9 }),
     value: 9,
   },
 ]);

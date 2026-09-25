@@ -2,44 +2,44 @@
   <div class="spell-list-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
 
       <property-field
-        name="Maximum prepared spells"
+        :name="$t('forms.spellList.maxPrepared')"
         large
         center
         :calculation="model.maxPrepared"
       />
       <property-field
-        name="Spellcasting ability"
+        :name="$t('forms.spellList.ability')"
         mono
         :value="model.ability"
       />
       <property-field
-        name="Spellcasting ability modifier"
+        :name="$t('viewers.spellcastingAbilityMod')"
         large
         center
         signed
         :value="model.abilityMod"
       />
       <property-field
-        name="Spell Save DC"
+        :name="$t('viewers.spellSaveDc')"
         large
         center
         :calculation="model.dc"
       />
       <property-field
-        name="Attack roll bonus"
+        :name="$t('forms.spellList.attackBonus')"
         large
         center
         signed
         :calculation="model.attackRollBonus"
       />
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

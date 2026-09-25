@@ -3,7 +3,7 @@
     <v-row dense>
       <property-field
         v-if="context.creatureId"
-        :name="model.type === 'spell'? 'Cast spell' : 'Apply action'"
+        :name="model.type === 'spell'? $t('viewers.castSpell') : $t('viewers.applyAction')"
         center
       >
         <v-btn
@@ -24,23 +24,23 @@
         </v-btn>
       </property-field>
       <property-field
-        name="To hit"
+        :name="$t('viewers.toHit')"
         large
         center
         signed
         :calculation="model.attackRoll"
       />
       <property-field
-        name="Action type"
+        :name="$t('viewers.actionType')"
         :value="actionTypes[model.actionType]"
       />
       <property-field
-        name="Targeting"
+        :name="$t('viewers.targeting')"
         :value="targetTypes[model.target]"
       />
       <property-field
         v-if="model.uses"
-        name="Uses"
+        :name="$t('viewers.uses')"
       >
         <template v-if="context.creatureId && model.uses.value">
           <v-spacer />
@@ -53,7 +53,7 @@
             :disabled="!model.usesUsed || !context.editPermission"
             @click="resetUses"
           >
-            Reset
+            {{ $t('viewers.resetButton') }}
           </v-btn>
         </template>
         <span v-else>
@@ -61,12 +61,12 @@
         </span>
       </property-field>
       <property-field
-        name="Reset"
+        :name="$t('viewers.reset')"
         :value="reset"
       />
       <property-field
         v-if="model.resources.conditions && model.resources.conditions.length"
-        name="Conditions"
+        :name="$t('viewers.conditions')"
       >
         <div style="width: 100%;">
           <action-condition-view
@@ -79,7 +79,7 @@
       </property-field>
       <property-field
         v-if="model.resources.attributesConsumed.length"
-        name="Attributes consumed"
+        :name="$t('viewers.attributesConsumed')"
       >
         <div style="width: 100%;">
           <attribute-consumed-view
@@ -92,7 +92,7 @@
       </property-field>
       <property-field
         v-if="model.resources.itemsConsumed.length"
-        name="Items consumed"
+        :name="$t('viewers.itemsConsumed')"
       >
         <div style="width: 100%;">
           <item-consumed-view
@@ -106,11 +106,11 @@
       </property-field>
       <slot />
       <property-description
-        name="Summary"
+        :name="$t('forms.summary')"
         :model="model.summary"
       />
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>
@@ -130,6 +130,9 @@ import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue'
 // Aliased: the template calls this component's own doAction()
 import doActionApi from '/imports/client/ui/creature/actions/doAction';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -145,26 +148,26 @@ const dialogStackStore = useDialogStackStore();
 const doActionLoading = ref(false);
 
 const actionTypes = {
-  action: 'Action',
-  bonus: 'Bonus action',
-  attack: 'Attack action',
-  reaction: 'Reaction',
-  free: 'Free action',
-  long: 'Long action',
+  action: t('forms.actionTypes.action'),
+  bonus: t('forms.actionTypes.bonus'),
+  attack: t('forms.actionTypes.attack'),
+  reaction: t('forms.actionTypes.reaction'),
+  free: t('forms.actionTypes.free'),
+  long: t('forms.actionTypes.long'),
 };
 
 const targetTypes = {
-  self: 'Self',
-  singleTarget: 'Single target',
-  multipleTargets: 'Multiple targets',
+  self: t('targets.self'),
+  singleTarget: t('targets.singleTarget'),
+  multipleTargets: t('targets.multipleTargets'),
 };
 
 const reset = computed(() => {
   const resetType = props.model.reset;
   if (resetType === 'shortRest') {
-    return 'Reset on a short rest';
+    return t('viewers.resetShortRest');
   } else if (resetType === 'longRest') {
-    return 'Reset on a long rest';
+    return t('viewers.resetLongRest');
   }
   return undefined;
 });

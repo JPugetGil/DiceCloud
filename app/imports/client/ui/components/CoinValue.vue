@@ -3,17 +3,17 @@
     <span
       v-if="coinValue.gp || value === 0"
     >
-      {{ coinValue.gp }} gp
+      {{ $t('coins.gp', { value: coinValue.gp }) }}
     </span>
     <span
       v-if="coinValue.sp || (coinValue.gp && coinValue.cp)"
     >
-      {{ coinValue.sp }} sp
+      {{ $t('coins.sp', { value: coinValue.sp }) }}
     </span>
     <span
       v-if="coinValue.cp"
     >
-      {{ coinValue.cp }} cp
+      {{ $t('coins.cp', { value: coinValue.cp }) }}
     </span>
   </div>
 </template>

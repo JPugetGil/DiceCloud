@@ -26,18 +26,18 @@
       :string="model?.description"
     />
     <p>
-      {{ slotPropertyTypeName }} with library tags:
+      {{ $t('slots.withLibraryTags', { type: slotPropertyTypeName }) }}
       <property-tags
         v-for="(tags, index) in tagsSearched.or"
         :key="index + 'tags'"
         :tags="tags"
-        :prefix="index ? 'OR' : undefined"
+        :prefix="index ? $t('common.or') : undefined"
       />
       <property-tags
         v-for="(tags, index) in tagsSearched.not"
         :key="index + 'not'"
         :tags="tags"
-        prefix="NOT"
+        :prefix="$t('common.not')"
       />
     </p>
     <v-fade-transition>
@@ -110,7 +110,7 @@
                       libraryNode._disabledByQuantityFilled
                   }"
                 >
-                  {{ libraryNode.slotQuantityFilled }} slots
+                  {{ $t('slots.slotCount', { count: libraryNode.slotQuantityFilled }) }}
                 </div>
                 <template v-if="open">
                   <v-btn
@@ -141,13 +141,13 @@
         variant="outlined"
         @click="loadMore"
       >
-        Load More
+        {{ $t('common.loadMore') }}
       </v-btn>
     </div>
     <template v-if="!showDisabled && disabledNodeCount">
       <div class="d-flex flex-1-1 flex-column align-center justify-center ma-3 mt-8">
         <div>
-          Requirements of {{ disabledNodeCount }} properties were not met
+          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }) }}
         </div>
         <v-btn
           class="mt-2"
@@ -156,12 +156,12 @@
           variant="outlined"
           @click="showDisabled = true"
         >
-          Show All
+          {{ $t('common.showAll') }}
         </v-btn>
       </div>
     </template>
     <div class="d-flex flex-1-1 align-center justify-center text-caption text-disabled mt-8 mb-2">
-      Can't find what you're looking for?
+      {{ $t('slots.cantFind') }}
     </div>
     <div class="d-flex flex-1-1 align-center justify-center flex-wrap mx-4 mb-4">
       <v-btn
@@ -172,7 +172,7 @@
         :disabled="!model"
         @click="openLibraryBrowser"
       >
-        Browse community libraries
+        {{ $t('slots.browseCommunity') }}
       </v-btn>
       <v-btn
         v-if="!dummySlot"
@@ -182,7 +182,7 @@
         data-id="custom-button"
         @click="insertCustomFiller"
       >
-        Create custom filler
+        {{ $t('slots.createCustom') }}
       </v-btn>
     </div>
 
@@ -191,7 +191,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
       <v-spacer />
       <v-btn
@@ -204,10 +204,10 @@
           {{ totalQuantitySelected }} / {{ model.spaceLeft }}
         </template>
         <template v-if="slotId">
-          Insert
+          {{ $t('common.insert') }}
         </template>
         <template v-else>
-          Close Test
+          {{ $t('slots.closeTest') }}
         </template>
       </v-btn>
     </template>
@@ -226,18 +226,19 @@ import LibraryNodes from '/imports/api/library/LibraryNodes';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue'
-import resolve from '/imports/parser/resolve';
-import toString from '/imports/parser/toString';
-import { prettifyParseError, parse } from '/imports/parser/parser';
+import evaluateSlotFillerConditions from '/imports/client/ui/creature/slots/slotFillerConditions';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/client/ui/library/LibraryNodeExpansionContent.vue';
 import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import { clone, difference } from 'lodash';
 import getDefaultSlotFiller from '/imports/api/library/methods/getDefaultSlotFiller';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -261,7 +262,6 @@ const selectedNodeIds = ref([]);
 const searchInput = ref(undefined);
 const searchValue = ref(undefined);
 const showDisabled = ref(false);
-const disabledNodeCount = ref(0);
 const autoSelectRan = ref(false);
 
 provide('context', reactive({
@@ -290,14 +290,16 @@ const variables = autorun(() => {
   return CreatureVariables.findOne({ _creatureId: props.creatureId }) || {};
 }).result;
 
-const currentLimit = computed(() => subscriptionData(slotFillersSubHandle, 'limit') || 50);
-const countAll = computed(() => subscriptionData(slotFillersSubHandle, 'countAll'));
+// autorun, not computed: subscription data is read from minimongo, which only
+// Tracker can react to
+const currentLimit = autorun(() => subscriptionData(slotFillersSubHandle, 'limit') || 50).result;
+const countAll = autorun(() => subscriptionData(slotFillersSubHandle, 'countAll')).result;
 
-const libraryNodeFilter = computed(() => {
+const libraryNodeFilter = autorun(() => {
   const filterString = subscriptionData(slotFillersSubHandle, 'libraryNodeFilter');
   if (!filterString) return;
   return EJSON.parse(filterString);
-});
+}).result;
 
 const alreadyAdded = autorun(() => {
   let added = new Set();
@@ -347,40 +349,14 @@ const libraryNames = autorun(() => {
   return names;
 }).result;
 
-const libraryNodes = autorun(() => {
+// Library nodes that match the slot, flagged with what can be decided synchronously
+const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!slotFillersReady.value) return [];
   let nodes = LibraryNodes.find(libraryNodeFilter.value, {
     sort: { name: 1, order: 1 }
   }).fetch();
-  let count = 0;
-  nodes.forEach(async node => {
-    if (node.slotFillerCondition) {
-      try {
-        let parseNode = parse(node.slotFillerCondition);
-        const { result: resultNode } = await resolve('reduce', parseNode, variables.value);
-        if (resultNode?.parseType === 'constant') {
-          if (!resultNode.value) {
-            node._disabled = true;
-            node._disabledBySlotFillerCondition = true;
-            node._conditionError = node.slotFillerConditionNote || node.slotFillerCondition;
-            count += 1;
-          }
-        } else {
-          node._disabled = true;
-          node._disabledBySlotFillerCondition = true;
-          node._conditionError = node.slotFillerConditionNote || toString(resultNode);
-            count += 1;
-        }
-      } catch (e) {
-        console.warn(e);
-        let error = prettifyParseError(e);
-        node._disabled = true;
-        node._disabledBySlotFillerCondition = true;
-        node._conditionError = 'Condition error: '+ error;
-        count += 1;
-      }
-    }
+  nodes.forEach(node => {
     let quantityToFill = typeof node.slotQuantityFilled == 'number' ? node.slotQuantityFilled : 1;
     if (
       quantityToFill > spaceLeft.value
@@ -393,19 +369,45 @@ const libraryNodes = autorun(() => {
       node._disabledByAlreadyAdded = true;
     }
   });
-  if (!autoSelectRan.value) {
-    autoSelectRan.value = true;
-    if (
-      nodes.length === 1
-      && !nodes[0]._disabled
-      && !selectedNodeIds.value?.length
-    ) {
-      selectedNodeIds.value = [nodes[0]._id];
-    }
-  }
-  disabledNodeCount.value = count;
   return nodes;
 }).result;
+
+// slotFillerCondition needs the async parser, so its verdicts arrive separately
+const conditionErrors = ref(new Map());
+const conditionsEvaluatedFor = ref(null);
+watch([matchingNodes, variables], async () => {
+  const nodes = matchingNodes.value;
+  const errors = await evaluateSlotFillerConditions(nodes, variables.value);
+  // A newer list may have arrived while this one was being evaluated
+  if (nodes !== matchingNodes.value) return;
+  conditionErrors.value = errors;
+  conditionsEvaluatedFor.value = nodes;
+}, { immediate: true });
+
+const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
+  const conditionError = conditionErrors.value.get(node._id);
+  if (!conditionError) return node;
+  return {
+    ...node,
+    _disabled: true,
+    _disabledBySlotFillerCondition: true,
+    _conditionError: conditionError,
+  };
+}));
+
+const disabledNodeCount = computed(() => libraryNodes.value
+  .filter(node => node._disabledBySlotFillerCondition).length);
+
+// Select the only filler, once its condition is known to be met
+watch(conditionsEvaluatedFor, (nodes) => {
+  if (autoSelectRan.value || !nodes || nodes !== matchingNodes.value) return;
+  if (!slotFillersReady.value || !libraryNodeFilter.value) return;
+  autoSelectRan.value = true;
+  const onlyNode = libraryNodes.value.length === 1 && libraryNodes.value[0];
+  if (onlyNode && !onlyNode._disabled && !selectedNodeIds.value?.length) {
+    selectedNodeIds.value = [onlyNode._id];
+  }
+});
 
 const selectedExcludedNodes = autorun(() => {
   const displayedIds = (libraryNodes.value || []).map(node => node._id);
@@ -438,7 +440,7 @@ const tagsSearched = computed(() => {
 
 const slotPropertyTypeName = computed(() => {
   if (!model.value) return;
-  if (!model.value.slotType) return 'Property';
+  if (!model.value.slotType) return t('common.property');
   let propName = getPropertyName(model.value.slotType);
   return propName;
 });
@@ -455,7 +457,7 @@ watch(activeCount, (val) => {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  slotFillersSubHandle.setData('limit', currentLimit.value + 50);
+  slotFillersSubHandle.value?.setData('limit', currentLimit.value + 50);
 }
 
 function openPropertyDetails(id) {

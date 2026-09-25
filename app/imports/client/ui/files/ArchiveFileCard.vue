@@ -12,7 +12,7 @@
         :loading="restoreLoading"
         @click="restore(model._id)"
       >
-        Restore
+        {{ $t('common.restore') }}
       </v-btn>
       <div class="flex-1-1" />
       <v-btn
@@ -39,6 +39,9 @@ import restoreCreatureFromFile from '/imports/api/creature/archive/methods/resto
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import removeArchiveCreature from '/imports/api/creature/archive/methods/removeArchiveCreature';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -71,7 +74,7 @@ function removeArchiveCharacter() {
     elementId: `${that.model._id}-archive-card`,
     data: {
       name: props.model.meta.creatureName,
-      typeName: 'Character Archive'
+      typeName: t('files.characterArchive')
     },
     async callback(confirmation) {
       if (!confirmation) return;

@@ -2,11 +2,11 @@
   <div>
     <v-row dense>
       <property-field
-        name="Value"
+        :name="$t('viewers.value')"
         :value="operation"
       />
       <property-field
-        name="Damage types"
+        :name="$t('viewers.damageTypes')"
         wrap
       >
         <v-chip
@@ -23,7 +23,7 @@
       </property-field>
       <property-field
         v-if="model.includeTags && model.includeTags.length"
-        name="Damage tags required"
+        :name="$t('viewers.damageTagsRequired')"
         wrap
       >
         <v-chip
@@ -39,7 +39,7 @@
       </property-field>
       <property-field
         v-if="model.excludeTags && model.excludeTags.length"
-        name="Damage tags excluded"
+        :name="$t('viewers.damageTagsExcluded')"
         wrap
       >
         <v-chip
@@ -60,6 +60,9 @@
 <script setup>
 import { computed } from 'vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -70,9 +73,9 @@ const props = defineProps({
 
 const operation = computed(() => {
   switch (props.model.value) {
-    case 0: return 'Immunity';
-    case 0.5: return 'Resistance';
-    case 2: return 'Vulnerability';
+    case 0: return t('damageMultipliers.immunity');
+    case 0.5: return t('damageMultipliers.resistance');
+    case 2: return t('damageMultipliers.vulnerability');
     default: return '';
   }
 });

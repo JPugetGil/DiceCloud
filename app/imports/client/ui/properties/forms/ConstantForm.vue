@@ -3,18 +3,18 @@
     <v-row dense>
       <v-col cols="12">
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
           style="flex-basis: 300px;"
-          hint="Use this name in calculations to reference this attribute"
+          :hint="$t('forms.variableNameAttributeHint')"
           :error-messages="errors.variableName"
           @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
       <v-col cols="12">
         <text-field
-          label="Value"
-          hint="Calculation of the constant value, use 'text' for a string value, [1,2,3] for a matrix, or 123 for a number"
+          :label="$t('forms.value')"
+          :hint="$t('forms.constant.valueHint')"
           :value="model.calculation"
           :error-messages="errors.calculation"
           @change="(value, ack) => change('calculation', value, ack)"

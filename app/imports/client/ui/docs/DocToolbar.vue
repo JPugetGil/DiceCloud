@@ -8,7 +8,7 @@
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-toolbar-title>
-      Documentation
+      {{ $t('pageTitle.documentation') }}
     </v-toolbar-title>
     <v-spacer />
     <v-app-bar-nav-icon

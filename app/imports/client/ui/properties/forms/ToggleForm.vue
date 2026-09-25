@@ -6,9 +6,9 @@
         md="6"
       >
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
-          hint="Use this name in calculations to reference this attribute"
+          :hint="$t('forms.variableNameAttributeHint')"
           :error-messages="errors.variableName"
           @change="(value, ack) => change('variableName', value, ack)"
         />
@@ -19,12 +19,12 @@
         md="6"
       >
         <smart-toggle
-          label="Active"
+          :label="$t('forms.toggle.active')"
           :value="radioSelection"
           :options="[
-            {name: 'Enabled', value: 'enabled'},
-            {name: 'Disabled', value: 'disabled'},
-            {name: 'Calculated', value: 'calculated'},
+            {name: $t('forms.toggle.enabled'), value: 'enabled'},
+            {name: $t('forms.toggle.disabled'), value: 'disabled'},
+            {name: $t('forms.toggle.calculated'), value: 'calculated'},
           ]"
           :error-messages="errors.enabled"
           @change="radioChange"
@@ -36,8 +36,8 @@
           cols="12"
         >
           <computed-field
-            label="Condition"
-            hint="When this calculation returns a value that isn't false or zero the children will be active"
+            :label="$t('forms.condition')"
+            :hint="$t('forms.toggle.conditionHint')"
             :model="model.condition"
             :error-messages="errors.condition"
             @change="({path, value, ack}) =>
@@ -47,11 +47,11 @@
       </v-expand-transition>
       <v-col cols="12">
         <smart-toggle
-          label="Enabled or disable properties"
+          :label="$t('forms.toggle.enableOrDisable')"
           :value="model.targetByTags"
           :options="[
-            {name: 'Descendants', value: false},
-            {name: 'By target tags', value: true},
+            {name: $t('forms.toggle.descendants'), value: false},
+            {name: $t('forms.toggle.byTags'), value: true},
           ]"
           @change="(value, ack) => change('targetByTags', value, ack)"
         />
@@ -71,14 +71,14 @@
     </v-row>
 
     <form-sections type="toggle">
-      <form-section name="Behavior">
+      <form-section :name="$t('forms.behavior')">
         <v-col
           cols="12"
           md="6"
         >
           <smart-switch
             class="ml-2"
-            label="Show on character sheet"
+            :label="$t('forms.toggle.showOnSheet')"
             :value="model.showUI"
             :error-messages="errors.showUI"
             @change="(value, ack) => change('showUI', value, ack)"

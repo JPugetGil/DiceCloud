@@ -75,13 +75,17 @@ import DialogStack from '/imports/client/ui/dialogStack/DialogStack.vue';
 import SnackbarQueue from '/imports/client/ui/components/snackbars/SnackbarQueue.vue';
 import ConnectionBanner from '/imports/client/ui/layouts/ConnectionBanner.vue';
 import { useAppStore } from '/imports/client/ui/piniaAppStore';
+import { useI18n } from 'vue-i18n';
+import { setLocale } from '/imports/client/ui/i18n';
 
 const appStore = useAppStore();
+const { t, locale } = useI18n();
 
 const route = useRoute();
 const theme = useTheme();
 const { smAndUp } = useDisplay();
 const darkMode = autorun(() => Meteor.user()?.darkMode ?? null).result;
+const language = autorun(() => Meteor.user()?.preferences?.language).result;
 const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 const drawer = computed({
@@ -103,8 +107,18 @@ function toggleDrawer() {
 }
 
 watch(darkMode, applyTheme, { immediate: true });
-watch(route, to => {
-  appStore.setPageTitle(to.meta?.title || 'DiceCloud');
+// The account's language wins over this browser's last choice
+watch(language, setLocale, { immediate: true });
+// Route titles are message keys
+const routeTitle = (lang = locale.value) => route.meta?.title
+  ? t(route.meta.title, {}, { locale: lang })
+  : 'DiceCloud';
+watch(route, () => {
+  appStore.setPageTitle(routeTitle());
+});
+// Retranslate the title, unless the page set one of its own (a name...)
+watch(locale, (value, oldValue) => {
+  if (appStore.pageTitle === routeTitle(oldValue)) appStore.setPageTitle(routeTitle());
 });
 
 onMounted(() => colorScheme.addEventListener('change', handleColorSchemeChange));

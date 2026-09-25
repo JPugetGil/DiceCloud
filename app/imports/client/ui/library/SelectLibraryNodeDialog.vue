@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Select Library Property
+        {{ $t('library.selectLibraryProperty') }}
       </v-toolbar-title>
     </template>
     <template #unwrapped-content>
@@ -19,7 +19,7 @@
         color="primary"
         @click="dialogStackStore.popDialogStack()"
       >
-        Cancel
+        {{ $t('common.cancel') }}
       </v-btn>
       <v-spacer />
       <v-btn
@@ -27,7 +27,7 @@
         color="primary"
         @click="dialogStackStore.popDialogStack(node)"
       >
-        Select
+        {{ $t('common.select') }}
       </v-btn>
     </template>
   </dialog-base>

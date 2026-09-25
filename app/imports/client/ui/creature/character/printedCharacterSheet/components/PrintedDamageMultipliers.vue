@@ -25,7 +25,7 @@
           class="d-flex flex-wrap align-center"
         >
           <div>
-            For:
+            {{ $t('damageMultipliers.for') }}
           </div>
           {{ multiplier.includeTags.join(', ') }}
         </div>
@@ -34,7 +34,7 @@
           class="d-flex flex-wrap align-center"
         >
           <div>
-            Except:
+            {{ $t('damageMultipliers.except') }}
           </div>
           {{ multiplier.excludeTags.join(', ') }}
         </div>
@@ -44,6 +44,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 defineProps({
   multipliers: {
     type: Array,
@@ -55,9 +58,9 @@ defineEmits(['click-multiplier']);
 
 function title(prop) {
   switch (prop.value) {
-    case 0: return 'Immunity';
-    case 0.5: return 'Resistance';
-    case 2: return 'Vulnerability';
+    case 0: return t('damageMultipliers.immunity');
+    case 0.5: return t('damageMultipliers.resistance');
+    case 2: return t('damageMultipliers.vulnerability');
   }
 }
 </script>

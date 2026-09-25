@@ -9,23 +9,31 @@
     >
       <v-list>
         <v-list-subheader class="mb-4">
-          Preferences
+          {{ $t('account.preferences') }}
         </v-list-subheader>
         <v-list-item class="theme-preference">
           <smart-toggle
-            label="Theme"
+            :label="$t('account.theme')"
             :value="darkMode === true ? 'true' : darkMode === false ? 'false' : darkMode === null ? 'unset': undefined"
             :options="[
-              {name: 'Dark', value: 'true', icon: 'mdi-brightness-5'},
-              {name: 'Match device theme', value: 'unset'},
-              {name: 'Light', value: 'false', icon: 'mdi-brightness-7'},
+              {name: $t('account.themeDark'), value: 'true', icon: 'mdi-brightness-5'},
+              {name: $t('account.themeDevice'), value: 'unset'},
+              {name: $t('account.themeLight'), value: 'false', icon: 'mdi-brightness-7'},
             ]"
             @change="setDarkMode"
           />
         </v-list-item>
+        <v-list-item data-id="language-preference">
+          <smart-toggle
+            :label="$t('account.language')"
+            :value="locale"
+            :options="LANGUAGES"
+            @change="setLanguage"
+          />
+        </v-list-item>
         <v-list-item>
           <smart-switch
-            label="Swap ability scores and modifiers"
+            :label="$t('account.swapAbilityScores')"
             :value="
               user &&
                 user.preferences &&
@@ -36,7 +44,7 @@
         </v-list-item>
 
         <v-list-subheader>
-          Username
+          {{ $t('account.username') }}
         </v-list-subheader>
         <v-list-item data-id="username">
           <template #prepend>
@@ -51,7 +59,7 @@
                   <v-icon>mdi-pencil</v-icon>
                 </v-btn>
               </template>
-              <span>Change Username</span>
+              <span>{{ $t('account.changeUsername') }}</span>
             </v-tooltip>
           </template>
           <v-list-item-title>
@@ -60,7 +68,7 @@
         </v-list-item>
 
         <v-list-subheader>
-          Email
+          {{ $t('account.email') }}
         </v-list-subheader>
         <v-list-item
           v-for="email in emails"
@@ -97,7 +105,7 @@
           <v-text-field
             v-if="showEmailInput"
             v-model="inputEmail"
-            label="Add Email Address"
+            :label="$t('account.addEmail')"
             :error-messages="addEmailError"
             variant="outlined"
           >
@@ -136,7 +144,7 @@
             color="primary"
             @click="linkWithGoogle"
           >
-            Link Google Account
+            {{ $t('account.linkGoogle') }}
           </v-btn>
         </v-list-item>
       </v-list>
@@ -145,7 +153,7 @@
           color="accent"
           @click="signOut"
         >
-          Sign Out
+          {{ $t('account.signOut') }}
         </v-btn>
       </div>
       <div class="d-flex flex-1-1 justify-end mt-3">
@@ -154,7 +162,7 @@
           data-id="delete-account-btn"
           @click="deleteAccount"
         >
-          Delete Account
+          {{ $t('account.deleteAccount') }}
         </v-btn>
       </div>
     </v-card>
@@ -169,8 +177,11 @@ import addEmailMethod from '/imports/api/users/methods/addEmail';
 import removeEmailMethod from '/imports/api/users/methods/removeEmail';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 import useLoginServiceConfigured from '/imports/client/ui/utility/useLoginServiceConfigured';
+import { useI18n } from 'vue-i18n';
+import { LANGUAGES, setLocale } from '/imports/client/ui/i18n';
 
 const dialogStackStore = useDialogStackStore();
+const { locale } = useI18n();
 
 
 const user = autorun(() => Meteor.user()).result;
@@ -244,6 +255,16 @@ async function signOut() {
     await router.push('/');
   } finally {
     signOutBusy.value = false;
+  }
+}
+
+async function setLanguage(value, ack) {
+  setLocale(value);
+  try {
+    await Meteor.users.setLanguage.callAsync({ language: value });
+    ack();
+  } catch (error) {
+    ack(error);
   }
 }
 

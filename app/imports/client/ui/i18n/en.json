@@ -1,0 +1,1285 @@
+{
+  "pageTitle": {
+    "home": "Home",
+    "characterList": "Character List",
+    "library": "Library",
+    "libraryCollection": "Library Collection",
+    "communityLibraries": "Community Libraries",
+    "characterSheet": "Character Sheet",
+    "printCharacterSheet": "Print Character Sheet",
+    "printCharacter": "Print {name}",
+    "friends": "Friends",
+    "signIn": "Sign In",
+    "register": "Register",
+    "account": "Account",
+    "files": "Files",
+    "discord": "Discord",
+    "functions": "Functions",
+    "documentation": "Documentation",
+    "about": "About DiceCloud",
+    "emailVerificationError": "Email Verification Error",
+    "emailVerificationSuccess": "Email Verification Success",
+    "resetPassword": "Reset Password",
+    "docNotFound": "Doc not found",
+    "docs": "DiceCloud Docs"
+  },
+  "nav": {
+    "signIn": "Sign in",
+    "accountSettings": "Account Settings",
+    "home": "Home",
+    "characters": "Characters",
+    "library": "Library",
+    "files": "Files",
+    "documentation": "Documentation",
+    "discord": "Discord",
+    "about": "About",
+    "github": "Github"
+  },
+  "account": {
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "themeDark": "Dark",
+    "themeDevice": "Match device theme",
+    "themeLight": "Light",
+    "language": "Language",
+    "swapAbilityScores": "Swap ability scores and modifiers",
+    "username": "Username",
+    "changeUsername": "Change Username",
+    "email": "Email",
+    "addEmail": "Add Email Address",
+    "linkGoogle": "Link Google Account",
+    "signOut": "Sign Out",
+    "deleteAccount": "Delete Account",
+    "usernameTaken": "Username is already taken"
+  },
+  "about": {
+    "intro": "DiceCloud is a single-developer project started in 2014 with the aim of being a character sheet that stayed in sync between the DM and their players, and made it clear where every value in the sheet came from, and how it was calculated.",
+    "specialThanks": "Special Thanks",
+    "samThanks": "without her love, DiceCloud could not hope to exist",
+    "heroes": "The \"Heroes\" of Asaea",
+    "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
+    "supporters": "Supporters"
+  },
+  "admin": {
+    "currentDbVersion": "Current database version: {version}",
+    "upToDate": "Database is up to date with latest version. Restart to enable navigation.",
+    "expectedDbVersion": "Expected database version: {version}",
+    "gitVersion": "Git version: {version}",
+    "backupWarning": "Back up the database before attempting any migration. A failed migration can result in profound data loss.",
+    "migrate": "Migrate to database version {version}"
+  },
+  "characterList": {
+    "importCharacter": "import character",
+    "addFolder": "add folder",
+    "archiveCharacters": "Archive Characters",
+    "moved": "Moved {item} to {target}",
+    "item": "item",
+    "anotherCharacter": "another character"
+  },
+  "docs": {
+    "notFound": "Documentation not found",
+    "helpNotFound": "Help document not found for {title}",
+    "docs": "Docs",
+    "title": "Title",
+    "urlTitle": "URL title",
+    "urlTitleHint": "Only letters, numbers, and dashes",
+    "published": "Published",
+    "icon": "Icon",
+    "body": "Body",
+    "addChild": "Add child",
+    "newDoc": "New Doc"
+  },
+  "email": {
+    "verificationError": "Email Verification Error",
+    "verified": "Email Verified",
+    "verifiedText": "Your email address has been verified"
+  },
+  "files": {
+    "archivedCharacters": "Archived Characters",
+    "uploadArchive": "Upload archive",
+    "images": "Images",
+    "mustBeJson": "File must be .json",
+    "tooLarge": "File too large",
+    "parseFailed": "File could not be parsed",
+    "validationFailed": "File failed validation: {reason}",
+    "characterArchive": "Character Archive",
+    "userFiles": "User Files",
+    "fromUrl": "From URL",
+    "directLink": "Direct link to image",
+    "deleteFile": "Delete file"
+  },
+  "friends": {
+    "title": "Friends"
+  },
+  "functions": {
+    "title": "Functions"
+  },
+  "home": {
+    "tagline": "Free, Auditable, real-time character tracking for 5th edition",
+    "subtitle": "Spend less time shuffling paper, and more time playing the game",
+    "register": "Register",
+    "signIn": "Sign In",
+    "myCharacters": "My Characters",
+    "freeTitle": "Free, open source, community funded",
+    "freeText": "DiceCloud is free to use, community funded, and the source code is available on Github under a GPL license.",
+    "customTitle": "Custom everything",
+    "customText": "Add new ability scores, skills, health-bars, and stats to your character. The entire sheet is under your control.",
+    "engineTitle": "Advanced Character Engine",
+    "engineText": "Characters are computed in real-time based on their equipment, features, and buffs.",
+    "community": "Get involved in the DiceCloud community",
+    "highlights": {
+      "actions": "Automated actions",
+      "auditable": "Auditable stats",
+      "dice": "Dice rolling",
+      "builder": "Hackable character builder",
+      "inventory": "Drag and drop inventory manager",
+      "libraries": "Custom libraries of content",
+      "discord": "Discord webhooks",
+      "printing": "Printed character sheets"
+    }
+  },
+  "library": {
+    "browseCommunity": "Browse community libraries",
+    "addCollection": "Add Collection",
+    "subscribers": "{count} subscribers",
+    "notFound": "Library or Library Collection not found",
+    "addFromLibrary": "Add from library",
+    "showSecondTree": "Show second library tree",
+    "newLibrary": "New library",
+    "communityLibraries": "Community Libraries",
+    "newCollection": "New Collection",
+    "libraries": "Libraries",
+    "noLibrariesFound": "No libraries found",
+    "insertCollection": "Insert Collection",
+    "collectionOwner": "Collection owner",
+    "nameLower": "name",
+    "showInBrowser": "Show in community library browser",
+    "collection": "Collection",
+    "newLibraryTitle": "New Library",
+    "insertLibrary": "Insert Library",
+    "libraryOwner": "Library owner",
+    "recentlyDeleted": "Recently Deleted Properties",
+    "library": "Library",
+    "selectLibrary": "Select Library",
+    "selectNewLocation": "Select new location",
+    "selectLibraryProperty": "Select Library Property",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe"
+  },
+  "maintenance": {
+    "underMaintenance": "DiceCloud is currently under maintenance",
+    "live": "DiceCloud is live.",
+    "home": "Home"
+  },
+  "notFound": {
+    "text": "No page was found for this address"
+  },
+  "notImplemented": {
+    "text": "This page is not available in this version of DiceCloud."
+  },
+  "auth": {
+    "email": "Email",
+    "username": "Username",
+    "password": "Password",
+    "passwordAgain": "Password Again",
+    "newPassword": "New Password",
+    "usernameOrEmail": "Username or email",
+    "register": "Register",
+    "registerWithGoogle": "Register with Google",
+    "signIn": "Sign In",
+    "signInWithGoogle": "Sign in with Google",
+    "resetPassword": "Reset Password",
+    "nameRequired": "Name is required",
+    "emailRequired": "E-mail is required",
+    "emailInvalid": "E-mail must be valid",
+    "passwordRequired": "Password is required",
+    "passwordsDontMatch": "Passwords don't match",
+    "resetLinkSent": "Password reset link sent to {email}"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "done": "Done",
+    "insert": "Insert",
+    "delete": "Delete",
+    "next": "Next",
+    "back": "Back",
+    "create": "Create",
+    "clear": "Clear",
+    "roll": "Roll",
+    "advantage": "Advantage",
+    "disadvantage": "Disadvantage",
+    "name": "Name",
+    "import": "Import",
+    "loadMore": "Load More",
+    "showAll": "Show All",
+    "archive": "Archive",
+    "restore": "Restore",
+    "print": "Print",
+    "sharing": "Sharing",
+    "property": "Property",
+    "character": "Character",
+    "or": "OR",
+    "not": "NOT",
+    "weightLb": "{weight} lb",
+    "each": "each",
+    "contents": "contents",
+    "total": "Total:",
+    "copiedSuccessfully": "Copied successfully",
+    "copy": "Copy",
+    "select": "Select",
+    "description": "Description",
+    "search": "Search",
+    "find": "Find",
+    "type": "Type",
+    "save": "Save",
+    "update": "Update",
+    "remove": "Remove",
+    "share": "Share",
+    "help": "Help",
+    "somethingWentWrong": "Something went wrong",
+    "reset": "Reset",
+    "shortRest": "Short rest",
+    "longRest": "Long rest",
+    "nameRequired": "Name is required",
+    "shortRestTitle": "Short Rest",
+    "longRestTitle": "Long Rest",
+    "edit": "Edit",
+    "deleted": "Deleted {name}"
+  },
+  "propertyTypes": {
+    "action": {
+      "name": "Action",
+      "helpText": "Actions are things your character can do. When an action is taken, all the properties under it are activated."
+    },
+    "attribute": {
+      "name": "Attribute",
+      "helpText": "Attributes are the numbered statistics of your character, excluding rolls you might add proficiency bonus to, those are skills."
+    },
+    "adjustment": {
+      "name": "Attribute damage",
+      "helpText": "Attribute damage reduces the current value of an attribute when it is applied by an action. A negative value causes the attribute to increase instead, up to its normal maximum."
+    },
+    "buff": {
+      "name": "Buff",
+      "helpText": "When a buff is activated as a child of an action, it will copy the properties under itself onto a target character."
+    },
+    "buffRemover": {
+      "name": "Remove Buff",
+      "helpText": "Removes a buff from the target character"
+    },
+    "branch": {
+      "name": "Branch",
+      "helpText": "When a branch is activated as a child of an action, it can control which of its children get activated."
+    },
+    "class": {
+      "name": "Class",
+      "helpText": "Your character should ideally have one starting class. Classes hold class levels"
+    },
+    "classLevel": {
+      "name": "Class level",
+      "helpText": "Class levels represent a single level gained in a class"
+    },
+    "constant": {
+      "name": "Constant",
+      "helpText": "A constant can define a static value that can be used in calculations elsewhere in the sheet"
+    },
+    "container": {
+      "name": "Container",
+      "helpText": "A container holds items in the inventory"
+    },
+    "creature": {
+      "name": "Creature",
+      "helpText": "A creature is a template for a creature that might become a real creature once summoned by a character"
+    },
+    "damage": {
+      "name": "Damage",
+      "helpText": "When damage is activated by an action it reduces the hit points of the target creature by the calculated amount."
+    },
+    "damageMultiplier": {
+      "name": "Damage multiplier",
+      "helpText": "Resistance, vulnerability, and immunity."
+    },
+    "effect": {
+      "name": "Effect",
+      "helpText": "Effects change the value or state of attributes and skills."
+    },
+    "feature": {
+      "name": "Feature",
+      "helpText": "Descriptive or narrative features your character has access to"
+    },
+    "folder": {
+      "name": "Folder",
+      "helpText": "A way to organise other properties on the character"
+    },
+    "item": {
+      "name": "Item",
+      "helpText": "Objects and equipment your charcter finds on their adventures"
+    },
+    "note": {
+      "name": "Note",
+      "helpText": "Notes about your character and their adventures"
+    },
+    "pointBuy": {
+      "name": "Point Buy",
+      "helpText": "A point buy table that allows the user to select an array of values that match a given cost"
+    },
+    "proficiency": {
+      "name": "Proficiency",
+      "helpText": "Proficiencies apply your proficiency bonus to skills already on your character sheet."
+    },
+    "roll": {
+      "name": "Roll",
+      "helpText": "When activated by an action, rolls perform a calculation and temporarily store the result for other properties under the same action to use"
+    },
+    "reference": {
+      "name": "Reference",
+      "helpText": "A reference is a link to a different property in a library. When a reference gets copied to a character sheet, it is replaced with the referenced property and all its children."
+    },
+    "savingThrow": {
+      "name": "Saving throw",
+      "helpText": "When a saving throw is activated by an action, it causes the target to make a saving throw, if the saving throw fails, the children properties of the saving throw are activated."
+    },
+    "skill": {
+      "name": "Skill",
+      "helpText": "Skills, saves, languages, and weapon and tool proficiencies are all skills. Skills can have a default proficiency set. Proficiencies and effects can change the value and state of skills."
+    },
+    "propertySlot": {
+      "name": "Slot",
+      "helpText": "A slot in the character sheet is used to specify that a property needs to be selected from a library to fill the slot. The slot can determine what tags it is looking for, and any subscribed library property with matching tags can fill the slot"
+    },
+    "spellList": {
+      "name": "Spell list",
+      "helpText": "A list of spells on your character sheet. It can provide a DC and spell attack bonus to the spells within"
+    },
+    "spell": {
+      "name": "Spell",
+      "helpText": "A spell your character can potentially cast"
+    },
+    "toggle": {
+      "name": "Toggle",
+      "helpText": "Togggles allow parts of the character sheet to be turned on and off, either manually or as the result of a calculation."
+    },
+    "trigger": {
+      "name": "Trigger",
+      "helpText": "Triggers apply their children in response to events on the character sheet, such as taking an action or receiving damage"
+    }
+  },
+  "spellSchools": {
+    "abjuration": "Abjuration",
+    "conjuration": "Conjuration",
+    "divination": "Divination",
+    "enchantment": "Enchantment",
+    "evocation": "Evocation",
+    "illusion": "Illusion",
+    "necromancy": "Necromancy",
+    "transmutation": "Transmutation"
+  },
+  "actionTypes": {
+    "action": "Action",
+    "bonus": "Bonus Action",
+    "attack": "Attack",
+    "reaction": "Reaction",
+    "free": "Free Action",
+    "long": "Long Action",
+    "event": "Event"
+  },
+  "spellComponents": {
+    "verbal": "Verbal",
+    "somatic": "Somatic",
+    "material": "Material",
+    "concentration": "Concentration",
+    "ritual": "Ritual"
+  },
+  "damageMultipliers": {
+    "immunity": "Immunity",
+    "resistance": "Resistance",
+    "vulnerability": "Vulnerability",
+    "for": "For:",
+    "except": "Except:"
+  },
+  "attunement": {
+    "attuned": "Attuned",
+    "required": "Requires attunement"
+  },
+  "tabs": {
+    "stats": "Stats",
+    "actions": "Actions",
+    "spells": "Spells",
+    "inventory": "Inventory",
+    "features": "Features",
+    "journal": "Journal",
+    "build": "Build",
+    "tree": "Tree"
+  },
+  "creatureForm": {
+    "alignment": "Alignment",
+    "gender": "Gender",
+    "picture": "Picture",
+    "pictureHint": "A link to a high resolution image",
+    "avatar": "Avatar",
+    "avatarHint": "A link to a smaller, square image to use as an avatar",
+    "settings": "Settings",
+    "hideRedundantStats": "Hide redundant stats",
+    "hideRestButtons": "Hide rest buttons",
+    "showSpellsTab": "Show spells tab",
+    "showTreeTab": "Show tree tab",
+    "hitDiceMultiplier": "Hit Dice reset multiplier",
+    "hitDiceMultiplierHint": "What fraction of your hit dice are reset every long rest",
+    "discordWebhook": "Discord Webhook URL",
+    "discordWebhookHint": "This creature's logs will be posted to the discord channel",
+    "variantEncumbrance": "Use variant encumbrance",
+    "hideSpellsTab": "Hide spells tab",
+    "swapAbilityScores": "Swap ability scores and modifiers",
+    "libraries": "Libraries",
+    "allUserLibraries": "All user libraries",
+    "debug": "Debug",
+    "dependencyGraph": "Dependency Graph",
+    "characterDetails": "Character Details"
+  },
+  "castSpell": {
+    "slot": "Slot",
+    "withoutSlot": "Cast without spell slot",
+    "asRitual": "Cast as ritual",
+    "spell": "Spell"
+  },
+  "check": {
+    "ability": "Ability",
+    "skill": "Skill",
+    "dc": "DC"
+  },
+  "newCharacter": {
+    "title": "New Character",
+    "biography": "Biography",
+    "level": "Level",
+    "defaultName": "New Character",
+    "nameRequired": "Name required"
+  },
+  "deleteCharacter": {
+    "title": "Delete Character",
+    "typeName": "Type \"{name}\" to permanently delete the character",
+    "deleteForever": "Delete forever"
+  },
+  "importCharacter": {
+    "title": "Import character",
+    "text": "Import a character from another instance of DiceCloud",
+    "sharingHint": "The character needs to have their sharing permission set to \"anyone can view\"",
+    "invalidUrl": "Not a valid character URL",
+    "notShared": "This character's sharing settings are not set to allow anyone to view"
+  },
+  "sheet": {
+    "notFound": "Character not found",
+    "notFoundText": "Either this character does not exist, or you don't have permission to view it.",
+    "buffOrCondition": "Buff or Condition",
+    "owner": "Sheet owner",
+    "unshareWithMe": "Unshare with me",
+    "editDetails": "Edit details",
+    "miniSheet": "Character sheet"
+  },
+  "build": {
+    "slots": "Slots",
+    "hiddenProperties": "{count} hidden property | {count} hidden properties",
+    "level": "Level {level}",
+    "milestoneLevels": "{count} Milestone levels",
+    "xp": "{xp} XP",
+    "getMissingLevels": "Get Missing Levels",
+    "levelUp": "Level Up"
+  },
+  "inventory": {
+    "weightCarried": "Weight Carried",
+    "netWorth": "Net worth",
+    "itemsAttuned": "Items attuned",
+    "equipped": "Equipped",
+    "carried": "Carried"
+  },
+  "stats": {
+    "buffsAndConditions": "Buffs and conditions",
+    "hitDice": "Hit Dice",
+    "savingThrows": "Saving Throws",
+    "skills": "Skills",
+    "weapons": "Weapons",
+    "armor": "Armor",
+    "tools": "Tools",
+    "languages": "Languages",
+    "proficiencies": "Proficiencies",
+    "spellSlots": "Spell Slots"
+  },
+  "tree": {
+    "organize": "Organize"
+  },
+  "errors": {
+    "dependencyLoop": "The character contains a dependency loop.",
+    "dependencyLoopText": "A set of properties may have been calculated incorrectly, because they form an infinite loop:"
+  },
+  "printed": {
+    "levelClass": "Level {level} {className}",
+    "levelClasses": "Level {level} ({classes})",
+    "weightCarried": "Weight Carried: {weight} lb",
+    "netWorth": "Net worth:",
+    "itemsAttuned": "Items attuned: {count}",
+    "totalLower": "total: {total}",
+    "totalValue": "Total: {total}",
+    "weapons": "Weapons:",
+    "armor": "Armor:",
+    "tools": "Tools:",
+    "languages": "Languages:",
+    "uses": "{uses} uses",
+    "cost": "Cost: {quantity} {stat}",
+    "usesItem": "Uses: {quantity} {item}",
+    "toHit": "to hit",
+    "toHitLabel": "To hit:",
+    "castingTime": "Casting time:",
+    "range": "Range:",
+    "components": "Components:",
+    "duration": "Duration:",
+    "ritual": "(ritual)",
+    "cantripOf": "{school} cantrip",
+    "levelOf": "{levelText} {school}",
+    "spellLevel": "level {level}",
+    "spellSaveDc": "Spell Save DC: {dc}",
+    "spellAbility": "Spell casting ability: {ability}",
+    "spellAbilityMod": "Spell casting ability modifier: {mod}",
+    "spellAttackBonus": "Spell Attack Bonus: {bonus}",
+    "maxPrepared": "Maximum prepared spells: {count}",
+    "castingTimeName": "Casting time"
+  },
+  "xp": {
+    "milestone": "Milestone",
+    "levels": "Levels",
+    "xp": "XP",
+    "addExperience": "Add Experience",
+    "experiences": "Experiences",
+    "noExperiences": "No experiences",
+    "oneMilestoneLevel": "1 Milestone level",
+    "milestoneLevels": "{count} Milestone levels",
+    "amount": "{xp} XP"
+  },
+  "slots": {
+    "slotCount": "{count} slots",
+    "requirementsNotMet": "Requirements of {count} properties were not met",
+    "closeTest": "Close Test",
+    "withLibraryTags": "{type} with library tags:",
+    "cantFind": "Can't find what you're looking for?",
+    "browseCommunity": "Browse community libraries",
+    "createCustom": "Create custom filler"
+  },
+  "coins": {
+    "gp": "{value} gp",
+    "sp": "{value} sp",
+    "cp": "{value} cp"
+  },
+  "components": {
+    "uploadImage": "Upload Image",
+    "addImage": "Add image",
+    "searchIcons": "Search icons",
+    "clearLower": "clear"
+  },
+  "sharing": {
+    "sharedWrite": "Shared with edit permission",
+    "sharedRead": "Shared as view-only",
+    "sharedPublic": "Shared publically",
+    "whoCanView": "Who can view",
+    "onlyShared": "Only people I share with",
+    "anyoneWithLink": "Anyone with link",
+    "whoCanCopy": "Who can copy from this library",
+    "onlyEditors": "Only people with edit permission",
+    "anyoneReader": "Anyone with read permission",
+    "link": "Link",
+    "canEdit": "Can edit",
+    "viewOnly": "View only",
+    "transferOwnership": "Transfer Ownership",
+    "alreadyOwner": "User is already the owner",
+    "userNotFound": "User not found",
+    "transferConfirm": "Are you sure you want to transfer ownership to {user}?",
+    "transferUndo": "This can only be undone by the user you are transferring ownership to.",
+    "stillEdit": "You will still have edit permission.",
+    "transfer": "Transfer",
+    "toUser": "to {user}",
+    "canView": "Can view"
+  },
+  "toolbar": {
+    "duplicate": "Duplicate",
+    "copyTo": "Copy To",
+    "createReference": "Create Reference",
+    "move": "Move",
+    "copyToLibrary": "Copy to library",
+    "moveTitle": "Move"
+  },
+  "treeSearch": {
+    "field": "Field",
+    "text": "Text"
+  },
+  "deleteConfirm": {
+    "title": "Delete {type}",
+    "cantUndo": "This can't be undone",
+    "typeName": "Type \"{name}\" to permanenetly delete.",
+    "confirmation": "Confirmation"
+  },
+  "help": {
+    "title": "Help: {title}"
+  },
+  "deleteAccount": {
+    "title": "Delete User Account",
+    "areYouSure": "Are you sure you want to delete your account?",
+    "cantRecover": "Deleted accounts can not be recovered",
+    "immediately": "We will immediately delete your account and all of your data",
+    "usernameAvailable": "Your username will become available to anyone on DiceCloud",
+    "charactersDeleted": "These {count} characters will be deleted:",
+    "characterDeleted": "This character will be deleted:",
+    "librariesDeleted": "These {count} libraries will be deleted:",
+    "libraryDeleted": "This library will be deleted:",
+    "typeUsername": "Type your username or email",
+    "typePhrase": "To verify type '{phrase}'",
+    "phrase": "delete my account",
+    "permanently": "Permanently delete account"
+  },
+  "log": {
+    "compilationError": "Compilation error"
+  },
+  "icons": {
+    "metadataJson": "Metadata JSON",
+    "spriteJson": "Sprite JSON"
+  },
+  "forms": {
+    "condition": "Condition",
+    "summary": "Summary",
+    "log": "Log",
+    "dontShowInLog": "Don't show in log",
+    "targetCreature": "Target creature",
+    "actionTarget": "Action Target",
+    "self": "Self",
+    "singleTarget": "Single Target",
+    "multipleTargets": "Multiple Targets",
+    "variableName": "Variable name",
+    "variableNameAttributeHint": "Use this name in calculations to reference this attribute",
+    "behavior": "Behavior",
+    "children": "Children",
+    "resourcesConsumed": "Resources Consumed",
+    "limitUses": "Limit Uses",
+    "uses": "Uses",
+    "usesHint": "How many times this action can be used before needing to be reset",
+    "usesUsed": "Uses used",
+    "usesUsedHint": "How many times this action has already been used: should be 0 in most cases",
+    "resetUsesHint": "When number of uses used should be reset to zero",
+    "attackRoll": "Attack roll",
+    "value": "Value",
+    "valueGpHint": "The value of the item in gold pieces, using decimals for values less than 1 gp",
+    "gp": "gp",
+    "lb": "lb",
+    "weight": "Weight",
+    "quantity": "Quantity",
+    "dcHint": "Saving throw DC",
+    "save": "Save",
+    "saveHint": "Which stat the saving throw targets",
+    "targetProperties": "Target properties",
+    "targetByVariable": "Target by variable name",
+    "targetByTags": "Target by tags",
+    "targetField": "Target field",
+    "targetFieldHint": "Target a specific calculation field on the affected properties",
+    "defaultField": "Default field",
+    "alwaysActive": "Always active",
+    "operation": "Operation",
+    "amount": "Amount",
+    "level": "Level",
+    "text": "Text",
+    "tags": "Tags",
+    "tagsRequired": "Tags Required",
+    "attributeLabel": "Attribute",
+    "equipped": "Equipped",
+    "carried": "Carried",
+    "library": "Library",
+    "actionCondition": {
+      "hint": "This must be true for the action to be taken",
+      "errorText": "Condition error text"
+    },
+    "action": {
+      "baseAttackBonus": "Base attack roll bonus",
+      "baseAttackBonusHint": "Must be set for the action to have an attack roll",
+      "actionType": "Action type",
+      "eventVariableName": "Event variable name",
+      "eventVariableNameHint": "Variable name of the event that this action represents",
+      "summaryHint": "This will appear in the action card in the character sheet, summarise what the action does. This text will be displayed in the log when the action is taken"
+    },
+    "actionTypes": {
+      "action": "Action",
+      "bonus": "Bonus action",
+      "attack": "Attack action",
+      "attackHelp": "Attack actions replace a single attack when you choose to use your Action to attack",
+      "reaction": "Reaction",
+      "free": "Free action",
+      "freeHelp": "You can take one free action on your turn without using an action or bonus action",
+      "long": "Long action",
+      "longHelp": "Long actions take longer than one turn to complete",
+      "event": "Event",
+      "eventHelp": "Events are actions that happen to the character like rests or dawn"
+    },
+    "adjustment": {
+      "attributeHint": "The attribute that will be damaged or healed",
+      "operationHint": "Should the attribute be damaged by the amount, or set to the amount",
+      "damage": "Damage",
+      "set": "Set",
+      "damageHint": "The amount of damage to apply, negative values will heal",
+      "setHint": "The value to set the stat to"
+    },
+    "attributeConsumed": {
+      "hint": "The attribute variable name that will be consumed",
+      "quantityHint": "How much of the attribute will be consumed. If this amount is not available in the attribute, the action can't be taken"
+    },
+    "attribute": {
+      "baseValue": "Base Value",
+      "baseValueHint": "This is the value of the attribute before effects are applied. Can be a number or a calculation",
+      "hitDiceSize": "Hit Dice Size",
+      "spellSlotLevel": "Spell slot level",
+      "healthBar": "Health Bar",
+      "damagedColors": "Damaged Colors",
+      "half": "Half",
+      "empty": "Empty",
+      "damageOrder": "Damage order",
+      "damageOrderHint": "Lower ordered health bars will take damage before higher ordered ones",
+      "ignoreDamage": "Ignore damage",
+      "preventDamageOverflow": "Prevent damage overflow",
+      "healingOrder": "Healing order",
+      "healingOrderHint": "Lower ordered health bars will take healing before higher ordered ones",
+      "ignoreHealing": "Ignore healing",
+      "preventHealingOverflow": "Prevent healing overflow",
+      "damage": "Damage",
+      "damageHint": "Damage reduces the attribute's final value",
+      "resetDamageHint": "When damage should be reset to zero",
+      "allowDecimal": "Allow decimal values",
+      "allowNegative": "Can be damaged into negative values",
+      "allowAboveTotal": "Can be incremented above total",
+      "hideWhenTotalZero": "Hide when total is zero",
+      "hideWhenValueZero": "Hide when value is zero"
+    },
+    "branch": {
+      "branchType": "Branch Type",
+      "conditionHint": "If this resolved to a true value, the child properties will be applied",
+      "index": "Index",
+      "indexHint": "Which child to apply. An index of 2 will choose the 2nd child."
+    },
+    "branchTypes": {
+      "if": "If condition is true",
+      "hit": "Attack hit",
+      "miss": "Attack miss",
+      "failedSave": "Save failed",
+      "successfulSave": "Save succeeded",
+      "eachTarget": "Apply to each target",
+      "random": "Random",
+      "index": "Calculated index",
+      "choice": "User choice"
+    },
+    "branchHelp": {
+      "if": "If the condition is true, the child properties are applied",
+      "hit": "If the parent attack hits, the child properties are applied",
+      "miss": "If the parent attack misses, the child properties are applied",
+      "failedSave": "If the parent save is failed, the child properties are applied",
+      "successfulSave": "If the parent save is made, the child properties are applied",
+      "eachTarget": "Applies each child property once per target",
+      "random": "Chooses one child property at random and applies it",
+      "index": "Chooses one child property to apply based on the given index",
+      "choice": "Pause the action and let the user choose which child to apply"
+    },
+    "buff": {
+      "duration": "Duration",
+      "durationHint": "How many rounds the buff lasts",
+      "hideRemoveButton": "Hide remove button",
+      "dontFreeze": "Don't freeze variables"
+    },
+    "buffRemover": {
+      "targetBuffs": "Target buffs",
+      "tagged": "Remove tagged buffs",
+      "parent": "Remove parent buff",
+      "matching": "Remove matching buffs",
+      "one": "Remove 1 buff",
+      "all": "Remove all buffs"
+    },
+    "class": {
+      "variableNameHint": "Use this name in calculations to reference this class",
+      "levelsFromLibraries": "Class levels from libraries",
+      "activeCondition": "Active condition",
+      "activeConditionHint": "A calculation to determine if this class can have class levels added to it",
+      "tagHint": "Find class levels that have all of these tags",
+      "orHint": "Also find class levels that have all of these tags instead",
+      "notHint": "Ignore class levels that have any of these tags"
+    },
+    "classLevel": {
+      "classVariableName": "Class variable name",
+      "classVariableNameHint": "This should be the same as the class's variable name",
+      "descriptionHint": "A brief description of what this class level gives a character"
+    },
+    "constant": {
+      "valueHint": "Calculation of the constant value, use 'text' for a string value, [1,2,3] for a matrix, or 123 for a number"
+    },
+    "container": {
+      "carriedHint": "Whether this container and its contents count towards the creature's weight carried",
+      "weightless": "Contents are weightless"
+    },
+    "creature": {
+      "descriptionHint": "A brief description of the creature, shown in the log when it is summoned"
+    },
+    "damage": {
+      "damageHint": "A calculation including dice rolls of the damage to deal to the target when activated by an action",
+      "damageType": "Damage Type",
+      "damageTypeHint": "Use the Healing type to restore hit points",
+      "savingThrow": "Saving throw",
+      "onSave": "Damage on successful save",
+      "onSaveHint": "Use \"~damage\" to reference the damage that would normally be dealt",
+      "halfDamage": "Half damage",
+      "typeRequired": "Damage type is required",
+      "invalidType": "{value} is not a valid damage name"
+    },
+    "damageMultiplier": {
+      "multiplier": "Multiplier",
+      "damageTypes": "Damage Types",
+      "applyByTag": "Apply by tag",
+      "tagsRequired": "Tags required",
+      "tagsRequiredHint": "Only apply to damage that has all of these tags",
+      "tagsExcluded": "Tags excluded",
+      "tagsExcludedHint": "Don't apply to damage that has any of these tags"
+    },
+    "effect": {
+      "textHint": "The text to display on the affected stats",
+      "valueHint": "Number or calculation to determine the value of this effect",
+      "stats": "Stats",
+      "statsHint": "Which stats will this effect apply to"
+    },
+    "effectOps": {
+      "base": "Base Value",
+      "add": "Add",
+      "mul": "Multiply",
+      "min": "Minimum",
+      "max": "Maximum",
+      "set": "Set",
+      "advantage": "Advantage",
+      "disadvantage": "Disadvantage",
+      "passiveAdd": "Passive Bonus",
+      "fail": "Fail",
+      "conditional": "Conditional Benefit"
+    },
+    "effectHelp": {
+      "base": "Stats take their largest base value, and then apply all other effects",
+      "add": "Add this value to the stat",
+      "mul": "Multiply the stat by this value",
+      "min": "The stat will be at least this value",
+      "max": "The stat will not exceed this value",
+      "set": "The stat will be set to this value",
+      "advantage": "If this stat is the basis for a check, that check will be at advantage",
+      "disadvantage": "If this stat is the basis for a check, that check will be at advantage",
+      "passiveAdd": "This value will be added to the passive check",
+      "fail": "Targeted skills and checks will always fail",
+      "conditional": "Add a text note to this stat"
+    },
+    "feature": {
+      "summaryHint": "This will appear in the feature card in the character sheet",
+      "descriptionHint": "The rest of the description that doesn't fit in the summary goes here"
+    },
+    "folder": {
+      "grouping": "Grouping",
+      "groupOnCard": "Group children on a card",
+      "hideChildren": "Hide children from their default locations",
+      "tab": "Tab",
+      "statsTab": "Stats Tab",
+      "featuresTab": "Features Tab",
+      "actionsTab": "Actions Tab",
+      "spellsTab": "Spells Tab",
+      "inventoryTab": "Inventory Tab",
+      "journalTab": "Journal Tab",
+      "buildTab": "Build Tab",
+      "location": "Location",
+      "start": "Start",
+      "afterEvents": "After events",
+      "afterStats": "After stats",
+      "afterSkills": "After skills",
+      "afterProficiencies": "After proficiencies",
+      "end": "End"
+    },
+    "itemConsumed": {
+      "item": "Item",
+      "itemHint": "The item tag that will be consumed",
+      "quantityHint": "How many will be consumed"
+    },
+    "item": {
+      "pluralName": "Plural name",
+      "pluralNameHint": "The plural name of your item. If your item's name is 'sword' plural name would be 'swords'",
+      "weightHint": "The weight of a single item in lbs. Can be a decimal value",
+      "showIncrement": "Show increment button",
+      "attunement": "Attunement"
+    },
+    "note": {
+      "summaryHint": "This will appear in the card in the character sheet",
+      "descriptionHint": "Text that does not fit in the summary"
+    },
+    "pointBuy": {
+      "settings": "Point buy settings",
+      "min": "Min",
+      "minHint": "The minimum value for each row",
+      "max": "Max",
+      "maxHint": "The maximum value for each row",
+      "costFunction": "Cost function",
+      "costFunctionHint": "A function of `value` that determines the cost of each row",
+      "total": "Total available points",
+      "totalHint": "The total allowed cost of all rows",
+      "rows": "Rows",
+      "rowName": "Row Name",
+      "rowVariableHint": "Use this name in calculations to reference this row of the table",
+      "defaultValue": "Default value",
+      "defaultValueHint": "The starting value of the row",
+      "cost": "Cost"
+    },
+    "proficiency": {
+      "skills": "Skills",
+      "skillsHint": "Which skills does this proficiency apply to"
+    },
+    "reference": {
+      "linked": "Linked Property"
+    },
+    "resources": {
+      "conditions": "Conditions",
+      "attributes": "Attributes",
+      "ammo": "Ammo",
+      "addCondition": "Add Condition",
+      "addResource": "Add Resource",
+      "addAmmo": "Add Ammo"
+    },
+    "roll": {
+      "variableNameHint": "Use this name in action formulae to refer to the result of this roll",
+      "roll": "Roll",
+      "rollHint": "The calculation that will be evaluated when the roll is triggered by an action. The result will be saved as the variable name in the context of the roll."
+    },
+    "skill": {
+      "variableNameHint": "Use this name in formulae to reference this skill",
+      "abilityHint": "Which ability is this skill based off of",
+      "baseValues": "Base Values",
+      "baseProficiency": "Base Proficiency",
+      "baseValueHint": "This is the value of the skill before effects are applied",
+      "applySkill": "Apply skill",
+      "applyToTags": "Apply skill to targeted tags"
+    },
+    "slot": {
+      "typeHint": "What property type is needed to fill this slot",
+      "anyType": "Any type",
+      "quantityHint": "How many matching properties must be used to fill this slot",
+      "unlimited": "unlimited",
+      "conditionHint": "A caclulation to determine if this slot should be active",
+      "unique": "Unique",
+      "uniqueHint": "Do the properties that fill this slot need to be unique?",
+      "allowDuplicates": "Allow duplicate values",
+      "test": "Test",
+      "testSlot": "Test Slot",
+      "hideWhenFull": "Hide when full",
+      "ignored": "Ignored",
+      "uniqueInSlot": "Each property inside this slot should be unique",
+      "uniqueInCreature": "Properties in this slot should be unique across the whole character",
+      "tagHint": "Find library properties that have all of these tags",
+      "orHint": "Also library properties that have all of these tags instead",
+      "notHint": "Ignore library properties that have any of these tags"
+    },
+    "spell": {
+      "alwaysPrepared": "Always prepared",
+      "prepared": "Prepared",
+      "withoutSlots": "Cast without spell slots",
+      "levelHint": "The spell level",
+      "school": "School",
+      "castingTime": "Casting Time",
+      "range": "Range",
+      "duration": "Duration",
+      "toHit": "To Hit",
+      "toHitHint": "The bonus to attack if this action has an attack roll",
+      "summaryHint": "This will appear in the action card in the character sheet, summarise what the action does",
+      "cantrip": "Cantrip",
+      "levelN": "Level {level}"
+    },
+    "spellList": {
+      "maxPrepared": "Maximum prepared spells",
+      "maxPreparedHint": "How many spells can be prepared",
+      "ability": "Spellcasting ability",
+      "abilityHint": "Which ability is used to cast spells in this spell list",
+      "dc": "Spell save DC",
+      "dcHint": "The spell save DC of spells in this list",
+      "attackBonus": "Attack roll bonus",
+      "attackBonusHint": "The attack roll bonus of spell attacks made by spells in this list"
+    },
+    "toggle": {
+      "active": "Active",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "calculated": "Calculated",
+      "conditionHint": "When this calculation returns a value that isn't false or zero the children will be active",
+      "enableOrDisable": "Enabled or disable properties",
+      "descendants": "Descendants",
+      "byTags": "By target tags",
+      "showOnSheet": "Show on character sheet"
+    },
+    "trigger": {
+      "timing": "Timing",
+      "timingHint": "When this trigger will fire",
+      "event": "Event",
+      "eventHint": "What causes this trigger to fire",
+      "conditionHint": "A calculation to determine if this trigger should fire",
+      "eventType": "Event Type",
+      "eventTypeHint": "Which action event causes this trigger to fire"
+    },
+    "iconColor": {
+      "icon": "Icon",
+      "color": "Color"
+    },
+    "tagTargeting": {
+      "tagHint": "Applied to properties that have all the listed tags",
+      "orHint": "Also applied to properties that have all of these tags",
+      "notHint": "Ignore properties that have any of these tags"
+    },
+    "property": {
+      "library": "Library",
+      "canFillSlots": "Can fill slots",
+      "searchable": "Searchable from character sheet",
+      "slotFillType": "Slot fill type",
+      "slotFillTypeHint": "The property type that this slot filler pretends to be when being searched for by a slot",
+      "slotQuantity": "Slot quantity filled",
+      "slotQuantityHint": "How many properties this counts as when filling a slot",
+      "conditionHint": "A caclulation to determine if this property can be added to a character",
+      "conditionErrorText": "Condition Error Text",
+      "conditionErrorTextHint": "Text to display if the condition isn't met",
+      "libraryTags": "Library Tags",
+      "libraryTagsHint": "Used to let slots find this property in a library",
+      "tagsHint": "Tags let other properties target this property with interactions",
+      "childProperties": "Child properties",
+      "childrenAfterCreate": "Children can be added after this property is created",
+      "otherChild": "...Other",
+      "child": "Child"
+    }
+  },
+  "attributeTypes": {
+    "ability": "Ability score",
+    "abilityHelp": "Ability scores are your primary attributes, like Strength and Intelligence",
+    "stat": "Stat",
+    "statHelp": "Stats are attributes with a numerical value like speed or carrying capacity",
+    "modifier": "Modifier",
+    "modifierHelp": "Modifiers are attributes that are added to rolls, like proficiency bonus",
+    "hitDice": "Hit dice",
+    "healthBar": "Health bar",
+    "resource": "Resource",
+    "resourceHelp": "Resources are attributes that are spent to fuel actions, like sorcery points or ki",
+    "spellSlot": "Spell slot",
+    "utility": "Utility",
+    "utilityHelp": "Utility attributes aren't displayed on your character sheet, but can be referenced or used in calculations"
+  },
+  "skillTypes": {
+    "skill": "Skill",
+    "save": "Save",
+    "check": "Check",
+    "tool": "Tool",
+    "weapon": "Weapon",
+    "armor": "Armor",
+    "language": "Language",
+    "utility": "Utility"
+  },
+  "skillTypeHints": {
+    "skill": "A normal character sheet skill like Athletics, Deception, or Investigation",
+    "save": "A saving throw the character can make: Strength Save, etc.",
+    "check": "An ability check that might include a proficiency bonus later eg. Initiative",
+    "tool": "A tool proficiency. Be sure to add a base proficiency in the advanced section.",
+    "weapon": "A weapon proficiency. Be sure to add a base proficiency in the advanced section.",
+    "armor": "A armor proficiency. Be sure to add a base proficiency in the advanced section.",
+    "language": "A language proficiency. Be sure to add a base proficiency in the advanced section.",
+    "utility": "A skill that does not show up in the sheet, but can be used by other caclulations"
+  },
+  "triggers": {
+    "event": {
+      "doActionProperty": "Do action",
+      "check": "Roll check",
+      "damageProperty": "Trigger damaged or healed",
+      "anyRest": "Short or long rest",
+      "longRest": "Long rest",
+      "shortRest": "Short rest"
+    },
+    "timing": {
+      "before": "Before",
+      "after": "After",
+      "afterChildren": "After Children"
+    },
+    "actionPropertyType": {
+      "action": "Action",
+      "ammo": "Ammo used",
+      "adjustment": "Trigger damage",
+      "branch": "Branch",
+      "buff": "Buff",
+      "buffRemover": "Buff Removed",
+      "damage": "Damage",
+      "note": "Note",
+      "roll": "Roll",
+      "savingThrow": "Saving throw",
+      "spell": "Spell",
+      "toggle": "Toggle"
+    }
+  },
+  "proficiencyLevels": {
+    "none": "Not proficient",
+    "proficient": "Proficient",
+    "halfDown": "Half proficiency bonus rounded down",
+    "halfUp": "Half proficiency bonus rounded up",
+    "half": "Half proficiency bonus",
+    "double": "Double proficiency bonus"
+  },
+  "insert": {
+    "new": "New",
+    "create": "Create",
+    "library": "Library",
+    "createLower": "create",
+    "type": "Type"
+  },
+  "damageTypes": {
+    "healing": "healing",
+    "bludgeoning": "bludgeoning",
+    "piercing": "piercing",
+    "slashing": "slashing",
+    "acid": "acid",
+    "cold": "cold",
+    "fire": "fire",
+    "force": "force",
+    "lightning": "lightning",
+    "necrotic": "necrotic",
+    "poison": "poison",
+    "psychic": "psychic",
+    "radiant": "radiant",
+    "thunder": "thunder",
+    "extra": "extra"
+  },
+  "treeNodes": {
+    "damage": "{amount} {type} damage",
+    "healing": "{amount} healing",
+    "damageWord": "damage",
+    "toSelf": "to self",
+    "attributeDamage": "{stat} damage",
+    "selectedStats": "Selected stats",
+    "selectedTags": "Selected tags",
+    "dc": "DC {dc}"
+  },
+  "branchTypes": {
+    "if": "On condition",
+    "hit": "On hit",
+    "miss": "On miss",
+    "failedSave": "On failed save",
+    "successfulSave": "On save",
+    "eachTarget": "Each target",
+    "random": "Pick one at random",
+    "index": "Pick one by index",
+    "choice": "User choice"
+  },
+  "effectOps": {
+    "base": "Base value",
+    "add": "Add",
+    "mul": "Multiply",
+    "min": "Minimum",
+    "max": "Maximum",
+    "set": "Set",
+    "advantage": "Advantage",
+    "disadvantage": "Disadvantage",
+    "passiveAdd": "Passive bonus",
+    "fail": "Always fail",
+    "conditional": "Conditional benefit"
+  },
+  "targets": {
+    "self": "Self",
+    "singleTarget": "Single target",
+    "multipleTargets": "Multiple targets",
+    "canOnlyTargetSelf": "Can only target self"
+  },
+  "viewers": {
+    "resetShortRest": "Reset on a short rest",
+    "resetLongRest": "Reset on a long rest",
+    "castSpell": "Cast spell",
+    "applyAction": "Apply action",
+    "toHit": "To hit",
+    "actionType": "Action type",
+    "targeting": "Targeting",
+    "uses": "Uses",
+    "reset": "Reset",
+    "resetButton": "Reset",
+    "conditions": "Conditions",
+    "attributesConsumed": "Attributes consumed",
+    "itemsConsumed": "Items consumed",
+    "amount": "Amount",
+    "target": "Target",
+    "valueTotal": "Value / Total",
+    "value": "Value",
+    "valueLower": "value",
+    "modifier": "Modifier",
+    "variableName": "Variable Name",
+    "variableNameLower": "Variable name",
+    "attributeType": "Attribute type",
+    "hitDiceSize": "Hit dice size",
+    "conModifier": "Constitution modifier",
+    "spellSlotLevel": "Spell slot level",
+    "overridden": "Overridden",
+    "effects": "Effects",
+    "branchType": "Branch Type",
+    "index": "Index",
+    "whenApplied": "When applied",
+    "removeAllMatching": "Remove all matching buffs",
+    "removeOneMatching": "Remove 1 matching buff",
+    "targetedTags": "Targeted tags",
+    "duration": "Duration",
+    "missingLevels": "Missing Levels",
+    "calculation": "Calculation",
+    "contentsWeightless": "Contents weightless",
+    "damageTypes": "Damage types",
+    "damageTagsRequired": "Damage tags required",
+    "damageTagsExcluded": "Damage tags excluded",
+    "onSuccessfulSave": "On a successful saving throw",
+    "halfDamage": "Half damage",
+    "noDamage": "No damage",
+    "stats": "Stats",
+    "error": "Error",
+    "linkedProperty": "Linked property",
+    "rollBonus": "Roll bonus",
+    "skillType": "Skill type",
+    "passiveScore": "Passive score",
+    "descriptionLower": "description",
+    "proficiencies": "Proficiencies",
+    "conditionResult": "Condition result",
+    "fillWithType": "Fill with type",
+    "fill": "Fill",
+    "fillSlot": "Fill Slot",
+    "spellcastingAbilityMod": "Spellcasting ability modifier",
+    "spellSaveDc": "Spell Save DC",
+    "components": "Components",
+    "materialWith": "Material ({material})",
+    "state": "State",
+    "status": "Status",
+    "inactive": "Inactive",
+    "deactivatedBy": "Deactivated by:",
+    "deactivatedByAncestor": "Deactivated by ancestor",
+    "deactivatedBySelf": "Deactivated by own settings",
+    "libraryBehavior": "Library Behavior",
+    "cantView": "This property can't be viewed yet.",
+    "skill": "Skill",
+    "overriddenText": "Overriden by another property with the same variable name",
+    "typedDamage": "{type} damage"
+  },
+  "cards": {
+    "uses": "{count} uses",
+    "selectItem": "Select item",
+    "noItemsWithTag": "No active items found with the tag \"{tag}\"",
+    "spellSlots": "Spell Slots",
+    "castASpell": "Cast a spell",
+    "castASpellTitle": "Cast a Spell",
+    "cast": "Cast",
+    "spellsPrepared": "{prepared}/{max} spells prepared",
+    "changePrepared": "Change prepared spells",
+    "undefinedCard": "A property card for the {type} isn't defined. You should report this error.",
+    "noCondition": "No condition specified",
+    "pointBuy": "Point Buy"
+  },
+  "selector": {
+    "suggested": "Suggested",
+    "more": "More",
+    "propertyType": "Property Type"
+  },
+  "snackbar": {
+    "undo": "undo"
+  },
+  "spells": {
+    "cantrips": "Cantrips",
+    "level": "Level {level}"
+  }
+}

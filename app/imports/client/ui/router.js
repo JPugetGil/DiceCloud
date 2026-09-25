@@ -121,7 +121,7 @@ const routes = [{
       default: Home,
     },
     meta: {
-      title: 'Home',
+      title: 'pageTitle.home',
     },
   }, {
     path: '/character-list',
@@ -131,7 +131,7 @@ const routes = [{
       toolbarItems: CharacterListToolbarItems,
     },
     meta: {
-      title: 'Character List',
+      title: 'pageTitle.characterList',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -141,7 +141,7 @@ const routes = [{
       default: Library,
     },
     meta: {
-      title: 'Library',
+      title: 'pageTitle.library',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -152,7 +152,7 @@ const routes = [{
       toolbar: SingleLibraryToolbar,
     },
     meta: {
-      title: 'Library',
+      title: 'pageTitle.library',
     },
   }, {
     name: 'libraryCollection',
@@ -162,7 +162,7 @@ const routes = [{
       toolbar: LibraryCollectionToolbar,
     },
     meta: {
-      title: 'Library Collection',
+      title: 'pageTitle.libraryCollection',
     },
   }, {
     name: 'libraryBrowser',
@@ -171,7 +171,7 @@ const routes = [{
       default: LibraryBrowser,
     },
     meta: {
-      title: 'Community Libraries',
+      title: 'pageTitle.communityLibraries',
     },
   }, {
     name: 'characterSheet',
@@ -184,7 +184,7 @@ const routes = [{
       rightDrawer: CharacterSheetRightDrawer,
     },
     meta: {
-      title: 'Character Sheet',
+      title: 'pageTitle.characterSheet',
     },
   }, {
     name: 'printCharacterSheet',
@@ -194,7 +194,7 @@ const routes = [{
       toolbar: CharacterSheetPrintedToolbar,
     },
     meta: {
-      title: 'Print Character Sheet',
+      title: 'pageTitle.printCharacterSheet',
     },
   }, {
     path: '/friends',
@@ -202,7 +202,7 @@ const routes = [{
       default: NotImplemented,
     },
     meta: {
-      title: 'Friends',
+      title: 'pageTitle.friends',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -212,7 +212,7 @@ const routes = [{
       default: SignIn,
     },
     meta: {
-      title: 'Sign In',
+      title: 'pageTitle.signIn',
     },
   }, {
     name: 'register',
@@ -221,7 +221,7 @@ const routes = [{
       default: Register,
     },
     meta: {
-      title: 'Register',
+      title: 'pageTitle.register',
     },
   }, {
     path: '/account',
@@ -229,7 +229,7 @@ const routes = [{
       default: Account,
     },
     meta: {
-      title: 'Account',
+      title: 'pageTitle.account',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -238,7 +238,7 @@ const routes = [{
       default: Files,
     },
     meta: {
-      title: 'Files',
+      title: 'pageTitle.files',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -247,7 +247,7 @@ const routes = [{
       default: Discord,
     },
     meta: {
-      title: 'Discord',
+      title: 'pageTitle.discord',
     },
   }, {
     path: '/docs/functions',
@@ -255,7 +255,7 @@ const routes = [{
       default: FunctionReference,
     },
     meta: {
-      title: 'Functions',
+      title: 'pageTitle.functions',
     },
   }, {
     path: '/docs/:docPath([^/]+.*)?',
@@ -265,7 +265,7 @@ const routes = [{
       rightDrawer: DocsRightDrawer,
     },
     meta: {
-      title: 'Documentation',
+      title: 'pageTitle.documentation',
     },
   }, {
     path: '/about',
@@ -273,7 +273,7 @@ const routes = [{
       default: About,
     },
     meta: {
-      title: 'About DiceCloud',
+      title: 'pageTitle.about',
     },
   }, {
     path: '/verify-email/:token',
@@ -288,7 +288,7 @@ const routes = [{
       default: true,
     },
     meta: {
-      title: 'Email Verification Error',
+      title: 'pageTitle.emailVerificationError',
     },
   }, {
     path: '/email-verification-success',
@@ -296,7 +296,7 @@ const routes = [{
       default: EmailVerificationSuccess,
     },
     meta: {
-      title: 'Email Verification Success',
+      title: 'pageTitle.emailVerificationSuccess',
     },
   }, {
     path: '/reset-password/:token?',
@@ -304,7 +304,7 @@ const routes = [{
       default: ResetPassword,
     },
     meta: {
-      title: 'Reset Password',
+      title: 'pageTitle.resetPassword',
     },
   }, {
     path: '/icon-admin',

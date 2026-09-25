@@ -5,7 +5,7 @@
         mdi-help
       </v-icon>
       <v-toolbar-title>
-        Help: {{ title }}
+        {{ $t('help.title', { title }) }}
       </v-toolbar-title>
     </template>
     <div>
@@ -16,7 +16,7 @@
         size="32"
       />
       <div v-else-if="!doc">
-        Help document not found for {{ title }}
+        {{ $t('docs.helpNotFound', { title }) }}
       </div>
       <markdown-text
         v-else
@@ -30,7 +30,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Close
+        {{ $t('common.close') }}
       </v-btn>
     </template>
   </dialog-base>
@@ -44,7 +44,11 @@ import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import { propsByDocsPath } from '/imports/constants/PROPERTIES';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import Docs from '/imports/api/docs/Docs';
+import { expandRootUrl } from '/imports/api/docs/docUrls';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -68,7 +72,7 @@ const title = computed(() => {
         return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase() + ' ';
       }
     );
-    return titleCase || 'Character Sheet';
+    return titleCase || t('pageTitle.characterSheet');
   }
 });
 
@@ -77,7 +81,7 @@ const isDocsReady = computed(() => docsReady.value);
 
 const doc = autorun(() => {
   const d = Docs.findOne({href: '/docs/' + props.path});
-  return d && d.description;
+  return d && expandRootUrl(d.description);
 }).result;
 
 function linkClick(e) {

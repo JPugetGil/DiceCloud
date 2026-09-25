@@ -6,7 +6,7 @@
     <v-row dense>
       <property-field
         v-if="model.inactive"
-        name="Status"
+        :name="$t('viewers.status')"
         :cols="{cols: 12}"
       >
         <div
@@ -14,13 +14,13 @@
           class="text-disabled"
         >
           <div>
-            Inactive
+            {{ $t('viewers.inactive') }}
           </div>
           <div
             v-if="model.deactivatedByToggle && deactivatingToggle"
             class="pt-2"
           >
-            <div>Deactivated by:</div>
+            <div>{{ $t('viewers.deactivatedBy') }}</div>
             <v-btn
               block
               :data-id="`tree-node-${model.deactivatingToggleId}`"
@@ -36,13 +36,13 @@
             v-if="model.deactivatedByAncestor"
             class="pt-2"
           >
-            Deactivated by ancestor
+            {{ $t('viewers.deactivatedByAncestor') }}
           </div>
           <div
             v-if="model.deactivatedBySelf"
             class="pt-2"
           >
-            Deactivated by own settings
+            {{ $t('viewers.deactivatedBySelf') }}
           </div>
         </div>
       </property-field>
@@ -62,38 +62,38 @@
       >
         <property-field
           v-if="model.fillSlots || model.searchable"
-          name="Library Behavior"
+          :name="$t('viewers.libraryBehavior')"
         >
           <ul>
             <li
               v-if="model.fillSlots"
             >
-              Can fill slots
+              {{ $t('forms.property.canFillSlots') }}
             </li>
             <li v-if="model.searchable">
-              Searchable from character sheet
+              {{ $t('forms.property.searchable') }}
             </li>
           </ul>
         </property-field>
         <property-field
-          name="Slot fill type"
+          :name="$t('forms.property.slotFillType')"
           :value="slotFillTypeName"
         />
         <property-field
-          name="Slot quantity filled"
+          :name="$t('forms.property.slotQuantity')"
           :value="model.slotQuantityFilled"
         />
         <property-field
-          name="Condition"
+          :name="$t('forms.condition')"
           mono
           :value="model.slotFillerCondition"
         />
         <property-field
-          name="Condition Error Text"
+          :name="$t('forms.property.conditionErrorText')"
           :value="model.slotFillerConditionNote"
         />
         <property-field
-          name="Library Tags"
+          :name="$t('forms.property.libraryTags')"
           :cols="{cols: 12}"
         >
           <div
@@ -113,7 +113,7 @@
         </property-field>
       </template>
       <property-field
-        name="Tags"
+        :name="$t('forms.tags')"
         :cols="{cols: 12}"
       >
         <div
@@ -133,7 +133,7 @@
       </property-field>
       <property-field
         v-show="childrenLength"
-        name="Child properties"
+        :name="$t('forms.property.childProperties')"
         :cols="{cols: 12}"
       >
         <descendant-properties-tree
@@ -147,7 +147,7 @@
     </v-row>
   </div>
   <div v-else-if="model">
-    This property can't be viewed yet.
+    {{ $t('viewers.cantView') }}
   </div>
 </template>
 
@@ -157,7 +157,7 @@ import { autorun } from 'vue-meteor-tracker';
 import propertyViewerIndex from '/imports/client/ui/properties/viewers/shared/propertyViewerIndex';
 import CreaturePropertiesTree from '/imports/client/ui/creature/creatureProperties/CreaturePropertiesTree.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import DescendantPropertiesTree from '/imports/client/ui/creature/creatureProperties/DescendantPropertiesTree.vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';

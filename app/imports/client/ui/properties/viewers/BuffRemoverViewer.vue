@@ -3,21 +3,21 @@
     <v-row dense>
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
       <template v-if="!model.targetParentBuff">
         <property-field
           v-if="model.target === 'self'"
-          name="Target"
-          value="Self"
+          :name="$t('viewers.target')"
+          :value="$t('targets.self')"
         />
         <property-field
-          name="When applied"
-          :value="model.removeAll ? 'Remove all matching buffs' : 'Remove 1 matching buff'"
+          :name="$t('viewers.whenApplied')"
+          :value="model.removeAll ? $t('viewers.removeAllMatching') : $t('viewers.removeOneMatching')"
         />
         <property-field
-          name="Targeted tags"
+          :name="$t('viewers.targetedTags')"
         >
           <div>
             <div class="d-flex flex-wrap">

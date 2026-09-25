@@ -16,7 +16,7 @@
         mdi-file-upload-outline
       </v-icon>
       <div>
-        Upload Image
+        {{ $t('components.uploadImage') }}
       </div>
       <template #loader>
         <v-progress-circular

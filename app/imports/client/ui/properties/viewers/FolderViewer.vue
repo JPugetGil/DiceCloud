@@ -4,11 +4,11 @@
       dense
     >
       <property-field
-        name="Name"
+        :name="$t('common.name')"
         :value="model.name"
       />
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

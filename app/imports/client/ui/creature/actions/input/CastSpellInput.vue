@@ -2,7 +2,7 @@
   <div>
     <text-field
       ref="focusFirst"
-      label="Name"
+      :label="$t('common.name')"
       prepend-inner-icon="mdi-magnify"
       regular
       hide-details
@@ -39,7 +39,7 @@
           <v-switch
             v-model="filter.value"
             :disabled="!filter.enabled"
-            :label="filter.name"
+            :label="$t(filter.name)"
           />
         </v-list-item>
         <div class="d-flex flex-1-1">
@@ -47,7 +47,7 @@
             variant="text"
             @click="clearBooleanFilters"
           >
-            Clear
+            {{ $t('common.clear') }}
           </v-btn>
           <v-spacer />
           <v-btn
@@ -55,7 +55,7 @@
             class="text-primary"
             @click="filterMenuOpen = false"
           >
-            Done
+            {{ $t('common.done') }}
           </v-btn>
         </div>
       </v-list>
@@ -66,7 +66,7 @@
           key="slot-title"
           class="text-h6 my-3"
         >
-          Slot
+          {{ $t('castSpell.slot') }}
         </div>
         <v-list
           key="slot-list"
@@ -80,7 +80,7 @@
             @click="selectedSlotId = 'no-slot'"
           >
             <v-list-item-title>
-              Cast without spell slot
+              {{ $t('castSpell.withoutSlot') }}
             </v-list-item-title>
           </v-list-item>
           <v-list-item
@@ -92,7 +92,7 @@
             @click="selectedSlotId = 'ritual'"
           >
             <v-list-item-title>
-              Cast as ritual
+              {{ $t('castSpell.asRitual') }}
             </v-list-item-title>
           </v-list-item>
           <spell-slot-list-tile
@@ -112,7 +112,7 @@
           key="spell-title-right"
           class="text-h6 my-3"
         >
-          Spell
+          {{ $t('castSpell.spell') }}
         </div>
         <v-list
           key="slot-list-right"
@@ -125,7 +125,7 @@
               v-if="spell.isSubheader"
               class="item"
             >
-              {{ spell.level === 0 ? 'Cantrips' : `Level ${spell.level}` }}
+              {{ spell.level === 0 ? $t('spells.cantrips') : $t('spells.level', { level: spell.level }) }}
             </v-list-subheader>
             <spell-list-tile
               v-else
@@ -194,11 +194,11 @@ const searchError = ref(undefined);
 const filterMenuOpen = ref(false);
 
 const booleanFilters = reactive({
-  verbal: { name: 'Verbal', enabled: false, value: true },
-  somatic: { name: 'Somatic', enabled: false, value: true },
-  material: { name: 'Material', enabled: false, value: true },
-  concentration: { name: 'Concentration', enabled: false, value: true },
-  ritual: { name: 'Ritual', enabled: false, value: true },
+  verbal: { name: 'spellComponents.verbal', enabled: false, value: true },
+  somatic: { name: 'spellComponents.somatic', enabled: false, value: true },
+  material: { name: 'spellComponents.material', enabled: false, value: true },
+  concentration: { name: 'spellComponents.concentration', enabled: false, value: true },
+  ritual: { name: 'spellComponents.ritual', enabled: false, value: true },
 });
 
 const computedSpells = computed(() => {

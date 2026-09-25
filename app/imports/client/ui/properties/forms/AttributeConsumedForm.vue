@@ -5,8 +5,8 @@
       md="6"
     >
       <smart-combobox
-        label="Attribute"
-        hint="The attribute variable name that will be consumed"
+        :label="$t('forms.attributeLabel')"
+        :hint="$t('forms.attributeConsumed.hint')"
         style="flex-basis: 300px;"
         :items="attributeList"
         :value="model.variableName"
@@ -19,8 +19,8 @@
       md="6"
     >
       <computed-field
-        label="Quantity"
-        hint="How much of the attribute will be consumed. If this amount is not available in the attribute, the action can't be taken"
+        :label="$t('forms.quantity')"
+        :hint="$t('forms.attributeConsumed.quantityHint')"
         :model="model.quantity"
         :error-messages="errors.quantity"
         @change="({path, value, ack}) =>

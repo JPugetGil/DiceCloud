@@ -24,7 +24,7 @@
           variant="text"
           @click="closeSnackbar(); snackbar.data.callback()"
         >
-          {{ snackbar.data.callbackName }}
+          {{ $te('snackbar.' + snackbar.data.callbackName) ? $t('snackbar.' + snackbar.data.callbackName) : snackbar.data.callbackName }}
         </v-btn>
       </template>
     </div>

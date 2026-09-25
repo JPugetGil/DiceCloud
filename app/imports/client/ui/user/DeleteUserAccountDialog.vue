@@ -2,27 +2,27 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Delete User Account
+        {{ $t('deleteAccount.title') }}
       </v-toolbar-title>
     </template>
     <div>
-      <h2>Are you sure you want to delete your account?</h2>
+      <h2>{{ $t('deleteAccount.areYouSure') }}</h2>
       <v-alert
         :value="true"
         icon="mdi-alert"
         color="error"
         variant="outlined"
       >
-        Deleted accounts can not be recovered
+        {{ $t('deleteAccount.cantRecover') }}
       </v-alert>
-      <p>We will immediately delete your account and all of your data</p>
-      <p>Your username will become available to anyone on DiceCloud</p>
+      <p>{{ $t('deleteAccount.immediately') }}</p>
+      <p>{{ $t('deleteAccount.usernameAvailable') }}</p>
       <template v-if="characters?.length">
         <h3 v-if="characters.length > 1">
-          These {{ characters.length }} characters will be deleted:
+          {{ $t('deleteAccount.charactersDeleted', { count: characters.length }) }}
         </h3>
         <h3 v-else>
-          This character will be deleted:
+          {{ $t('deleteAccount.characterDeleted') }}
         </h3>
         <v-list>
           <creature-list-tile
@@ -34,10 +34,10 @@
       </template>
       <template v-if="libraries?.length">
         <h3 v-if="libraries.length > 1">
-          These {{ libraries.length }} libraries will be deleted:
+          {{ $t('deleteAccount.librariesDeleted', { count: libraries.length }) }}
         </h3>
         <h3 v-else>
-          This library will be deleted:
+          {{ $t('deleteAccount.libraryDeleted') }}
         </h3>
         <v-list>
           <creature-list-tile
@@ -51,14 +51,14 @@
         <v-text-field
           v-if="user?.username"
           v-model="usernameInput"
-          label="Type your username or email"
+          :label="$t('deleteAccount.typeUsername')"
           style="width: 350px;"
           :error-messages="usernameInputValid ? undefined : ' '"
           :append-icon="usernameInputValid ? 'mdi-check' : undefined"
         />
         <v-text-field
           v-model="verificationInput"
-          label="To verify type 'delete my account'"
+          :label="$t('deleteAccount.typePhrase', { phrase: $t('deleteAccount.phrase') })"
           style="width: 350px;"
           :error-messages="verificationInputValid ? undefined : ' '"
           :append-icon="verificationInputValid ? 'mdi-check' : undefined"
@@ -69,7 +69,7 @@
           :disabled="!valid"
           @click="deleteAccount"
         >
-          Permanently delete account
+          {{ $t('deleteAccount.permanently') }}
         </v-btn>
       </div>
     </div>
@@ -82,7 +82,7 @@
           variant="text"
           @click="dialogStackStore.popDialogStack()"
         >
-          Cancel
+          {{ $t('common.cancel') }}
         </v-btn>
       </div>
     </template>
@@ -99,6 +99,9 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import Libraries from '/imports/api/library/Libraries';
 import CreatureListTile from '/imports/client/ui/creature/creatureList/CreatureListTile.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -127,7 +130,7 @@ const usernameInputValid = computed(() => {
 
 const verificationInputValid = computed(() => {
   let input = verificationInput.value || '';
-  return input.toLowerCase() === 'delete my account';
+  return input.toLowerCase() === t('deleteAccount.phrase');
 });
 
 const valid = computed(() => {

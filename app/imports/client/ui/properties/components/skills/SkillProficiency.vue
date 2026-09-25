@@ -45,6 +45,9 @@ import { computed } from 'vue';
 import PropertyBreadcrumbs from '/imports/client/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import getProficiencyIcon from '/imports/client/ui/utility/getProficiencyIcon';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -74,10 +77,10 @@ const icon = computed(() => {
 
 const proficiencyText = computed(() => {
   switch (proficiency.value) {
-    case 0.49: return 'Half proficiency bonus rounded down';
-    case 0.5: return 'Half proficiency bonus rounded up';
-    case 1: return 'Proficient';
-    case 2: return 'Double proficiency bonus';
+    case 0.49: return t('proficiencyLevels.halfDown');
+    case 0.5: return t('proficiencyLevels.halfUp');
+    case 1: return t('proficiencyLevels.proficient');
+    case 2: return t('proficiencyLevels.double');
     default: return '';
   }
 });

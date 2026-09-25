@@ -1,21 +1,21 @@
 <template>
   <div class="creature-form">
     <text-field
-      label="Name"
+      :label="$t('common.name')"
       :disabled="!editPermission"
       :value="model.name"
       :error-messages="errors.name"
       @change="(value, ack) => emit('change', {path: ['name'], value, ack})"
     />
     <text-field
-      label="Alignment"
+      :label="$t('creatureForm.alignment')"
       :disabled="!editPermission"
       :value="model.alignment"
       :error-messages="errors.alignment"
       @change="(value, ack) => emit('change', {path: ['alignment'], value, ack})"
     />
     <text-field
-      label="Gender"
+      :label="$t('creatureForm.gender')"
       :disabled="!editPermission"
       :value="model.gender"
       :error-messages="errors.gender"
@@ -27,8 +27,8 @@
         md="6"
       >
         <smart-image-input
-          label="Picture"
-          hint="A link to a high resolution image"
+          :label="$t('creatureForm.picture')"
+          :hint="$t('creatureForm.pictureHint')"
           :disabled="!editPermission"
           :value="model.picture"
           :error-messages="errors.picture"
@@ -40,8 +40,8 @@
         md="6"
       >
         <smart-image-input
-          label="Avatar"
-          hint="A link to a smaller, square image to use as an avatar"
+          :label="$t('creatureForm.avatar')"
+          :hint="$t('creatureForm.avatarHint')"
           :disabled="!editPermission"
           :value="model.avatarPicture"
           :error-messages="errors.avatarPicture"
@@ -50,34 +50,34 @@
       </v-col>
     </v-row>
     <form-sections>
-      <form-section name="Settings">
+      <form-section :name="$t('creatureForm.settings')">
         <v-switch
-          label="Hide redundant stats"
+          :label="$t('creatureForm.hideRedundantStats')"
           :disabled="!editPermission"
           :model-value="model.settings.hideUnusedStats"
           @update:model-value="value => emit('change', {path: ['settings','hideUnusedStats'], value: !!value})"
         />
         <v-switch
-          label="Hide rest buttons"
+          :label="$t('creatureForm.hideRestButtons')"
           :disabled="!editPermission"
           :model-value="model.settings.hideRestButtons"
           @update:model-value="value => emit('change', {path: ['settings','hideRestButtons'], value: !!value})"
         />
         <v-switch
-          label="Show spells tab"
+          :label="$t('creatureForm.showSpellsTab')"
           :disabled="!editPermission"
           :model-value="!model.settings.hideSpellsTab"
           @update:model-value="changeHideSpellsTab"
         />
         <v-switch
-          label="Show tree tab"
+          :label="$t('creatureForm.showTreeTab')"
           :disabled="!editPermission"
           :model-value="model.settings.showTreeTab"
           @update:model-value="changeShowTreeTab"
         />
         <text-field
-          label="Hit Dice reset multiplier"
-          hint="What fraction of your hit dice are reset every long rest"
+          :label="$t('creatureForm.hitDiceMultiplier')"
+          :hint="$t('creatureForm.hitDiceMultiplierHint')"
           placeholder="0.5"
           type="number"
           min="0"
@@ -88,8 +88,8 @@
           @change="(value, ack) => emit('change', {path: ['settings','hitDiceResetMultiplier'], value, ack})"
         />
         <text-field
-          label="Discord Webhook URL"
-          hint="This creature's logs will be posted to the discord channel"
+          :label="$t('creatureForm.discordWebhook')"
+          :hint="$t('creatureForm.discordWebhookHint')"
           placeholder="https://discordapp.com/api/webhooks/<id>/<token>"
           :disabled="!editPermission"
           :value="model.settings.discordWebhook"
@@ -97,28 +97,28 @@
         />
         <!--
         <v-switch
-          label="Use variant encumbrance"
+          :label="$t('creatureForm.variantEncumbrance')"
           :input-value="model.settings.useVariantEncumbrance"
           :error-messages="errors.useVariantEncumbrance"
           @change="value => emit('change', {path: ['settings','useVariantEncumbrance'], value})"
         />
         <v-switch
-          label="Hide spells tab"
+          :label="$t('creatureForm.hideSpellsTab')"
           :input-value="model.settings.hideSpellcasting"
           :error-messages="errors.hideSpellcasting"
           @change="value => emit('change', {path: ['settings','hideSpellcasting'], value})"
         />
         <v-switch
-          label="Swap ability scores and modifiers"
+          :label="$t('creatureForm.swapAbilityScores')"
           :input-value="model.settings.swapStatAndModifier"
           :error-messages="errors.swapStatAndModifier"
           @change="value => emit('change', {path: ['settings','swapStatAndModifier'], value})"
         />
         -->
       </form-section>
-      <form-section name="Libraries">
+      <form-section :name="$t('creatureForm.libraries')">
         <smart-switch
-          label="All user libraries"
+          :label="$t('creatureForm.allUserLibraries')"
           :disabled="!editPermission"
           :value="allUserLibraries"
           @change="allUserLibrariesChange"
@@ -144,7 +144,7 @@
           {{ libraryWriteError }}
         </p>
       </form-section>
-      <form-section name="Debug">
+      <form-section :name="$t('creatureForm.debug')">
         <v-btn
           data-id="dependency-graph-button"
           variant="text"
@@ -153,7 +153,7 @@
           <v-icon start>
             mdi-graph
           </v-icon>
-          Dependency Graph
+          {{ $t('creatureForm.dependencyGraph') }}
         </v-btn>
       </form-section>
     </form-sections>

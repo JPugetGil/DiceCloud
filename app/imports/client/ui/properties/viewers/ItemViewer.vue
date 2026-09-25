@@ -3,7 +3,7 @@
     <v-row dense>
       <property-field
         v-if="model.quantity > 1 || model.showIncrement"
-        name="Quantity"
+        :name="$t('forms.quantity')"
         large
       >
         <v-spacer />
@@ -22,7 +22,7 @@
       </property-field>
       <property-field
         v-if="context.creatureId"
-        name="Delete"
+        :name="$t('common.delete')"
         center
       >
         <v-btn
@@ -39,7 +39,7 @@
       </property-field>
       <property-field
         v-if="model.value !== undefined"
-        name="value"
+        :name="$t('viewers.valueLower')"
       >
         <div style="overflow: hidden;">
           <div
@@ -72,14 +72,14 @@
               v-if="model.quantity > 1"
               class="text-subtitle-1"
             >
-              each
+              {{ $t('common.each') }}
             </span>
           </div>
         </div>
       </property-field>
       <property-field
         v-if="model.weight !== undefined"
-        name="Weight"
+        :name="$t('forms.weight')"
       >
         <div style="overflow: hidden;">
           <div
@@ -93,7 +93,7 @@
               $injustice
             </v-icon>
             <span class="text-subtitle-1">
-              {{ totalWeight }} lb
+              {{ $t('common.weightLb', { weight: totalWeight }) }}
             </span>
           </div>
           <div class="d-flex flex-1-1 align-center">
@@ -104,13 +104,13 @@
               $weight
             </v-icon>
             <span class="text-subtitle-1 mr-2">
-              {{ model.weight }} lb
+              {{ $t('common.weightLb', { weight: model.weight }) }}
             </span>
             <span
               v-if="model.quantity > 1"
               class="text-subtitle-1"
             >
-              each
+              {{ $t('common.each') }}
             </span>
           </div>
         </div>
@@ -122,15 +122,15 @@
         >
           mdi-account-arrow-left
         </v-icon>
-        <span class="ml-1">Equipped</span>
+        <span class="ml-1">{{ $t('forms.equipped') }}</span>
       </property-field>
       <property-field
         v-if="model.requiresAttunement && context.creatureId"
-        name="Requires attunement"
+        :name="$t('attunement.required')"
       >
         <smart-switch
           class="ml-4"
-          label="Attuned"
+          :label="$t('attunement.attuned')"
           :value="model.attuned"
           @change="(value, ack) => $emit('change', { path: ['attuned'], value, ack })"
         />
@@ -143,14 +143,14 @@
           >
             $spell
           </v-icon>
-          <span class="ml-1">Attuned</span>
+          <span class="ml-1">{{ $t('attunement.attuned') }}</span>
         </template>
         <template v-else>
-          Requires attunement
+          {{ $t('attunement.required') }}
         </template>
       </property-field>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

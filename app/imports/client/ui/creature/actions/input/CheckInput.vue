@@ -7,10 +7,10 @@
         @update:model-value="changeAdvantage"
       >
         <v-btn :value="-1">
-          Disadvantage
+          {{ $t('common.disadvantage') }}
         </v-btn>
         <v-btn :value="1">
-          Advantage
+          {{ $t('common.advantage') }}
         </v-btn>
       </v-btn-toggle>
       <div style="position: relative;">
@@ -30,26 +30,26 @@
           @click="emit('continue')"
         >
           <div>
-            Roll
+            {{ $t('common.roll') }}
           </div>
         </vertical-hex>
       </div>
     </div>
     <div class="d-flex flex-column mt-4 mr-4">
       <smart-select
-        label="Ability"
+        :label="$t('check.ability')"
         :items="abilityOptions"
         :value="modelValue.abilityVariableName"
         @change="(value, ack) => change('abilityVariableName', value, ack)"
       />
       <smart-select
-        label="Skill"
+        :label="$t('check.skill')"
         :items="skillOptions"
         :value="modelValue.skillVariableName"
         @change="(value, ack) => change('skillVariableName', value, ack)"
       />
       <text-field
-        label="DC"
+        :label="$t('check.dc')"
         :value="modelValue.dc"
         @change="(value, ack) => change('dc', value, ack)"
       />

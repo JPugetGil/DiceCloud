@@ -76,7 +76,7 @@
       >
         <v-card>
           <v-list>
-            <v-list-subheader>Buffs and conditions</v-list-subheader>
+            <v-list-subheader>{{ $t('stats.buffsAndConditions') }}</v-list-subheader>
             <buff-list-item
               v-for="buff in properties.buff"
               :key="buff._id"
@@ -167,7 +167,7 @@
       >
         <v-card>
           <v-list>
-            <v-list-subheader>Hit Dice</v-list-subheader>
+            <v-list-subheader>{{ $t('stats.hitDice') }}</v-list-subheader>
             <template
               v-for="(hitDie, index) in properties.attribute.hitDice"
               :key="hitDie._id"
@@ -224,7 +224,7 @@
       >
         <v-card>
           <v-list>
-            <v-list-subheader>Saving Throws</v-list-subheader>
+            <v-list-subheader>{{ $t('stats.savingThrows') }}</v-list-subheader>
             <skill-list-tile
               v-for="save in properties.skill.save"
               :key="save._id"
@@ -253,7 +253,7 @@
       >
         <v-card>
           <v-list>
-            <v-list-subheader>Skills</v-list-subheader>
+            <v-list-subheader>{{ $t('stats.skills') }}</v-list-subheader>
             <skill-list-tile
               v-for="skill in properties.skill.skill"
               :key="skill._id"
@@ -292,7 +292,7 @@
         <v-card>
           <v-list>
             <v-list-subheader>
-              Weapons
+              {{ $t('stats.weapons') }}
             </v-list-subheader>
             <skill-list-tile
               v-for="weapon in properties.skill.weapon"
@@ -312,7 +312,7 @@
         <v-card>
           <v-list>
             <v-list-subheader>
-              Armor
+              {{ $t('stats.armor') }}
             </v-list-subheader>
             <skill-list-tile
               v-for="armor in properties.skill.armor"
@@ -332,7 +332,7 @@
         <v-card>
           <v-list>
             <v-list-subheader>
-              Tools
+              {{ $t('stats.tools') }}
             </v-list-subheader>
             <skill-list-tile
               v-for="tool in properties.skill.tool"
@@ -352,7 +352,7 @@
         <v-card>
           <v-list>
             <v-list-subheader>
-              Languages
+              {{ $t('stats.languages') }}
             </v-list-subheader>
             <skill-list-tile
               v-for="language in properties.skill.language"

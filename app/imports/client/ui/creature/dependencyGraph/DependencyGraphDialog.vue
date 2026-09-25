@@ -2,7 +2,7 @@
   <dialog-base class="dependency-graph">
     <template #toolbar>
       <div>
-        Dependency Graph
+        {{ $t('creatureForm.dependencyGraph') }}
       </div>
     </template>
     <template #unwrapped-content>

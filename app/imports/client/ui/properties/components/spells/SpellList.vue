@@ -12,7 +12,7 @@
         v-if="spell.isSubheader"
         class="item"
       >
-        {{ spell.level === 0 ? 'Cantrips' : `Level ${spell.level}` }}
+        {{ spell.level === 0 ? $t('spells.cantrips') : $t('spells.level', { level: spell.level }) }}
       </v-list-subheader>
       <spell-list-tile
         v-else

@@ -50,7 +50,7 @@
             v-else
             class="text-error text-no-wrap text-truncate flex-1-1"
           >
-            Select item
+            {{ $t('cards.selectItem') }}
           </div>
           <v-icon
             v-if="context.editPermission"

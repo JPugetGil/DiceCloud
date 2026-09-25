@@ -51,7 +51,7 @@
               v-if="model.quantity > 1"
               class="ml-1"
             >
-              each
+              {{ $t('common.each') }}
             </span>
           </div>
         </div>
@@ -71,7 +71,7 @@
             >
               $injustice
             </v-icon>
-            {{ totalWeight }} lb
+            {{ $t('common.weightLb', { weight: totalWeight }) }}
           </div>
           <div class="d-flex flex-1-1 align-center">
             <v-icon
@@ -80,12 +80,12 @@
             >
               $weight
             </v-icon>
-            {{ model.weight }} lb
+            {{ $t('common.weightLb', { weight: model.weight }) }}
             <span
               v-if="model.quantity > 1"
               class="ml-1"
             >
-              each
+              {{ $t('common.each') }}
             </span>
           </div>
         </div>
@@ -106,6 +106,9 @@ import CoinValue from '/imports/client/ui/components/CoinValue.vue';
 import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -143,8 +146,8 @@ const totalWeight = computed(() => {
 
 const attunementText = computed(() => {
   if (props.model.requiresAttunement) {
-    if (props.model.attuned) return 'Attuned';
-    return 'Requires attunement';
+    if (props.model.attuned) return t('attunement.attuned');
+    return t('attunement.required');
   }
   return undefined;
 });

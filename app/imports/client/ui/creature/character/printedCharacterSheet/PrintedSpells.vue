@@ -5,7 +5,7 @@
     <div
       class="label text-center octagon-border my-2 avoid-page-break-after"
     >
-      Spells
+      {{ $t('tabs.spells') }}
     </div>
     <column-layout
       v-if="spellsWithoutList && spellsWithoutList.length"

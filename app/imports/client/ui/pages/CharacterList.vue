@@ -25,14 +25,14 @@
               data-id="import-character-button"
               @click="importCharacter"
             >
-              import character
+              {{ $t('characterList.importCharacter') }}
             </v-btn>
             <v-btn
               variant="text"
               :loading="loadingInsertFolder"
               @click="insertFolder"
             >
-              add folder
+              {{ $t('characterList.addFolder') }}
             </v-btn>
           </div>
           <v-btn

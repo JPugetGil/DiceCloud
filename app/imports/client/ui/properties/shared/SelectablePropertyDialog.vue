@@ -7,7 +7,7 @@
     >
       <template #toolbar>
         <v-toolbar-title>
-          Property Type
+          {{ $t('selector.propertyType') }}
         </v-toolbar-title>
         <v-spacer />
         <v-switch

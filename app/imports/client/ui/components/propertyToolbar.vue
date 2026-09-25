@@ -56,7 +56,7 @@
               @click="helpDialog"
             >
               <v-list-item-title>
-                Help
+                {{ $t('common.help') }}
               </v-list-item-title>
 
               <template #append>
@@ -69,7 +69,7 @@
               @click="$emit('duplicate')"
             >
               <v-list-item-title>
-                Duplicate
+                {{ $t('toolbar.duplicate') }}
               </v-list-item-title>
 
               <template #append>
@@ -82,7 +82,7 @@
               @click="$emit('copy')"
             >
               <v-list-item-title>
-                Copy To
+                {{ $t('toolbar.copyTo') }}
               </v-list-item-title>
 
               <template #append>
@@ -95,7 +95,7 @@
               @click="$emit('make-reference')"
             >
               <v-list-item-title>
-                Create Reference
+                {{ $t('toolbar.createReference') }}
               </v-list-item-title>
 
               <template #append>
@@ -108,7 +108,7 @@
               @click="$emit('move')"
             >
               <v-list-item-title>
-                Move
+                {{ $t('toolbar.move') }}
               </v-list-item-title>
 
               <template #append>
@@ -121,7 +121,7 @@
               @click="$emit('copy-to-library')"
             >
               <v-list-item-title>
-                Copy to library
+                {{ $t('toolbar.copyToLibrary') }}
               </v-list-item-title>
 
               <template #append>
@@ -134,7 +134,7 @@
               @click="$emit('remove')"
             >
               <v-list-item-title>
-                Delete
+                {{ $t('common.delete') }}
               </v-list-item-title>
 
               <template #append>
@@ -156,7 +156,7 @@
       @click="$emit('toggle-editing')"
     >
       <span style="width: 44px;">
-        {{ editing ? 'Done' : 'Edit' }}
+        {{ editing ? $t('common.done') : $t('common.edit') }}
       </span>
       <v-slide-y-transition
         hide-on-leave
@@ -184,7 +184,7 @@
 import { computed, inject } from 'vue';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';

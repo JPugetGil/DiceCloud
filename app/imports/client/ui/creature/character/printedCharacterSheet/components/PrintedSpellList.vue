@@ -7,19 +7,19 @@
       {{ model.name }}
     </div>
     <div>
-      Spell Save DC: {{ model.dc && model.dc.value }}
+      {{ $t('printed.spellSaveDc', { dc: model.dc && model.dc.value }) }}
     </div>
     <div v-if="model.ability">
-      Spell casting ability: {{ model.ability }}
+      {{ $t('printed.spellAbility', { ability: model.ability }) }}
     </div>
     <div v-if="model.ability">
-      Spell casting ability modifier: {{ model.abilityMod }}
+      {{ $t('printed.spellAbilityMod', { mod: model.abilityMod }) }}
     </div>
     <div>
-      Spell Attack Bonus: {{ model.attackRollBonus && model.attackRollBonus.value }}
+      {{ $t('printed.spellAttackBonus', { bonus: model.attackRollBonus && model.attackRollBonus.value }) }}
     </div>
     <div>
-      Maximum prepared spells: {{ model.maxPrepared && model.maxPrepared.value }}
+      {{ $t('printed.maxPrepared', { count: model.maxPrepared && model.maxPrepared.value }) }}
     </div>
     <property-description
       text

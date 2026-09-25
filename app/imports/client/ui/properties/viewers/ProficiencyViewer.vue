@@ -3,7 +3,7 @@
     <v-row dense>
       <property-field
         v-if="model.value !== undefined"
-        name="Proficiency"
+        :name="$t('propertyTypes.proficiency.name')"
       >
         <proficiency-icon
           :value="model.value"
@@ -20,7 +20,7 @@
       />
       <property-field
         v-else
-        name="Stats"
+        :name="$t('viewers.stats')"
         :value="model.stats && model.stats.join(', ')"
         mono
       />
@@ -33,6 +33,9 @@ import { computed } from 'vue';
 import ProficiencyIcon from '/imports/client/ui/properties/shared/ProficiencyIcon.vue';
 import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/PropertyTargetTags.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   model: {
@@ -43,10 +46,10 @@ const props = defineProps({
 
 const proficiencyText = computed(() => {
   switch (props.model.value){
-    case 0.49: return 'Half proficiency bonus rounded down';
-    case 0.5: return 'Half proficiency bonus';
-    case 1: return 'Proficient';
-    case 2: return 'Double proficiency bonus';
+    case 0.49: return t('proficiencyLevels.halfDown');
+    case 0.5: return t('proficiencyLevels.half');
+    case 1: return t('proficiencyLevels.proficient');
+    case 2: return t('proficiencyLevels.double');
     default: return '';
   }
 });

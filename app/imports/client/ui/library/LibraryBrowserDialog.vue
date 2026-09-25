@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Community Libraries
+        {{ $t('library.communityLibraries') }}
       </v-toolbar-title>
     </template>
     <template #unwrapped-content>
@@ -14,7 +14,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        Done
+        {{ $t('common.done') }}
       </v-btn>
     </template>
   </dialog-base>

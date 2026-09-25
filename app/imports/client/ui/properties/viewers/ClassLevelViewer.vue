@@ -5,24 +5,24 @@
       justify="center"
     >
       <property-field
-        name="Level"
+        :name="$t('forms.level')"
         large
         center
         :value="model.level"
       />
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
         v-if="!context.creatureId"
-        name="Condition"
+        :name="$t('forms.condition')"
         mono
         :value="model.slotFillerCondition"
       />
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>

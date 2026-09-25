@@ -44,7 +44,7 @@
       :disabled="!canContinue"
       @click="emit('continue')"
     >
-      Done
+      {{ $t('common.done') }}
     </v-btn>
   </div>
 </template>

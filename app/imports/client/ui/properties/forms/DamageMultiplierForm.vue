@@ -5,17 +5,17 @@
         cols="12"
       >
         <smart-toggle
-          label="Multiplier"
+          :label="$t('forms.damageMultiplier.multiplier')"
           :value="model.value"
           :options="[{
             value: 2,
-            name: 'Vulnerability',
+            name: $t('damageMultipliers.vulnerability'),
           },{
             value: 0.5,
-            name: 'Resistance',
+            name: $t('damageMultipliers.resistance'),
           }, {
             value: 0,
-            name: 'Immunity',
+            name: $t('damageMultipliers.immunity'),
           }]"
           :error-messages="errors.value"
           @change="(value, ack) => change('value', value, ack)"
@@ -25,7 +25,7 @@
     <v-row dense>
       <v-col cols="12">
         <smart-combobox
-          label="Damage Types"
+          :label="$t('forms.damageMultiplier.damageTypes')"
           multiple
           chips
           deletable-chips
@@ -42,16 +42,16 @@
     <form-sections type="damageMultiplier">
       <form-section
         v-if="$slots.children"
-        name="Children"
+        :name="$t('forms.children')"
       >
         <slot name="children" />
       </form-section>
-      <form-section name="Apply by tag">
+      <form-section :name="$t('forms.damageMultiplier.applyByTag')">
         <v-row dense>
           <v-col cols="12">
             <smart-combobox
-              label="Tags required"
-              hint="Only apply to damage that has all of these tags"
+              :label="$t('forms.damageMultiplier.tagsRequired')"
+              :hint="$t('forms.damageMultiplier.tagsRequiredHint')"
               multiple
               small-chips
               deletable-chips
@@ -63,8 +63,8 @@
           </v-col>
           <v-col cols="12">
             <smart-combobox
-              label="Tags excluded"
-              hint="Don't apply to damage that has any of these tags"
+              :label="$t('forms.damageMultiplier.tagsExcluded')"
+              :hint="$t('forms.damageMultiplier.tagsExcludedHint')"
               multiple
               small-chips
               deletable-chips
@@ -86,6 +86,9 @@ import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.
 import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import DAMAGE_TYPES from '/imports/constants/DAMAGE_TYPES';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps({
   model: {
@@ -105,7 +108,7 @@ const damageTypeRules = [
     if (value && value.length) {
       for (let i = 0; i < value.length; i++) {
         if (!VARIABLE_NAME_REGEX.test(value[i])) {
-          return `${value[i]} is not a valid damage name`
+          return t('forms.damage.invalidType', { value: value[i] })
         }
       }
     }

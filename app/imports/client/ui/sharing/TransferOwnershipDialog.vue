@@ -2,7 +2,7 @@
   <dialog-base>
     <template #toolbar>
       <v-toolbar-title>
-        Transfer Ownership
+        {{ $t('sharing.transferOwnership') }}
       </v-toolbar-title>
     </template>
     <v-alert
@@ -16,11 +16,11 @@
       </template>
       <template v-else>
         <p>
-          Are you sure you want to transfer ownership to {{ user.username || user._id }}?
+          {{ $t('sharing.transferConfirm', { user: user.username || user._id }) }}
         </p><p>
-          This can only be undone by the user you are transferring ownership to.
+          {{ $t('sharing.transferUndo') }}
         </p><p>
-          You will still have edit permission.
+          {{ $t('sharing.stillEdit') }}
         </p>
       </template>
     </v-alert>
@@ -29,9 +29,9 @@
         color="accent"
         @click="transfer"
       >
-        Transfer
+        {{ $t('sharing.transfer') }}
         <template v-if="user.username">
-          to {{ user.username }}
+          {{ $t('sharing.toUser', { user: user.username }) }}
         </template>
       </v-btn>
     </div>

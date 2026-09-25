@@ -14,7 +14,8 @@
     "check:login-services": "node checks/login-services.js",
     "check:contrast": "node checks/contrast.js",
     "check:palette": "node checks/palette.js",
-    "check:accessibility": "node checks/accessibility.js"
+    "check:accessibility": "node checks/accessibility.js",
+    "check:slot-fill": "node checks/slot-fill.js"
   },
   "dependencies": {
     "@axe-core/playwright": "4.13.0",
