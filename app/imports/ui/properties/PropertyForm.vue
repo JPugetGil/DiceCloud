@@ -123,8 +123,8 @@
             <smart-combobox
               :label="$t('forms.property.libraryTags')"
               multiple
-              small-chips
-              deletable-chips
+              chips
+              closable-chips
               :hint="$t('forms.property.libraryTagsHint')"
               :model-value="model.libraryTags"
               :error-messages="errors.libraryTags"
@@ -144,8 +144,8 @@
         <smart-combobox
           :label="$t('forms.tags')"
           multiple
-          small-chips
-          deletable-chips
+          chips
+          closable-chips
           :hint="$t('forms.property.tagsHint')"
           :model-value="model.tags"
           :error-messages="errors.tags"
@@ -165,7 +165,8 @@
         <outlined-input
           :name="$t('forms.property.childProperties')"
           style="width: 100%"
-          class="pa-2 no-hover"
+          content-class="pa-2"
+          no-hover
         >
           <descendant-properties-tree
             style="width: 100%;"

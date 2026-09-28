@@ -89,23 +89,23 @@
             >
               <outlined-input
                 :name="$t('forms.attribute.half')"
-                class="mb-4"
+                class="flex-grow-0"
               >
                 <color-picker
                   :model-value="model.healthBarColorMid"
-                  :width="54"
-                  :height="54"
+                  :width="72"
+                  :height="56"
                   @update:model-value="value => $emit('change', {path: ['healthBarColorMid'], value})"
                 />
               </outlined-input>
               <outlined-input
                 :name="$t('forms.attribute.empty')"
-                class="mb-4 ml-2"
+                class="flex-grow-0 ms-2"
               >
                 <color-picker
                   :model-value="model.healthBarColorLow"
-                  :width="54"
-                  :height="54"
+                  :width="72"
+                  :height="56"
                   @update:model-value="value => $emit('change', {path: ['healthBarColorLow'], value})"
                 />
               </outlined-input>

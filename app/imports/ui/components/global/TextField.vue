@@ -13,10 +13,18 @@
     @blur="focused = false"
     @keyup="e => emit('keyup', e)"
   >
-    <template #append>
-      <slot name="value" />
+    <template
+      v-if="$slots.value"
+      #append-inner
+    >
+      <span class="dc-text-field__value text-body-2 text-medium-emphasis">
+        <slot name="value" />
+      </span>
     </template>
-    <template #prepend>
+    <template
+      v-if="$slots.prepend"
+      #prepend
+    >
       <slot name="prepend" />
     </template>
   </v-text-field>
@@ -210,8 +218,9 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="css">
-.dc-text-field .v-input__append-inner{
-  font-size: 12px;
-  margin-top: 36px;
+/* A computed field's result, shown inside the field after what was typed */
+.dc-text-field__value {
+  white-space: nowrap;
+  margin-inline-start: 8px;
 }
 </style>

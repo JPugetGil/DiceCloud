@@ -8,12 +8,15 @@
     location="left"
   >
     <template #activator="{ props: menuProps }">
+      <!--
+        With a label: an outlined button. Sized: fills the outline it sits in
+        (IconColorMenu). Otherwise: an icon button
+      -->
       <v-btn
         :loading="loading"
-        :variant="!!label ? 'outlined' : undefined"
-        :icon="!label"
-        :tile="!label"
-        :min-width="label && 108"
+        :variant="label ? 'outlined' : 'text'"
+        :icon="!label && !width"
+        :min-width="label ? 108 : undefined"
         :height="height"
         :width="width"
         :style="buttonStyle"
@@ -41,7 +44,7 @@
           <text-field
             ref="iconSearchField"
             :label="$t('components.searchIcons')"
-            append-icon="mdi-magnify"
+            append-inner-icon="mdi-magnify"
             clearable
             hide-details
             class="ma-2"

@@ -11,10 +11,16 @@
     @focus="focused = true"
     @blur="focused = false"
   >
-    <template #prepend>
+    <template
+      v-if="$slots.prepend"
+      #prepend
+    >
       <slot name="prepend" />
     </template>
-    <template #prepend-inner>
+    <template
+      v-if="$slots['prepend-inner']"
+      #prepend-inner
+    >
       <slot name="prepend-inner" />
     </template>
   </v-select>

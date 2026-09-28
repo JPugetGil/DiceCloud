@@ -64,7 +64,7 @@ main(async () => {
       // move the pointer away: the hover overlay is not the resting state
       await page.mouse.move(0, 0);
       await page.waitForTimeout(500);
-      return `lowest ${assertAll(await page.evaluate(measure, '.smart-toggle-group .v-btn--active .v-btn__content'), 'selected option')}:1`;
+      return `lowest ${assertAll(await page.evaluate(measure, '.smart-toggle__group .v-btn--active .v-btn__content'), 'selected option')}:1`;
     });
     for (const route of ['/character-list', `/character/${creatureId}`]) {
       await step(`${colorScheme}: app bar text on ${route.replace(creatureId, ':id')}`, messages, async () => {

@@ -54,14 +54,14 @@
           :label="$t('deleteAccount.typeUsername')"
           style="width: 350px;"
           :error-messages="usernameInputValid ? undefined : ' '"
-          :append-icon="usernameInputValid ? 'mdi-check' : undefined"
+          :append-inner-icon="usernameInputValid ? 'mdi-check' : undefined"
         />
         <v-text-field
           v-model="verificationInput"
           :label="$t('deleteAccount.typePhrase', { phrase: $t('deleteAccount.phrase') })"
           style="width: 350px;"
           :error-messages="verificationInputValid ? undefined : ' '"
-          :append-icon="verificationInputValid ? 'mdi-check' : undefined"
+          :append-inner-icon="verificationInputValid ? 'mdi-check' : undefined"
         />
         <v-btn
           class="mt-4"

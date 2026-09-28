@@ -69,6 +69,7 @@
             <v-text-field
               v-model="inputHref"
               :label="$t('files.directLink')"
+              variant="outlined"
               class="flex-grow-0"
               style="width: 100%"
             />

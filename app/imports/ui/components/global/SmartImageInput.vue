@@ -2,8 +2,12 @@
   <outlined-input
     :name="label"
     class="smart-image-input mb-3"
+    :hint="hint"
+    :error-messages="errors"
+    :disabled="isDisabled"
+    :focused="dragging"
     :data-id="id"
-    :class="{ dragging }"
+    content-class="smart-image-input__content"
     @click="openImageInputDialog"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
@@ -11,33 +15,27 @@
   >
     <template v-if="model">
       <img
-        v-if="model"
-        class="image"
+        class="smart-image-input__image"
         :src="model"
+        :alt="label"
       >
-      <div
-        class="image-overlay"
-        :class="themeClasses"
-      />
+      <!-- Elevated, so that it reads on any image -->
       <v-btn
-        v-if="model"
-        variant="text"
-        icon
-        theme="dark"
-        class="clear-button ma-1"
+        v-if="!isDisabled"
+        icon="mdi-close"
+        size="small"
+        variant="elevated"
+        class="smart-image-input__clear"
+        :aria-label="$t('common.clear')"
         @click.stop="change(undefined)"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+      />
     </template>
     <div
       v-else
-      class="add-image-text d-flex align-center justify-center"
+      class="smart-image-input__empty d-flex align-center justify-center"
     >
       {{ $t('components.addImage') }}
-      <v-icon
-        end
-      >
+      <v-icon end>
         mdi-image-outline
       </v-icon>
     </div>
@@ -79,13 +77,12 @@
   Clicking opens image input dialog
   Drag-drop opens image input dialog with a file ready to upload
 */
-import { ref, computed} from 'vue';
+import { ref } from 'vue';
 import { Random } from 'meteor/random';
 
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
-import useThemeState from '/imports/ui/composables/useThemeState';
 
 const dialogStackStore = useDialogStackStore();
 
@@ -94,6 +91,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  hint: {
+    type: String,
+    default: undefined,
+  },
   ...smartInputProps,
 });
 
@@ -101,21 +102,13 @@ const model = defineModel(smartInputModel);
 
 const emit = defineEmits([...smartInputEmits, 'keyup']);
 
-const { change } = useSmartInput(props, model, emit);
-
-const theme = useThemeState();
+const { change, errors, isDisabled } = useSmartInput(props, model, emit);
 
 const id = ref(Random.id());
 const dragging = ref(false);
 
-const themeClasses = computed(() => {
-  return {
-    'v-theme--dark': theme.isDark,
-    'v-theme--light': !theme.isDark,
-  };
-});
-
 function openImageInputDialog() {
+  if (isDisabled.value) return;
   dialogStackStore.pushDialogStack({
     component: 'image-input-dialog',
     elementId: id.value,
@@ -153,60 +146,34 @@ function handleDrop() {
 </script>
 
 <style scoped>
-.smart-image-input {
+/*
+ * The content sits inside the outline drawn by OutlinedInput. The padding keeps
+ * an image clear of the label notched into the outline's top edge
+ */
+.smart-image-input :deep(.smart-image-input__content) {
   position: relative;
   min-height: 120px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  overflow: hidden;
 }
-.image {
-  min-height: 100px;
-  max-height: 300px;
+.smart-image-input__image {
+  display: block;
   max-width: 100%;
-  margin-bottom: -7px;
+  max-height: 300px;
+  border-radius: 4px;
 }
-.clear-button {
+.smart-image-input__clear {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
 }
-.dragging {
-  border-style: dashed;
+.smart-image-input__empty {
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
-.outlined-input.dragging.v-theme--dark:not(.no-hover) {
-  border-color: #fff;
-}
-.outlined-input.dragging.v-theme--light:not(.no-hover) {
-  border-color: rgba(0,0,0,.86);
-}
-.image-overlay {
-  position: absolute;
-  top: 0;
-  height: 12px;
-  left: 0;
-  right: 0;
-}
-.image-overlay.v-theme--dark {
-  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-}
-.image-overlay.v-theme--light {
-  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-}
-.add-image-text {
-  opacity: 0.7;
-  height: 118px;
-}
-.smart-image-input:hover .add-image-text {
-  opacity: 1;
-}
-</style>
-
-<style>
-.smart-image-input > legend {
-  position: relative;
-  z-index: 1;
-}
-.smart-image-input .clear-button i {
-  text-shadow: 0 0 4px #000, 0 0 4px #000 ;
+.smart-image-input:hover .smart-image-input__empty {
+  color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
 }
 </style>

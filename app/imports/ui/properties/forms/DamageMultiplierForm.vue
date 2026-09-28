@@ -28,7 +28,7 @@
           :label="$t('forms.damageMultiplier.damageTypes')"
           multiple
           chips
-          deletable-chips
+          closable-chips
           :rules="damageTypeRules"
           :items="DAMAGE_TYPES"
           :model-value="model.damageTypes"
@@ -53,8 +53,8 @@
               :label="$t('forms.damageMultiplier.tagsRequired')"
               :hint="$t('forms.damageMultiplier.tagsRequiredHint')"
               multiple
-              small-chips
-              deletable-chips
+              chips
+              closable-chips
               persistent-hint
               :items="['magical', 'silvered']"
               :model-value="model.includeTags"
@@ -66,8 +66,8 @@
               :label="$t('forms.damageMultiplier.tagsExcluded')"
               :hint="$t('forms.damageMultiplier.tagsExcludedHint')"
               multiple
-              small-chips
-              deletable-chips
+              chips
+              closable-chips
               persistent-hint
               :items="['magical', 'silvered']"
               :model-value="model.excludeTags"

@@ -19,8 +19,8 @@
         :hint="tagHint"
         class="mb-2"
         multiple
-        small-chips
-        deletable-chips
+        chips
+        closable-chips
         persistent-hint
         :model-value="model[tagField]"
         :error-messages="errors[tagField]"
@@ -48,8 +48,8 @@
           :hint="extras.operation === 'OR' ? orHint : notHint"
           class="mx-2 mb-2"
           multiple
-          small-chips
-          deletable-chips
+          chips
+          closable-chips
           persistent-hint
           :model-value="extras.tags"
           @change="(value, ack) => change([extraTagsField, i, 'tags'], value, ack)"

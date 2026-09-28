@@ -7,7 +7,6 @@
       >
         <smart-select
           :label="$t('forms.operation')"
-          append-icon="mdi-menu-down"
           :hint="operationHint"
           :error-messages="errors.operation"
           :menu-props="{transition: 'slide-y-transition', lazy: true}"
@@ -73,10 +72,9 @@
       <smart-combobox
         v-if="!model.targetByTags"
         :label="$t('forms.effect.stats')"
-        class="mr-2"
         multiple
-        small-chips
-        deletable-chips
+        chips
+        closable-chips
         :hint="$t('forms.effect.statsHint')"
         persistent-hint
         :model-value="model.stats"

@@ -11,7 +11,6 @@
       <v-text-field
         v-model="searchInput"
         prepend-inner-icon="mdi-magnify"
-        regular
         clearable
         hide-details
         class="flex-grow-0"

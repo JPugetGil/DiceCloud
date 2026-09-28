@@ -87,7 +87,7 @@
           <v-btn
             variant="text"
             class="ma-0"
-            height="54"
+            height="56"
             width="100%"
             style="justify-content: start;"
             @click="testSlot"

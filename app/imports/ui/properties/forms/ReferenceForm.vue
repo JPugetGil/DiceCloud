@@ -2,56 +2,56 @@
   <div class="reference-form">
     <v-row dense>
       <v-col cols="12">
-        <outlined-input
-          v-ripple
-          :name="$t('forms.reference.linked')"
-          class="pa-4 mb-6"
-          data-id="change-ref"
-          style="cursor: pointer;"
-          @click="changeReference"
-        >
-          <v-progress-circular
-            v-if="linkLoading"
-            indeterminate
-          />
+        <outlined-input :name="$t('forms.reference.linked')">
           <div
-            v-else
-            class="d-flex align-center"
+            v-ripple
+            class="reference-link pa-4"
+            data-id="change-ref"
+            @click="changeReference"
           >
-            <v-icon class="mr-4">
-              mdi-vector-link
-            </v-icon>
-            <div class="flex-grow-1">
-              <tree-node-view
-                v-if="model && model.cache && model.cache.node"
-                :model="model.cache.node"
-              />
-              <div v-else>
-                {{ model.cache.node && model.cache.node.name || model.ref && model.ref.id }}
-              </div>
-              <div
-                v-if="model.cache.library && model.cache.library.name"
-                class="text-caption"
-              >
-                {{ model.cache.library && model.cache.library.name }}
-              </div>
-              <div
-                v-if="model.cache.error || errors.ref"
-                class="text-error"
-              >
-                {{ model.cache.error || errors.ref }}
-              </div>
-            </div>
-            <v-btn
-              variant="text"
-              class="ml-4"
-              icon
-              @click.stop="updateReferenceNode"
+            <v-progress-circular
+              v-if="linkLoading"
+              indeterminate
+            />
+            <div
+              v-else
+              class="d-flex align-center"
             >
-              <v-icon>
-                mdi-refresh
+              <v-icon class="mr-4">
+                mdi-vector-link
               </v-icon>
-            </v-btn>
+              <div class="flex-grow-1">
+                <tree-node-view
+                  v-if="model && model.cache && model.cache.node"
+                  :model="model.cache.node"
+                />
+                <div v-else>
+                  {{ model.cache.node && model.cache.node.name || model.ref && model.ref.id }}
+                </div>
+                <div
+                  v-if="model.cache.library && model.cache.library.name"
+                  class="text-caption"
+                >
+                  {{ model.cache.library && model.cache.library.name }}
+                </div>
+                <div
+                  v-if="model.cache.error || errors.ref"
+                  class="text-error"
+                >
+                  {{ model.cache.error || errors.ref }}
+                </div>
+              </div>
+              <v-btn
+                variant="text"
+                class="ml-4"
+                icon
+                @click.stop="updateReferenceNode"
+              >
+                <v-icon>
+                  mdi-refresh
+                </v-icon>
+              </v-btn>
+            </div>
           </div>
         </outlined-input>
       </v-col>
@@ -124,4 +124,9 @@ async function updateReferenceNode() {
 </script>
 
 <style lang="css" scoped>
+.reference-link {
+  cursor: pointer;
+  /* The ripple keeps to the outline's rounded corners */
+  border-radius: 4px;
+}
 </style>

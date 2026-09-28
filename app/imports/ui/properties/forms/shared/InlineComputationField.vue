@@ -1,8 +1,12 @@
 <template>
-  <div class="inline-computation-field">
+  <div
+    class="inline-computation-field"
+    :class="$attrs.class"
+    :style="$attrs.style"
+  >
     <text-area
       :model-value="model.text"
-      v-bind="$attrs"
+      v-bind="{ ...$attrs, class: undefined, style: undefined }"
       @change="(value, ack) => $emit('change', {path: ['text'], value, ack})"
     />
     <template
@@ -36,6 +40,12 @@
 
 <script setup>
 import CalculationErrorList from '/imports/ui/properties/forms/shared/CalculationErrorList.vue';
+
+// The field's attributes (label, hint...) belong to the text area; only class
+// and style lay out the wrapper, which inherited them all
+defineOptions({
+  inheritAttrs: false,
+});
 
 defineProps({
   model: {

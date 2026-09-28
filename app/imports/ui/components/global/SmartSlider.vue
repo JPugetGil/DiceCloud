@@ -14,10 +14,16 @@
     @focus="focused = true"
     @blur="focused = false"
   >
-    <template #prepend>
+    <template
+      v-if="$slots.prepend"
+      #prepend
+    >
       <slot name="prepend" />
     </template>
-    <template #append>
+    <template
+      v-if="$slots.append"
+      #append
+    >
       <slot name="append" />
     </template>
   </v-slider>

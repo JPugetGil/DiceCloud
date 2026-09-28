@@ -48,7 +48,7 @@
       <v-col cols="12">
         <smart-toggle
           :label="$t('forms.toggle.enableOrDisable')"
-          :model-value="model.targetByTags"
+          :model-value="!!model.targetByTags"
           :options="[
             {name: $t('forms.toggle.descendants'), value: false},
             {name: $t('forms.toggle.byTags'), value: true},

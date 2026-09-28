@@ -141,8 +141,6 @@ const props = defineProps({
   embedded: Boolean,
 });
 
-defineEmits(['update:tabs']);
-
 const route = useRoute();
 const { xs } = useDisplay();
 

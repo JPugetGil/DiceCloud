@@ -11,7 +11,7 @@
         <v-list-subheader class="mb-4">
           {{ $t('account.preferences') }}
         </v-list-subheader>
-        <v-list-item class="toggle-preference theme-preference">
+        <v-list-item class="theme-preference">
           <smart-toggle
             :label="$t('account.theme')"
             :model-value="darkMode === true ? 'true' : darkMode === false ? 'false' : darkMode === null ? 'unset': undefined"
@@ -23,10 +23,7 @@
             @change="setDarkMode"
           />
         </v-list-item>
-        <v-list-item
-          class="toggle-preference"
-          data-id="language-preference"
-        >
+        <v-list-item data-id="language-preference">
           <smart-toggle
             :label="$t('account.language')"
             :model-value="locale"
@@ -377,12 +374,3 @@ function deleteAccount() {
 }
 </script>
 
-<style scoped>
-/*
- * A toggle's legend straddles the top border of its fieldset. Vuetify's list
- * item clips its content, which would cut the legend in half.
- */
-.toggle-preference :deep(.v-list-item__content) {
-  overflow: visible;
-}
-</style>

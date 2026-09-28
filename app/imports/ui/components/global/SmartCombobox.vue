@@ -13,7 +13,10 @@
     @focus="focused = true"
     @blur="focused = false"
   >
-    <template #prepend>
+    <template
+      v-if="$slots.prepend"
+      #prepend
+    >
       <slot
 
         name="prepend"

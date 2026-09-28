@@ -1302,8 +1302,7 @@
   },
   "selector": {
     "suggested": "Suggested",
-    "more": "More",
-    "propertyType": "Property Type"
+    "more": "More"
   },
   "snackbar": {
     "undo": "undo"

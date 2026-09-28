@@ -2,7 +2,6 @@
   <smart-select
     v-bind="$attrs"
     v-model="model"
-    append-icon="mdi-menu-down"
     :clearable="clearable"
     class="ml-3"
     :menu-props="{transition: 'slide-y-transition', lazy: true}"

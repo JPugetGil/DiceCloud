@@ -12,6 +12,7 @@
       <v-text-field
         v-if="name"
         v-model="inputName"
+        variant="outlined"
       />
       <v-btn
         v-show="nameMatch"

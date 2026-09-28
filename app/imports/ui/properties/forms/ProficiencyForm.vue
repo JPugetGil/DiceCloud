@@ -46,10 +46,9 @@
           <smart-combobox
             v-else
             :label="$t('forms.proficiency.skills')"
-            class="mr-2"
             multiple
-            small-chips
-            deletable-chips
+            chips
+            closable-chips
             :hint="$t('forms.proficiency.skillsHint')"
             :model-value="model.stats"
             :items="skillList"

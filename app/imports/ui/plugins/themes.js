@@ -16,7 +16,8 @@
  *
  * The neutrals are DiceCloud's own greys: `secondary` for app
  * bars, `surface` for cards, `drawer` and `toolbar` for the navigation drawer
- * and plain toolbars (the default toolbar colour is set in vuetify.js).
+ * and plain toolbars (the default toolbar colour is set in vuetify.js), and
+ * `surface-bright` for the thumb of a switch that is off.
  */
 const themes = {
   light: {
@@ -42,6 +43,9 @@ const themes = {
       'on-success': '#FFFFFF',
       drawer: '#FFFFFF',
       toolbar: '#FFFFFF',
+      // The thumb of a switch that is off (Vuetify's own light default)
+      'surface-bright': '#FFFFFF',
+      'on-surface-bright': '#000000',
     },
     variables: {
       // Vuetify stacks this on text already at 87%, which gave labels and
@@ -73,6 +77,11 @@ const themes = {
       surface: '#303030',
       drawer: '#363636',
       toolbar: '#272727',
+      // The thumb of a switch that is off. Vuetify's dark default is a lavender
+      // (#CCBFD6) from no palette of ours; this is Material's grey 400, the
+      // thumb Vuetify 2 drew
+      'surface-bright': '#BDBDBD',
+      'on-surface-bright': '#000000',
     },
   }
 }

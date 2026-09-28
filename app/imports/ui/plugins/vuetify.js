@@ -29,11 +29,25 @@ const vuetify = createVuetify({
     defaultTheme: 'light',
     themes,
   },
-  // Toolbars without a colour of their own use the `toolbar` grey (see themes.js)
   defaults: {
+    // Toolbars without a colour of their own use the `toolbar` grey (see themes.js)
     VToolbar: {
       color: 'toolbar',
     },
+    // Material marks a focused field and a selected control with the primary
+    // colour. Vuetify 3 leaves them grey unless given a colour (Vuetify 2 used
+    // primary), so focus and checked states barely showed
+    VTextField: { color: 'primary' },
+    VTextarea: { color: 'primary' },
+    VSelect: { color: 'primary' },
+    VCombobox: { color: 'primary' },
+    VAutocomplete: { color: 'primary' },
+    VFileInput: { color: 'primary' },
+    VCheckbox: { color: 'primary' },
+    VCheckboxBtn: { color: 'primary' },
+    VRadio: { color: 'primary' },
+    VSwitch: { color: 'primary' },
+    VSlider: { color: 'primary' },
   },
   icons: {
     defaultSet: 'mdi',

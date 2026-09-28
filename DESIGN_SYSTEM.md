@@ -24,7 +24,7 @@ Colour roles
 |------|-------|-------------|------|------------|----------|
 | `primary` | `#B91D1D` | `#FFFFFF` | `#FFB4AB` | `#690005` | Brand: main actions, links, selection, active tabs |
 | `accent` | same as primary | | same as primary | | Material 2 name still used by components |
-| `primary-container` | `#FFDAD6` | `#410002` | `#93000B` | `#FFDAD6` | Tinted areas that hold content |
+| `primary-container` | `#FFDAD6` | `#410002` | `#93000B` | `#FFDAD6` | Tinted areas that hold content, the chosen option of a toggle |
 | `error` | `#9F4200` | `#FFFFFF` | `#FFB692` | `#562000` | Errors, validation messages |
 | `error-container` | `#FFDBCB` | `#341100` | `#7A3000` | `#FFDBCB` | Error areas that hold content |
 | `warning` | `#7E5700` | `#FFFFFF` | `#FFBA38` | `#432C00` | Warnings |
@@ -55,6 +55,7 @@ DiceCloud keeps its own greys:
 | `surface` (cards, dialogs, menus) | `#FFFFFF` | `#303030` | themes.js |
 | `drawer` (navigation drawer) | `#FFFFFF` | `#363636` | themes.js |
 | `toolbar` (plain toolbars) | `#FFFFFF` | `#272727` | themes.js, the default toolbar colour in vuetify.js |
+| `surface-bright` (a switch's thumb when off) | `#FFFFFF` | `#BDBDBD` | themes.js; Vuetify's dark default is a lavender from none of our palettes |
 | page background | `#F6F6F6` | `#151515` | `.card-background`, styles/cardColors.css |
 | raised panels | `#FAFAFA` | `#1D1D1D` | `.card-raised-background`, styles/cardColors.css |
 
@@ -77,11 +78,34 @@ Rules
 3. **Do not rely on colour alone.** Links stay underlined; errors and warnings
    come with text or an icon.
 4. **Keep selected and active states readable.** A selected option is shown by
-   its fill and its on- colour; no translucent overlay on top of text (see
-   `SmartToggle.vue`).
+   its fill and its on- colour, plus a mark that is not colour (a toggle's
+   check mark); no translucent overlay on top of text (see `SmartToggle.vue`).
 5. **Dark surfaces take the dark roles.** Anything drawn dark in both themes
    (app bars, the dependency graph) uses the dark theme's values: they are made
    for dark backgrounds.
+
+Inputs
+------
+
+Every input is Vuetify's, in its `outlined` variant, and lines up with the
+others: a wrapper that forwards a slot to a Vuetify input forwards it only when
+the parent fills it (`<template v-if="$slots.prepend" #prepend>`), since an
+empty prepend or append slot still reserves 16px beside the field.
+
+- **Focus and selection** take the primary colour: focused fields, checked
+  switches, checkboxes and radios, sliders. vuetify.js sets it as their default
+  (Vuetify 3 leaves them grey).
+- **Content that is not typed into** (icon and colour pickers, images, the
+  child property tree, a linked property) sits in `OutlinedInput.vue`, which
+  draws Vuetify's own field outline and notched label around it, so that its
+  border, hover and messages match the text fields beside it.
+- **A choice between a few options** is a toggle (`SmartToggle.vue`), drawn as
+  Material's segmented button: an outlined pill with its label above, the chosen
+  option filled with `primary-container` and marked with a check mark. Where
+  space is short the options wrap their labels and drop their icons.
+- **An icon inside a field** is an `inner` one (`append-inner-icon`,
+  `prepend-inner-icon`). Vuetify 3's `append-icon` draws outside the field,
+  where Vuetify 2 drew it inside.
 
 Adding or changing a colour
 ---------------------------
@@ -118,8 +142,8 @@ dialog bodies (`DialogBase.vue`, `InsertPropertyDialog.vue`), the transparent
 toolbar card (`ToolbarCard.vue`), health bar tracks (`HealthBar.vue`), the
 increment menu (`IncrementMenu.vue`), the disabled speed-dial button
 (`LabeledFab.vue`), the inner hexagon of the roll inputs (`VerticalHex.vue`),
-tree guide lines (`TreeNode.vue`, `BuildTreeNode.vue`), white input borders and
-highlights (`OutlinedInput.vue`, `SmartImageInput.vue`, `CardHighlight.vue`),
+tree guide lines (`TreeNode.vue`, `BuildTreeNode.vue`), the white highlight of
+`CardHighlight.vue`,
 scrollbars (`styles/body.css`) and the dependency graph's canvas, node text and
 edges (6.8:1 and more, measured). The axe audit of the main pages flags none of
 them, but it does not reach every one (the graph is drawn on a canvas); moving

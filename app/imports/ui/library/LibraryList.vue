@@ -44,7 +44,6 @@
         :is-selected="librariesSelected && librariesSelected.includes(library._id)"
         :selected-by-collection="librariesSelectedByCollections && librariesSelectedByCollections.includes(library._id)"
         :disabled="disabled"
-        class="ml-4"
         @select="val => $emit('select-library', library._id, val)"
       />
     </v-list-group>

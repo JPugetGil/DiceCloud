@@ -25,7 +25,7 @@
         :debounce-time="0"
         multiple
         chips
-        deletable-chips
+        closable-chips
         :no-data-text="$t('library.noLibrariesFound')"
         @change="librariesChanged"
       />

@@ -48,8 +48,6 @@ import AdvantageInput from '/imports/ui/creature/actions/input/AdvantageInput.vu
 import CheckInput from '/imports/ui/creature/actions/input/CheckInput.vue';
 import ChoiceInput from '/imports/ui/creature/actions/input/ChoiceInput.vue';
 import EngineActions from '/imports/api/engine/action/EngineActions';
-//import RollInput from '/imports/ui/creature/actions/input/RollInput.vue';
-import CastSpellInput from '/imports/ui/creature/actions/input/CastSpellInput.vue';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import ActionLogPreview from '/imports/ui/log/ActionLogPreview.vue';
 import mutationToLogUpdates from '/imports/api/engine/action/functions/mutationToLogUpdates';
@@ -110,8 +108,6 @@ const activeInputComponent = computed(() => {
     case 'choice-input': return ChoiceInput;
     case 'advantage-input': return AdvantageInput;
     case 'check-input': return CheckInput;
-    case 'cast-spell-input': return CastSpellInput;
-    // case 'roll-input': return RollInput;
     default: return undefined;
   }
 });
@@ -138,15 +134,8 @@ const promiseInput = () => {
 
 const inputProvider = {
   async rollDice(dice) {
+    // Dice are rolled straight away: there is no dice animation to show
     return Promise.resolve(deterministicDiceRoller(dice));
-    /* Dice Animation and user control goes here:
-    activeInputParams.value = {
-      deterministicDiceRoller,
-      dice
-    };
-    activeInput.value = 'roll-input';
-    return promiseInput();
-    */
   },
   async nextStep() {
     return promiseInput();
@@ -171,14 +160,6 @@ const inputProvider = {
     activeInput.value = 'check-input';
     return promiseInput();
   },
-  async castSpell(suggestedParams) {
-    userInput.value = suggestedParams;
-    activeInputParams.value = {
-      creatureId: action.value?.creatureId,
-    };
-    activeInput.value = 'cast-spell-input';
-    return promiseInput();
-  }
 };
 
 const startAction = async ({ stepThrough }) => {

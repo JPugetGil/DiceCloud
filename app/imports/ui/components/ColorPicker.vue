@@ -6,20 +6,30 @@
     location="left"
   >
     <template #activator="{ props: activatorProps }">
+      <!-- Sized: fills the outline it sits in. Otherwise: an icon button -->
       <v-btn
         variant="text"
-        :icon="!label"
-        :tile="!label"
-        :min-width="label && 108"
+        :icon="!label && !width"
+        :min-width="label ? 108 : undefined"
         :height="height"
         :width="width"
         :disabled="context.editPermission === false"
         v-bind="activatorProps"
       >
         {{ label }}
+        <!--
+          The chosen colour as a swatch: tinting the paint icon with it hid a
+          black or white choice against the surface of the same colour
+        -->
+        <span
+          v-if="model && !noColorChange"
+          class="color-picker__swatch"
+          :class="{ 'ms-2': !!label }"
+          :style="{ backgroundColor: model }"
+        />
         <v-icon
+          v-else
           :end="!!label"
-          :color="noColorChange ? undefined : model"
         >
           mdi-format-paint
         </v-icon>
@@ -223,6 +233,14 @@ function isDark(kbColor, kbShade){
 </script>
 
 <style lang="css" scoped>
+  .color-picker__swatch {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    /* The outline of a field, so that any colour stands out from the surface */
+    border: thin solid rgba(var(--v-theme-on-surface), 0.38);
+  }
   .color-swatch, .shade-swatch {
     height: 30px;
     width: 30px;
@@ -237,13 +255,16 @@ function isDark(kbColor, kbShade){
       0px 1px 1px 0px rgba(0,0,0,0.14),
       0px 1px 3px 0px rgba(0,0,0,0.12);
   }
-  .v-icon {
+  /*
+   * The check mark on the chosen swatch: black or white, whichever reads on
+   * that colour. Only the swatches' icons: unscoped, this also blacked out the
+   * button's paint icon on dark surfaces
+   */
+  .color-swatch .v-icon, .shade-swatch .v-icon {
     height: 30px;
-  }
-  .v-icon {
     color: black;
   }
-  .dark.v-icon {
+  .color-swatch .dark.v-icon, .shade-swatch .dark.v-icon {
     color: white;
   }
   .layout {

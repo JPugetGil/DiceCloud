@@ -41,8 +41,8 @@
       >
         <smart-slider
           thumb-label
-          dense
-          :ticks="max(row) - min(row) <= 20"
+          density="compact"
+          :show-ticks="max(row) - min(row) <= 20"
           :min="min(row)"
           :max="max(row)"
           :model-value="row.value"
