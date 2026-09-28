@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     style="min-height: 60px; min-width: 0;"
-    class="px-0 font-weight-bold"
+    class="font-weight-bold"
     :class="isSelected && !disabled && 'text-primary v-list-item--active'"
   >
     <template #prepend>

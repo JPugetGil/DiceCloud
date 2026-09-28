@@ -11,7 +11,7 @@ const path = require('path');
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
 
-const INDEX = path.join(__dirname, '..', '..', '..', 'app', 'imports', 'client', 'ui', 'dialogStack', 'DialogComponentIndex.js');
+const INDEX = path.join(__dirname, '..', '..', '..', 'app', 'imports', 'ui', 'dialogStack', 'DialogComponentIndex.js');
 
 main(async () => {
   const names = [...fs.readFileSync(INDEX, 'utf8').matchAll(/const (\w+) = defineAsyncComponent\(/g)]

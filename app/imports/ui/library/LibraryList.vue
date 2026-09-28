@@ -1,5 +1,6 @@
 <template>
   <v-list
+    v-model:opened="openCollections"
     class="library-list"
   >
     <library-list-tile
@@ -17,12 +18,14 @@
     <v-list-group
       v-for="libraryCollection in libraryCollections"
       :key="libraryCollection._id"
-      v-model="openCollections[libraryCollection._id]"
+      :value="libraryCollection._id"
+      :raw-id="`${listId}-${libraryCollection._id}`"
       :data-id="`library-collection-${libraryCollection._id}`"
     >
-      <template #activator>
+      <template #activator="{ props: activatorProps, isOpen }">
         <library-collection-header
-          :open="openCollections[libraryCollection._id]"
+          v-bind="activatorProps"
+          :open="isOpen"
           :model="libraryCollection"
           :selection="selection"
           :single-select="singleSelect"
@@ -57,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, useId } from 'vue';
 import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { union } from 'lodash';
@@ -93,7 +96,10 @@ defineEmits(['select-library', 'select-library-collection']);
 
 const router = useRouter();
 
+// Ids of the open collections: Vuetify 3 keeps a group's open state on its list
 const openCollections = ref([]);
+// Pages can show more than one library list: keep their element ids apart
+const listId = useId();
 
 const { ready: subLibrariesReady } = subscribe('libraries');
 
