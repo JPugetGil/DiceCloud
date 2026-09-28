@@ -7,6 +7,8 @@ import '/imports/api/users/methods/deleteMyAccount';
 import '/imports/api/users/methods/addEmail';
 import '/imports/api/users/methods/removeEmail';
 import '/imports/api/users/methods/updateFileStorageUsed';
+import '/imports/api/users/methods/searchUsers';
+import '/imports/api/users/methods/setUserRole';
 import { some } from 'lodash';
 const defaultLibraries = process.env.DEFAULT_LIBRARIES && process.env.DEFAULT_LIBRARIES.split(',') || [];
 const defaultLibraryCollections = process.env.DEFAULT_LIBRARY_COLLECTIONS && process.env.DEFAULT_LIBRARY_COLLECTIONS.split(',') || [];
@@ -48,6 +50,8 @@ const userSchema = new SimpleSchema({
     optional: true,
     blackbox: true,
   },
+  // The user's role (see /imports/api/users/roles), and other roles like
+  // docsWriter
   roles: {
     type: Array,
     optional: true,

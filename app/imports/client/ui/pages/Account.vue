@@ -44,6 +44,61 @@
         </v-list-item>
 
         <v-list-subheader>
+          {{ $t('account.role') }}
+        </v-list-subheader>
+        <v-list-item data-id="user-role">
+          <v-list-item-title>
+            {{ $t(`roles.${role}`) }}
+          </v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          density="compact"
+          prepend-icon="mdi-account-group"
+        >
+          <v-list-item-subtitle>
+            {{ permissions.characterLimit === Infinity
+              ? $t('account.unlimitedCharacters')
+              : $t('account.characterLimit', { limit: permissions.characterLimit }) }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item
+          density="compact"
+          prepend-icon="mdi-library-shelves"
+        >
+          <v-list-item-subtitle>
+            {{ permissions.canCreateLibraries
+              ? $t('account.canCreateLibraries')
+              : $t('account.cantCreateLibraries') }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item
+          density="compact"
+          prepend-icon="mdi-file-multiple"
+        >
+          <v-list-item-subtitle>
+            {{ $t('account.fileStorage', {
+              used: prettyBytes(user && user.fileStorageUsed || 0),
+              limit: prettyBytes(permissions.fileStorageLimit),
+            }) }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item
+          v-if="permissions.canManageRoles"
+          density="compact"
+          prepend-icon="mdi-shield-account"
+          to="/admin"
+        >
+          <v-list-item-subtitle>
+            {{ $t('account.canManageRoles') }}
+          </v-list-item-subtitle>
+        </v-list-item>
+        <v-list-item v-if="role === ROLES.player">
+          <p class="text-body-2 text-medium-emphasis">
+            {{ $t('account.askAdmin') }}
+          </p>
+        </v-list-item>
+
+        <v-list-subheader>
           {{ $t('account.username') }}
         </v-list-subheader>
         <v-list-item data-id="username">
@@ -179,9 +234,13 @@ import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackS
 import useLoginServiceConfigured from '/imports/client/ui/utility/useLoginServiceConfigured';
 import { useI18n } from 'vue-i18n';
 import { LANGUAGES, setLocale } from '/imports/client/ui/i18n';
+import useUserRole from '/imports/client/ui/utility/useUserRole';
+import { ROLES } from '/imports/api/users/roles';
+import prettyBytes from 'pretty-bytes';
 
 const dialogStackStore = useDialogStackStore();
 const { locale } = useI18n();
+const { role, permissions } = useUserRole();
 
 
 const user = autorun(() => Meteor.user()).result;

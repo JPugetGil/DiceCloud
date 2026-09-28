@@ -11,6 +11,7 @@ import Experiences from '/imports/api/creature/experience/Experiences';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { getUserFileStorageError } from '/imports/api/users/methods/updateFileStorageUsed';
 
 export async function getArchiveObj(creatureId) {
   // Build the archive document
@@ -37,6 +38,10 @@ export async function getArchiveObj(creatureId) {
 export async function archiveCreature(creatureId) {
   const archive = await getArchiveObj(creatureId);
   const buffer = Buffer.from(JSON.stringify(archive, null, 2));
+  // Archives count towards the owner's file storage limit. Writing on the
+  // server skips the collection's onBeforeUpload, so check it here.
+  const storageError = await getUserFileStorageError(archive.creature.owner, buffer.length);
+  if (storageError) throw new Meteor.Error('Storage limit reached', storageError);
   return await new Promise((resolve, reject) => {
     ArchiveCreatureFiles.write(buffer, {
       fileName: `${archive.creature.name || archive.creature._id}.json`,

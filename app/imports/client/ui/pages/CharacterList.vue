@@ -18,7 +18,14 @@
               :folders="folders"
             />
           </v-card>
-          <div class="d-flex flex-1-1 justify-end mt-2">
+          <div class="d-flex flex-1-1 justify-end align-center mt-2">
+            <span
+              v-if="characterLimit !== Infinity"
+              class="text-body-2 text-medium-emphasis mr-auto"
+              data-id="character-count"
+            >
+              {{ $t('characterList.characterCount', { count: ownedCharacterCount, limit: characterLimit }) }}
+            </span>
             <v-btn
               v-if="showImportButton"
               variant="text"
@@ -54,7 +61,7 @@
 </template>
 
 <script setup lang="js">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -65,8 +72,12 @@ import CreatureFolderList from '/imports/client/ui/creature/creatureList/Creatur
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { uniq, flatten } from 'lodash';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useUserRole from '/imports/client/ui/utility/useUserRole';
+import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
+const { t } = useI18n();
+const { permissions } = useUserRole();
 
 
 const characterTransform = function (char) {
@@ -115,7 +126,24 @@ const { result: showImportButton } = autorun(() => {
   return !Meteor.settings.public?.disallowCreatureApiImport;
 });
 
+// The server enforces the role's character limit, this only explains it before
+// the user fills in a new character
+const characterLimit = computed(() => permissions.value.characterLimit);
+
+const { result: ownedCharacterCount } = autorun(() => {
+  return Creatures.find({ owner: Meteor.userId() }).count();
+});
+
+function checkCharacterLimit() {
+  if (ownedCharacterCount.value < characterLimit.value) return true;
+  snackbar({
+    text: t('characterList.limitReached', { limit: characterLimit.value }),
+  });
+  return false;
+}
+
 function insertCharacter() {
+  if (!checkCharacterLimit()) return;
   dialogStackStore.pushDialogStack({
     component: 'character-creation-dialog',
     elementId: 'new-character-button',
@@ -124,6 +152,7 @@ function insertCharacter() {
 }
 
 function importCharacter() {
+  if (!checkCharacterLimit()) return;
   dialogStackStore.pushDialogStack({
     component: 'character-import-dialog',
     elementId: 'import-character-button',

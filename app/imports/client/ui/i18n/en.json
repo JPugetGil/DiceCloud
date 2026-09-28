@@ -30,10 +30,16 @@
     "characters": "Characters",
     "library": "Library",
     "files": "Files",
+    "admin": "Admin",
     "documentation": "Documentation",
     "discord": "Discord",
     "about": "About",
     "github": "Github"
+  },
+  "roles": {
+    "player": "Player",
+    "activePlayer": "Active player",
+    "admin": "Admin"
   },
   "account": {
     "preferences": "Preferences",
@@ -50,7 +56,15 @@
     "linkGoogle": "Link Google Account",
     "signOut": "Sign Out",
     "deleteAccount": "Delete Account",
-    "usernameTaken": "Username is already taken"
+    "usernameTaken": "Username is already taken",
+    "role": "Role",
+    "characterLimit": "Up to {limit} characters",
+    "unlimitedCharacters": "Unlimited characters",
+    "canCreateLibraries": "Can create libraries",
+    "cantCreateLibraries": "Can subscribe to libraries, but not create them",
+    "fileStorage": "{used} of {limit} file storage used",
+    "canManageRoles": "Can change user roles",
+    "askAdmin": "Ask an admin to make you an active player to lift these limits."
   },
   "about": {
     "intro": "DiceCloud is a single-developer project started in 2014 with the aim of being a character sheet that stayed in sync between the DM and their players, and made it clear where every value in the sheet came from, and how it was calculated.",
@@ -66,7 +80,18 @@
     "expectedDbVersion": "Expected database version: {version}",
     "gitVersion": "Git version: {version}",
     "backupWarning": "Back up the database before attempting any migration. A failed migration can result in profound data loss.",
-    "migrate": "Migrate to database version {version}"
+    "migrate": "Migrate to database version {version}",
+    "userRoles": "User roles",
+    "userRolesHint": "Players can own up to {playerCharacters} characters, subscribe to libraries without creating them, and store {playerStorage} of files. Active players have no character limit, can create libraries, and store {activePlayerStorage} of files. Admins have the permissions of active players, and can change user roles.",
+    "searchUsers": "Search by username, email or user ID",
+    "user": "User",
+    "characters": "Characters",
+    "storage": "Files",
+    "role": "Role",
+    "overLimit": "Over the limit of this role",
+    "cantChangeOwnRole": "You can't change your own role",
+    "noUsersFound": "No users found",
+    "roleChanged": "{user} is now: {role}"
   },
   "characterList": {
     "importCharacter": "import character",
@@ -74,7 +99,9 @@
     "archiveCharacters": "Archive Characters",
     "moved": "Moved {item} to {target}",
     "item": "item",
-    "anotherCharacter": "another character"
+    "anotherCharacter": "another character",
+    "characterCount": "{count} / {limit} characters",
+    "limitReached": "You can own up to {limit} characters. Archive or delete one, or ask an admin to make you an active player."
   },
   "docs": {
     "notFound": "Documentation not found",
@@ -106,7 +133,9 @@
     "userFiles": "User Files",
     "fromUrl": "From URL",
     "directLink": "Direct link to image",
-    "deleteFile": "Delete file"
+    "deleteFile": "Delete file",
+    "storage": "Storage",
+    "storageUsed": "{used} of {limit} used"
   },
   "friends": {
     "title": "Friends"
@@ -164,7 +193,8 @@
     "selectNewLocation": "Select new location",
     "selectLibraryProperty": "Select Library Property",
     "subscribe": "Subscribe",
-    "unsubscribe": "Unsubscribe"
+    "unsubscribe": "Unsubscribe",
+    "playersCantCreate": "Players can subscribe to libraries. Ask an admin to make you an active player to create your own."
   },
   "maintenance": {
     "underMaintenance": "DiceCloud is currently under maintenance",

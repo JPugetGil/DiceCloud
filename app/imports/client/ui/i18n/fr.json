@@ -30,10 +30,16 @@
     "characters": "Personnages",
     "library": "Bibliothèque",
     "files": "Fichiers",
+    "admin": "Administration",
     "documentation": "Documentation",
     "discord": "Discord",
     "about": "À propos",
     "github": "GitHub"
+  },
+  "roles": {
+    "player": "Joueur",
+    "activePlayer": "Joueur actif",
+    "admin": "Administrateur"
   },
   "account": {
     "preferences": "Préférences",
@@ -50,7 +56,15 @@
     "linkGoogle": "Associer un compte Google",
     "signOut": "Se déconnecter",
     "deleteAccount": "Supprimer le compte",
-    "usernameTaken": "Ce nom d'utilisateur est déjà pris"
+    "usernameTaken": "Ce nom d'utilisateur est déjà pris",
+    "role": "Rôle",
+    "characterLimit": "Jusqu'à {limit} personnages",
+    "unlimitedCharacters": "Personnages illimités",
+    "canCreateLibraries": "Peut créer des bibliothèques",
+    "cantCreateLibraries": "Peut s'abonner aux bibliothèques, mais pas en créer",
+    "fileStorage": "{used} utilisés sur {limit} de stockage de fichiers",
+    "canManageRoles": "Peut changer les rôles des utilisateurs",
+    "askAdmin": "Demandez à un administrateur de vous passer joueur actif pour lever ces limites."
   },
   "about": {
     "intro": "DiceCloud est un projet mené par un seul développeur, lancé en 2014 dans le but d'offrir une fiche de personnage synchronisée entre le MD et ses joueurs, qui montre clairement d'où vient chaque valeur de la fiche et comment elle est calculée.",
@@ -66,7 +80,18 @@
     "expectedDbVersion": "Version de base de données attendue : {version}",
     "gitVersion": "Version Git : {version}",
     "backupWarning": "Sauvegardez la base de données avant toute migration. Une migration ratée peut entraîner d'importantes pertes de données.",
-    "migrate": "Migrer vers la version {version} de la base de données"
+    "migrate": "Migrer vers la version {version} de la base de données",
+    "userRoles": "Rôles des utilisateurs",
+    "userRolesHint": "Les joueurs peuvent posséder jusqu'à {playerCharacters} personnages, s'abonner aux bibliothèques sans en créer, et stocker {playerStorage} de fichiers. Les joueurs actifs n'ont pas de limite de personnages, peuvent créer des bibliothèques, et stocker {activePlayerStorage} de fichiers. Les administrateurs ont les permissions des joueurs actifs, et peuvent changer les rôles des utilisateurs.",
+    "searchUsers": "Rechercher par nom d'utilisateur, e-mail ou identifiant",
+    "user": "Utilisateur",
+    "characters": "Personnages",
+    "storage": "Fichiers",
+    "role": "Rôle",
+    "overLimit": "Au-delà de la limite de ce rôle",
+    "cantChangeOwnRole": "Vous ne pouvez pas changer votre propre rôle",
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "roleChanged": "{user} est maintenant : {role}"
   },
   "characterList": {
     "importCharacter": "importer un personnage",
@@ -74,7 +99,9 @@
     "archiveCharacters": "Archiver des personnages",
     "moved": "{item} déplacé vers {target}",
     "item": "l'objet",
-    "anotherCharacter": "un autre personnage"
+    "anotherCharacter": "un autre personnage",
+    "characterCount": "{count} / {limit} personnages",
+    "limitReached": "Vous pouvez posséder jusqu'à {limit} personnages. Archivez-en ou supprimez-en un, ou demandez à un administrateur de vous passer joueur actif."
   },
   "docs": {
     "notFound": "Documentation introuvable",
@@ -106,7 +133,9 @@
     "userFiles": "Fichiers utilisateur",
     "fromUrl": "Depuis une URL",
     "directLink": "Lien direct vers l'image",
-    "deleteFile": "Supprimer le fichier"
+    "deleteFile": "Supprimer le fichier",
+    "storage": "Stockage",
+    "storageUsed": "{used} utilisés sur {limit}"
   },
   "friends": {
     "title": "Amis"
@@ -164,7 +193,8 @@
     "selectNewLocation": "Choisir le nouvel emplacement",
     "selectLibraryProperty": "Choisir une propriété de bibliothèque",
     "subscribe": "S'abonner",
-    "unsubscribe": "Se désabonner"
+    "unsubscribe": "Se désabonner",
+    "playersCantCreate": "Les joueurs peuvent s'abonner aux bibliothèques. Demandez à un administrateur de vous passer joueur actif pour créer les vôtres."
   },
   "maintenance": {
     "underMaintenance": "DiceCloud est actuellement en maintenance",

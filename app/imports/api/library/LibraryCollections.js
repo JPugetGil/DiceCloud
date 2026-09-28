@@ -4,6 +4,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import SharingSchema from '/imports/api/sharing/SharingSchema';
 import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
+import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 /**
@@ -58,6 +59,9 @@ const insertLibraryCollection = new ValidatedMethod({
     if (!this.userId) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',
         'You need to be logged in to insert a library');
+    }
+    if (Meteor.isServer) {
+      await assertCanCreateLibrary(this.userId);
     }
     libraryCollection.owner = this.userId;
     return await LibraryCollections.insertAsync(libraryCollection);

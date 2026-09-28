@@ -89,6 +89,38 @@ Run `meteor run --settings exampleMeteorSettings.json` to start the app with the
 Now, visiting [http://localhost:3000/](http://localhost:3000/) should show you an
 empty instance of DiceCloud running.
 
+User roles
+----------
+
+Every account has one of three roles, which the server enforces:
+
+| Role | Characters | Libraries | File storage | Change roles |
+|------|------------|-----------|--------------|--------------|
+| Player | Up to 3 | Can subscribe, can't create libraries or collections | 25 MB | No |
+| Active player | Unlimited | Can subscribe and create | 100 MB | No |
+| Admin | Unlimited | Can subscribe and create | 100 MB | Yes |
+
+- New accounts, and accounts created before roles existed, are players.
+- Every character a user owns counts towards their limit: created, restored from
+  an archive or imported from another instance. Characters shared with them
+  don't count, and archived characters don't either.
+- File storage covers uploaded images and character archives, archiving a
+  character included.
+- A user moved to a lower role keeps what they have, but can't add characters
+  or files until they are back under the new limits. Libraries they own, or can
+  edit, stay editable.
+
+Admins change roles on the Admin page (`/admin`, linked from the sidebar). An
+admin can't change their own role, so there is always one left. To make the
+first admin, add the role in the database, for instance with `meteor mongo`
+while the app runs locally:
+
+```js
+db.users.updateOne({ username: '<username>' }, { $addToSet: { roles: 'admin' } })
+```
+
+The roles and their limits are defined in `app/imports/api/users/roles.ts`.
+
 Browser checks
 --------------
 

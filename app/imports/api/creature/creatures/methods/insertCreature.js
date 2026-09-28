@@ -9,6 +9,7 @@ import getSlotFillFilter from '/imports/api/creature/creatureProperties/methods/
 import getCreatureLibraryIds from '/imports/api/library/getCreatureLibraryIds';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { insertExperienceForCreature } from '/imports/api/creature/experience/Experiences';
+import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 
 const insertCreature = new ValidatedMethod({
@@ -38,7 +39,10 @@ const insertCreature = new ValidatedMethod({
       throw new Meteor.Error('Creatures.methods.insert.denied',
         'You need to be logged in to insert a creature');
     }
-
+    // Server only: the client may not have all of the user's characters loaded
+    if (Meteor.isServer) {
+      await assertCanCreateCharacter(userId);
+    }
 
     // Create the creature document
     let creatureId = await Creatures.insertAsync({

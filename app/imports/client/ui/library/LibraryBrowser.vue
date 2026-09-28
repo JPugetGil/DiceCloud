@@ -53,7 +53,7 @@
     </v-expansion-panels>
     <v-btn
       v-show="noLibrariesExpanded"
-      v-if="editMode"
+      v-if="editMode && permissions.canCreateLibraries"
       variant="text"
       color="primary"
       style="background-color: inherit;"
@@ -76,8 +76,12 @@ import Libraries, { insertLibrary as insertLibraryMethod } from '/imports/api/li
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import InsertLibraryNodeButton from '/imports/client/ui/library/InsertLibraryNodeButton.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useUserRole from '/imports/client/ui/utility/useUserRole';
 
 const dialogStackStore = useDialogStackStore();
+
+// Players can subscribe to libraries, but not create them
+const { permissions } = useUserRole();
 
 defineProps({
   organizeMode: Boolean,

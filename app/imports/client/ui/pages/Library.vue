@@ -37,6 +37,7 @@
               {{ $t('library.browseCommunity') }}
             </v-btn>
             <v-btn
+              v-if="permissions.canCreateLibraries"
               variant="text"
               data-id="insert-library-collection-button"
               color="accent"
@@ -46,7 +47,15 @@
               {{ $t('library.addCollection') }}
             </v-btn>
           </div>
+          <p
+            v-if="!permissions.canCreateLibraries"
+            class="text-body-2 text-medium-emphasis text-right mt-2"
+            data-id="players-cant-create-libraries"
+          >
+            {{ $t('library.playersCantCreate') }}
+          </p>
           <v-btn
+            v-if="permissions.canCreateLibraries"
             color="accent"
             icon
             position="fixed"
@@ -73,10 +82,14 @@ import LibraryCollections, { insertLibraryCollection } from '/imports/api/librar
 import Libraries, { insertLibrary } from '/imports/api/library/Libraries';
 import LibraryList from '/imports/client/ui/library/LibraryList.vue';
 import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useUserRole from '/imports/client/ui/utility/useUserRole';
 
 const dialogStackStore = useDialogStackStore();
 
 const router = useRouter();
+
+// Players can subscribe to libraries, but not create them
+const { permissions } = useUserRole();
 
 const loadingInsertLibraryCollection = ref(false);
 

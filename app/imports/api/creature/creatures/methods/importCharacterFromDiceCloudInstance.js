@@ -8,6 +8,7 @@ import Experiences from '/imports/api/creature/experience/Experiences';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
+import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 
 let migrateApiCreature;
 if (Meteor.isServer) {
@@ -101,6 +102,8 @@ const importCharacterFromDiceCloudInstance = new ValidatedMethod({
         'No character data was provided');
     }
     if (Meteor.isServer) {
+      // An imported character counts towards the user's character limit
+      await assertCanCreateCharacter(this.userId);
       return await importApiCreature(characterData, this.userId)
     }
   },

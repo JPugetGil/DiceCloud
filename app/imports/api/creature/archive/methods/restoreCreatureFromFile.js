@@ -11,6 +11,7 @@ import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureF
 import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
+import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 
 let migrateArchive;
 if (Meteor.isServer) {
@@ -92,6 +93,8 @@ const restoreCreaturefromFile = new ValidatedMethod({
 
 
     if (Meteor.isServer) {
+      // A restored character counts towards the user's character limit
+      await assertCanCreateCharacter(this.userId);
       // Read the file data
       const archive = await ArchiveCreatureFiles.readJSONFile(file);
       await restoreCreature(archive, this.userId);

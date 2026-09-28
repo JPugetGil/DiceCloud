@@ -1,6 +1,6 @@
 
 import SimpleSchema from 'meteor/aldeed:simple-schema';
-import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
+import { incrementFileStorageUsed, getUserFileStorageError } from '/imports/api/users/methods/updateFileStorageUsed';
 import { CreaturePropertySchema } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { CreatureSchema } from '/imports/api/creature/creatures/Creatures';
 let createS3FilesCollection;
@@ -19,17 +19,20 @@ if (Meteor.isServer) {
 const ArchiveCreatureFiles = createS3FilesCollection({
   collectionName: 'archiveCreatureFiles',
   storagePath: Meteor.isDevelopment ? '../../../../../fileStorage/archiveCreatures' : 'assets/app/archiveCreatures',
-  onBeforeUpload(file) {
+  /** @this {{ userId?: string | null }} */
+  async onBeforeUpload(file) {
     // Allow upload files under 10MB, and only in json format
     if (file.size > 10485760) {
       return 'Please upload with size equal or less than 10MB';
     }
-    // Make sure the user has enough space
     // Only accept JSON
     if (!/json/i.test(file.extension)) {
       return 'Please upload only a JSON file';
     }
-    return true;
+    // Make sure the user has enough space left in their role's storage limit.
+    // The server checks the uploading user, the client the logged in one.
+    const userId = Meteor.isServer ? this.userId : Meteor.userId();
+    return await getUserFileStorageError(userId, file.size) ?? true;
   },
   async onAfterUpload(file) {
     if (Meteor.isServer) await incrementFileStorageUsed(file.userId, file.size);

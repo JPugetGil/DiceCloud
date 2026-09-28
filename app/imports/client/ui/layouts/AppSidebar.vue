@@ -78,6 +78,7 @@ import CreatureFolderList from '/imports/client/ui/creature/creatureList/Creatur
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { uniq, flatten } from 'lodash';
 import { useI18n } from 'vue-i18n';
+import { getUserRole, ROLES } from '/imports/api/users/roles';
 
 const { t } = useI18n();
 
@@ -96,6 +97,8 @@ const userName = autorun(() => {
   return user && user.username || user && user._id;
 }).result;
 
+const isAdmin = autorun(() => getUserRole(Meteor.user()) === ROLES.admin).result;
+
 // computed, not autorun: the titles follow the language
 const links = computed(() => {
   let isLoggedIn = !!signedIn.value;
@@ -104,12 +107,15 @@ const links = computed(() => {
     { title: t('nav.characters'), icon: 'mdi-account-group', to: '/character-list', requireLogin: true },
     { title: t('nav.library'), icon: 'mdi-library-shelves', to: '/library', requireLogin: true },
     { title: t('nav.files'), icon: 'mdi-file-multiple', to: '/my-files', requireLogin: true, },
+    { title: t('nav.admin'), icon: 'mdi-shield-account', to: '/admin', requireAdmin: true },
     { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
     { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
     { title: t('nav.about'), icon: 'mdi-sign-text', to: '/about' },
     { title: t('nav.github'), icon: 'mdi-github', href: 'https://github.com/JPugetGil/DiceCloud' },
   ];
-  return links.filter(link => !link.requireLogin || isLoggedIn);
+  return links.filter(link =>
+    (!link.requireLogin || isLoggedIn) && (!link.requireAdmin || isAdmin.value)
+  );
 });
 
 const folders = autorun(() => {

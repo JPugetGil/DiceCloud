@@ -2,6 +2,30 @@
   <v-container>
     <v-row dense>
       <v-col cols="12">
+        <v-list-subheader> {{ $t('files.storage') }} </v-list-subheader>
+      </v-col>
+      <v-col
+        cols="12"
+        sm="6"
+        data-id="file-storage"
+      >
+        <v-progress-linear
+          :model-value="storagePercent"
+          :color="storagePercent >= 100 ? 'error' : 'primary'"
+          height="8"
+          rounded
+          :aria-label="$t('files.storage')"
+        />
+        <div class="text-body-2 text-medium-emphasis mt-1">
+          {{ $t('files.storageUsed', {
+            used: prettyBytes(fileStorageUsed),
+            limit: prettyBytes(permissions.fileStorageLimit),
+          }) }}
+        </div>
+      </v-col>
+    </v-row>
+    <v-row dense>
+      <v-col cols="12">
         <v-list-subheader> {{ $t('files.archivedCharacters') }} </v-list-subheader>
       </v-col>
 
@@ -123,7 +147,7 @@
 </template>
 
 <script setup lang="js">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
@@ -136,8 +160,16 @@ import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue'
 import { archiveSchema } from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import migrateArchive from '/imports/migrations/archive/migrateArchive';
 import { useI18n } from 'vue-i18n';
+import useUserRole from '/imports/client/ui/utility/useUserRole';
 
 const { t } = useI18n();
+
+// Uploads and archives fail once the files would exceed the role's limit
+const { permissions } = useUserRole();
+const fileStorageUsed = autorun(() => Meteor.user()?.fileStorageUsed || 0).result;
+const storagePercent = computed(() => Math.min(
+  100, fileStorageUsed.value / permissions.value.fileStorageLimit * 100
+));
 
 // TODO Mark files that don't have versions.${version}.meta.pipePath set as broken links
 // TODO show user images

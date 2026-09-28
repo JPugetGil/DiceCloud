@@ -2,6 +2,7 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import UserImages from '/imports/api/files/userImages/UserImages';
+import { getFileStorageError } from '/imports/api/users/roles';
 const fileCollections = [ArchiveCreatureFiles, UserImages];
 
 const updateFileStorageUsed = new ValidatedMethod({
@@ -46,6 +47,25 @@ export async function updateFileStorageUsedWork(userId) {
       fileStorageUsed: sum,
     }
   });
+}
+
+/**
+ * Why the user can't store another `fileSize` bytes within their role's file
+ * storage limit, undefined if they can. On the client this reads the logged in
+ * user from minimongo, so only pass it that user's id there.
+ */
+export async function getUserFileStorageError(userId, fileSize) {
+  if (!userId) return 'You need to be logged in to upload files';
+  const fields = { roles: 1, fileStorageUsed: 1 };
+  let user = await Meteor.users.findOneAsync(userId, { fields });
+  if (!user) return 'User not found';
+  if (Meteor.isServer && user.fileStorageUsed === undefined) {
+    // The user doesn't have a current value for storage used, calculate it
+    // from scratch
+    await updateFileStorageUsedWork(userId);
+    user = await Meteor.users.findOneAsync(userId, { fields });
+  }
+  return getFileStorageError(user, fileSize);
 }
 
 export async function incrementFileStorageUsed(userId, amount) {

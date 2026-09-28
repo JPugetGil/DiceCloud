@@ -48,6 +48,9 @@
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col cols="12">
+        <user-roles-card />
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -57,6 +60,7 @@ import { ref, onMounted } from 'vue';
 import getVersion from '/imports/migrations/methods/getVersion';
 import migrateTo from '/imports/migrations/methods/migrateTo';
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
+import UserRolesCard from '/imports/client/ui/admin/UserRolesCard.vue';
 
 const loadingVersion = ref(false);
 
