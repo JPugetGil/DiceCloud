@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     v-if="value"
     class="mb-3"
@@ -7,14 +7,12 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    value: {
-      type: String,
-      default: undefined,
-    },
-  }
-}
+<script setup>
+defineProps({
+  value: {
+    type: String,
+    default: undefined,
+  },
+});
 </script>
 

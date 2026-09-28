@@ -1,6 +1,6 @@
 <template>
   <smart-select
-    label="Reset"
+    :label="$t('common.reset')"
     clearable
     style="flex-basis: 300px;"
     :hint="hint"
@@ -12,35 +12,44 @@
   />
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  props: {
-    value: [String, Number, Date, Array, Object, Boolean],
-    errorMessages: [String, Array],
-    hint: {
-      type: String,
-      default: undefined,
+const { t } = useI18n();
+
+defineProps({
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  hint: {
+    type: String,
+    default: undefined,
+  }
+});
+
+defineEmits(['change']);
+
+const resetOptions = autorun(() => {
+  const eventActions = createListOfProperties({
+    type: 'action',
+    actionType: 'event',
+  }, true);
+  const defaultEvents = [
+    {
+      title: t('common.shortRest'),
+      value: 'shortRest',
+    }, {
+      title: t('common.longRest'),
+      value: 'longRest',
     }
-  },
-  meteor: {
-    resetOptions() {
-      const eventActions = createListOfProperties({
-        type: 'action',
-        actionType: 'event',
-      }, true);
-      const defaultEvents = [
-        {
-          text: 'Short rest',
-          value: 'shortRest',
-        }, {
-          text: 'Long rest',
-          value: 'longRest',
-        }
-      ];
-      return [...defaultEvents, ...eventActions];
-    },
-  },
-}
+  ];
+  return [...defaultEvents, ...eventActions];
+}).result;
 </script>

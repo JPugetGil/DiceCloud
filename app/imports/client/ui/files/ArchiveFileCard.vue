@@ -8,21 +8,22 @@
     </v-card-subtitle>
     <v-card-actions>
       <v-btn
-        v-if="characterSlots > 0"
-        text
+        variant="text"
         :loading="restoreLoading"
         @click="restore(model._id)"
       >
-        Restore
+        {{ $t('common.restore') }}
       </v-btn>
-      <v-flex />
+      <div class="flex-1-1" />
       <v-btn
+        variant="text"
         icon
         @click="removeArchiveCharacter"
       >
         <v-icon>mdi-delete</v-icon>
       </v-btn>
       <v-btn
+        variant="text"
         icon
         :href="`${model.link}?download=true`"
       >
@@ -32,59 +33,57 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref} from 'vue';
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
-import { characterSlotsRemaining } from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import removeArchiveCreature from '/imports/api/creature/archive/methods/removeArchiveCreature';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  props: {
-    model: {
-      type: Object,
-      required: true,
+const { t } = useI18n();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
+
+const restoreLoading = ref(false);
+
+
+const dialogStackStore = useDialogStackStore();
+
+async function restore() {
+  restoreLoading.value = true;
+  try {
+    await restoreCreatureFromFile.callAsync({ fileId: props.model._id });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason });
+  } finally {
+    restoreLoading.value = false;
+  }
+}
+
+function removeArchiveCharacter() {
+  let that = this;
+  dialogStackStore.pushDialogStack({
+    component: 'delete-confirmation-dialog',
+    elementId: `${that.model._id}-archive-card`,
+    data: {
+      name: props.model.meta.creatureName,
+      typeName: t('files.characterArchive')
     },
-  },
-  data() {
-    return {
-      restoreLoading: false,
-      removeLoading: false,
-    }
-  },
-  meteor: {
-    characterSlots() {
-      return characterSlotsRemaining(Meteor.userId());
-    },
-  },
-  methods: {
-    restore() {
-      this.restoreLoading = true;
-      restoreCreatureFromFile.call({
-        fileId: this.model._id,
-      }, error => {
-        this.restoreLoading = false;
-        if (!error) return;
+    async callback(confirmation) {
+      if (!confirmation) return;
+      try {
+        await removeArchiveCreature.callAsync({ fileId: that.model._id });
+      } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason });
-      });
-    },
-    removeArchiveCharacter() {
-      let that = this;
-      this.$store.commit('pushDialogStack', {
-        component: 'delete-confirmation-dialog',
-        elementId: `${that.model._id}-archive-card`,
-        data: {
-          name: this.model.meta.creatureName,
-          typeName: 'Character Archive'
-        },
-        callback(confirmation) {
-          if (!confirmation) return;
-          removeArchiveCreature.call({ fileId: that.model._id }, (error) => {
-            if (error) console.error(error);
-          });
-        }
-      });
-    },
-  },
+      }
+    }
+  });
 }
 </script>

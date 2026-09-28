@@ -1,13 +1,12 @@
-<template lang="html">
+<template>
   <div
-    v-if="$vuetify.breakpoint.smAndUp"
-    class="layout split"
+    v-if="smAndUp"
+    class="d-flex flex-1-1 split"
   >
     <v-list
-      class="left"
-      subheader
-      two-line
-      dense
+      class="float-left"
+      lines="two"
+      density="compact"
     >
       <v-slide-x-transition
         group
@@ -21,10 +20,9 @@
       vertical
     />
     <v-list
-      class="right"
-      subheader
-      two-line
-      dense
+      class="float-right"
+      lines="two"
+      density="compact"
     >
       <v-slide-x-transition
         group
@@ -37,9 +35,8 @@
   <v-list
     v-else
     class="small"
-    subheader
-    two-line
-    dense
+    lines="two"
+    density="compact"
   >
     <v-slide-x-transition
       group
@@ -51,9 +48,10 @@
   </v-list>
 </template>
 
-<script lang="js">
-export default {
-}
+<script setup>
+import { useDisplay } from 'vuetify';
+
+const { smAndUp } = useDisplay();
 </script>
 
 <style lang="css" scoped>

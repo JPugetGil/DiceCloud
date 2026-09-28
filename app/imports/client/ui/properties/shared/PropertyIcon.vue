@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <svg-icon
     v-if="model.icon"
     :shape="model.icon.shape"
@@ -14,27 +14,25 @@
   </v-icon>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import { getPropertyIcon } from '/imports/constants/PROPERTIES';
 
-export default {
-  props: {
-    model: {
-      type: Object,
-      default: () => ({}),
-    },
-    color: {
-      type: String,
-      default: undefined,
-    },
-    disabled: Boolean,
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    icon() {
-      return getPropertyIcon(this.model && this.model.type);
-    },
+  color: {
+    type: String,
+    default: undefined,
   },
-}
+  disabled: Boolean,
+});
+
+const icon = computed(() => {
+  return getPropertyIcon(props.model && props.model.type);
+});
 </script>
 
 <style lang="css" scoped>

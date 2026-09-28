@@ -1,68 +1,67 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
-        New Library
+        {{ $t('library.newLibraryTitle') }}
       </v-toolbar-title>
     </template>
     <text-field
-      label="Name"
+      :label="$t('common.name')"
       :value="library.name"
       :debounce-time="0"
       @change="nameChanged"
     />
     <text-area
-      label="Description"
+      :label="$t('common.description')"
       :value="library.description"
       :debounce-time="0"
       @change="descriptionChanged"
     />
-    <template slot="actions">
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         :disabled="!valid"
-        @click="$store.dispatch('popDialogStack', library)"
+        @click="dialogStackStore.popDialogStack(library)"
       >
-        Insert Library
+        {{ $t('library.insertLibrary') }}
       </v-btn>
     </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref} from 'vue';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  components: {
-    DialogBase,
-  },
-  data() {
-    return {
-      library: {
-        name: 'New Library',
-        description: undefined,
-      },
-      valid: true,
-    }
-  },
-  methods: {
-    nameChanged(val, ack) {
-      if (val) {
-        this.library.name = val;
-        this.valid = true,
-          ack();
-      } else {
-        this.valid = false;
-        ack('Name is required')
-      }
-    },
-    descriptionChanged(val, ack) {
-      this.library.description = val;
-      ack();
-    },
-  },
-};
+const { t } = useI18n();
+
+const library = ref({
+  name: t('library.newLibraryTitle'),
+  description: undefined,
+});
+
+const valid = ref(true);
+
+const dialogStackStore = useDialogStackStore();
+
+function nameChanged(val, ack) {
+  if (val) {
+    library.value.name = val;
+    valid.value = true;
+    ack();
+  } else {
+    valid.value = false;
+    ack(t('common.nameRequired'))
+  }
+}
+
+function descriptionChanged(val, ack) {
+  library.value.description = val;
+  ack();
+}
 </script>
 
 <style lang="css" scoped>

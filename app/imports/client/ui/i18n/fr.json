@@ -1,0 +1,1285 @@
+{
+  "pageTitle": {
+    "home": "Accueil",
+    "characterList": "Liste des personnages",
+    "library": "Bibliothèque",
+    "libraryCollection": "Collection de bibliothèques",
+    "communityLibraries": "Bibliothèques de la communauté",
+    "characterSheet": "Fiche de personnage",
+    "printCharacterSheet": "Imprimer la fiche de personnage",
+    "printCharacter": "Imprimer {name}",
+    "friends": "Amis",
+    "signIn": "Connexion",
+    "register": "Inscription",
+    "account": "Compte",
+    "files": "Fichiers",
+    "discord": "Discord",
+    "functions": "Fonctions",
+    "documentation": "Documentation",
+    "about": "À propos de DiceCloud",
+    "emailVerificationError": "Erreur de vérification de l'adresse e-mail",
+    "emailVerificationSuccess": "Adresse e-mail vérifiée",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "docNotFound": "Document introuvable",
+    "docs": "Documentation DiceCloud"
+  },
+  "nav": {
+    "signIn": "Se connecter",
+    "accountSettings": "Paramètres du compte",
+    "home": "Accueil",
+    "characters": "Personnages",
+    "library": "Bibliothèque",
+    "files": "Fichiers",
+    "documentation": "Documentation",
+    "discord": "Discord",
+    "about": "À propos",
+    "github": "GitHub"
+  },
+  "account": {
+    "preferences": "Préférences",
+    "theme": "Thème",
+    "themeDark": "Sombre",
+    "themeDevice": "Thème de l'appareil",
+    "themeLight": "Clair",
+    "language": "Langue",
+    "swapAbilityScores": "Inverser valeurs de caractéristique et modificateurs",
+    "username": "Nom d'utilisateur",
+    "changeUsername": "Changer de nom d'utilisateur",
+    "email": "E-mail",
+    "addEmail": "Ajouter une adresse e-mail",
+    "linkGoogle": "Associer un compte Google",
+    "signOut": "Se déconnecter",
+    "deleteAccount": "Supprimer le compte",
+    "usernameTaken": "Ce nom d'utilisateur est déjà pris"
+  },
+  "about": {
+    "intro": "DiceCloud est un projet mené par un seul développeur, lancé en 2014 dans le but d'offrir une fiche de personnage synchronisée entre le MD et ses joueurs, qui montre clairement d'où vient chaque valeur de la fiche et comment elle est calculée.",
+    "specialThanks": "Remerciements",
+    "samThanks": "sans son amour, DiceCloud n'aurait jamais pu voir le jour",
+    "heroes": "Les « Héros » d'Asaea",
+    "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
+    "supporters": "Soutiens"
+  },
+  "admin": {
+    "currentDbVersion": "Version actuelle de la base de données : {version}",
+    "upToDate": "La base de données est à jour. Redémarrez pour réactiver la navigation.",
+    "expectedDbVersion": "Version de base de données attendue : {version}",
+    "gitVersion": "Version Git : {version}",
+    "backupWarning": "Sauvegardez la base de données avant toute migration. Une migration ratée peut entraîner d'importantes pertes de données.",
+    "migrate": "Migrer vers la version {version} de la base de données"
+  },
+  "characterList": {
+    "importCharacter": "importer un personnage",
+    "addFolder": "ajouter un dossier",
+    "archiveCharacters": "Archiver des personnages",
+    "moved": "{item} déplacé vers {target}",
+    "item": "l'objet",
+    "anotherCharacter": "un autre personnage"
+  },
+  "docs": {
+    "notFound": "Documentation introuvable",
+    "helpNotFound": "Aucun document d'aide pour {title}",
+    "docs": "Documentation",
+    "title": "Titre",
+    "urlTitle": "Titre dans l'URL",
+    "urlTitleHint": "Uniquement des lettres, des chiffres et des tirets",
+    "published": "Publié",
+    "icon": "Icône",
+    "body": "Contenu",
+    "addChild": "Ajouter un enfant",
+    "newDoc": "Nouveau document"
+  },
+  "email": {
+    "verificationError": "Erreur de vérification de l'adresse e-mail",
+    "verified": "Adresse e-mail vérifiée",
+    "verifiedText": "Votre adresse e-mail a été vérifiée"
+  },
+  "files": {
+    "archivedCharacters": "Personnages archivés",
+    "uploadArchive": "Téléverser une archive",
+    "images": "Images",
+    "mustBeJson": "Le fichier doit être au format .json",
+    "tooLarge": "Fichier trop volumineux",
+    "parseFailed": "Le fichier n'a pas pu être lu",
+    "validationFailed": "Le fichier n'est pas valide : {reason}",
+    "characterArchive": "Archive de personnage",
+    "userFiles": "Fichiers utilisateur",
+    "fromUrl": "Depuis une URL",
+    "directLink": "Lien direct vers l'image",
+    "deleteFile": "Supprimer le fichier"
+  },
+  "friends": {
+    "title": "Amis"
+  },
+  "functions": {
+    "title": "Fonctions"
+  },
+  "home": {
+    "tagline": "Suivi de personnages gratuit, vérifiable et en temps réel pour la 5e édition",
+    "subtitle": "Moins de temps à brasser du papier, plus de temps pour jouer",
+    "register": "S'inscrire",
+    "signIn": "Se connecter",
+    "myCharacters": "Mes personnages",
+    "freeTitle": "Gratuit, open source, financé par la communauté",
+    "freeText": "DiceCloud est gratuit, financé par la communauté, et son code source est disponible sur GitHub sous licence GPL.",
+    "customTitle": "Tout est personnalisable",
+    "customText": "Ajoutez à votre personnage de nouvelles caractéristiques, compétences, barres de vie et statistiques. Toute la fiche est entre vos mains.",
+    "engineTitle": "Moteur de personnage avancé",
+    "engineText": "Les personnages sont calculés en temps réel à partir de leur équipement, de leurs aptitudes et de leurs effets.",
+    "community": "Rejoignez la communauté DiceCloud",
+    "highlights": {
+      "actions": "Actions automatisées",
+      "auditable": "Statistiques vérifiables",
+      "dice": "Lancers de dés",
+      "builder": "Création de personnage modulable",
+      "inventory": "Inventaire en glisser-déposer",
+      "libraries": "Bibliothèques de contenu personnalisées",
+      "discord": "Webhooks Discord",
+      "printing": "Fiches de personnage imprimables"
+    }
+  },
+  "library": {
+    "browseCommunity": "Parcourir les bibliothèques de la communauté",
+    "addCollection": "Ajouter une collection",
+    "subscribers": "{count} abonnés",
+    "notFound": "Bibliothèque ou collection introuvable",
+    "addFromLibrary": "Ajouter depuis une bibliothèque",
+    "showSecondTree": "Afficher un second arbre de bibliothèque",
+    "newLibrary": "Nouvelle bibliothèque",
+    "communityLibraries": "Bibliothèques de la communauté",
+    "newCollection": "Nouvelle collection",
+    "libraries": "Bibliothèques",
+    "noLibrariesFound": "Aucune bibliothèque trouvée",
+    "insertCollection": "Insérer la collection",
+    "collectionOwner": "Propriétaire de la collection",
+    "nameLower": "nom",
+    "showInBrowser": "Afficher dans le catalogue des bibliothèques de la communauté",
+    "collection": "Collection",
+    "newLibraryTitle": "Nouvelle bibliothèque",
+    "insertLibrary": "Insérer la bibliothèque",
+    "libraryOwner": "Propriétaire de la bibliothèque",
+    "recentlyDeleted": "Propriétés supprimées récemment",
+    "library": "Bibliothèque",
+    "selectLibrary": "Choisir une bibliothèque",
+    "selectNewLocation": "Choisir le nouvel emplacement",
+    "selectLibraryProperty": "Choisir une propriété de bibliothèque",
+    "subscribe": "S'abonner",
+    "unsubscribe": "Se désabonner"
+  },
+  "maintenance": {
+    "underMaintenance": "DiceCloud est actuellement en maintenance",
+    "live": "DiceCloud est en ligne.",
+    "home": "Accueil"
+  },
+  "notFound": {
+    "text": "Aucune page n'existe à cette adresse"
+  },
+  "notImplemented": {
+    "text": "Cette page n'est pas disponible dans cette version de DiceCloud."
+  },
+  "auth": {
+    "email": "E-mail",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "passwordAgain": "Confirmer le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "usernameOrEmail": "Nom d'utilisateur ou e-mail",
+    "register": "S'inscrire",
+    "registerWithGoogle": "S'inscrire avec Google",
+    "signIn": "Se connecter",
+    "signInWithGoogle": "Se connecter avec Google",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "nameRequired": "Le nom est obligatoire",
+    "emailRequired": "L'adresse e-mail est obligatoire",
+    "emailInvalid": "L'adresse e-mail n'est pas valide",
+    "passwordRequired": "Le mot de passe est obligatoire",
+    "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+    "resetLinkSent": "Lien de réinitialisation envoyé à {email}"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "done": "Terminé",
+    "insert": "Insérer",
+    "delete": "Supprimer",
+    "next": "Suivant",
+    "back": "Retour",
+    "create": "Créer",
+    "clear": "Effacer",
+    "roll": "Lancer",
+    "advantage": "Avantage",
+    "disadvantage": "Désavantage",
+    "name": "Nom",
+    "import": "Importer",
+    "loadMore": "Charger plus",
+    "showAll": "Tout afficher",
+    "archive": "Archiver",
+    "restore": "Restaurer",
+    "print": "Imprimer",
+    "sharing": "Partage",
+    "property": "Propriété",
+    "character": "Personnage",
+    "or": "OU",
+    "not": "SAUF",
+    "weightLb": "{weight} lb",
+    "each": "l'unité",
+    "contents": "contenu",
+    "total": "Total :",
+    "copiedSuccessfully": "Copie réussie",
+    "copy": "Copier",
+    "select": "Sélectionner",
+    "description": "Description",
+    "search": "Rechercher",
+    "find": "Trouver",
+    "type": "Type",
+    "save": "Enregistrer",
+    "update": "Mettre à jour",
+    "remove": "Retirer",
+    "share": "Partager",
+    "help": "Aide",
+    "somethingWentWrong": "Une erreur s'est produite",
+    "reset": "Réinitialisation",
+    "shortRest": "Repos court",
+    "longRest": "Repos long",
+    "nameRequired": "Le nom est obligatoire",
+    "shortRestTitle": "Repos court",
+    "longRestTitle": "Repos long",
+    "edit": "Modifier",
+    "deleted": "{name} supprimé"
+  },
+  "propertyTypes": {
+    "action": {
+      "name": "Action",
+      "helpText": "Les actions sont ce que votre personnage peut faire. Quand une action est effectuée, toutes les propriétés qu'elle contient sont activées."
+    },
+    "attribute": {
+      "name": "Attribut",
+      "helpText": "Les attributs sont les statistiques chiffrées de votre personnage, hors jets auxquels vous pourriez ajouter votre bonus de maîtrise : ceux-là sont des compétences."
+    },
+    "adjustment": {
+      "name": "Dégâts d'attribut",
+      "helpText": "Les dégâts d'attribut réduisent la valeur actuelle d'un attribut lorsqu'ils sont appliqués par une action. Une valeur négative augmente au contraire l'attribut, jusqu'à son maximum normal."
+    },
+    "buff": {
+      "name": "Buff",
+      "helpText": "Quand un buff est activé en tant qu'enfant d'une action, il copie les propriétés qu'il contient sur un personnage cible."
+    },
+    "buffRemover": {
+      "name": "Retrait de buff",
+      "helpText": "Retire un buff du personnage cible"
+    },
+    "branch": {
+      "name": "Branche",
+      "helpText": "Quand une branche est activée en tant qu'enfant d'une action, elle peut choisir lesquels de ses enfants sont activés."
+    },
+    "class": {
+      "name": "Classe",
+      "helpText": "Votre personnage devrait idéalement avoir une classe de départ. Les classes contiennent des niveaux de classe"
+    },
+    "classLevel": {
+      "name": "Niveau de classe",
+      "helpText": "Un niveau de classe représente un niveau gagné dans une classe"
+    },
+    "constant": {
+      "name": "Constante",
+      "helpText": "Une constante définit une valeur fixe utilisable dans les calculs ailleurs sur la fiche"
+    },
+    "container": {
+      "name": "Conteneur",
+      "helpText": "Un conteneur regroupe des objets dans l'inventaire"
+    },
+    "creature": {
+      "name": "Créature",
+      "helpText": "Une créature est le modèle d'une créature qui peut devenir réelle une fois invoquée par un personnage"
+    },
+    "damage": {
+      "name": "Dégâts",
+      "helpText": "Quand des dégâts sont activés par une action, ils réduisent les points de vie de la créature cible du montant calculé."
+    },
+    "damageMultiplier": {
+      "name": "Multiplicateur de dégâts",
+      "helpText": "Résistance, vulnérabilité et immunité."
+    },
+    "effect": {
+      "name": "Effet",
+      "helpText": "Les effets modifient la valeur ou l'état des attributs et des compétences."
+    },
+    "feature": {
+      "name": "Aptitude",
+      "helpText": "Aptitudes descriptives ou narratives dont dispose votre personnage"
+    },
+    "folder": {
+      "name": "Dossier",
+      "helpText": "Un moyen d'organiser les autres propriétés du personnage"
+    },
+    "item": {
+      "name": "Objet",
+      "helpText": "Objets et équipement que votre personnage trouve au cours de ses aventures"
+    },
+    "note": {
+      "name": "Note",
+      "helpText": "Notes sur votre personnage et ses aventures"
+    },
+    "pointBuy": {
+      "name": "Achat de points",
+      "helpText": "Une table d'achat de points qui permet de choisir une série de valeurs correspondant à un coût donné"
+    },
+    "proficiency": {
+      "name": "Maîtrise",
+      "helpText": "Les maîtrises appliquent votre bonus de maîtrise à des compétences déjà présentes sur votre fiche."
+    },
+    "roll": {
+      "name": "Jet",
+      "helpText": "Activé par une action, un jet effectue un calcul et en conserve temporairement le résultat pour les autres propriétés de la même action"
+    },
+    "reference": {
+      "name": "Référence",
+      "helpText": "Une référence est un lien vers une autre propriété d'une bibliothèque. Quand une référence est copiée sur une fiche de personnage, elle est remplacée par la propriété référencée et tous ses enfants."
+    },
+    "savingThrow": {
+      "name": "Jet de sauvegarde",
+      "helpText": "Quand un jet de sauvegarde est activé par une action, la cible doit effectuer un jet de sauvegarde ; en cas d'échec, les propriétés enfants du jet de sauvegarde sont activées."
+    },
+    "skill": {
+      "name": "Compétence",
+      "helpText": "Les compétences, sauvegardes, langues et maîtrises d'armes et d'outils sont toutes des compétences. Une compétence peut avoir une maîtrise par défaut. Les maîtrises et les effets peuvent modifier la valeur et l'état des compétences."
+    },
+    "propertySlot": {
+      "name": "Emplacement",
+      "helpText": "Un emplacement de la fiche indique qu'une propriété doit être choisie dans une bibliothèque pour le remplir. L'emplacement précise les étiquettes recherchées, et toute propriété d'une bibliothèque suivie qui porte ces étiquettes peut le remplir"
+    },
+    "spellList": {
+      "name": "Liste de sorts",
+      "helpText": "Une liste de sorts de votre fiche. Elle peut fournir un DD et un bonus d'attaque aux sorts qu'elle contient"
+    },
+    "spell": {
+      "name": "Sort",
+      "helpText": "Un sort que votre personnage peut lancer"
+    },
+    "toggle": {
+      "name": "Bascule",
+      "helpText": "Les bascules activent ou désactivent des parties de la fiche, manuellement ou selon le résultat d'un calcul."
+    },
+    "trigger": {
+      "name": "Déclencheur",
+      "helpText": "Les déclencheurs appliquent leurs enfants en réponse à des événements de la fiche, comme effectuer une action ou subir des dégâts"
+    }
+  },
+  "spellSchools": {
+    "abjuration": "Abjuration",
+    "conjuration": "Invocation",
+    "divination": "Divination",
+    "enchantment": "Enchantement",
+    "evocation": "Évocation",
+    "illusion": "Illusion",
+    "necromancy": "Nécromancie",
+    "transmutation": "Transmutation"
+  },
+  "actionTypes": {
+    "action": "Action",
+    "bonus": "Action bonus",
+    "attack": "Attaque",
+    "reaction": "Réaction",
+    "free": "Action gratuite",
+    "long": "Action longue",
+    "event": "Événement"
+  },
+  "spellComponents": {
+    "verbal": "Verbale",
+    "somatic": "Somatique",
+    "material": "Matérielle",
+    "concentration": "Concentration",
+    "ritual": "Rituel"
+  },
+  "damageMultipliers": {
+    "immunity": "Immunité",
+    "resistance": "Résistance",
+    "vulnerability": "Vulnérabilité",
+    "for": "Pour :",
+    "except": "Sauf :"
+  },
+  "attunement": {
+    "attuned": "Lié",
+    "required": "Nécessite un lien"
+  },
+  "tabs": {
+    "stats": "Statistiques",
+    "actions": "Actions",
+    "spells": "Sorts",
+    "inventory": "Inventaire",
+    "features": "Aptitudes",
+    "journal": "Journal",
+    "build": "Création",
+    "tree": "Arbre"
+  },
+  "creatureForm": {
+    "alignment": "Alignement",
+    "gender": "Genre",
+    "picture": "Image",
+    "pictureHint": "Un lien vers une image en haute résolution",
+    "avatar": "Avatar",
+    "avatarHint": "Un lien vers une image carrée plus petite, utilisée comme avatar",
+    "settings": "Paramètres",
+    "hideRedundantStats": "Masquer les statistiques redondantes",
+    "hideRestButtons": "Masquer les boutons de repos",
+    "showSpellsTab": "Afficher l'onglet Sorts",
+    "showTreeTab": "Afficher l'onglet Arbre",
+    "hitDiceMultiplier": "Multiplicateur de récupération des dés de vie",
+    "hitDiceMultiplierHint": "Fraction de vos dés de vie récupérée à chaque repos long",
+    "discordWebhook": "URL du webhook Discord",
+    "discordWebhookHint": "Le journal de cette créature sera publié sur le salon Discord",
+    "variantEncumbrance": "Utiliser la règle d'encombrement variante",
+    "hideSpellsTab": "Masquer l'onglet Sorts",
+    "swapAbilityScores": "Inverser valeurs de caractéristique et modificateurs",
+    "libraries": "Bibliothèques",
+    "allUserLibraries": "Toutes les bibliothèques de l'utilisateur",
+    "debug": "Débogage",
+    "dependencyGraph": "Graphe des dépendances",
+    "characterDetails": "Détails du personnage"
+  },
+  "castSpell": {
+    "slot": "Emplacement",
+    "withoutSlot": "Lancer sans emplacement de sort",
+    "asRitual": "Lancer en tant que rituel",
+    "spell": "Sort"
+  },
+  "check": {
+    "ability": "Caractéristique",
+    "skill": "Compétence",
+    "dc": "DD"
+  },
+  "newCharacter": {
+    "title": "Nouveau personnage",
+    "biography": "Biographie",
+    "level": "Niveau",
+    "defaultName": "Nouveau personnage",
+    "nameRequired": "Nom obligatoire"
+  },
+  "deleteCharacter": {
+    "title": "Supprimer le personnage",
+    "typeName": "Saisissez « {name} » pour supprimer définitivement le personnage",
+    "deleteForever": "Supprimer définitivement"
+  },
+  "importCharacter": {
+    "title": "Importer un personnage",
+    "text": "Importer un personnage depuis une autre instance de DiceCloud",
+    "sharingHint": "Le partage du personnage doit être réglé sur « tout le monde peut voir »",
+    "invalidUrl": "Ce n'est pas une URL de personnage valide",
+    "notShared": "Le partage de ce personnage ne permet pas à tout le monde de le voir"
+  },
+  "sheet": {
+    "notFound": "Personnage introuvable",
+    "notFoundText": "Ce personnage n'existe pas, ou vous n'avez pas la permission de le voir.",
+    "buffOrCondition": "Buff ou état",
+    "owner": "Propriétaire de la fiche",
+    "unshareWithMe": "Ne plus partager avec moi",
+    "editDetails": "Modifier les détails",
+    "miniSheet": "Fiche de personnage"
+  },
+  "build": {
+    "slots": "Emplacements",
+    "hiddenProperties": "{count} propriété masquée | {count} propriétés masquées",
+    "level": "Niveau {level}",
+    "milestoneLevels": "{count} niveaux de jalon",
+    "xp": "{xp} PX",
+    "getMissingLevels": "Obtenir les niveaux manquants",
+    "levelUp": "Monter de niveau"
+  },
+  "inventory": {
+    "weightCarried": "Poids transporté",
+    "netWorth": "Fortune",
+    "itemsAttuned": "Objets liés",
+    "equipped": "Équipé",
+    "carried": "Transporté"
+  },
+  "stats": {
+    "buffsAndConditions": "Buffs et états",
+    "hitDice": "Dés de vie",
+    "savingThrows": "Jets de sauvegarde",
+    "skills": "Compétences",
+    "weapons": "Armes",
+    "armor": "Armures",
+    "tools": "Outils",
+    "languages": "Langues",
+    "proficiencies": "Maîtrises",
+    "spellSlots": "Emplacements de sorts"
+  },
+  "tree": {
+    "organize": "Organiser"
+  },
+  "errors": {
+    "dependencyLoop": "Le personnage contient une boucle de dépendances.",
+    "dependencyLoopText": "Certaines propriétés ont pu être mal calculées, car elles forment une boucle infinie :"
+  },
+  "printed": {
+    "levelClass": "{className} de niveau {level}",
+    "levelClasses": "Niveau {level} ({classes})",
+    "weightCarried": "Poids transporté : {weight} lb",
+    "netWorth": "Fortune :",
+    "itemsAttuned": "Objets liés : {count}",
+    "totalLower": "total : {total}",
+    "totalValue": "Total : {total}",
+    "weapons": "Armes :",
+    "armor": "Armures :",
+    "tools": "Outils :",
+    "languages": "Langues :",
+    "uses": "{uses} utilisations",
+    "cost": "Coût : {quantity} {stat}",
+    "usesItem": "Utilise : {quantity} {item}",
+    "toHit": "pour toucher",
+    "toHitLabel": "Pour toucher :",
+    "castingTime": "Temps d'incantation :",
+    "range": "Portée :",
+    "components": "Composantes :",
+    "duration": "Durée :",
+    "ritual": "(rituel)",
+    "cantripOf": "tour de magie ({school})",
+    "levelOf": "{school} de niveau {level}",
+    "spellLevel": "niveau {level}",
+    "spellSaveDc": "DD de sauvegarde des sorts : {dc}",
+    "spellAbility": "Caractéristique d'incantation : {ability}",
+    "spellAbilityMod": "Modificateur de caractéristique d'incantation : {mod}",
+    "spellAttackBonus": "Bonus d'attaque des sorts : {bonus}",
+    "maxPrepared": "Sorts préparés maximum : {count}",
+    "castingTimeName": "Temps d'incantation"
+  },
+  "xp": {
+    "milestone": "Jalon",
+    "levels": "Niveaux",
+    "xp": "PX",
+    "addExperience": "Ajouter de l'expérience",
+    "experiences": "Expériences",
+    "noExperiences": "Aucune expérience",
+    "oneMilestoneLevel": "1 niveau de jalon",
+    "milestoneLevels": "{count} niveaux de jalon",
+    "amount": "{xp} PX"
+  },
+  "slots": {
+    "slotCount": "{count} emplacements",
+    "requirementsNotMet": "Les prérequis de {count} propriétés ne sont pas remplis",
+    "closeTest": "Fermer le test",
+    "withLibraryTags": "{type} avec les étiquettes de bibliothèque :",
+    "cantFind": "Vous ne trouvez pas ce que vous cherchez ?",
+    "browseCommunity": "Parcourir les bibliothèques de la communauté",
+    "createCustom": "Créer un élément personnalisé"
+  },
+  "coins": {
+    "gp": "{value} po",
+    "sp": "{value} pa",
+    "cp": "{value} pc"
+  },
+  "components": {
+    "uploadImage": "Téléverser une image",
+    "addImage": "Ajouter une image",
+    "searchIcons": "Rechercher une icône",
+    "clearLower": "effacer"
+  },
+  "sharing": {
+    "sharedWrite": "Partagé avec droit de modification",
+    "sharedRead": "Partagé en lecture seule",
+    "sharedPublic": "Partagé publiquement",
+    "whoCanView": "Qui peut voir",
+    "onlyShared": "Seulement les personnes avec qui je partage",
+    "anyoneWithLink": "Toute personne disposant du lien",
+    "whoCanCopy": "Qui peut copier depuis cette bibliothèque",
+    "onlyEditors": "Seulement les personnes pouvant modifier",
+    "anyoneReader": "Toute personne pouvant lire",
+    "link": "Lien",
+    "canEdit": "Peut modifier",
+    "viewOnly": "Lecture seule",
+    "transferOwnership": "Transférer la propriété",
+    "alreadyOwner": "L'utilisateur est déjà le propriétaire",
+    "userNotFound": "Utilisateur introuvable",
+    "transferConfirm": "Voulez-vous vraiment transférer la propriété à {user} ?",
+    "transferUndo": "Seul le nouveau propriétaire pourra annuler ce transfert.",
+    "stillEdit": "Vous conserverez le droit de modification.",
+    "transfer": "Transférer",
+    "toUser": "à {user}",
+    "canView": "Peut voir"
+  },
+  "toolbar": {
+    "duplicate": "Dupliquer",
+    "copyTo": "Copier vers",
+    "createReference": "Créer une référence",
+    "move": "Déplacer",
+    "copyToLibrary": "Copier dans une bibliothèque",
+    "moveTitle": "Déplacer"
+  },
+  "treeSearch": {
+    "field": "Champ",
+    "text": "Texte"
+  },
+  "deleteConfirm": {
+    "title": "Supprimer : {type}",
+    "cantUndo": "Cette action est irréversible",
+    "typeName": "Saisissez « {name} » pour supprimer définitivement.",
+    "confirmation": "Confirmation"
+  },
+  "help": {
+    "title": "Aide : {title}"
+  },
+  "deleteAccount": {
+    "title": "Supprimer le compte utilisateur",
+    "areYouSure": "Voulez-vous vraiment supprimer votre compte ?",
+    "cantRecover": "Un compte supprimé ne peut pas être récupéré",
+    "immediately": "Votre compte et toutes vos données seront supprimés immédiatement",
+    "usernameAvailable": "Votre nom d'utilisateur deviendra disponible pour tous sur DiceCloud",
+    "charactersDeleted": "Ces {count} personnages seront supprimés :",
+    "characterDeleted": "Ce personnage sera supprimé :",
+    "librariesDeleted": "Ces {count} bibliothèques seront supprimées :",
+    "libraryDeleted": "Cette bibliothèque sera supprimée :",
+    "typeUsername": "Saisissez votre nom d'utilisateur ou votre e-mail",
+    "typePhrase": "Pour confirmer, saisissez « {phrase} »",
+    "phrase": "supprimer mon compte",
+    "permanently": "Supprimer définitivement le compte"
+  },
+  "log": {
+    "compilationError": "Erreur de compilation"
+  },
+  "icons": {
+    "metadataJson": "JSON des métadonnées",
+    "spriteJson": "JSON du sprite"
+  },
+  "forms": {
+    "condition": "Condition",
+    "summary": "Résumé",
+    "log": "Journal",
+    "dontShowInLog": "Ne pas afficher dans le journal",
+    "targetCreature": "Créature cible",
+    "actionTarget": "Cible de l'action",
+    "self": "Soi-même",
+    "singleTarget": "Cible unique",
+    "multipleTargets": "Cibles multiples",
+    "variableName": "Nom de variable",
+    "variableNameAttributeHint": "Utilisez ce nom dans les calculs pour faire référence à cet attribut",
+    "behavior": "Comportement",
+    "children": "Enfants",
+    "resourcesConsumed": "Ressources consommées",
+    "limitUses": "Utilisations limitées",
+    "uses": "Utilisations",
+    "usesHint": "Nombre d'utilisations possibles avant de devoir réinitialiser l'action",
+    "usesUsed": "Utilisations consommées",
+    "usesUsedHint": "Nombre d'utilisations déjà consommées : 0 dans la plupart des cas",
+    "resetUsesHint": "Quand remettre à zéro les utilisations consommées",
+    "attackRoll": "Jet d'attaque",
+    "value": "Valeur",
+    "valueGpHint": "La valeur de l'objet en pièces d'or, avec des décimales pour les valeurs inférieures à 1 po",
+    "gp": "po",
+    "lb": "lb",
+    "weight": "Poids",
+    "quantity": "Quantité",
+    "dcHint": "DD du jet de sauvegarde",
+    "save": "Sauvegarde",
+    "saveHint": "Statistique visée par le jet de sauvegarde",
+    "targetProperties": "Propriétés ciblées",
+    "targetByVariable": "Cibler par nom de variable",
+    "targetByTags": "Cibler par étiquettes",
+    "targetField": "Champ ciblé",
+    "targetFieldHint": "Cibler un champ de calcul précis des propriétés affectées",
+    "defaultField": "Champ par défaut",
+    "alwaysActive": "Toujours actif",
+    "operation": "Opération",
+    "amount": "Montant",
+    "level": "Niveau",
+    "text": "Texte",
+    "tags": "Étiquettes",
+    "tagsRequired": "Étiquettes requises",
+    "attributeLabel": "Attribut",
+    "equipped": "Équipé",
+    "carried": "Transporté",
+    "library": "Bibliothèque",
+    "actionCondition": {
+      "hint": "Doit être vrai pour que l'action puisse être effectuée",
+      "errorText": "Texte d'erreur de la condition"
+    },
+    "action": {
+      "baseAttackBonus": "Bonus de base au jet d'attaque",
+      "baseAttackBonusHint": "À renseigner pour que l'action ait un jet d'attaque",
+      "actionType": "Type d'action",
+      "eventVariableName": "Nom de variable de l'événement",
+      "eventVariableNameHint": "Nom de variable de l'événement que représente cette action",
+      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action. Ce texte s'affiche dans le journal quand l'action est effectuée"
+    },
+    "actionTypes": {
+      "action": "Action",
+      "bonus": "Action bonus",
+      "attack": "Action d'attaque",
+      "attackHelp": "Une action d'attaque remplace une seule attaque quand vous utilisez votre action pour attaquer",
+      "reaction": "Réaction",
+      "free": "Action gratuite",
+      "freeHelp": "Vous pouvez effectuer une action gratuite à votre tour sans utiliser votre action ni votre action bonus",
+      "long": "Action longue",
+      "longHelp": "Une action longue prend plus d'un tour",
+      "event": "Événement",
+      "eventHelp": "Les événements sont des actions qui arrivent au personnage, comme les repos ou l'aube"
+    },
+    "adjustment": {
+      "attributeHint": "L'attribut qui subira les dégâts ou sera soigné",
+      "operationHint": "L'attribut doit-il être réduit du montant, ou fixé au montant",
+      "damage": "Dégâts",
+      "set": "Fixer",
+      "damageHint": "Le montant de dégâts à appliquer ; une valeur négative soigne",
+      "setHint": "La valeur à donner à la statistique"
+    },
+    "attributeConsumed": {
+      "hint": "Le nom de variable de l'attribut qui sera consommé",
+      "quantityHint": "Quantité de l'attribut consommée. Si l'attribut n'en dispose pas, l'action ne peut pas être effectuée"
+    },
+    "attribute": {
+      "baseValue": "Valeur de base",
+      "baseValueHint": "Valeur de l'attribut avant application des effets. Peut être un nombre ou un calcul",
+      "hitDiceSize": "Taille des dés de vie",
+      "spellSlotLevel": "Niveau d'emplacement de sort",
+      "healthBar": "Barre de vie",
+      "damagedColors": "Couleurs des dégâts",
+      "half": "Moitié",
+      "empty": "Vide",
+      "damageOrder": "Ordre des dégâts",
+      "damageOrderHint": "Les barres de vie de rang inférieur subissent les dégâts avant celles de rang supérieur",
+      "ignoreDamage": "Ignorer les dégâts",
+      "preventDamageOverflow": "Empêcher le report des dégâts",
+      "healingOrder": "Ordre des soins",
+      "healingOrderHint": "Les barres de vie de rang inférieur reçoivent les soins avant celles de rang supérieur",
+      "ignoreHealing": "Ignorer les soins",
+      "preventHealingOverflow": "Empêcher le report des soins",
+      "damage": "Dégâts",
+      "damageHint": "Les dégâts réduisent la valeur finale de l'attribut",
+      "resetDamageHint": "Quand remettre les dégâts à zéro",
+      "allowDecimal": "Autoriser les valeurs décimales",
+      "allowNegative": "Peut descendre sous zéro",
+      "allowAboveTotal": "Peut dépasser le total",
+      "hideWhenTotalZero": "Masquer quand le total est nul",
+      "hideWhenValueZero": "Masquer quand la valeur est nulle"
+    },
+    "branch": {
+      "branchType": "Type de branche",
+      "conditionHint": "Si le résultat est vrai, les propriétés enfants sont appliquées",
+      "index": "Index",
+      "indexHint": "L'enfant à appliquer. Un index de 2 choisit le 2e enfant."
+    },
+    "branchTypes": {
+      "if": "Si la condition est vraie",
+      "hit": "Attaque réussie",
+      "miss": "Attaque ratée",
+      "failedSave": "Sauvegarde ratée",
+      "successfulSave": "Sauvegarde réussie",
+      "eachTarget": "Appliquer à chaque cible",
+      "random": "Aléatoire",
+      "index": "Index calculé",
+      "choice": "Choix de l'utilisateur"
+    },
+    "branchHelp": {
+      "if": "Si la condition est vraie, les propriétés enfants sont appliquées",
+      "hit": "Si l'attaque parente touche, les propriétés enfants sont appliquées",
+      "miss": "Si l'attaque parente rate, les propriétés enfants sont appliquées",
+      "failedSave": "Si la sauvegarde parente est ratée, les propriétés enfants sont appliquées",
+      "successfulSave": "Si la sauvegarde parente est réussie, les propriétés enfants sont appliquées",
+      "eachTarget": "Applique chaque propriété enfant une fois par cible",
+      "random": "Choisit une propriété enfant au hasard et l'applique",
+      "index": "Choisit la propriété enfant à appliquer selon l'index donné",
+      "choice": "Met l'action en pause et laisse l'utilisateur choisir l'enfant à appliquer"
+    },
+    "buff": {
+      "duration": "Durée",
+      "durationHint": "Nombre de rounds que dure le buff",
+      "hideRemoveButton": "Masquer le bouton de retrait",
+      "dontFreeze": "Ne pas figer les variables"
+    },
+    "buffRemover": {
+      "targetBuffs": "Buffs ciblés",
+      "tagged": "Retirer les buffs étiquetés",
+      "parent": "Retirer le buff parent",
+      "matching": "Retirer les buffs correspondants",
+      "one": "Retirer 1 buff",
+      "all": "Retirer tous les buffs"
+    },
+    "class": {
+      "variableNameHint": "Utilisez ce nom dans les calculs pour faire référence à cette classe",
+      "levelsFromLibraries": "Niveaux de classe des bibliothèques",
+      "activeCondition": "Condition d'activation",
+      "activeConditionHint": "Un calcul qui détermine si des niveaux peuvent être ajoutés à cette classe",
+      "tagHint": "Trouver les niveaux de classe qui ont toutes ces étiquettes",
+      "orHint": "Trouver aussi les niveaux de classe qui ont toutes ces étiquettes",
+      "notHint": "Ignorer les niveaux de classe qui ont l'une de ces étiquettes"
+    },
+    "classLevel": {
+      "classVariableName": "Nom de variable de la classe",
+      "classVariableNameHint": "Doit être identique au nom de variable de la classe",
+      "descriptionHint": "Une brève description de ce qu'apporte ce niveau de classe"
+    },
+    "constant": {
+      "valueHint": "Calcul de la valeur de la constante : 'texte' pour une chaîne, [1,2,3] pour une matrice, ou 123 pour un nombre"
+    },
+    "container": {
+      "carriedHint": "Si ce conteneur et son contenu comptent dans le poids transporté par la créature",
+      "weightless": "Le contenu ne pèse rien"
+    },
+    "creature": {
+      "descriptionHint": "Une brève description de la créature, affichée dans le journal quand elle est invoquée"
+    },
+    "damage": {
+      "damageHint": "Un calcul, jets de dés compris, des dégâts infligés à la cible quand une action les active",
+      "damageType": "Type de dégâts",
+      "damageTypeHint": "Utilisez le type Soins pour rendre des points de vie",
+      "savingThrow": "Jet de sauvegarde",
+      "onSave": "Dégâts en cas de sauvegarde réussie",
+      "onSaveHint": "Utilisez \"~damage\" pour faire référence aux dégâts normalement infligés",
+      "halfDamage": "Moitié des dégâts",
+      "typeRequired": "Le type de dégâts est obligatoire",
+      "invalidType": "{value} n'est pas un type de dégâts valide"
+    },
+    "damageMultiplier": {
+      "multiplier": "Multiplicateur",
+      "damageTypes": "Types de dégâts",
+      "applyByTag": "Appliquer par étiquette",
+      "tagsRequired": "Étiquettes requises",
+      "tagsRequiredHint": "S'applique seulement aux dégâts qui ont toutes ces étiquettes",
+      "tagsExcluded": "Étiquettes exclues",
+      "tagsExcludedHint": "Ne s'applique pas aux dégâts qui ont l'une de ces étiquettes"
+    },
+    "effect": {
+      "textHint": "Le texte à afficher sur les statistiques affectées",
+      "valueHint": "Nombre ou calcul qui détermine la valeur de cet effet",
+      "stats": "Statistiques",
+      "statsHint": "Les statistiques auxquelles s'applique cet effet"
+    },
+    "effectOps": {
+      "base": "Valeur de base",
+      "add": "Ajouter",
+      "mul": "Multiplier",
+      "min": "Minimum",
+      "max": "Maximum",
+      "set": "Fixer",
+      "advantage": "Avantage",
+      "disadvantage": "Désavantage",
+      "passiveAdd": "Bonus passif",
+      "fail": "Échec",
+      "conditional": "Avantage conditionnel"
+    },
+    "effectHelp": {
+      "base": "La statistique prend sa plus grande valeur de base, puis applique tous les autres effets",
+      "add": "Ajoute cette valeur à la statistique",
+      "mul": "Multiplie la statistique par cette valeur",
+      "min": "La statistique vaudra au moins cette valeur",
+      "max": "La statistique ne dépassera pas cette valeur",
+      "set": "La statistique prendra cette valeur",
+      "advantage": "Si cette statistique sert de base à un test, ce test se fera avec avantage",
+      "disadvantage": "Si cette statistique sert de base à un test, ce test se fera avec désavantage",
+      "passiveAdd": "Cette valeur sera ajoutée à la valeur passive",
+      "fail": "Les compétences et tests ciblés échoueront toujours",
+      "conditional": "Ajoute une note à cette statistique"
+    },
+    "feature": {
+      "summaryHint": "Apparaît sur la carte de l'aptitude dans la fiche",
+      "descriptionHint": "Le reste de la description, qui ne tient pas dans le résumé"
+    },
+    "folder": {
+      "grouping": "Regroupement",
+      "groupOnCard": "Regrouper les enfants sur une carte",
+      "hideChildren": "Masquer les enfants de leur emplacement habituel",
+      "tab": "Onglet",
+      "statsTab": "Onglet Statistiques",
+      "featuresTab": "Onglet Aptitudes",
+      "actionsTab": "Onglet Actions",
+      "spellsTab": "Onglet Sorts",
+      "inventoryTab": "Onglet Inventaire",
+      "journalTab": "Onglet Journal",
+      "buildTab": "Onglet Création",
+      "location": "Position",
+      "start": "Début",
+      "afterEvents": "Après les événements",
+      "afterStats": "Après les statistiques",
+      "afterSkills": "Après les compétences",
+      "afterProficiencies": "Après les maîtrises",
+      "end": "Fin"
+    },
+    "itemConsumed": {
+      "item": "Objet",
+      "itemHint": "L'étiquette de l'objet qui sera consommé",
+      "quantityHint": "Combien seront consommés"
+    },
+    "item": {
+      "pluralName": "Nom au pluriel",
+      "pluralNameHint": "Le nom de l'objet au pluriel. Si l'objet s'appelle 'épée', son pluriel est 'épées'",
+      "weightHint": "Le poids d'un seul objet, en livres. Peut être décimal",
+      "showIncrement": "Afficher le bouton d'incrément",
+      "attunement": "Lien"
+    },
+    "note": {
+      "summaryHint": "Apparaît sur la carte dans la fiche",
+      "descriptionHint": "Le texte qui ne tient pas dans le résumé"
+    },
+    "pointBuy": {
+      "settings": "Paramètres de l'achat de points",
+      "min": "Min",
+      "minHint": "La valeur minimale de chaque ligne",
+      "max": "Max",
+      "maxHint": "La valeur maximale de chaque ligne",
+      "costFunction": "Fonction de coût",
+      "costFunctionHint": "Une fonction de `value` qui détermine le coût de chaque ligne",
+      "total": "Total des points disponibles",
+      "totalHint": "Le coût total autorisé pour toutes les lignes",
+      "rows": "Lignes",
+      "rowName": "Nom de la ligne",
+      "rowVariableHint": "Utilisez ce nom dans les calculs pour faire référence à cette ligne de la table",
+      "defaultValue": "Valeur par défaut",
+      "defaultValueHint": "La valeur de départ de la ligne",
+      "cost": "Coût"
+    },
+    "proficiency": {
+      "skills": "Compétences",
+      "skillsHint": "Les compétences auxquelles s'applique cette maîtrise"
+    },
+    "reference": {
+      "linked": "Propriété liée"
+    },
+    "resources": {
+      "conditions": "Conditions",
+      "attributes": "Attributs",
+      "ammo": "Munitions",
+      "addCondition": "Ajouter une condition",
+      "addResource": "Ajouter une ressource",
+      "addAmmo": "Ajouter des munitions"
+    },
+    "roll": {
+      "variableNameHint": "Utilisez ce nom dans les formules de l'action pour faire référence au résultat de ce jet",
+      "roll": "Jet",
+      "rollHint": "Le calcul évalué quand une action déclenche le jet. Le résultat est enregistré sous le nom de variable dans le contexte du jet."
+    },
+    "skill": {
+      "variableNameHint": "Utilisez ce nom dans les formules pour faire référence à cette compétence",
+      "abilityHint": "La caractéristique sur laquelle repose cette compétence",
+      "baseValues": "Valeurs de base",
+      "baseProficiency": "Maîtrise de base",
+      "baseValueHint": "Valeur de la compétence avant application des effets",
+      "applySkill": "Appliquer la compétence",
+      "applyToTags": "Appliquer la compétence aux étiquettes ciblées"
+    },
+    "slot": {
+      "typeHint": "Le type de propriété nécessaire pour remplir cet emplacement",
+      "anyType": "N'importe quel type",
+      "quantityHint": "Nombre de propriétés correspondantes nécessaires pour remplir cet emplacement",
+      "unlimited": "illimité",
+      "conditionHint": "Un calcul qui détermine si cet emplacement est actif",
+      "unique": "Unique",
+      "uniqueHint": "Les propriétés qui remplissent cet emplacement doivent-elles être uniques ?",
+      "allowDuplicates": "Autoriser les doublons",
+      "test": "Test",
+      "testSlot": "Tester l'emplacement",
+      "hideWhenFull": "Masquer quand il est plein",
+      "ignored": "Ignoré",
+      "uniqueInSlot": "Chaque propriété de cet emplacement doit être unique",
+      "uniqueInCreature": "Les propriétés de cet emplacement doivent être uniques sur tout le personnage",
+      "tagHint": "Trouver les propriétés de bibliothèque qui ont toutes ces étiquettes",
+      "orHint": "Trouver aussi les propriétés de bibliothèque qui ont toutes ces étiquettes",
+      "notHint": "Ignorer les propriétés de bibliothèque qui ont l'une de ces étiquettes"
+    },
+    "spell": {
+      "alwaysPrepared": "Toujours préparé",
+      "prepared": "Préparé",
+      "withoutSlots": "Lancer sans emplacement de sort",
+      "levelHint": "Le niveau du sort",
+      "school": "École",
+      "castingTime": "Temps d'incantation",
+      "range": "Portée",
+      "duration": "Durée",
+      "toHit": "Pour toucher",
+      "toHitHint": "Le bonus à l'attaque si cette action a un jet d'attaque",
+      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action",
+      "cantrip": "Tour de magie",
+      "levelN": "Niveau {level}"
+    },
+    "spellList": {
+      "maxPrepared": "Sorts préparés maximum",
+      "maxPreparedHint": "Combien de sorts peuvent être préparés",
+      "ability": "Caractéristique d'incantation",
+      "abilityHint": "La caractéristique utilisée pour lancer les sorts de cette liste",
+      "dc": "DD de sauvegarde des sorts",
+      "dcHint": "Le DD de sauvegarde des sorts de cette liste",
+      "attackBonus": "Bonus au jet d'attaque",
+      "attackBonusHint": "Le bonus au jet d'attaque des attaques des sorts de cette liste"
+    },
+    "toggle": {
+      "active": "Actif",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "calculated": "Calculé",
+      "conditionHint": "Quand ce calcul renvoie une valeur ni fausse ni nulle, les enfants sont actifs",
+      "enableOrDisable": "Propriétés activées ou désactivées",
+      "descendants": "Descendants",
+      "byTags": "Par étiquettes ciblées",
+      "showOnSheet": "Afficher sur la fiche de personnage"
+    },
+    "trigger": {
+      "timing": "Moment",
+      "timingHint": "Quand ce déclencheur se déclenche",
+      "event": "Événement",
+      "eventHint": "Ce qui déclenche ce déclencheur",
+      "conditionHint": "Un calcul qui détermine si ce déclencheur doit se déclencher",
+      "eventType": "Type d'événement",
+      "eventTypeHint": "L'événement d'action qui déclenche ce déclencheur"
+    },
+    "iconColor": {
+      "icon": "Icône",
+      "color": "Couleur"
+    },
+    "tagTargeting": {
+      "tagHint": "S'applique aux propriétés qui ont toutes les étiquettes listées",
+      "orHint": "S'applique aussi aux propriétés qui ont toutes ces étiquettes",
+      "notHint": "Ignore les propriétés qui ont l'une de ces étiquettes"
+    },
+    "property": {
+      "library": "Bibliothèque",
+      "canFillSlots": "Peut remplir des emplacements",
+      "searchable": "Recherchable depuis la fiche de personnage",
+      "slotFillType": "Type pour le remplissage d'emplacements",
+      "slotFillTypeHint": "Le type de propriété que cet élément prétend être quand un emplacement le recherche",
+      "slotQuantity": "Quantité d'emplacement remplie",
+      "slotQuantityHint": "Le nombre de propriétés que celle-ci représente pour remplir un emplacement",
+      "conditionHint": "Un calcul qui détermine si cette propriété peut être ajoutée à un personnage",
+      "conditionErrorText": "Texte d'erreur de la condition",
+      "conditionErrorTextHint": "Texte affiché si la condition n'est pas remplie",
+      "libraryTags": "Étiquettes de bibliothèque",
+      "libraryTagsHint": "Permettent aux emplacements de trouver cette propriété dans une bibliothèque",
+      "tagsHint": "Les étiquettes permettent à d'autres propriétés de cibler celle-ci",
+      "childProperties": "Propriétés enfants",
+      "childrenAfterCreate": "Des enfants pourront être ajoutés une fois cette propriété créée",
+      "otherChild": "...Autre",
+      "child": "Enfant"
+    }
+  },
+  "attributeTypes": {
+    "ability": "Valeur de caractéristique",
+    "abilityHelp": "Les valeurs de caractéristique sont vos attributs principaux, comme la Force et l'Intelligence",
+    "stat": "Statistique",
+    "statHelp": "Les statistiques sont des attributs numériques, comme la vitesse ou la capacité de charge",
+    "modifier": "Modificateur",
+    "modifierHelp": "Les modificateurs sont des attributs ajoutés aux jets, comme le bonus de maîtrise",
+    "hitDice": "Dés de vie",
+    "healthBar": "Barre de vie",
+    "resource": "Ressource",
+    "resourceHelp": "Les ressources sont des attributs dépensés pour alimenter des actions, comme les points de sorcellerie ou le ki",
+    "spellSlot": "Emplacement de sort",
+    "utility": "Utilitaire",
+    "utilityHelp": "Les attributs utilitaires ne s'affichent pas sur la fiche, mais peuvent être référencés ou utilisés dans les calculs"
+  },
+  "skillTypes": {
+    "skill": "Compétence",
+    "save": "Sauvegarde",
+    "check": "Test",
+    "tool": "Outil",
+    "weapon": "Arme",
+    "armor": "Armure",
+    "language": "Langue",
+    "utility": "Utilitaire"
+  },
+  "skillTypeHints": {
+    "skill": "Une compétence habituelle de la fiche, comme Athlétisme, Tromperie ou Investigation",
+    "save": "Un jet de sauvegarde que le personnage peut faire : sauvegarde de Force, etc.",
+    "check": "Un test de caractéristique qui pourra inclure un bonus de maîtrise, par ex. l'initiative",
+    "tool": "Une maîtrise d'outil. Pensez à ajouter une maîtrise de base dans la section avancée.",
+    "weapon": "Une maîtrise d'arme. Pensez à ajouter une maîtrise de base dans la section avancée.",
+    "armor": "Une maîtrise d'armure. Pensez à ajouter une maîtrise de base dans la section avancée.",
+    "language": "Une maîtrise de langue. Pensez à ajouter une maîtrise de base dans la section avancée.",
+    "utility": "Une compétence qui n'apparaît pas sur la fiche, mais utilisable par d'autres calculs"
+  },
+  "triggers": {
+    "event": {
+      "doActionProperty": "Effectuer une action",
+      "check": "Faire un test",
+      "damageProperty": "Déclencheur blessé ou soigné",
+      "anyRest": "Repos court ou long",
+      "longRest": "Repos long",
+      "shortRest": "Repos court"
+    },
+    "timing": {
+      "before": "Avant",
+      "after": "Après",
+      "afterChildren": "Après les enfants"
+    },
+    "actionPropertyType": {
+      "action": "Action",
+      "ammo": "Munitions utilisées",
+      "adjustment": "Dégâts d'attribut",
+      "branch": "Branche",
+      "buff": "Buff",
+      "buffRemover": "Buff retiré",
+      "damage": "Dégâts",
+      "note": "Note",
+      "roll": "Jet",
+      "savingThrow": "Jet de sauvegarde",
+      "spell": "Sort",
+      "toggle": "Bascule"
+    }
+  },
+  "proficiencyLevels": {
+    "none": "Non maîtrisé",
+    "proficient": "Maîtrisé",
+    "halfDown": "Moitié du bonus de maîtrise, arrondie à l'inférieur",
+    "halfUp": "Moitié du bonus de maîtrise, arrondie au supérieur",
+    "half": "Moitié du bonus de maîtrise",
+    "double": "Double du bonus de maîtrise"
+  },
+  "insert": {
+    "new": "Nouveau",
+    "create": "Créer",
+    "library": "Bibliothèque",
+    "createLower": "créer",
+    "type": "Type"
+  },
+  "damageTypes": {
+    "healing": "soins",
+    "bludgeoning": "contondant",
+    "piercing": "perforant",
+    "slashing": "tranchant",
+    "acid": "acide",
+    "cold": "froid",
+    "fire": "feu",
+    "force": "force",
+    "lightning": "foudre",
+    "necrotic": "nécrotique",
+    "poison": "poison",
+    "psychic": "psychique",
+    "radiant": "radiant",
+    "thunder": "tonnerre",
+    "extra": "supplémentaire"
+  },
+  "treeNodes": {
+    "damage": "{amount} dégâts ({type})",
+    "healing": "{amount} soins",
+    "damageWord": "dégâts",
+    "toSelf": "à soi-même",
+    "attributeDamage": "Dégâts de {stat}",
+    "selectedStats": "Statistiques choisies",
+    "selectedTags": "Étiquettes choisies",
+    "dc": "DD {dc}"
+  },
+  "branchTypes": {
+    "if": "Si condition",
+    "hit": "Si touché",
+    "miss": "Si raté",
+    "failedSave": "Si sauvegarde ratée",
+    "successfulSave": "Si sauvegarde réussie",
+    "eachTarget": "Chaque cible",
+    "random": "Un au hasard",
+    "index": "Un selon l'index",
+    "choice": "Choix de l'utilisateur"
+  },
+  "effectOps": {
+    "base": "Valeur de base",
+    "add": "Ajouter",
+    "mul": "Multiplier",
+    "min": "Minimum",
+    "max": "Maximum",
+    "set": "Fixer",
+    "advantage": "Avantage",
+    "disadvantage": "Désavantage",
+    "passiveAdd": "Bonus passif",
+    "fail": "Échec automatique",
+    "conditional": "Avantage conditionnel"
+  },
+  "targets": {
+    "self": "Soi-même",
+    "singleTarget": "Cible unique",
+    "multipleTargets": "Cibles multiples",
+    "canOnlyTargetSelf": "Ne peut cibler que soi-même"
+  },
+  "viewers": {
+    "resetShortRest": "Réinitialisé lors d'un repos court",
+    "resetLongRest": "Réinitialisé lors d'un repos long",
+    "castSpell": "Lancer le sort",
+    "applyAction": "Appliquer l'action",
+    "toHit": "Pour toucher",
+    "actionType": "Type d'action",
+    "targeting": "Ciblage",
+    "uses": "Utilisations",
+    "reset": "Réinitialisation",
+    "resetButton": "Réinitialiser",
+    "conditions": "Conditions",
+    "attributesConsumed": "Attributs consommés",
+    "itemsConsumed": "Objets consommés",
+    "amount": "Montant",
+    "target": "Cible",
+    "valueTotal": "Valeur / Total",
+    "value": "Valeur",
+    "valueLower": "valeur",
+    "modifier": "Modificateur",
+    "variableName": "Nom de variable",
+    "variableNameLower": "Nom de variable",
+    "attributeType": "Type d'attribut",
+    "hitDiceSize": "Taille des dés de vie",
+    "conModifier": "Modificateur de Constitution",
+    "spellSlotLevel": "Niveau d'emplacement de sort",
+    "overridden": "Remplacé",
+    "effects": "Effets",
+    "branchType": "Type de branche",
+    "index": "Index",
+    "whenApplied": "À l'application",
+    "removeAllMatching": "Retirer tous les buffs correspondants",
+    "removeOneMatching": "Retirer 1 buff correspondant",
+    "targetedTags": "Étiquettes ciblées",
+    "duration": "Durée",
+    "missingLevels": "Niveaux manquants",
+    "calculation": "Calcul",
+    "contentsWeightless": "Contenu sans poids",
+    "damageTypes": "Types de dégâts",
+    "damageTagsRequired": "Étiquettes de dégâts requises",
+    "damageTagsExcluded": "Étiquettes de dégâts exclues",
+    "onSuccessfulSave": "En cas de jet de sauvegarde réussi",
+    "halfDamage": "Moitié des dégâts",
+    "noDamage": "Aucun dégât",
+    "stats": "Statistiques",
+    "error": "Erreur",
+    "linkedProperty": "Propriété liée",
+    "rollBonus": "Bonus au jet",
+    "skillType": "Type de compétence",
+    "passiveScore": "Valeur passive",
+    "descriptionLower": "description",
+    "proficiencies": "Maîtrises",
+    "conditionResult": "Résultat de la condition",
+    "fillWithType": "Remplir avec le type",
+    "fill": "Remplir",
+    "fillSlot": "Remplir l'emplacement",
+    "spellcastingAbilityMod": "Modificateur de caractéristique d'incantation",
+    "spellSaveDc": "DD de sauvegarde des sorts",
+    "components": "Composantes",
+    "materialWith": "Matérielle ({material})",
+    "state": "État",
+    "status": "Statut",
+    "inactive": "Inactif",
+    "deactivatedBy": "Désactivé par :",
+    "deactivatedByAncestor": "Désactivé par un ancêtre",
+    "deactivatedBySelf": "Désactivé par ses propres paramètres",
+    "libraryBehavior": "Comportement en bibliothèque",
+    "cantView": "Cette propriété ne peut pas encore être affichée.",
+    "skill": "Compétence",
+    "overriddenText": "Remplacé par une autre propriété portant le même nom de variable",
+    "typedDamage": "Dégâts ({type})"
+  },
+  "cards": {
+    "uses": "{count} utilisations",
+    "selectItem": "Choisir un objet",
+    "noItemsWithTag": "Aucun objet actif avec l'étiquette « {tag} »",
+    "spellSlots": "Emplacements de sorts",
+    "castASpell": "Lancer un sort",
+    "castASpellTitle": "Lancer un sort",
+    "cast": "Lancer",
+    "spellsPrepared": "{prepared}/{max} sorts préparés",
+    "changePrepared": "Changer les sorts préparés",
+    "undefinedCard": "Aucune carte n'est définie pour le type {type}. Merci de signaler cette erreur.",
+    "noCondition": "Aucune condition indiquée",
+    "pointBuy": "Achat de points"
+  },
+  "selector": {
+    "suggested": "Suggestions",
+    "more": "Autres",
+    "propertyType": "Type de propriété"
+  },
+  "snackbar": {
+    "undo": "annuler"
+  },
+  "spells": {
+    "cantrips": "Tours de magie",
+    "level": "Niveau {level}"
+  }
+}

@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="stackElement"
     class="dialog-stack"
   >
     <transition name="backdrop-fade">
@@ -17,12 +18,13 @@
       @enter="enter"
       @leave="leave"
     >
-      <template v-for="(dialog, index) in dialogs">
+      <template
+        v-for="(dialog, index) in dialogs"
+        :key="dialog._id"
+      >
         <component
-          :is="dialog.component"
+          :is="resolveDialog(dialog.component)"
           v-if="isUnsizedDialog(dialog.component)"
-          :key="dialog._id"
-          :ref="index"
           v-bind="dialog.data"
           class="unsized-dialog dialog-component"
           :data-element-id="dialog.elementId"
@@ -34,8 +36,6 @@
         />
         <v-card
           v-else
-          :key="dialog._id"
-          :ref="index"
           class="dialog"
           :data-element-id="dialog.elementId"
           :data-id="dialog._id"
@@ -45,7 +45,7 @@
         >
           <transition name="slide">
             <component
-              :is="dialog.component"
+              :is="resolveDialog(dialog.component)"
               v-bind="dialog.data"
               class="sized-dialog dialog-component"
               @pop="popDialogStack($event)"
@@ -57,218 +57,237 @@
   </div>
 </template>
 
-<script lang="js">
-  import '/imports/client/ui/dialogStack/dialogStackWindowEvents';
-  import mockElement from '/imports/client/ui/dialogStack/mockElement';
-  import DialogComponentIndex from '/imports/client/ui/dialogStack/DialogComponentIndex';
-  import timeout from '/imports/api/utility/timeout';
+<script setup>
+import { ref, computed, watch } from 'vue';
+import '/imports/client/ui/dialogStack/dialogStackWindowEvents';
+import mockElement from '/imports/client/ui/dialogStack/mockElement';
+import DialogComponentIndex from '/imports/client/ui/dialogStack/DialogComponentIndex';
+import timeout from '/imports/api/utility/timeout';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-  const OFFSET = 16;
-  // Use in combination with browser's animation speed override to do slow-mod debugging
-  const animationSpeed = 1;
+const OFFSET = 16;
+// Use in combination with browser's animation speed override to do slow-mod debugging
+const animationSpeed = 1;
 
-  const unsizedDialogs = new Set(['image-preview-dialog', 'action-dialog']);
+const unsizedDialogs = new Set(['image-preview-dialog', 'action-dialog']);
 
-  export default {
-    components: {
-      ...DialogComponentIndex,
-    },
-    data(){return {
-      hiddenElements: [],
-      shake: false,
-      leavingPromise: undefined,
-    }},
-    computed: {
-      dialogs(){
-        return this.$store.state.dialogStack.dialogs;
-      },
-    },
-    watch: {
-      async dialogs(newDialogs) {
-        const el = document.documentElement;
-        if (newDialogs.length) {
-          this.top = el.scrollTop;
-          if (el.scrollHeight > el.clientHeight){
-            el.scrollTop = this.top;
-            el.classList.add('lock-scroll');
-          }
-        } else {
-          await timeout(400 / animationSpeed);
-          el.classList.remove('lock-scroll');
-          el.scrollTop = this.top;
-        }
-      }
-    },
-    methods: {
-      popDialogStack(result){
-        this.$store.dispatch('popDialogStack', result);
-      },
-      isUnsizedDialog(component) {
-        return unsizedDialogs.has(component);
-      },
-      backdropClicked(event) {
-        // If the target was not the backdrop, ignore
-        if (event.target !== event.currentTarget) return;
+const dialogStackStore = useDialogStackStore();
 
-        // If the top dialog can't be closed with the backdrop, shake shake
-        const topDialog = this.dialogs[this.dialogs.length - 1];
-        if (topDialog?.data?.noBackdropClose) {
-          this.shakeTopDialog();
-          return;
-        }
+const stackElement = ref(null);
+const shake = ref(false);
+// Source elements hidden while their dialog is open, restored as it closes
+const hiddenElements = [];
+// Page scroll position to restore once the last dialog closes
+let pageScrollTop = 0;
 
-        // Otherwise close the top dialog
-        this.popDialogStack();
-      },
-      shakeTopDialog() {
-        this.shake = false;
-        requestAnimationFrame(() => {
-          this.shake = true;
-        });
-      },
-      getDialogStyle(index){
-        const length = this.$store.state.dialogStack.dialogs.length;
-        if (index >= length) return;
-        const num = length - 1;
-        const left = (num - index) * -OFFSET;
-        const top = (num - index) * -OFFSET;
-        return `left: calc(${left}px + 50%); top: calc(${top}px + 50%);${index < num ? ' filter: brightness(0.7);': ''}`;
-      },
-      getTopElementByDataId(elementId, offset = 0){
-        let stackLength = this.$store.state.dialogStack.dialogs.length - offset;
-        if (stackLength){
-          let topDialog = this.$refs[stackLength - 1][0];
-          return topDialog.$el.querySelector(`.v-window-item--active [data-id='${elementId}']`)
-            ?? topDialog.$el.querySelector(`[data-id='${elementId}']`)
-            ?? document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
-            ?? document.querySelector(`[data-id='${elementId}']`);
-        } else {
-          return document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
-            ?? document.querySelector(`[data-id='${elementId}']`);
-        }
-      },
-      async enter(target, done) {
-        if (!target || !target.attributes['data-element-id']){
-          done();
-          return;
-        }
-        let elementId = target.attributes['data-element-id'].value;
-        let source = this.getTopElementByDataId(elementId, 1);
-        if (!source){
-          done();
-          return;
-        }
-        // Get the original styles so we can repair them later
-        let originalStyle = {
-          transform: target.style.transform,
-          backgroundColor: target.style.backgroundColor,
-          borderRadius: target.style.borderRadius,
-          transition: target.style.transition,
-          boxShadow: target.style.boxShadow,
-          sourceTransition: source.style.transition,
-        }
+const dialogs = computed(() => dialogStackStore.dialogs);
 
-        // Instantly mock the source
-        target.style.transition = 'none';
-        // If we are using unsized dialogs, first let it layout with no opacity, then mock and
-        // carry on, otherwise it has no size
-        if (target.classList.contains('unsized-dialog')) {
-          target.style.opacity = '0';
-          await new Promise(requestAnimationFrame);
-          mockElement({ source, target });
-          target.style.opacity = '1';
-        } else {
-          mockElement({ source, target });
-        }
+/**
+ * Callers name dialogs in kebab-case ('creature-property-dialog'), and the index
+ * is keyed by component name ('CreaturePropertyDialog'). <script setup> has no
+ * `components:` registry to resolve those names through, so resolve them here
+ * the way Vue's registry did.
+ */
+const toPascalCase = name => name.replace(/(^|-)(\w)/g, (_, __, c) => c.toUpperCase());
+function resolveDialog(name) {
+  if (typeof name !== 'string') return name;
+  return DialogComponentIndex[name] ?? DialogComponentIndex[toPascalCase(name)] ?? name;
+}
 
-        // Wait one frame before hiding the source so we know our mock is in place
-        await new Promise(requestAnimationFrame);
-        
-        // hide the source
-        source.style.transition = 'none';
-        source.style.opacity = '0';
-        this.hiddenElements.push(source);
-
-        // repair the styles so that our mock is undone revealing the dialog
-        target.style.transform = originalStyle.transform;
-        target.style.backgroundColor = originalStyle.backgroundColor;
-        target.style.borderRadius = originalStyle.borderRadius;
-        target.style.transition = originalStyle.transition;
-        target.style.boxShadow = originalStyle.boxShadow;
-        source.style.transition = originalStyle.sourceTransition;
-        setTimeout(done, 300 / animationSpeed);
-      },
-      async leave(target, done) {
-        // Give minimongo time to update documents we might need to animate to
-        await new Promise(requestAnimationFrame);
-        let elementId;
-        let hiddenElement = this.hiddenElements.pop();
-        let returnElementId = await this.$store.state.dialogStack.currentReturnElement;
-        if (returnElementId) {
-          elementId = returnElementId;
-        } else {
-          if (!target || !target.attributes['data-element-id']){
-            done();
-            return;
-          }
-          elementId = target.attributes['data-element-id'].value;
-        }
-        const replacing = this.$store.state.dialogStack.replacingDialog === target.attributes['data-id'].value;
-        let source = this.getTopElementByDataId(elementId);
-        if (!source || replacing){
-          if (hiddenElement) hiddenElement.style.opacity = '';
-          // Just fade out gracefully
-          target.style.transition = 'all 0.3s ease';
-          target.style.opacity = '0';
-          await timeout(300 / animationSpeed);
-          done();
-          return;
-        }
-        let index = target.attributes['data-index'].value;
-
-        // Disable clicking the dialog while it's animating
-        target.style.pointerEvents = 'none';
-
-        // Make the dialog mock the source
-        if (index != 0){
-          // If we aren't the only dialog, we'll need compensate for offset
-          mockElement({source, target, offset: {x: OFFSET, y: OFFSET}})
-        } else {
-          mockElement({source, target});
-        }
-
-        // If the source and the hidden Element are different
-        // hide the source and reveal the hidden element
-        let originalSourceTransition = source.style.transition;
-        if (hiddenElement !== source){
-          source.style.transition = 'none';
-          source.style.opacity = '0';
-          if (hiddenElement) hiddenElement.style.opacity = '';
-          // wait a frame for these to apply without transitions
-          await new Promise(requestAnimationFrame);
-        }
-
-        // Wait for the mock to finish
-        await timeout(300 / animationSpeed);
-
-        // reveal the source immediately
-        source.style.opacity = '';
-        source.style.transition = 'none';
-
-        // Wait for the opacity swap to finish
-        await timeout(100 / animationSpeed);
-
-        // Fix the transition of the source
-        source.style.transition = originalSourceTransition;
-
-        // Done
-        done();
-      },
-      noScroll(e){
-        e.preventDefault();
-      }
+// Lock the page's scroll behind open dialogs. This watches the length because the
+// store mutates the array in place, and in Vue 3 a watcher on an array only fires
+// when the array is replaced: watching `dialogs` itself never fired at all.
+watch(() => dialogs.value.length, async (length, previousLength) => {
+  const el = document.documentElement;
+  if (length && !previousLength) {
+    pageScrollTop = el.scrollTop;
+    if (el.scrollHeight > el.clientHeight) {
+      el.scrollTop = pageScrollTop;
+      el.classList.add('lock-scroll');
     }
-  };
+  } else if (!length) {
+    await timeout(400 / animationSpeed);
+    // a dialog may have opened while waiting
+    if (dialogs.value.length) return;
+    el.classList.remove('lock-scroll');
+    el.scrollTop = pageScrollTop;
+  }
+});
+
+function popDialogStack(result) {
+  dialogStackStore.popDialogStack(result);
+}
+
+function isUnsizedDialog(component) {
+  return unsizedDialogs.has(component);
+}
+
+function backdropClicked(event) {
+  // If the target was not the backdrop, ignore
+  if (event.target !== event.currentTarget) return;
+
+  // If the top dialog can't be closed with the backdrop, shake shake
+  const topDialog = dialogs.value[dialogs.value.length - 1];
+  if (topDialog?.data?.noBackdropClose) {
+    shakeTopDialog();
+    return;
+  }
+
+  // Otherwise close the top dialog
+  popDialogStack();
+}
+
+function shakeTopDialog() {
+  shake.value = false;
+  requestAnimationFrame(() => {
+    shake.value = true;
+  });
+}
+
+function getDialogStyle(index) {
+  const length = dialogStackStore.dialogs.length;
+  if (index >= length) return;
+  const num = length - 1;
+  const left = (num - index) * -OFFSET;
+  const top = (num - index) * -OFFSET;
+  return `left: calc(${left}px + 50%); top: calc(${top}px + 50%);${index < num ? ' filter: brightness(0.7);' : ''}`;
+}
+
+function getTopElementByDataId(elementId, offset = 0) {
+  const stackLength = dialogStackStore.dialogs.length - offset;
+  // Each dialog's root element carries its stack index, whether it is the
+  // v-card wrapper or an unsized dialog's own root
+  const topDialog = stackLength
+    && stackElement.value?.querySelector(`.dialog-transition-group > [data-index='${stackLength - 1}']`);
+  if (topDialog) {
+    return topDialog.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+      ?? topDialog.querySelector(`[data-id='${elementId}']`)
+      ?? document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+      ?? document.querySelector(`[data-id='${elementId}']`);
+  } else {
+    return document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+      ?? document.querySelector(`[data-id='${elementId}']`);
+  }
+}
+
+async function enter(target, done) {
+  if (!target || !target.attributes['data-element-id']) {
+    done();
+    return;
+  }
+  let elementId = target.attributes['data-element-id'].value;
+  let source = getTopElementByDataId(elementId, 1);
+  if (!source) {
+    done();
+    return;
+  }
+  // Get the original styles so we can repair them later
+  let originalStyle = {
+    transform: target.style.transform,
+    backgroundColor: target.style.backgroundColor,
+    borderRadius: target.style.borderRadius,
+    transition: target.style.transition,
+    boxShadow: target.style.boxShadow,
+    sourceTransition: source.style.transition,
+  }
+
+  // Instantly mock the source
+  target.style.transition = 'none';
+  // If we are using unsized dialogs, first let it layout with no opacity, then mock and
+  // carry on, otherwise it has no size
+  if (target.classList.contains('unsized-dialog')) {
+    target.style.opacity = '0';
+    await new Promise(requestAnimationFrame);
+    mockElement({ source, target });
+    target.style.opacity = '1';
+  } else {
+    mockElement({ source, target });
+  }
+
+  // Wait one frame before hiding the source so we know our mock is in place
+  await new Promise(requestAnimationFrame);
+
+  // hide the source
+  source.style.transition = 'none';
+  source.style.opacity = '0';
+  hiddenElements.push(source);
+
+  // repair the styles so that our mock is undone revealing the dialog
+  target.style.transform = originalStyle.transform;
+  target.style.backgroundColor = originalStyle.backgroundColor;
+  target.style.borderRadius = originalStyle.borderRadius;
+  target.style.transition = originalStyle.transition;
+  target.style.boxShadow = originalStyle.boxShadow;
+  source.style.transition = originalStyle.sourceTransition;
+  setTimeout(done, 300 / animationSpeed);
+}
+
+async function leave(target, done) {
+  // Give minimongo time to update documents we might need to animate to
+  await new Promise(requestAnimationFrame);
+  let elementId;
+  let hiddenElement = hiddenElements.pop();
+  let returnElementId = await dialogStackStore.currentReturnElement;
+  if (returnElementId) {
+    elementId = returnElementId;
+  } else {
+    if (!target || !target.attributes['data-element-id']) {
+      done();
+      return;
+    }
+    elementId = target.attributes['data-element-id'].value;
+  }
+  const replacing = dialogStackStore.replacingDialog === target.attributes['data-id'].value;
+  let source = getTopElementByDataId(elementId);
+  if (!source || replacing) {
+    if (hiddenElement) hiddenElement.style.opacity = '';
+    // Just fade out gracefully
+    target.style.transition = 'all 0.3s ease';
+    target.style.opacity = '0';
+    await timeout(300 / animationSpeed);
+    done();
+    return;
+  }
+  let index = target.attributes['data-index'].value;
+
+  // Disable clicking the dialog while it's animating
+  target.style.pointerEvents = 'none';
+
+  // Make the dialog mock the source
+  if (index != 0) {
+    // If we aren't the only dialog, we'll need compensate for offset
+    mockElement({ source, target, offset: { x: OFFSET, y: OFFSET } })
+  } else {
+    mockElement({ source, target });
+  }
+
+  // If the source and the hidden Element are different
+  // hide the source and reveal the hidden element
+  let originalSourceTransition = source.style.transition;
+  if (hiddenElement !== source) {
+    source.style.transition = 'none';
+    source.style.opacity = '0';
+    if (hiddenElement) hiddenElement.style.opacity = '';
+    // wait a frame for these to apply without transitions
+    await new Promise(requestAnimationFrame);
+  }
+
+  // Wait for the mock to finish
+  await timeout(300 / animationSpeed);
+
+  // reveal the source immediately
+  source.style.opacity = '';
+  source.style.transition = 'none';
+
+  // Wait for the opacity swap to finish
+  await timeout(100 / animationSpeed);
+
+  // Fix the transition of the source
+  source.style.transition = originalSourceTransition;
+
+  // Done
+  done();
+}
 </script>
 
 <style scoped>
@@ -286,7 +305,7 @@
   .backdrop-fade-enter-active, .backdrop-fade-leave-active {
     transition: opacity 0.3s;
   }
-  .backdrop-fade-enter, .backdrop-fade-leave-to {
+  .backdrop-fade-enter-from, .backdrop-fade-leave-to {
     opacity: 0;
   }
   .dialog-stack {
@@ -296,7 +315,8 @@
     right: 0;
     bottom: 0;
     pointer-events: none;
-    z-index: 6;
+    /* Above Vuetify 3's app bars and drawers, below its menus and overlays */
+    z-index: 1500;
   }
 
   .shake {
@@ -319,7 +339,7 @@
   /*
     Fade in and out the dialog contents as it is animating
   */
-  .dialog-list-enter .sized-dialog, .dialog-list-leave-to .sized-dialog {
+  .dialog-list-enter-from .sized-dialog, .dialog-list-leave-to .sized-dialog {
     opacity: 0;
   }
   .dialog-list-enter-active .sized-dialog, .dialog-list-leave-active .sized-dialog {
@@ -329,7 +349,7 @@
   /*
     Enter and leave with no shadow
   */
-  .dialog-list-enter, .dialog-list-leave-to {
+  .dialog-list-enter-from, .dialog-list-leave-to {
     box-shadow: none;
   }
 
@@ -373,7 +393,7 @@
       padding: 32px;
     }
   }
-  .dialog > * {
+  .dialog > .sized-dialog {
     height: 100%;
     width: 100%;
   }

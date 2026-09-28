@@ -1,39 +1,37 @@
-<template lang="html">
+<template>
   <div>
     <span
       v-if="coinValue.gp || value === 0"
     >
-      {{ coinValue.gp }} gp
+      {{ $t('coins.gp', { value: coinValue.gp }) }}
     </span>
     <span
       v-if="coinValue.sp || (coinValue.gp && coinValue.cp)"
     >
-      {{ coinValue.sp }} sp
+      {{ $t('coins.sp', { value: coinValue.sp }) }}
     </span>
     <span
       v-if="coinValue.cp"
     >
-      {{ coinValue.cp }} cp
+      {{ $t('coins.cp', { value: coinValue.cp }) }}
     </span>
   </div>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { computed } from 'vue';
 import valueToCoins from '/imports/client/ui/utility/valueToCoins';
 
-export default {
-  props:{
-    value: {
-      type: Number,
-      default: undefined,
-    },
+const props = defineProps({
+  value: {
+    type: Number,
+    default: undefined,
   },
-  computed:{
-    coinValue(){
-      return valueToCoins(this.value);
-    }
-  },
-}
+});
+
+const coinValue = computed(() => {
+  return valueToCoins(props.value);
+});
 </script>
 
 <style lang="css" scoped>

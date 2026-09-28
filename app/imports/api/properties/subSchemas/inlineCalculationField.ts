@@ -1,4 +1,7 @@
-import SimpleSchema from 'simpl-schema';
+// Registers the custom schema options (index, computedField, ...) before any
+// definition uses them, whichever entry point or test file loads first
+import '/imports/api/simpleSchemaConfig';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { CalculatedField } from './computedField';

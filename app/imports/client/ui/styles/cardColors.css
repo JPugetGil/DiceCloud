@@ -1,28 +1,25 @@
-.theme--dark.v-sheet,
-.theme--dark.v-expansion-panels .v-expansion-panel {
-  background-color: #303030;
-}
+/* The dark card colour (#303030) is the theme's `surface`, in themes.js */
 
-.theme--dark .card-background {
+.v-theme--dark .card-background {
   background: #151515;
 }
 
-.card-background .v-tabs-items.theme--dark {
+.card-background .v-tabs-items.v-theme--dark {
   background: #151515;
 }
 
-.theme--light .card-background {
+.v-theme--light .card-background {
   background: #f6f6f6;
 }
 
-.card-background .v-tabs-items.theme--light {
+.card-background .v-tabs-items.v-theme--light {
   background: #f6f6f6;
 }
 
-.theme--dark .card-raised-background {
+.v-theme--dark .card-raised-background {
   background: #1d1d1d;
 }
 
-.theme--light .card-raised-background {
+.v-theme--light .card-raised-background {
   background: #fafafa;
 }

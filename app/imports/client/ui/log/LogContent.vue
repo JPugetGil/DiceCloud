@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="log-content">
     <div
       v-for="(content, index) in filteredModel"
@@ -24,29 +24,24 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { computed } from 'vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 
-export default {
-  components: {
-    MarkdownText,
+const props = defineProps({
+  model: {
+    type: Array,
+    default: () => [],
   },
-  props: {
-    model: {
-      type: Array,
-      default: () => [],
-    },
-    showSilenced: {
-      type: Boolean,
-      default: false,
-    },
+  showSilenced: {
+    type: Boolean,
+    default: false,
   },
-  computed: {
-    filteredModel() {
-      return this.model.filter(content => !content.silenced || this.showSilenced);
-    }
-  }
-}
+});
+
+const filteredModel = computed(() => {
+  return props.model.filter(content => !content.silenced || props.showSilenced);
+});
 </script>
 
 <style lang="css" scoped>

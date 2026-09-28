@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="printed-skill pl-0 d-flex align-center"
   >
@@ -45,45 +45,33 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import {computed} from 'vue';
 import numberToSignedString from '../../../../../../api/utility/numberToSignedString';
 import ProficiencyIcon from '/imports/client/ui/properties/shared/ProficiencyIcon.vue';
 
-export default {
-  components: {
-    ProficiencyIcon,
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: {
-      default: {},
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    hideModifier: Boolean,
-  },
-  data() {
-    return {
-      checkLoading: false,
-    }
-  },
-  computed: {
-    displayedModifier() {
-      let mod = this.model.value;
-      if (this.model.fail) {
-        return 'fail';
-      } else {
-        return numberToSignedString(mod);
-      }
-    },
-    passiveScore() {
-      return 10 + this.model.value + this.model.passiveBonus;
-    }
-  },
-}
+  hideModifier: Boolean,
+});
+
+
+const displayedModifier = computed(() => {
+  let mod = props.model.value;
+  if (props.model.fail) {
+    return 'fail';
+  } else {
+    return numberToSignedString(mod);
+  }
+});
+
+const passiveScore = computed(() => {
+  return 10 + props.model.value + props.model.passiveBonus;
+});
 </script>
 
 <style lang="css" scoped>
@@ -99,7 +87,7 @@ export default {
   min-width: 24px;
 }
 
-.v-icon.theme--light {
+.v-icon.v-theme--light {
   color: rgba(0, 0, 0, 0.7) !important;
 }
 </style>

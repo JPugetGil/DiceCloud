@@ -8,7 +8,7 @@ const CreatureVariables = new Mongo.Collection('creatureVariables');
 
 // Unique index on _creatureId
 if (Meteor.isServer) {
-  CreatureVariables._ensureIndex({ _creatureId: 1 }, { unique: true })
+  CreatureVariables.createIndexAsync({ _creatureId: 1 }, { unique: true })
 }
 
 /** No schema because the structure isn't known until compute time
@@ -29,11 +29,11 @@ if (Meteor.isServer) {
  * Get the property from the given scope, respecting properties that are just a link to the actual
  * property document
  */
-export function getFromScope(name: string, scope) {
+export async function getFromScope(name: string, scope) {
   let value = scope?.[name];
   if (value?._propId) {
     const [propId, rowIdentifier, rowNumber] = value._propId.split('_');
-    value = getSingleProperty(scope._creatureId, propId);
+    value = await getSingleProperty(scope._creatureId, propId);
     if (rowIdentifier === 'row' && value?.type === 'pointBuy') {
       value = value.values[rowNumber];
     }
@@ -41,8 +41,8 @@ export function getFromScope(name: string, scope) {
   return value;
 }
 
-export function getNumberFromScope(name, scope) {
-  const parseNode = getParseNodeFromScope(name, scope);
+export async function getNumberFromScope(name, scope) {
+  const parseNode = await getParseNodeFromScope(name, scope);
   if (!parseNode || !isFiniteNode(parseNode)) {
     return undefined;
   }
@@ -52,14 +52,14 @@ export function getNumberFromScope(name, scope) {
 export async function getConstantValueFromScope(
   name, scope
 ) {
-  const parseNode = getParseNodeFromScope(name, scope);
+  const parseNode = await getParseNodeFromScope(name, scope);
   if (!parseNode) return;
   if (parseNode.parseType !== 'constant') return;
   return parseNode.value;
 }
 
-export function getParseNodeFromScope(name, scope): ParseNode | undefined {
-  let value = getFromScope(name, scope);
+export async function getParseNodeFromScope(name, scope): Promise<ParseNode | undefined> {
+  let value = await getFromScope(name, scope);
   if (!value) return;
   let valueType = getType(value);
   // Iterate into object.values

@@ -1,15 +1,14 @@
-<template lang="html">
+<template>
   <v-card
     hover
     @click="$emit('click')"
   >
-    Character sheet
+    {{ $t('sheet.miniSheet') }}
   </v-card>
 </template>
 
-<script lang="js">
-export default {
-}
+<script setup>
+defineEmits(['click'])
 </script>
 
 <style lang="css" scoped>

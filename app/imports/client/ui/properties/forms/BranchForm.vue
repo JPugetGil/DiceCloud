@@ -1,19 +1,19 @@
-<template lang="html">
+<template>
   <div class="buff-form">
     <smart-select
-      label="Branch Type"
+      :label="$t('forms.branch.branchType')"
       :items="typeOptions"
       :hint="typeHint"
       :value="model.branchType"
       :error-messages="errors.branchType"
       :menu-props="{auto: true, lazy: true}"
-      @change="change('branchType', ...arguments)"
+      @change="(value, ack) => change('branchType', value, ack)"
     />
     <v-expand-transition>
       <computed-field
         v-if="model.branchType === 'if'"
-        label="Condition"
-        hint="If this resolved to a true value, the child properties will be applied"
+        :label="$t('forms.condition')"
+        :hint="$t('forms.branch.conditionHint')"
         :model="model.condition"
         :error-messages="errors.condition"
         @change="({path, value, ack}) =>
@@ -21,8 +21,8 @@
       />
       <computed-field
         v-else-if="model.branchType === 'index'"
-        label="Index"
-        hint="Which child to apply. An index of 2 will choose the 2nd child."
+        :label="$t('forms.branch.index')"
+        :hint="$t('forms.branch.indexHint')"
         :model="model.condition"
         :error-messages="errors.condition"
         @change="({path, value, ack}) =>
@@ -30,12 +30,12 @@
       />
     </v-expand-transition>
     <form-sections type="branch">
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -43,48 +43,64 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { ref, computed } from 'vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  mixins: [propertyFormMixin],
-  props: {
-    parentTarget: {
-      type: String,
-      default: undefined,
-    },
+const { t } = useI18n();
+
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  data() {
-    return {
-      typeOptions: [
-        { value: 'if', text: 'If condition is true' },
-        { value: 'hit', text: 'Attack hit' },
-        { value: 'miss', text: 'Attack miss' },
-        { value: 'failedSave', text: 'Save failed' },
-        { value: 'successfulSave', text: 'Save succeeded' },
-        { value: 'eachTarget', text: 'Apply to each target' },
-        { value: 'random', text: 'Random' },
-        { value: 'index', text: 'Calculated index' },
-        { value: 'choice', text: 'User choice' },
-      ],
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    typeHint() {
-      switch (this.model.branchType) {
-        case 'if': return 'If the condition is true, the child properties are applied';
-        case 'hit': return 'If the parent attack hits, the child properties are applied';
-        case 'miss': return 'If the parent attack misses, the child properties are applied';
-        case 'failedSave': return 'If the parent save is failed, the child properties are applied';
-        case 'successfulSave': return 'If the parent save is made, the child properties are applied';
-        case 'eachTarget': return 'Applies each child property once per target';
-        case 'random': return 'Chooses one child property at random and applies it';
-        case 'index': return 'Chooses one child property to apply based on the given index';
-        case 'choice': return 'Pause the action and let the user choose which child to apply';
-        default: return '';
-      }
-    }
+  parentTarget: {
+    type: String,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['change']);
+
+const typeOptions = ref([
+  { value: 'if', title: t('forms.branchTypes.if') },
+  { value: 'hit', title: t('forms.branchTypes.hit') },
+  { value: 'miss', title: t('forms.branchTypes.miss') },
+  { value: 'failedSave', title: t('forms.branchTypes.failedSave') },
+  { value: 'successfulSave', title: t('forms.branchTypes.successfulSave') },
+  { value: 'eachTarget', title: t('forms.branchTypes.eachTarget') },
+  { value: 'random', title: t('forms.branchTypes.random') },
+  { value: 'index', title: t('forms.branchTypes.index') },
+  { value: 'choice', title: t('forms.branchTypes.choice') },
+]);
+
+const typeHint = computed(() => {
+  switch (props.model.branchType) {
+    case 'if': return t('forms.branchHelp.if');
+    case 'hit': return t('forms.branchHelp.hit');
+    case 'miss': return t('forms.branchHelp.miss');
+    case 'failedSave': return t('forms.branchHelp.failedSave');
+    case 'successfulSave': return t('forms.branchHelp.successfulSave');
+    case 'eachTarget': return t('forms.branchHelp.eachTarget');
+    case 'random': return t('forms.branchHelp.random');
+    case 'index': return t('forms.branchHelp.index');
+    case 'choice': return t('forms.branchHelp.choice');
+    default: return '';
   }
+});
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

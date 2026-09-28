@@ -12,5 +12,5 @@ export default async function applyFolderProperty(
     throw new Meteor.Error('wrong-property', `Expected a folder, got ${prop.type} instead`);
   }
 
-  return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
 }

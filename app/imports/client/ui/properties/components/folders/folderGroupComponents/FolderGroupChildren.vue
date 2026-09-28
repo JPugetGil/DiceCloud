@@ -3,7 +3,7 @@
     v-if="properties && properties.length"
   >
     <component
-      :is="prop.type"
+      :is="propComponents[prop.type]"
       v-for="prop in properties"
       :key="prop._id"
       :model="prop"
@@ -16,52 +16,49 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import propComponents from '/imports/client/ui/properties/components/folders/propertyComponentIndex';
 
-export default {
-  props: {
-    model: {
-      type: Object,
-      required: true,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
+  }
+});
+
+defineEmits(['click-property', 'sub-click', 'remove']);
+
+const properties = autorun(() => {
+  const propertyList = [];
+  CreatureProperties.find({
+    'parentId': props.model._id,
+    removed: { $ne: true },
+    overridden: { $ne: true },
+    $or: [
+      {
+        type: 'toggle',
+        showUI: true,
+        deactivatedByAncestor: { $ne: true },
+        deactivatedByToggle: { $ne: true },
+      },
+      {
+        type: { $ne: 'toggle' },
+        inactive: { $ne: true },
+      },
+    ],
+    $nor: [
+      { hideWhenTotalZero: true, total: 0 },
+      { hideWhenValueZero: true, value: 0 },
+    ],
+  }, {
+    sort: { left: 1 },
+  }).forEach(prop => {
+    if (propComponents[prop.type]) {
+      propertyList.push(prop);
     }
-  },
-  beforeCreate() {
-    Object.assign(this.$options.components, propComponents);
-  },
-  meteor: {
-    properties() {
-      const props = [];
-      CreatureProperties.find({
-        'parentId': this.model._id,
-        removed: { $ne: true },
-        overridden: { $ne: true },
-        $or: [
-          {
-            type: 'toggle',
-            showUI: true,
-            deactivatedByAncestor: { $ne: true },
-            deactivatedByToggle: { $ne: true },
-          },
-          {
-            type: { $ne: 'toggle' },
-            inactive: { $ne: true },
-          },
-        ],
-        $nor: [
-          { hideWhenTotalZero: true, total: 0 },
-          { hideWhenValueZero: true, value: 0 },
-        ],
-      }, {
-        sort: { left: 1 },
-      }).forEach(prop => {
-        if (propComponents[prop.type]) {
-          props.push(prop);
-        }
-      });
-      return props;
-    },
-  },
-}
+  });
+  return propertyList;
+}).result;
 </script>

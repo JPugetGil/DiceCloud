@@ -53,7 +53,8 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
 import AbilityListTile from '/imports/client/ui/properties/components/attributes/AbilityListTile.vue';
 import HitDiceListTile from '/imports/client/ui/properties/components/attributes/HitDiceListTile.vue';
 import HealthBar from '/imports/client/ui/properties/components/attributes/HealthBar.vue';
@@ -66,61 +67,47 @@ import doAction from '/imports/client/ui/creature/actions/doAction';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 
-export default {
-  components: {
-    AbilityListTile,
-    HitDiceListTile,
-    HealthBar,
-    SpellSlotListTile,
-    ResourceCardContent,
-    AttributeCardContent,
-    CardHighlight,
-    FolderGroupChildren,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    dataId: {
-      type: String,
-      required: true,
-    },
+  dataId: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-    hover: false,
-  }},
-  methods: {
-    damageProperty({value, type, ack}) {
-      const model = this.model;
-      if (type === 'increment') value = -value;
-      doAction({
-        creatureId: model.root.id,
-        $store: this.$store,
-        elementId: this.dataId,
-        task: {
-          subtaskFn: 'damageProp',
-          targetIds: [model.root.id],
-          params: {
-            title: getPropertyTitle(model),
-            operation: type,
-            value,
-            targetProp: model,
-          }
-        }
-      }).then(() => {
-        ack?.();
-      }).catch((error) => {
-        if (ack) {
-          ack(error);
-        } else  {
-          snackbar({ text: error.reason || error.message || error.toString() });
-          console.error(error);
-        }
-      });
+});
+
+defineEmits(['click', 'click-property', 'sub-click', 'remove']);
+
+const hover = ref(false);
+
+async function damageProperty({ value, type, ack }) {
+  const model = props.model;
+  if (type === 'increment') value = -value;
+  await doAction({
+    creatureId: model.root.id,
+    elementId: props.dataId,
+    task: {
+      subtaskFn: 'damageProp',
+      targetIds: [model.root.id],
+      params: {
+        title: getPropertyTitle(model),
+        operation: type,
+        value,
+        targetProp: model,
+      },
     },
-  }
+  }).then(() => {
+    ack?.();
+  }).catch((error) => {
+    if (ack) {
+      ack(error);
+    } else {
+      snackbar({ text: error.reason || error.message || error.toString() });
+      console.error(error);
+    }
+  });
 }
 </script>
 

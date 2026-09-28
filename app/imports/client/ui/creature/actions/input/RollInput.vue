@@ -12,34 +12,32 @@
   </div>
 </template>
 
-<script lang="js">
-import VerticalHex from '/imports/client/ui/components/VerticalHex.vue';
-
-export default {
-  props: {
-    value: {
-      type: Array,
-      default: () => [],
-    },
-    dice: {
-      type: Array,
-      required: true,
-    },
-    deterministicDiceRoller: {
-      type: Function,
-      required: true,
-    }
+<script setup>
+const props = defineProps({
+  value: {
+    type: Array,
+    default: () => [],
   },
-  methods: {
-    rollDice() {
-      const values = this.deterministicDiceRoller(this.dice);
-      this.emitInput(values);
-      this.$emit('continue');
-    },
-    emitInput(e) {
-      e = e || 0;
-      this.$emit('input', e)
-    }
+  dice: {
+    type: Array,
+    required: true,
+  },
+  deterministicDiceRoller: {
+    type: Function,
+    required: true,
   }
-};
+});
+
+const emit = defineEmits(['input', 'continue']);
+
+function emitInput(e) {
+  e = e || 0;
+  emit('input', e);
+}
+
+function rollDice() {
+  const values = props.deterministicDiceRoller(props.dice);
+  emitInput(values);
+  emit('continue');
+}
 </script>

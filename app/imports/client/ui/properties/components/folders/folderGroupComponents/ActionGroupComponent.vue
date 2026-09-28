@@ -16,20 +16,16 @@
   />
 </template>
 
-<script lang="js">
+<script setup>
 import ActionCard from '/imports/client/ui/properties/components/actions/ActionCard.vue';
 import EventButton from '/imports/client/ui/properties/components/actions/EventButton.vue';
 
-export default {
-  components: {
-    ActionCard,
-    EventButton,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-}
+});
+
+defineEmits(['click', 'sub-click']);
 </script>

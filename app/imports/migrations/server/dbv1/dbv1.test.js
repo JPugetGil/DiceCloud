@@ -207,8 +207,7 @@ const expectedMigratedAttack = {
   'usesUsed': 2,
 }
 
-describe('migrateProperty', function () {
-  return;
+describe.skip('migrateProperty', function () {
   it('Migrates actions reversibly', function () {
     const action = {
       ...exampleAction

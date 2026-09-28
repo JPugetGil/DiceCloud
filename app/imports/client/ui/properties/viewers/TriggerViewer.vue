@@ -1,21 +1,21 @@
-<template lang="html">
+<template>
   <div class="trigger-viewer">
     <v-row dense>
       <property-field
-        name="Timing"
+        :name="$t('forms.trigger.timing')"
         :value="timingText"
       />
       <property-field
-        name="Event"
+        :name="$t('forms.trigger.event')"
         :value="eventText"
       />
       <property-field
-        name="Event Type"
+        :name="$t('forms.trigger.eventType')"
         :value="actionPropertyText"
       />
       <property-field
         v-if="(model.targetTags && model.targetTags.length) || (model.extraTags && model.extraTags.length)"
-        name="Tags Required"
+        :name="$t('forms.tagsRequired')"
         :cols="{cols: 12}"
       >
         <div>
@@ -32,42 +32,42 @@
         </div>
       </property-field>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+<script setup>
+import {computed } from 'vue';
 import { timingOptions, eventOptions, actionPropertyTypeOptions } from '/imports/api/properties/Triggers';
+import { translateOr } from '/imports/client/ui/i18n';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
+import PropertyTags from '/imports/client/ui/properties/viewers/shared/PropertyTags.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  inject: {
-    context: {
-      default: {},
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    slotTypeName(){
-      if (!this.model.slotType) return;
-      return getPropertyName(this.model.slotType);
-    },
-    timingText(){
-      if (!this.model.timing) return;
-      return timingOptions[this.model.timing];
-    },
-    actionPropertyText(){
-      if (!this.model.actionPropertyType) return;
-      return actionPropertyTypeOptions[this.model.actionPropertyType];
-    },
-    eventText(){
-      if (!this.model.event) return;
-      return eventOptions[this.model.event];
-    },
-  }
-}
+});
+
+
+
+const timingText = computed(() => {
+  if (!props.model.timing) return;
+  return translateOr(`triggers.timing.${props.model.timing}`, timingOptions[props.model.timing]);
+});
+
+const actionPropertyText = computed(() => {
+  if (!props.model.actionPropertyType) return;
+  return translateOr(`triggers.actionPropertyType.${props.model.actionPropertyType}`, actionPropertyTypeOptions[props.model.actionPropertyType]);
+});
+
+const eventText = computed(() => {
+  if (!props.model.event) return;
+  return translateOr(`triggers.event.${props.model.event}`, eventOptions[props.model.event]);
+});
 </script>

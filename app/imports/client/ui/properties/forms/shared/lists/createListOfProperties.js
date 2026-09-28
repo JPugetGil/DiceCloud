@@ -9,7 +9,7 @@ export default function createListOfProperties(filter = {}, getNamesWithValues) 
     if (property.variableName && !variableNames.has(property.variableName)) {
       variableNames.add(property.variableName);
       propertyList.push({
-        text: property.name || property.variableName,
+        title: property.name || property.variableName,
         value: property.variableName,
         propertyType: property.propertyType,
       });

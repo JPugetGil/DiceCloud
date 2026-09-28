@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="container-form">
     <v-row dense>
       <v-col
@@ -6,17 +6,17 @@
         md="6"
       >
         <text-field
-          label="Value"
-          suffix="gp"
+          :label="$t('forms.value')"
+          :suffix="$t('forms.gp')"
           type="number"
           min="0"
-          hint="The value of the item in gold pieces, using decimals for values less than 1 gp"
+          :hint="$t('forms.valueGpHint')"
           class="mx-1"
           style="flex-basis: 300px;"
-          prepend-inner-icon="$vuetify.icons.two_coins"
+          prepend-inner-icon="$two_coins"
           :value="model.value"
           :error-messages="errors.value"
-          @change="change('value', ...arguments)"
+          @change="(value, ack) => change('value', value, ack)"
         />
       </v-col>
       <v-col
@@ -24,16 +24,16 @@
         md="6"
       >
         <text-field
-          label="Weight"
-          suffix="lb"
+          :label="$t('forms.weight')"
+          :suffix="$t('forms.lb')"
           type="number"
           min="0"
           class="mx-1"
           style="flex-basis: 300px;"
-          prepend-inner-icon="$vuetify.icons.weight"
+          prepend-inner-icon="$weight"
           :value="model.weight"
           :error-messages="errors.weight"
-          @change="change('weight', ...arguments)"
+          @change="(value, ack) => change('weight', value, ack)"
         />
       </v-col>
       <v-col
@@ -41,12 +41,12 @@
         sm="6"
       >
         <smart-switch
-          label="Carried"
+          :label="$t('forms.carried')"
           class="mx-3"
-          hint="Whether this container and its contents count towards the creature's weight carried"
+          :hint="$t('forms.container.carriedHint')"
           :value="model.carried"
           :error-messages="errors.carried"
-          @change="change('carried', ...arguments)"
+          @change="(value, ack) => change('carried', value, ack)"
         />
       </v-col>
       <v-col
@@ -54,17 +54,17 @@
         sm="6"
       >
         <smart-switch
-          label="Contents are weightless"
+          :label="$t('forms.container.weightless')"
           :value="model.contentsWeightless"
           :error-messages="errors.contentsWeightless"
-          @change="change('contentsWeightless', ...arguments)"
+          @change="(value, ack) => change('contentsWeightless', value, ack)"
         />
       </v-col>
     </v-row>
 
     <inline-computation-field
       class="mt-4"
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -80,10 +80,27 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>

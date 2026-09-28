@@ -1,5 +1,33 @@
-import { RouterFactory, nativeScrollBehavior } from 'meteor/akryum:vue-router2';
-import { acceptInviteToken } from '/imports/api/users/Invites';
+import { createRouter, createWebHistory } from 'vue-router';
+import { Accounts } from 'meteor/accounts-base';
+import { Meteor } from 'meteor/meteor';
+import { Tracker } from 'meteor/tracker';
+
+// Ported from the former akryum:vue-router2 package, which has no Vue 3 successor.
+// - only available in html5 history mode
+// - defaults to no scroll behavior
+// - return false to prevent scroll
+const nativeScrollBehavior = (to, from, savedPosition) => {
+  if (savedPosition) {
+    // savedPosition is only available for popstate navigations.
+    return savedPosition;
+  }
+  const position = {};
+  // scroll to anchor by returning the element selector
+  if (to.hash) {
+    position.el = to.hash;
+  }
+  // check if any matched route config has meta that requires scrolling to top
+  if (to.matched.some(m => m.meta.scrollToTop)) {
+    // cords will be used if no selector is provided,
+    // or if the selector didn't match any element.
+    position.left = 0;
+    position.top = 0;
+  }
+  // if the returned position is falsy or an empty object,
+  // will retain current scroll position.
+  return position;
+};
 import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
 // Components
 const Home = () => import('/imports/client/ui/pages/Home.vue');
@@ -18,22 +46,15 @@ const CharacterSheetPrintedToolbar = () => import('/imports/client/ui/creature/c
 const SignIn = () => import('/imports/client/ui/pages/SignIn.vue');
 const Register = () => import('/imports/client/ui/pages/Register.vue');
 const IconAdmin = () => import('/imports/client/ui/icons/IconAdmin.vue');
-//const Friends = () => import('/imports/client/ui/pages/Friends.vue' );
-const Feedback = () => import('/imports/client/ui/pages/Feedback.vue');
+const Discord = () => import('/imports/client/ui/pages/Discord.vue');
 const FunctionReference = () => import('/imports/client/ui/pages/FunctionReference.vue');
 const Account = () => import('/imports/client/ui/pages/Account.vue');
-const InviteSuccess = () => import('/imports/client/ui/pages/InviteSuccess.vue');
-const InviteError = () => import('/imports/client/ui/pages/InviteError.vue');
 const EmailVerificationSuccess = () => import('/imports/client/ui/pages/EmailVerificationSuccess.vue');
 const EmailVerificationError = () => import('/imports/client/ui/pages/EmailVerificationError.vue');
 const ResetPassword = () => import('/imports/client/ui/pages/ResetPassword.vue');
 const NotImplemented = () => import('/imports/client/ui/pages/NotImplemented.vue');
-const PatreonLevelTooLow = () => import('/imports/client/ui/pages/PatreonLevelTooLow.vue');
 const SingleLibrary = () => import('/imports/client/ui/pages/SingleLibrary.vue');
 const SingleLibraryToolbar = () => import('/imports/client/ui/library/SingleLibraryToolbar.vue');
-const Tabletops = () => import('/imports/client/ui/pages/Tabletops.vue');
-const Tabletop = () => import('/imports/client/ui/pages/Tabletop.vue');
-const TabletopToolbar = () => import('/imports/client/ui/tabletop/TabletopToolbar.vue');
 const Admin = () => import('/imports/client/ui/pages/Admin.vue');
 const Maintenance = () => import('/imports/client/ui/pages/Maintenance.vue');
 const Files = () => import('/imports/client/ui/pages/Files.vue');
@@ -46,11 +67,6 @@ const NotFound = () => import('/imports/client/ui/pages/NotFound.vue');
 
 let userSubscription = Meteor.subscribe('user');
 
-// Create router instance
-const routerFactory = new RouterFactory({
-  mode: 'history',
-  scrollBehavior: nativeScrollBehavior,
-});
 
 function ensureLoggedIn(to, from, next) {
   Tracker.autorun((computation) => {
@@ -84,28 +100,6 @@ function ensureAdmin(to, from, next) {
   });
 }
 
-function claimInvite(to, from, next) {
-  Tracker.autorun((computation) => {
-    if (userSubscription.ready()) {
-      computation.stop();
-      const user = Meteor.user();
-      if (user) {
-        let inviteToken = to.params.inviteToken;
-        acceptInviteToken.call({
-          inviteToken
-        }, (error) => {
-          if (error) {
-            next({ name: 'inviteError', params: { error } });
-          } else {
-            next('/invite-success')
-          }
-        });
-      } else {
-        next({ name: 'signIn', query: { redirect: to.path } });
-      }
-    }
-  });
-}
 
 function verifyEmail(to, from, next) {
   const token = to.params.token;
@@ -118,15 +112,15 @@ function verifyEmail(to, from, next) {
   });
 }
 
-RouterFactory.configure(router => {
-  router.addRoutes([{
+/** @type {import('vue-router').RouteRecordRaw[]} */
+const routes = [{
     path: '/',
     name: 'home',
     components: {
       default: Home,
     },
     meta: {
-      title: 'Home',
+      title: 'pageTitle.home',
     },
   }, {
     path: '/character-list',
@@ -136,7 +130,7 @@ RouterFactory.configure(router => {
       toolbarItems: CharacterListToolbarItems,
     },
     meta: {
-      title: 'Character List',
+      title: 'pageTitle.characterList',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -146,7 +140,7 @@ RouterFactory.configure(router => {
       default: Library,
     },
     meta: {
-      title: 'Library',
+      title: 'pageTitle.library',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -157,7 +151,7 @@ RouterFactory.configure(router => {
       toolbar: SingleLibraryToolbar,
     },
     meta: {
-      title: 'Library',
+      title: 'pageTitle.library',
     },
   }, {
     name: 'libraryCollection',
@@ -167,7 +161,7 @@ RouterFactory.configure(router => {
       toolbar: LibraryCollectionToolbar,
     },
     meta: {
-      title: 'Library Collection',
+      title: 'pageTitle.libraryCollection',
     },
   }, {
     name: 'libraryBrowser',
@@ -176,56 +170,31 @@ RouterFactory.configure(router => {
       default: LibraryBrowser,
     },
     meta: {
-      title: 'Community Libraries',
+      title: 'pageTitle.communityLibraries',
     },
   }, {
     name: 'characterSheet',
-    path: '/character/:id',
-    alias: '/character/:id/:urlName',
+    // The name segment is cosmetic. Vue Router 4 requires an alias to share
+    // every param with its route, so it is an optional param instead
+    path: '/character/:id/:urlName?',
     components: {
       default: CharacterSheetPage,
       toolbar: CharacterSheetToolbar,
       rightDrawer: CharacterSheetRightDrawer,
     },
     meta: {
-      title: 'Character Sheet',
+      title: 'pageTitle.characterSheet',
     },
   }, {
     name: 'printCharacterSheet',
-    path: '/print-character/:id',
-    alias: '/print-character/:id/:urlName',
+    path: '/print-character/:id/:urlName?',
     components: {
       default: CharacterSheetPrinted,
       toolbar: CharacterSheetPrintedToolbar,
     },
     meta: {
-      title: 'Print Character Sheet',
+      title: 'pageTitle.printCharacterSheet',
     },
-  }, {
-    path: '/tabletops',
-    name: 'tabletops',
-    component: Tabletops,
-    beforeEnter: ensureLoggedIn,
-    meta: {
-      title: 'Tabletops',
-    },
-  }, {
-    path: '/tabletop/:id',
-    name: 'tabletop',
-    components: {
-      default: Tabletop,
-      toolbar: TabletopToolbar,
-    },
-    beforeEnter: ensureLoggedIn,
-  }, {
-    path: '/friends',
-    components: {
-      default: NotImplemented,
-    },
-    meta: {
-      title: 'Friends',
-    },
-    beforeEnter: ensureLoggedIn,
   }, {
     name: 'signIn',
     path: '/sign-in',
@@ -233,7 +202,7 @@ RouterFactory.configure(router => {
       default: SignIn,
     },
     meta: {
-      title: 'Sign In',
+      title: 'pageTitle.signIn',
     },
   }, {
     name: 'register',
@@ -242,7 +211,7 @@ RouterFactory.configure(router => {
       default: Register,
     },
     meta: {
-      title: 'Register',
+      title: 'pageTitle.register',
     },
   }, {
     path: '/account',
@@ -250,7 +219,7 @@ RouterFactory.configure(router => {
       default: Account,
     },
     meta: {
-      title: 'Account',
+      title: 'pageTitle.account',
     },
     beforeEnter: ensureLoggedIn,
   }, {
@@ -259,16 +228,16 @@ RouterFactory.configure(router => {
       default: Files,
     },
     meta: {
-      title: 'Files',
+      title: 'pageTitle.files',
     },
     beforeEnter: ensureLoggedIn,
   }, {
-    path: '/feedback',
+    path: '/discord',
     components: {
-      default: Feedback,
+      default: Discord,
     },
     meta: {
-      title: 'Feedback',
+      title: 'pageTitle.discord',
     },
   }, {
     path: '/docs/functions',
@@ -276,7 +245,7 @@ RouterFactory.configure(router => {
       default: FunctionReference,
     },
     meta: {
-      title: 'Functions',
+      title: 'pageTitle.functions',
     },
   }, {
     path: '/docs/:docPath([^/]+.*)?',
@@ -286,7 +255,7 @@ RouterFactory.configure(router => {
       rightDrawer: DocsRightDrawer,
     },
     meta: {
-      title: 'Documentation',
+      title: 'pageTitle.documentation',
     },
   }, {
     path: '/about',
@@ -294,34 +263,11 @@ RouterFactory.configure(router => {
       default: About,
     },
     meta: {
-      title: 'About DiceCloud',
+      title: 'pageTitle.about',
     },
-  }, {
-    path: '/invite/:inviteToken',
-    beforeEnter: claimInvite,
   }, {
     path: '/verify-email/:token',
     beforeEnter: verifyEmail,
-  }, {
-    name: 'inviteError',
-    path: '/invite-error',
-    components: {
-      default: InviteError,
-    },
-    props: {
-      default: true,
-    },
-    meta: {
-      title: 'Invite Error',
-    },
-  }, {
-    path: '/invite-success',
-    components: {
-      default: InviteSuccess,
-    },
-    meta: {
-      title: 'Invite Success',
-    },
   }, {
     name: 'emailVerificationError',
     path: '/email-verification-error',
@@ -332,7 +278,7 @@ RouterFactory.configure(router => {
       default: true,
     },
     meta: {
-      title: 'Email Verification Error',
+      title: 'pageTitle.emailVerificationError',
     },
   }, {
     path: '/email-verification-success',
@@ -340,7 +286,7 @@ RouterFactory.configure(router => {
       default: EmailVerificationSuccess,
     },
     meta: {
-      title: 'Email Verification Success',
+      title: 'pageTitle.emailVerificationSuccess',
     },
   }, {
     path: '/reset-password/:token?',
@@ -348,15 +294,7 @@ RouterFactory.configure(router => {
       default: ResetPassword,
     },
     meta: {
-      title: 'Reset Password',
-    },
-  }, {
-    path: '/patreon-level-too-low',
-    components: {
-      default: PatreonLevelTooLow,
-    },
-    meta: {
-      title: 'Patreon Tier Too Low',
+      title: 'pageTitle.resetPassword',
     },
   }, {
     path: '/icon-admin',
@@ -373,16 +311,13 @@ RouterFactory.configure(router => {
     name: 'maintenance',
     component: Maintenance,
   },
-  ]);
-});
+];
 
-// Not found route has lowest priority
-RouterFactory.configure(router => {
-  router.addRoute({
-    path: '*',
-    component: NotFound,
-  });
-}, -1);
+// Not found route has lowest priority, so it must be registered last
+routes.push({
+  path: '/:pathMatch(.*)*',
+  component: NotFound,
+});
 
 function redirectIfMaintenance(to, from, next) {
   if (!MAINTENANCE_MODE) return next();
@@ -405,6 +340,10 @@ function redirectIfMaintenance(to, from, next) {
 }
 
 // Create the router instance
-const router = routerFactory.create();
+const router = createRouter({
+  history: createWebHistory(),
+  scrollBehavior: nativeScrollBehavior,
+  routes,
+});
 router.beforeEach(redirectIfMaintenance);
 export default router;

@@ -28,5 +28,5 @@ export default async function applyTriggerProperty(
   }
 
   result.appendLog(logContent, task.targetIds);
-  return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
 }

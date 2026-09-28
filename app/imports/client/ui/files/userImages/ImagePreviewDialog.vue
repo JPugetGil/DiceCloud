@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <img
     class="preview-image v-sheet v-card elevation-6"
     :class="themeClasses"
@@ -7,35 +7,32 @@
   >
 </template>
 
-<script lang="js">
-export default {
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+<script setup>
+import { computed } from 'vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+defineProps({
+  href: {
+    type: String,
+    required: true,
   },
-  props: {
-    href: {
-      type: String,
-      required: true,
-    },
-  },
- computed: {
-    themeClasses() {
-      return {
-        'theme--dark': this.theme.isDark,
-        'theme--light': !this.theme.isDark,
-      }
-    },
-  },
-  methods: {
-    back() {
-      this.$store.dispatch('popDialogStack');
-    },
-  },
-};
+});
+
+const theme = useThemeState();
+
+const dialogStackStore = useDialogStackStore();
+
+const themeClasses = computed(() => {
+  return {
+    'v-theme--dark': theme.isDark,
+    'v-theme--light': !theme.isDark,
+  }
+});
+
+function back() {
+  dialogStackStore.popDialogStack();
+}
 </script>
 
 <style lang="css" scoped>

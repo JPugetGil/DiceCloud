@@ -1,56 +1,48 @@
-<template
-  lang="html"
-  functional
->
+<template>
   <v-list-item
     v-bind="$attrs"
-    :class="(isSelected || selectedByCollection) && !disabled && 'primary--text v-list-item--active'"
+    :class="(isSelected || selectedByCollection) && !disabled && 'text-primary v-list-item--active'"
     :to="selection ? undefined : to"
     @click="singleSelect && $emit('select')"
   >
-    <v-list-item-action
-      v-if="selection && !singleSelect"
-    >
+    <template #prepend>
       <v-checkbox
+        v-if="selection && !singleSelect"
         :disabled="disabled"
-        :input-value="disabled || isSelected"
-        :off-icon="selectedByCollection ? 'mdi-checkbox-intermediate' : undefined"
-        @change="e => $emit('select', e)"
+        :model-value="disabled || isSelected"
+        :false-icon="selectedByCollection ? 'mdi-checkbox-intermediate' : undefined"
+        @update:model-value="e => $emit('select', e)"
         @click.stop
       />
-    </v-list-item-action>
-    <v-list-item-avatar v-else>
-      <shared-icon :model="model" />
-    </v-list-item-avatar>
-    <v-list-item-content>
-      <v-list-item-title>
-        {{ model.name }}
-      </v-list-item-title>
-    </v-list-item-content>
+      <v-avatar v-else>
+        <shared-icon :model="model" />
+      </v-avatar>
+    </template>
+
+    <v-list-item-title>
+      {{ model.name }}
+    </v-list-item-title>
   </v-list-item>
 </template>
 
-<script lang="js" functional>
+<script setup>
 import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
 
-export default {
-  components: {
-    SharedIcon,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    selection: Boolean,
-    singleSelect: Boolean,
-    isSelected: Boolean,
-    selectedByCollection: Boolean,
-    disabled: Boolean,
-    to: {
-      type: Object,
-      required: true,
-    }
-  }
-}
+  selection: Boolean,
+  singleSelect: Boolean,
+  isSelected: Boolean,
+  selectedByCollection: Boolean,
+  disabled: Boolean,
+  to: {
+    type: Object,
+    required: true,
+  },
+});
+
+defineEmits(['select']);
 </script>

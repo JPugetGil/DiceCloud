@@ -1,49 +1,36 @@
-<template lang="html">
+<template>
   <div class="buff-viewer">
     <!--<property-field
-      name="Duration"
+      :name="$t('viewers.duration')"
       :value="model.duration"
     />-->
     <v-row dense>
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
     </v-row>
     <v-row dense>
       <property-description
-        name="Description"
+        :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-import numberToSignedString from '../../../../api/utility/numberToSignedString';
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import PropertyDescription from '/imports/client/ui/properties/viewers/shared/PropertyDescription.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-  computed: {
-    reset() {
-      let reset = this.model.reset
-      if (reset === 'shortRest') {
-        return `Reset${this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a short rest`;
-      } else if (reset === 'longRest') {
-        return `Reset${this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a long rest`;
-      } else {
-        return undefined;
-      }
-    }
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  methods: {
-    numberToSignedString,
-  }
-}
+});
+
 </script>
 
 <style lang="css" scoped>

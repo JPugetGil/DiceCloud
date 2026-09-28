@@ -1,10 +1,10 @@
-<template lang="html">
-  <div class="layout align-center justify-start">
+<template>
+  <div class="d-flex flex-1-1 align-center justify-start">
     <property-icon
       v-if="!hideIcon"
       class="mr-2"
       :model="model"
-      :class="selected && 'primary--text'"
+      :class="selected && 'text-primary'"
       :color="model.color"
     />
     <div
@@ -14,35 +14,41 @@
         <span v-if="amount < 0">+</span>
         {{ absoluteAmount }} {{ model.stat }}
         <span v-if="typeof absoluteAmount === 'string' || amount >= 0">
-          damage
+          {{ $t('treeNodes.damageWord') }}
         </span>
         <span v-if="model.target === 'self'">
-          to self
+          {{ $t('treeNodes.toSelf') }}
         </span>
       </template>
       <template v-else>
-        <span>{{ model.stat || 'Attribute' }} damage</span>
+        <span>{{ $t('treeNodes.attributeDamage', { stat: model.stat || $t('forms.attributeLabel') }) }}</span>
       </template>
     </div>
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { computed } from 'vue';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 
-export default {
-  mixins: [treeNodeViewMixin],
-  computed: {
-    amount(){
-      return this.model.amount && this.model.amount.value;
-    },
-    absoluteAmount(){
-      if (typeof this.amount === 'number'){
-        return Math.abs(this.amount);
-      } else {
-        return this.amount;
-      }
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
+  },
+  selected: Boolean,
+  hideIcon: Boolean,
+});
+
+const amount = computed(() => {
+  return props.model.amount && props.model.amount.value;
+});
+
+const absoluteAmount = computed(() => {
+  if (typeof amount.value === 'number'){
+    return Math.abs(amount.value);
+  } else {
+    return amount.value;
   }
-}
+});
 </script>

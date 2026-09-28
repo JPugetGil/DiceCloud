@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     v-if="tags.length"
     class="tags"
@@ -20,20 +20,18 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  props:{
-    tags: {
-      type: Array,
-      default: () => [],
-    },
-    noMargin: Boolean,
-    prefix: {
-      type: String,
-      default: undefined,
-    }
+<script setup>
+defineProps({
+  tags: {
+    type: Array,
+    default: () => [],
   },
-}
+  noMargin: Boolean,
+  prefix: {
+    type: String,
+    default: undefined,
+  },
+});
 </script>
 
 <style lang="css" scoped>

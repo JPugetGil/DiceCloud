@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="class-form">
     <v-row dense>
       <v-col
@@ -6,12 +6,12 @@
         md="6"
       >
         <text-field
-          label="Class variable name"
+          :label="$t('forms.classLevel.classVariableName')"
           :value="model.variableName"
           style="flex-basis: 300px;"
-          hint="This should be the same as the class's variable name"
+          :hint="$t('forms.classLevel.classVariableNameHint')"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
       <v-col
@@ -19,19 +19,19 @@
         md="6"
       >
         <text-field
-          label="Level"
+          :label="$t('forms.level')"
           type="number"
           class="base-value-field text-center large-format no-flex"
           :value="model.level"
           :error-messages="errors.level"
-          @change="change('level', ...arguments)"
+          @change="(value, ack) => change('level', value, ack)"
         />
       </v-col>
     </v-row>
 
     <inline-computation-field
-      label="Description"
-      hint="A brief description of what this class level gives a character"
+      :label="$t('common.description')"
+      :hint="$t('forms.classLevel.descriptionHint')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -46,12 +46,29 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-};
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

@@ -1,15 +1,15 @@
 <template>
   <div class="d-flex flex-column justify-center align-center">
     <v-btn-toggle
-      :value="value"
+      :model-value="modelValue"
       color="accent"
-      @change="emitInput"
+      @update:model-value="emitInput"
     >
       <v-btn :value="-1">
-        Disadvantage
+        {{ $t('common.disadvantage') }}
       </v-btn>
       <v-btn :value="1">
-        Advantage
+        {{ $t('common.advantage') }}
       </v-btn>
     </v-btn-toggle>
     <div style="position: relative;">
@@ -17,43 +17,39 @@
         origin="center center"
       >
         <vertical-hex
-          v-if="value"
+          v-if="modelValue"
           id="extra-hex"
           style="position:absolute; transition: margin-left 0.3s ease;"
-          :style="{marginLeft: value == 1 ? '24px' : '-24px'}"
+          :style="{marginLeft: modelValue == 1 ? '24px' : '-24px'}"
           disable-hover
         />
       </v-scale-transition>
       <vertical-hex
         id="roll-hex"
-        @click="$emit('continue')"
+        @click="emit('continue')"
       >
         <div>
-          Roll
+          {{ $t('common.roll') }}
         </div>
       </vertical-hex>
     </div>
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import VerticalHex from '/imports/client/ui/components/VerticalHex.vue';
 
-export default {
-  components: {
-    VerticalHex
-  },
-  props: {
-    value: {
-      type: Number,
-      required: true,
-    }
-  },
-  methods: {
-    emitInput(e) {
-      e = e || 0;
-      this.$emit('input', e)
-    }
+defineProps({
+  modelValue: {
+    type: Number,
+    required: true,
   }
-};
+});
+
+const emit = defineEmits(['update:modelValue', 'continue']);
+
+function emitInput(e) {
+  e = e || 0;
+  emit('update:modelValue', e);
+}
 </script>

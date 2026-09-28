@@ -1,4 +1,8 @@
-import SimpleSchema, { SimpleSchemaDefinition } from 'simpl-schema';
+// Registers the custom schema options (index, computedField, ...) before any
+// definition uses them, whichever entry point or test file loads first
+import '/imports/api/simpleSchemaConfig';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
+import type { SimpleSchemaDefinition } from 'simpl-schema';
 import type {
   FieldToCalculate, CalculatedOnlyField
 } from '/imports/api/properties/subSchemas/computedField';
@@ -53,7 +57,8 @@ export type InferType<T> = T extends TypedSimpleSchema<infer X> ? X : never;
 type InferTypeInner<T> =
   T extends typeof Array ? ArrayMarker :
   T extends typeof Boolean ? boolean :
-  // eslint-disable-next-line @typescript-eslint/ban-types
+  // SimpleSchema's `Function` type maps to the bare Function type by definition
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   T extends typeof Function ? Function :
   T extends typeof Number ? number :
   T extends typeof SimpleSchema.Integer ? number :

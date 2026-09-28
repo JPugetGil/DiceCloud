@@ -1,26 +1,26 @@
-<template lang="html">
+<template>
   <div
-    v-if="model && $options.components[model.type]"
+    v-if="model && components[model.type]"
     class="property-viewer"
   >
     <v-row dense>
       <property-field
         v-if="model.inactive"
-        name="Status"
+        :name="$t('viewers.status')"
         :cols="{cols: 12}"
       >
         <div
           style="width: 100%"
-          class="text--disabled"
+          class="text-disabled"
         >
           <div>
-            Inactive
+            {{ $t('viewers.inactive') }}
           </div>
           <div
             v-if="model.deactivatedByToggle && deactivatingToggle"
             class="pt-2"
           >
-            <div>Deactivated by:</div>
+            <div>{{ $t('viewers.deactivatedBy') }}</div>
             <v-btn
               block
               :data-id="`tree-node-${model.deactivatingToggleId}`"
@@ -36,19 +36,19 @@
             v-if="model.deactivatedByAncestor"
             class="pt-2"
           >
-            Deactivated by ancestor
+            {{ $t('viewers.deactivatedByAncestor') }}
           </div>
           <div
             v-if="model.deactivatedBySelf"
             class="pt-2"
           >
-            Deactivated by own settings
+            {{ $t('viewers.deactivatedBySelf') }}
           </div>
         </div>
       </property-field>
     </v-row>
     <component
-      :is="model.type"
+      :is="components[model.type]"
       :key="model._id"
       class="property-viewer"
       :model="model"
@@ -62,38 +62,38 @@
       >
         <property-field
           v-if="model.fillSlots || model.searchable"
-          name="Library Behavior"
+          :name="$t('viewers.libraryBehavior')"
         >
           <ul>
             <li
               v-if="model.fillSlots"
             >
-              Can fill slots
+              {{ $t('forms.property.canFillSlots') }}
             </li>
             <li v-if="model.searchable">
-              Searchable from character sheet
+              {{ $t('forms.property.searchable') }}
             </li>
           </ul>
         </property-field>
-        <property-field 
-          name="Slot fill type"
+        <property-field
+          :name="$t('forms.property.slotFillType')"
           :value="slotFillTypeName"
         />
-        <property-field 
-          name="Slot quantity filled"
+        <property-field
+          :name="$t('forms.property.slotQuantity')"
           :value="model.slotQuantityFilled"
         />
-        <property-field 
-          name="Condition"
+        <property-field
+          :name="$t('forms.condition')"
           mono
           :value="model.slotFillerCondition"
         />
-        <property-field 
-          name="Condition Error Text"
+        <property-field
+          :name="$t('forms.property.conditionErrorText')"
           :value="model.slotFillerConditionNote"
         />
-        <property-field 
-          name="Library Tags"
+        <property-field
+          :name="$t('forms.property.libraryTags')"
           :cols="{cols: 12}"
         >
           <div
@@ -104,7 +104,7 @@
               v-for="(tag, index) in model.libraryTags"
               :key="tag + index"
               class="mr-1"
-              small
+              size="small"
               disabled
             >
               {{ tag }}
@@ -112,8 +112,8 @@
           </div>
         </property-field>
       </template>
-      <property-field 
-        name="Tags"
+      <property-field
+        :name="$t('forms.tags')"
         :cols="{cols: 12}"
       >
         <div
@@ -125,7 +125,7 @@
             :key="tag + index"
             class="mr-1"
             disabled
-            small
+            size="small"
           >
             {{ tag }}
           </v-chip>
@@ -133,7 +133,7 @@
       </property-field>
       <property-field
         v-show="childrenLength"
-        name="Child properties"
+        :name="$t('forms.property.childProperties')"
         :cols="{cols: 12}"
       >
         <descendant-properties-tree
@@ -147,56 +147,54 @@
     </v-row>
   </div>
   <div v-else-if="model">
-    This property can't be viewed yet.
+    {{ $t('viewers.cantView') }}
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import propertyViewerIndex from '/imports/client/ui/properties/viewers/shared/propertyViewerIndex';
 import CreaturePropertiesTree from '/imports/client/ui/creature/creatureProperties/CreaturePropertiesTree.vue';
 import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import DescendantPropertiesTree from '/imports/client/ui/creature/creatureProperties/DescendantPropertiesTree.vue';
+import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 
-export default {
-  components: {
-    ...propertyViewerIndex,
-    CreaturePropertiesTree,
-    PropertyField,
-    DescendantPropertiesTree,
+const components = {
+  ...propertyViewerIndex,
+  CreaturePropertiesTree,
+  PropertyField,
+  DescendantPropertiesTree,
+};
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: undefined
   },
-  props: {
-    model: {
-      type: Object,
-      default: undefined
-    },
-    collection: {
-      type: String,
-      default: 'creatureProperties'
-    },
+  collection: {
+    type: String,
+    default: 'creatureProperties'
   },
-  data() {
-    return {
-      childrenLength: 0,
-    }
-  },
-  meteor: {
-    deactivatingToggle() {
-      if (!this.model.deactivatingToggleId) return;
-      return CreatureProperties.findOne(this.model.deactivatingToggleId);
-    }
-  },
-  computed: {
-    slotFillTypeName() {
-      return getPropertyName(this.model.slotFillerType);      
-    },
-  },
-  methods: {
-    selectSubProperty(_id) {
-      this.$emit('select-sub-property', _id);
-    },
-  },
+});
+
+const emit = defineEmits(['change', 'remove', 'select-sub-property']);
+
+const childrenLength = ref(0);
+
+const deactivatingToggle = autorun(() => {
+  if (!props.model?.deactivatingToggleId) return;
+  return CreatureProperties.findOne(props.model.deactivatingToggleId);
+}).result;
+
+const slotFillTypeName = computed(() => {
+  return getPropertyName(props.model?.slotFillerType);
+});
+
+function selectSubProperty(_id) {
+  emit('select-sub-property', _id);
 }
 </script>
 

@@ -1,7 +1,6 @@
 {
   "public": {
     "environment": "production",
-    "disablePatreon": true,
     "disallowCreatureApiImport": false
   }
 }

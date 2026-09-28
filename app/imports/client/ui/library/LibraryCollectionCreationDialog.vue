@@ -1,106 +1,110 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <template slot="toolbar">
+    <template #toolbar>
       <v-toolbar-title>
-        New Collection
+        {{ $t('library.newCollection') }}
       </v-toolbar-title>
     </template>
-    <template>
+    <template #default>
       <text-field
-        label="Name"
+        :label="$t('common.name')"
         :value="libraryCollection.name"
         :debounce-time="0"
         @change="nameChanged"
       />
       <text-area
-        label="Description"
+        :label="$t('common.description')"
         :value="libraryCollection.description"
         :debounce-time="0"
         @change="descriptionChanged"
       />
       <smart-select
-        label="Libraries"
+        :label="$t('library.libraries')"
         :items="libraryOptions"
         :value="libraryCollection.libraries"
         :debounce-time="0"
         multiple
         chips
         deletable-chips
-        no-data-text="No libraries found"
+        :no-data-text="$t('library.noLibrariesFound')"
         @change="librariesChanged"
       />
     </template>
-    <template slot="actions">
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         :disabled="!valid"
-        @click="$store.dispatch('popDialogStack', libraryCollection)"
+        @click="dialogStackStore.popDialogStack(libraryCollection)"
       >
-        Insert Collection
+        {{ $t('library.insertCollection') }}
       </v-btn>
     </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import Libraries from '/imports/api/library/Libraries';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  components: {
-    DialogBase,
-  },
-  data(){ return {
-    libraryCollection: {
-      name: 'New Collection',
-      description: undefined,
-      libraries: [],
+const { t } = useI18n();
+
+const dialogStackStore = useDialogStackStore();
+
+
+const libraryCollection = ref({
+  name: t('library.newCollection'),
+  description: undefined,
+  libraries: [],
+});
+
+const valid = ref(true);
+
+const libraryOptions = autorun(() => {
+  const userId = Meteor.userId();
+  return Libraries.find(
+    {
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
     },
-    valid: true,
-  }},
-  meteor: {
-    libraryOptions() {
-      const userId = Meteor.userId();
-      return Libraries.find(
-        {
-          $or: [
-            { owner: userId },
-            { writers: userId },
-            { readers: userId },
-            { public: true },
-          ]
-        },
-        {sort: {name: 1}}
-      ).map(library => {
-        return {
-          text: library.name,
-          value: library._id,
-        };
-      });
-    }
-  },
-  methods: {
-    nameChanged(val, ack){
-      if (val){
-        this.libraryCollection.name = val;
-        this.valid = true,
-        ack();
-      } else {
-        this.valid = false;
-        ack('Name is required')
-      }
-    },
-    descriptionChanged(val, ack){
-      this.libraryCollection.description = val;
-      ack();
-    },
-    librariesChanged(val, ack){
-      this.libraryCollection.libraries = val;
-      ack();
-    },
-  },
-};
+    { sort: { name: 1 } }
+  ).map(library => {
+    return {
+      title: library.name,
+      value: library._id,
+    };
+  });
+}).result;
+
+function nameChanged(val, ack) {
+  if (val) {
+    libraryCollection.value.name = val;
+    valid.value = true;
+    ack();
+  } else {
+    valid.value = false;
+    ack(t('common.nameRequired'));
+  }
+}
+
+function descriptionChanged(val, ack) {
+  libraryCollection.value.description = val;
+  ack();
+}
+
+function librariesChanged(val, ack) {
+  libraryCollection.value.libraries = val;
+  ack();
+}
 </script>
 
 <style lang="css" scoped>

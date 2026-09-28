@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-list-item
     :key="model._id"
     :data-id="`spell-slot-list-tile-${model._id}`"
@@ -7,140 +7,139 @@
     v-bind="$attrs"
     v-on="hasClickListener ? {click} : {}"
   >
-    <v-list-item-content>
-      <v-list-item-title v-if="Number.isFinite(model.total)">
+    <v-list-item-title v-if="Number.isFinite(model.total)">
+      <div
+        v-if="model.total <= 0 || model.total > 5 || model.value > model.total || model.value < 0"
+        class="d-flex flex-1-1 value"
+        style="align-items: baseline;"
+      >
         <div
-          v-if="model.total <= 0 || model.total > 5 || model.value > model.total || model.value < 0"
-          class="layout value"
-          style="align-items: baseline;"
+          style="font-weight: 500; font-size: 24px"
+          class="current-value"
         >
-          <div
-            style="font-weight: 500; font-size: 24px"
-            class="current-value"
-          >
-            {{ model.value }}
-          </div>
-          <div
-            v-if="model.total"
-            class="ml-2 max-value"
-          >
-            /{{ model.total }}
-          </div>
+          {{ model.value }}
         </div>
         <div
-          v-else-if="canEdit"
-          class="layout align-center slot-bubbles"
+          v-if="model.total"
+          class="ml-2 max-value"
         >
-          <smart-btn
-            v-for="i in model.total"
-            :key="i"
-            icon
-            single-click
-            @click="ack => damageProperty({
-              type: 'increment',
-              value: i <= model.value ? 1 : -1,
-              ack
-            })"
-          >
-            <v-icon>
-              {{
-                i > model.value ?
-                  'mdi-radiobox-blank' :
-                  'mdi-radiobox-marked'
-              }}
-            </v-icon>
-          </smart-btn>
+          /{{ model.total }}
         </div>
-        <div
-          v-else
-          class="layout align-center slot-bubbles view-only"
-          :class="{'disabled-icon': disabled}"
+      </div>
+      <div
+        v-else-if="canEdit"
+        class="d-flex flex-1-1 align-center slot-bubbles"
+      >
+        <smart-btn
+          v-for="i in model.total"
+          :key="i"
+          variant="text"
+          icon
+          single-click
+          @click="ack => damageProperty({
+            type: 'increment',
+            value: i <= model.value ? 1 : -1,
+            ack
+          })"
         >
-          <v-icon
-            v-for="i in model.total"
-            :key="i"
-            class="ma-1"
-          >
+          <v-icon>
             {{
               i > model.value ?
                 'mdi-radiobox-blank' :
                 'mdi-radiobox-marked'
             }}
           </v-icon>
-        </div>
-      </v-list-item-title>
-      <v-list-item-title v-else>
-        <code>
-          {{ model.total }}
-        </code>
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        {{ model.name }}
-      </v-list-item-subtitle>
-    </v-list-item-content>
+        </smart-btn>
+      </div>
+      <div
+        v-else
+        class="d-flex flex-1-1 align-center slot-bubbles view-only"
+        :class="{'disabled-icon': disabled}"
+      >
+        <v-icon
+          v-for="i in model.total"
+          :key="i"
+          class="ma-1"
+        >
+          {{
+            i > model.value ?
+              'mdi-radiobox-blank' :
+              'mdi-radiobox-marked'
+          }}
+        </v-icon>
+      </div>
+    </v-list-item-title>
+    <v-list-item-title v-else>
+      <code>
+        {{ model.total }}
+      </code>
+    </v-list-item-title>
+    <v-list-item-subtitle>
+      {{ model.name }}
+    </v-list-item-subtitle>
   </v-list-item>
 </template>
 
-<script lang="js">
-import numberToSignedString from '/imports/api/utility/numberToSignedString';
+<script setup>
+import { computed, inject, useAttrs } from 'vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import doAction from '/imports/client/ui/creature/actions/doAction';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 
-export default {
-  inject: {
-    context: { default: {} }
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
+  dark: Boolean,
+  viewOnly: Boolean,
+  disabled: Boolean,
+});
+
+const emit = defineEmits(['click']);
+
+const context = inject('context', {});
+const attrs = useAttrs();
+
+const hasClickListener = computed(() => {
+  return !!attrs.onClick;
+});
+
+const canEdit = computed(() => {
+  return context.editPermission && !props.viewOnly;
+});
+
+
+function click(e) {
+  emit('click', e);
+}
+
+async function damageProperty({ type, value, ack }) {
+  const model = props.model;
+  await doAction({
+    creatureId: model.root.id,
+    elementId: `spell-slot-list-tile-${model._id}`,
+    task: {
+      subtaskFn: 'damageProp',
+      targetIds: [model.root.id],
+      params: {
+        title: getPropertyTitle(model),
+        operation: type,
+        value,
+        targetProp: model,
+      },
     },
-    dark: Boolean,
-    viewOnly: Boolean,
-    disabled: Boolean,
-  },
-  computed: {
-    hasClickListener() {
-      return this.$listeners && !!this.$listeners.click;
-    },
-    canEdit() {
-      return this.context.editPermission && !this.viewOnly;
-    },
-  },
-  methods: {
-    signed: numberToSignedString,
-    click(e) {
-      this.$emit('click', e);
-    },
-    damageProperty({ type, value, ack }) {
-      const model = this.model;
-      doAction({
-        creatureId: model.root.id,
-        $store: this.$store,
-        elementId: `spell-slot-list-tile-${model._id}`,
-        task: {
-        subtaskFn: 'damageProp',
-        targetIds: [model.root.id],
-        params: {
-          title: getPropertyTitle(model),
-          operation: type,
-          value,
-          targetProp: model,
-        }
-      }}).then(() =>{
-        ack?.();
-      }).catch((error) => {
-        if (ack) {
-          ack(error);
-        } else  {
-          snackbar({ text: error.reason || error.message || error.toString() });
-          console.error(error);
-        }
-      });
-    },
-  },
-};
+  }).then(() => {
+    ack?.();
+  }).catch((error) => {
+    if (ack) {
+      ack(error);
+    } else {
+      snackbar({ text: error.reason || error.message || error.toString() });
+      console.error(error);
+    }
+  });
+}
 </script>
 
 <style lang="css" scoped>
@@ -148,17 +147,13 @@ export default {
   background: inherit;
 }
 
-.v-list__tile__action {
+.v-list-item-action {
   width: 112px;
   flex-shrink: 0;
 }
 
 .spell-slot-list-tile.hover {
-  background: #f5f5f5 !important;
-}
-
-.theme--dark .spell-slot-list-tile.hover {
-  background: #515151 !important;
+  background: rgba(var(--v-theme-on-surface), var(--v-hover-opacity)) !important;
 }
 
 .disabled-icon {
@@ -170,10 +165,6 @@ export default {
 }
 
 .max-value {
-  color: rgba(0, 0, 0, .54);
-}
-
-.theme--dark .max-value {
-  color: rgba(255, 255, 255, 0.54);
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 </style>

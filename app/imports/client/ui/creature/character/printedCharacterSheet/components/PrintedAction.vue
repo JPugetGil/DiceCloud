@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="action-card"
     :class="cardClasses"
@@ -18,7 +18,7 @@
       v-if="Number.isFinite(model.uses)"
       class="action-sub-title d-flex align-center"
     >
-      {{ model.uses }} uses
+      {{ $t('printed.uses', { uses: model.uses }) }}
     </div>
     <div>
       <div
@@ -29,16 +29,16 @@
         <div
           v-for="attributeConsumed in model.resources.attributesConsumed"
           :key="attributeConsumed._id"
-          class="layout align-center justify-start"
+          class="d-flex flex-1-1 align-center justify-start"
         >
-          Cost: {{ attributeConsumed.quantity && attributeConsumed.quantity.value }} {{ attributeConsumed.statName || attributeConsumed.variableName }}
+          {{ $t('printed.cost', { quantity: attributeConsumed.quantity && attributeConsumed.quantity.value, stat: attributeConsumed.statName || attributeConsumed.variableName }) }}
         </div>
         <div
           v-for="itemConsumed in model.resources.itemsConsumed"
           :key="itemConsumed._id"
         >
           <template v-if="itemConsumed.itemName">
-            Uses: {{ itemConsumed.quantity && itemConsumed.quantity.value || 0 }} {{ itemConsumed.itemName || itemConsumed.tag }}
+            {{ $t('printed.usesItem', { quantity: itemConsumed.quantity && itemConsumed.quantity.value || 0, item: itemConsumed.itemName || itemConsumed.tag }) }}
           </template>
         </div>
       </div>
@@ -53,7 +53,7 @@
           {{ rollBonus }}
         </span>
         <span>
-          to hit
+          {{ $t('printed.toHit') }}
         </span>
       </div>
       <tree-node-list
@@ -70,8 +70,11 @@
   </div>
 </template>
 
-<script lang="js">
-import { getPropertyName } from '/imports/constants/PROPERTIES';
+<script setup>
+import { ref, computed} from 'vue';
+import { autorun } from 'vue-meteor-tracker';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
+import { translateOr } from '/imports/client/ui/i18n';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
@@ -79,97 +82,73 @@ import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
 import { getFilter, docsToForest } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
 
-export default {
-  components: {
-    MarkdownText,
-    PropertyIcon,
-    TreeNodeList,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: {
-      default: {},
-    },
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      activated: undefined,
-      doActionLoading: false,
-      hovering: false,
-    }
-  },
-  computed: {
-    rollBonus() {
-      if (!this.model.attackRoll) return;
-      return numberToSignedString(this.model.attackRoll.value);
-    },
-    rollBonusTooLong() {
-      return this.rollBonus && this.rollBonus.length > 3;
-    },
-    propertyName() {
-      return getPropertyName(this.model.type);
-    },
-    cardClasses() {
-      return {
-        'theme--dark': this.theme.isDark,
-        'theme--light': !this.theme.isDark,
-        'muted-text': this.model.insufficientResources,
-        'active': this.activated,
-        'elevation-8': this.hovering,
-      }
-    },
-    actionTypeName() {
-      return {
-        'action': 'Action',
-        'bonus': 'Bonus Action',
-        'attack': 'Attack',
-        'reaction': 'Reaction',
-        'free': 'Free Action',
-        'long': 'Long Action'
-      }[this.model.actionType] || this.model.actionType
-    },
-  },
-  meteor: {
-    children() {
-      const rangesToExclude = [];
-      const descendants = CreatureProperties.find({
-        ...getFilter.descendants(this.model),
-        'removed': { $ne: true },
-      }, {
-        sort: {left: 1}
-      }).map(prop => {
-        // Get all the props we don't want to show the descendants of and
-        // where they might appear in the ancestor list
-        if (prop.type === 'buff' || prop.type === 'folder') {
-          rangesToExclude.push({
-            left: prop.left,
-            right: prop.right,
-          });
-        }
-        return prop;
-      }).filter(prop => {
-        // Filter out folders entirely
-        if (prop.type === 'folder') return false;
-        // Filter out descendants of terminating props
-        return !some(rangesToExclude, range => {
-          return prop.left > range.left && prop.right < range.right;
-        });
+});
+
+defineEmits(['sub-click']);
+
+const theme = useThemeState();
+
+const activated = ref(undefined);
+const hovering = ref(false);
+
+const rollBonus = computed(() => {
+  if (!props.model.attackRoll) return;
+  return numberToSignedString(props.model.attackRoll.value);
+});
+
+
+const propertyName = computed(() => {
+  return getPropertyName(props.model.type);
+});
+
+const cardClasses = computed(() => {
+  return {
+    'v-theme--dark': theme.isDark,
+    'v-theme--light': !theme.isDark,
+    'muted-text': props.model.insufficientResources,
+    'active': activated.value,
+    'elevation-8': hovering.value,
+  };
+});
+
+const actionTypeName = computed(() => {
+    return translateOr(`actionTypes.${props.model.actionType}`, props.model.actionType);
+});
+
+const children = autorun(() => {
+  const rangesToExclude = [];
+  const descendants = CreatureProperties.find({
+    ...getFilter.descendants(props.model),
+    'removed': { $ne: true },
+  }, {
+    sort: {left: 1}
+  }).map(prop => {
+    // Get all the props we don't want to show the descendants of and
+    // where they might appear in the ancestor list
+    if (prop.type === 'buff' || prop.type === 'folder') {
+      rangesToExclude.push({
+        left: prop.left,
+        right: prop.right,
       });
-      return docsToForest(descendants);
-    },
-  },
-}
+    }
+    return prop;
+  }).filter(prop => {
+    // Filter out folders entirely
+    if (prop.type === 'folder') return false;
+    // Filter out descendants of terminating props
+    return !some(rangesToExclude, range => {
+      return prop.left > range.left && prop.right < range.right;
+    });
+  });
+  return docsToForest(descendants);
+}).result;
 </script>
 
 <style lang="css" scoped>
@@ -224,11 +203,11 @@ export default {
   height: 32px;
 }
 
-.theme--light.muted-text {
+.v-theme--light.muted-text {
   color: rgba(0, 0, 0, .3) !important;
 }
 
-.theme--dark.muted-text {
+.v-theme--dark.muted-text {
   color: hsla(0, 0%, 100%, .3) !important;
 }
 
@@ -238,11 +217,11 @@ export default {
 </style>
 
 <style lang="css">
-.action-card.theme--light.muted-text .v-icon {
+.action-card.v-theme--light.muted-text .v-icon {
   color: rgba(0, 0, 0, .3) !important;
 }
 
-.action-card.theme--dark.muted-text .v-icon {
+.action-card.v-theme--dark.muted-text .v-icon {
   color: hsla(0, 0%, 100%, .3) !important;
 }
 

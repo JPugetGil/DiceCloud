@@ -1,4 +1,4 @@
-import { Store } from 'vuex';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 import { insertAction } from '/imports/api/engine/action/methods/insertAction';
 import Task from '/imports/api/engine/action/tasks/Task';
 import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
@@ -10,7 +10,6 @@ import { getSingleProperty } from '../../../../api/engine/loadCreatures';
 
 type BaseDoActionParams = {
   creatureId: string;
-  $store: Store<any>;
   elementId: string;
   callback?: (action: EngineAction) => void;
   replaceDialog?: boolean;
@@ -29,18 +28,19 @@ type DoActionParams = BaseDoActionParams & {
 }
 
 /**
- * Apply an action on the client that first creates the action on both the client and server, then 
+ * Apply an action on the client that first creates the action on both the client and server, then
  * simulates the action, opening the action dialog if necessary to get input from the user, saving
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
  */
 export default async function doAction({
-  propId, creatureId, $store, elementId, task, targetIds, callback, replaceDialog
+  propId, creatureId, elementId, task, targetIds, callback, replaceDialog
 }: DoActionParams | DoTaskParams): Promise<any | void> {
+  const dialogStackStore = useDialogStackStore();
   if (!task) {
     targetIds ??= [];
     if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
-    const prop = getSingleProperty(creatureId, propId);
+    const prop = await getSingleProperty(creatureId, propId);
     if (!prop) throw new Meteor.Error('not-found', 'Property not found');
     task = {
       prop,
@@ -49,7 +49,7 @@ export default async function doAction({
     };
   }
   // Create the action
-  const actionId = insertAction.call({
+  const actionId = await insertAction.callAsync({
     action: {
       creatureId,
       task,
@@ -64,7 +64,7 @@ export default async function doAction({
 
   if (!action) throw new Meteor.Error('not-found', 'The action could not be found');
 
-  // Applying the action is deterministic, so we apply it, if it asks for user input, we escape and 
+  // Applying the action is deterministic, so we apply it, if it asks for user input, we escape and
   // create a dialog that will re-apply the action, but with the ability to actually get input
   // Either way, call the action method afterwards
   try {
@@ -73,13 +73,16 @@ export default async function doAction({
       action, getErrorOnInputRequestProvider(action._id), { simulate: true }
     );
     if (replaceDialog) {
-      $store.dispatch('popDialogStack', finishedAction);
+      dialogStackStore.popDialogStack(finishedAction);
     }
     return callActionMethod(finishedAction);
   } catch (e) {
     if (e !== 'input-requested') throw e;
     return new Promise<void>((resolve) => {
-      $store.commit(replaceDialog ? 'replaceDialog' : 'pushDialogStack', {
+      const openDialog = replaceDialog
+        ? dialogStackStore.replaceDialog
+        : dialogStackStore.pushDialogStack;
+      openDialog({
         component: 'action-dialog',
         elementId,
         data: {
@@ -107,7 +110,6 @@ const throwInputRequestedError = () => {
 
 function getErrorOnInputRequestProvider(actionId: string) {
   const errorOnInputRequest: InputProvider = {
-    targetIds: throwInputRequestedError,
     nextStep: throwInputRequestedError,
     rollDice: getDeterministicDiceRoller(actionId),
     choose: throwInputRequestedError,

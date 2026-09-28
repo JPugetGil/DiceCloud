@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="spell-list-form">
     <v-row dense>
       <v-col
@@ -6,8 +6,8 @@
         md="6"
       >
         <computed-field
-          label="Maximum prepared spells"
-          hint="How many spells can be prepared"
+          :label="$t('forms.spellList.maxPrepared')"
+          :hint="$t('forms.spellList.maxPreparedHint')"
           :model="model.maxPrepared"
           :error-messages="errors.maxPrepared"
           @change="({path, value, ack}) =>
@@ -19,9 +19,9 @@
         md="6"
       >
         <smart-combobox
-          label="Spellcasting ability"
+          :label="$t('forms.spellList.ability')"
           :value="model.ability"
-          hint="Which ability is used to cast spells in this spell list"
+          :hint="$t('forms.spellList.abilityHint')"
           :items="abilityScoreList"
           :error-messages="errors.ability"
           @change="changeAbility"
@@ -32,8 +32,8 @@
         md="6"
       >
         <computed-field
-          label="Spell save DC"
-          hint="The spell save DC of spells in this list"
+          :label="$t('forms.spellList.dc')"
+          :hint="$t('forms.spellList.dcHint')"
           :model="model.dc"
           :error-messages="errors.dc"
           @change="({path, value, ack}) =>
@@ -45,8 +45,8 @@
         md="6"
       >
         <computed-field
-          label="Attack roll bonus"
-          hint="The attack roll bonus of spell attacks made by spells in this list"
+          :label="$t('forms.spellList.attackBonus')"
+          :hint="$t('forms.spellList.attackBonusHint')"
           :model="model.attackRollBonus"
           :error-messages="errors.attackRollBonus"
           @change="({path, value, ack}) =>
@@ -56,7 +56,7 @@
     </v-row>
 
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -72,49 +72,60 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/client/ui/properties/forms/shared/lists/createListOfProperties';
 
-export default {
-  mixins: [propertyFormMixin],
-  meteor: {
-    abilityScoreList() {
-      return createListOfProperties({
-        type: 'attribute',
-        attributeType: 'ability',
-      });
-    },
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  methods: {
-    changeAbility(value, ack) {
-      this.$emit('change', { path: ['ability'], value, ack })
-      const oldValue = this.model.ability;
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-      const attackRollBonus = this.model.attackRollBonus?.calculation;
-      if (
-        value &&
-        (!attackRollBonus ||
-        attackRollBonus === `proficiencyBonus + ${oldValue}.modifier`)
-      ) {
-        this.$emit('change', {
-          path: ['attackRollBonus', 'calculation'],
-          value: `proficiencyBonus + ${value}.modifier`
-        });
-      }
+const emit = defineEmits(['change']);
 
-      const dc = this.model.dc?.calculation;
-      if (
-        value &&
-        (!dc || 
-        dc === `8 + proficiencyBonus + ${oldValue}.modifier`)
-      ) {
-        this.$emit('change', {
-          path: ['dc', 'calculation'],
-          value: `8 + proficiencyBonus + ${value}.modifier`
-        });
-      }
-    }
+const abilityScoreList = autorun(() => {
+  return createListOfProperties({
+    type: 'attribute',
+    attributeType: 'ability',
+  });
+}).result;
+
+function changeAbility(value, ack) {
+  emit('change', { path: ['ability'], value, ack });
+  const oldValue = props.model.ability;
+
+  const attackRollBonus = props.model.attackRollBonus?.calculation;
+  if (
+    value &&
+    (!attackRollBonus ||
+    attackRollBonus === `proficiencyBonus + ${oldValue}.modifier`)
+  ) {
+    emit('change', {
+      path: ['attackRollBonus', 'calculation'],
+      value: `proficiencyBonus + ${value}.modifier`
+    });
   }
-};
+
+  const dc = props.model.dc?.calculation;
+  if (
+    value &&
+    (!dc || 
+    dc === `8 + proficiencyBonus + ${oldValue}.modifier`)
+  ) {
+    emit('change', {
+      path: ['dc', 'calculation'],
+      value: `8 + proficiencyBonus + ${value}.modifier`
+    });
+  }
+}
 </script>

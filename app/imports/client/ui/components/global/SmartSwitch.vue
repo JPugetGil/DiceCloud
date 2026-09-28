@@ -1,18 +1,52 @@
-<template lang="html">
+<template>
   <v-switch
     v-bind="$attrs"
     :loading="loading"
     :error-messages="errors"
-    :input-value="safeValue"
+    :model-value="safeValue"
     :disabled="isDisabled"
-    @change="change"
+    @update:model-value="change"
   />
 </template>
 
-<script lang="js">
-  import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { useSmartInput } from '/imports/client/ui/components/global/useSmartInput';
 
-  export default {
-    mixins: [SmartInput],
-  };
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  modelValue: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  disabled: Boolean,
+  debounce: {
+    type: Number,
+    default: undefined,
+  },
+  rules: {
+    type: Array,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['update:modelValue', 'input', 'change']);
+
+const {
+  loading,
+  errors,
+  safeValue,
+  isDisabled,
+  change,
+} = useSmartInput(props, emit);
 </script>

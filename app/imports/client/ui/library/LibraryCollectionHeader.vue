@@ -1,22 +1,21 @@
-<template lang="html">
+<template>
   <v-list-item
     style="min-height: 60px; min-width: 0;"
     class="px-0 font-weight-bold"
-    :class="isSelected && !disabled && 'primary--text v-list-item--active'"
+    :class="isSelected && !disabled && 'text-primary v-list-item--active'"
   >
-    <v-list-item-action
-      v-if="selection && !singleSelect"
-    >
+    <template #prepend>
       <v-checkbox
+        v-if="selection && !singleSelect"
         :disabled="disabled"
-        :input-value="disabled || isSelected"
-        @change="e => $emit('select', e)"
+        :model-value="disabled || isSelected"
+        @update:model-value="e => emit('select', e)"
         @click.stop
       />
-    </v-list-item-action>
-    <v-list-item-avatar v-else>
-      <shared-icon :model="model" />
-    </v-list-item-avatar>
+      <v-avatar v-else>
+        <shared-icon :model="model" />
+      </v-avatar>
+    </template>
     <v-list-item-title class="d-flex align-center">
       <div
         class="text-truncate text-no-wrap"
@@ -28,6 +27,7 @@
         <v-spacer />
         <v-btn
           v-if="canEdit"
+          variant="text"
           icon
           style="flex-grow: 0"
           @click.stop="editLibraryCollection"
@@ -37,6 +37,7 @@
           </v-icon>
         </v-btn>
         <v-btn
+          variant="text"
           icon
           style="flex-grow: 0"
           :to="{name: 'libraryCollection', params: {id: model._id}}"
@@ -51,48 +52,41 @@
   </v-list-item>
 </template>
 
-<script lang="js">
-import { assertDocEditPermission } from '/imports/api/sharing/sharingPermissions';
-import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
+<script setup lang="js">
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
+import { hasDocEditPermission } from '/imports/api/sharing/sharingPermissions';
 
-export default {
-  components: {
-    SharedIcon,
+import SharedIcon from '/imports/client/ui/components/SharedIcon.vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    open: Boolean,
-    selection: Boolean,
-    singleSelect: Boolean,
-    dense: Boolean,
-    isSelected: Boolean,
-    disabled: Boolean,
-  },
-  data(){return {
-    renaming: false,
-  }},
-  meteor: {
-    canEdit(){
-      try {
-        assertDocEditPermission(this.model, Meteor.userId());
-        return true
-      } catch (e) {
-        return false;
-      }
-    }
-  },
-  methods: {
-    editLibraryCollection() {
-      this.$store.commit('pushDialogStack', {
-        data: { _id: this.model._id},
-        component: 'library-collection-edit-dialog',
-        elementId: `library-collection-${this.model._id}`,
-      });
-    }
-  }
+  open: Boolean,
+  selection: Boolean,
+  singleSelect: Boolean,
+  dense: Boolean,
+  isSelected: Boolean,
+  disabled: Boolean,
+});
+
+const emit = defineEmits(['select']);
+
+
+
+const canEdit = autorun(() => hasDocEditPermission(props.model, Meteor.user())).result;
+
+function editLibraryCollection() {
+  dialogStackStore.pushDialogStack({
+    data: { _id: props.model._id},
+    component: 'library-collection-edit-dialog',
+    elementId: `library-collection-${props.model._id}`,
+  });
 }
 </script>
 

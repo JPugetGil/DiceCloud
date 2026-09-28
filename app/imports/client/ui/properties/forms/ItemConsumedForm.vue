@@ -1,16 +1,16 @@
-<template lang="html">
+<template>
   <v-row dense>
     <v-col
       cols="12"
       md="6"
     >
       <text-field
-        label="Item"
-        hint="The item tag that will be consumed"
+        :label="$t('forms.itemConsumed.item')"
+        :hint="$t('forms.itemConsumed.itemHint')"
         style="flex-basis: 300px;"
         :value="model.tag"
         :error-messages="errors.tag"
-        @change="change('tag', ...arguments)"
+        @change="(value, ack) => change('tag', value, ack)"
       />
     </v-col>
     <v-col
@@ -18,8 +18,8 @@
       md="6"
     >
       <computed-field
-        label="Quantity"
-        hint="How many will be consumed"
+        :label="$t('forms.quantity')"
+        :hint="$t('forms.itemConsumed.quantityHint')"
         style="flex-basis: 300px;"
         :model="model.quantity"
         :error-messages="errors.quantity"
@@ -30,10 +30,26 @@
   </v-row>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
 
-export default {
-  mixins: [propertyFormMixin],
-};
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>

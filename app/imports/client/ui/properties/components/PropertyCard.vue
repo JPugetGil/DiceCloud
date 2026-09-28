@@ -1,30 +1,26 @@
-<template
-  lang="html"
-  functional
->
+<template>
   <component
-    :is="model.type"
+    :is="components[model.type]"
     v-if="model && components[model.type]"
   />
   <v-card v-else-if="model">
     <v-card-title class="text--error">
-      A property card for the {{ model.type }} isn't defined. You should report this error.
+      {{ $t('cards.undefinedCard', { type: model.type }) }}
     </v-card-title>
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
 import ActionCard from '/imports/client/ui/properties/components/actions/ActionCard.vue';
 
-export default {
-  components: {
-    action: ActionCard,
+const components = {
+  action: ActionCard,
+};
+
+defineProps({
+  model: {
+    type: Object,
+    default: undefined,
   },
-  props: {
-    model: {
-      type: Object,
-      default: undefined,
-    },
-  },
-}
+});
 </script>

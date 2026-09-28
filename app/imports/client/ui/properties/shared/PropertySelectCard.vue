@@ -1,22 +1,22 @@
-<template lang="html">
+<template>
   <v-card
     hover
     style="height: 100%; overflow: hidden;"
-    :class="{'accent--text': disabled}"
+    :class="{'text-accent': disabled}"
     :disabled="disabled"
-    @click="e => $emit('click', e)"
+    @click="e => emit('click', e)"
   >
     <v-card-title
       class="subtitle pb-3"
       style="text-align: center;"
     >
       <v-avatar tile>
-        <v-icon x-large>
+        <v-icon size="x-large">
           {{ property.icon }}
         </v-icon>
       </v-avatar>
       <span class="ml-3">
-        {{ property.name }}
+        {{ getPropertyName(type) || property.name }}
       </span>
     </v-card-title>
     <v-expand-transition>
@@ -24,7 +24,7 @@
         v-if="showPropertyHelp"
         class="mx-4"
       >
-        {{ property.helpText }}
+        {{ getPropertyHelpText(type) || property.helpText }}
         <div style="height: 16px;" />
         <div
           v-if="property.examples"
@@ -38,22 +38,30 @@
   </v-card>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    property: {
-      type: Object,
-      required: true,
-    },
-    disabled: Boolean,
+<script setup>
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
+import { getPropertyName, getPropertyHelpText } from '/imports/client/ui/i18n/propertyNames';
+
+defineProps({
+  property: {
+    type: Object,
+    required: true,
   },
-  meteor: {
-    showPropertyHelp(){
-      let user = Meteor.user();
-      return !(user?.preferences?.hidePropertySelectDialogHelp)
-    },
+  // The property type, for its name and help in the interface's language
+  type: {
+    type: String,
+    default: undefined,
   },
-}
+  disabled: Boolean,
+});
+
+const emit = defineEmits(['click']);
+
+const showPropertyHelp = autorun(() => {
+  const user = Meteor.user();
+  return !(user?.preferences?.hidePropertySelectDialogHelp);
+}).result;
 </script>
 
 <style lang="css" scoped>

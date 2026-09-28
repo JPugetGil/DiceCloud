@@ -21,19 +21,19 @@ const equipItem = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ _id, equipped }) {
-    let item = CreatureProperties.findOne(_id);
+  async run({ _id, equipped }) {
+    let item = await CreatureProperties.findOneAsync(_id);
     if (item.type !== 'item') throw new Meteor.Error('wrong type',
       'Equip and unequip can only be performed on items');
-    let creature = getRootCreatureAncestor(item);
-    assertEditPermission(creature, this.userId);
-    CreatureProperties.update(_id, {
+    let creature = await getRootCreatureAncestor(item);
+    await assertEditPermission(creature, this.userId);
+    await CreatureProperties.updateAsync(_id, {
       $set: { equipped, dirty: true },
     }, {
       selector: { type: 'item' },
     });
     let tag = equipped ? BUILT_IN_TAGS.equipment : BUILT_IN_TAGS.carried;
-    let parentRef = getParentRefByTag(creature._id, tag);
+    let parentRef = await getParentRefByTag(creature._id, tag);
     if (!parentRef) parentRef = { id: creature._id, collection: 'creatures' };
 
     organizeDoc.callAsync({

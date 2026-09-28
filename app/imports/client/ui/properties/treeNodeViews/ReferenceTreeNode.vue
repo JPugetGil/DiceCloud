@@ -1,11 +1,11 @@
-<template lang="html">
-  <div class="layout align-center justify-start">
+<template>
+  <div class="d-flex flex-1-1 align-center justify-start">
     <property-icon
       v-if="!hideIcon"
       class="mr-2"
       :model="model"
       :color="model.color"
-      :class="selected && 'primary--text'"
+      :class="selected && 'text-primary'"
     />
     <tree-node-view
       v-if="model.cache && model.cache.node && model.cache.node.type !== 'reference'"
@@ -20,14 +20,31 @@
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { computed, defineAsyncComponent } from 'vue';
+import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
+import PROPERTIES from '/imports/constants/PROPERTIES';
 
-export default {
-  name: 'ReferenceTreeNode',
-  mixins: [treeNodeViewMixin],
-  beforeCreate () {
-    this.$options.components.TreeNodeView = require('/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue').default
+// TreeNodeView reaches this component back through treeNodeViewIndex; an async
+// component breaks that circular import the way Vue 3 documents
+const TreeNodeView = defineAsyncComponent(
+  () => import('/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue')
+);
+
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-}
+  selected: Boolean,
+  hideIcon: Boolean,
+});
+
+const title = computed(() => {
+  const model = props.model;
+  if (!model) return;
+  if (model.name) return model.name;
+  const prop = PROPERTIES[model.type];
+  return prop && prop.name;
+});
 </script>

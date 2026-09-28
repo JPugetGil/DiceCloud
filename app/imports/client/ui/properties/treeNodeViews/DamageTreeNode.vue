@@ -1,42 +1,46 @@
-<template lang="html">
+<template>
   <div>
     <div
-      class="layout align-center justify-start"
+      class="d-flex flex-1-1 align-center justify-start"
       style="height:40px;"
     >
       <v-icon
         v-if="!hideIcon"
         class="mr-2"
         :color="model.color"
-        :class="selected && 'primary--text'"
+        :class="selected && 'text-primary'"
       >
         {{ icon }}
       </v-icon>
       <div class="text-no-wrap text-truncate">
-        {{ model.amount && model.amount.value }}
-        {{ model.damageType }}<span v-if="model.damageType !== 'healing'">&nbsp;damage</span>
-        <span v-if="model.target === 'self'">to self</span>
+        {{ model.damageType === 'healing'
+          ? $t('treeNodes.healing', { amount: model.amount && model.amount.value })
+          : $t('treeNodes.damage', { amount: model.amount && model.amount.value, type: damageTypeName(model.damageType) }) }}
+        <span v-if="model.target === 'self'">{{ $t('treeNodes.toSelf') }}</span>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="js">
-import treeNodeViewMixin from '/imports/client/ui/properties/treeNodeViews/treeNodeViewMixin';
+<script setup>
+import { damageTypeName } from '/imports/client/ui/i18n';
+import { computed } from 'vue';
 import { getPropertyIcon } from '/imports/constants/PROPERTIES';
-import InlineEffect from '../components/effects/InlineEffect.vue';
 
-export default {
-  components: {InlineEffect},
-  mixins: [treeNodeViewMixin],
-  computed: {
-    icon() {
-      if (this.model.damageType === 'healing') {
-        return 'mdi-hospital-box-outline'
-      } else {
-        return getPropertyIcon('damage');
-      }
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    default: () => ({}),
   },
-}
+  selected: Boolean,
+  hideIcon: Boolean,
+});
+
+const icon = computed(() => {
+  if (props.model.damageType === 'healing') {
+    return 'mdi-hospital-box-outline'
+  } else {
+    return getPropertyIcon('damage');
+  }
+});
 </script>

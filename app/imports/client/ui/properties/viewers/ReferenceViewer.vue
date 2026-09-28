@@ -1,19 +1,19 @@
-<template lang="html">
+<template>
   <div class="reference-viewer">
     <v-row>
       <property-field
         v-if="model.cache.error"
-        name="Error"
+        :name="$t('viewers.error')"
         :value="model.cache.error"
       />
       <property-field
         v-else-if="model.ref && model.ref.id"
-        name="Linked property"
+        :name="$t('viewers.linkedProperty')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">
           <v-btn
-            plain
+            variant="plain"
             class="normal-text"
             style="min-width: 100%; min-height: 100%;"
             :to="(model.cache.library && model.cache.library.id) ? `/library/${model.cache.library.id}` : undefined"
@@ -31,12 +31,12 @@
       </property-field>
       <property-field
         v-if="model.cache.library && model.cache.library.name"
-        name="Library"
+        :name="$t('forms.library')"
         :cols="{cols: 12, md: 6}"
       >
         <div style="overflow: hidden; min-width: 100%; min-height: 100%;">
           <v-btn
-            plain
+            variant="plain"
             height="56"
             class="normal-text"
             style="min-width: 100%; min-height: 100%;"
@@ -52,18 +52,18 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
-import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  components: {
-    TreeNodeView,
-    OutlinedInput,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-}
+});
+
+defineEmits(['select-sub-property']);
 </script>
 
 <style lang="css">

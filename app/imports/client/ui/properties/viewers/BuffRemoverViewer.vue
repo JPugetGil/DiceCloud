@@ -1,23 +1,23 @@
-<template lang="html">
+<template>
   <div class="buff-remover-viewer">
     <v-row dense>
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
       <template v-if="!model.targetParentBuff">
         <property-field
           v-if="model.target === 'self'"
-          name="Target"
-          value="Self"
+          :name="$t('viewers.target')"
+          :value="$t('targets.self')"
         />
         <property-field
-          name="When applied"
-          :value="model.removeAll ? 'Remove all matching buffs' : 'Remove 1 matching buff'"
+          :name="$t('viewers.whenApplied')"
+          :value="model.removeAll ? $t('viewers.removeAllMatching') : $t('viewers.removeOneMatching')"
         />
         <property-field
-          name="Targeted tags"
+          :name="$t('viewers.targetedTags')"
         >
           <div>
             <div class="d-flex flex-wrap">
@@ -53,32 +53,16 @@
   </div>
 </template>
 
-<script lang="js">
-  import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
-  import numberToSignedString from '../../../../api/utility/numberToSignedString';
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-  export default {
-    mixins: [propertyViewerMixin],
-    computed: {
-      reset(){
-        let reset = this.model.reset
-        if (reset === 'shortRest'){
-          return `Reset${
-            this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a short rest`;
-        } else if (reset === 'longRest'){
-          return `Reset${
-            this.model.resetMultiplier && ' x' + this.model.resetMultiplier
-          } on a long rest`;
-        } else {
-          return undefined;
-        }
-      }
-    },
-    methods: {
-      numberToSignedString,
-    }
-  }
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
+
 </script>
 
 <style lang="css" scoped>

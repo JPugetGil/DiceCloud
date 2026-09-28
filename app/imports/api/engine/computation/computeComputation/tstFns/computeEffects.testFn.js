@@ -1,7 +1,6 @@
 import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
 import { assert } from 'chai';
 import computeCreatureComputation from '../../computeCreatureComputation';
-import clean from '../../utility/cleanProp.testFn';
 import propsFromForest from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 
 export default async function () {

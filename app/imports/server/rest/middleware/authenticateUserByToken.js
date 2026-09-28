@@ -1,47 +1,48 @@
-var Fiber = Npm.require('fibers');
-import { RestMiddleware  } from 'meteor/simple:json-routes';
+import handleErrorAsJson from './handleErrorAsJson';
 
 /**
- * SimpleRest middleware for validating a Meteor.user's login token
+ * Middleware for validating a Meteor.user's login token
  *
  * This middleware must be processed after the request.token has been set to a
  * valid login token for a Meteor.user account (from a separate layer of
  * middleware). If authentication is successful, the request.userId will be set
  * to the ID of the authenticated user. An invalid token will result in a error.
  *
+ * Meteor 2 ran the body inside a Fiber so that the collection read below could
+ * be synchronous. Meteor 3 has no fibers, so the lookup is awaited instead and
+ * the middleware resolves through the returned promise.
+ *
  * @middleware
  */
 const authenticateMeteorUserByToken =
-  function (req, res, next) {
-    Fiber(function () {
-      let userId;
-      try {
-        userId = getUserIdFromAuthToken(req.authToken);
-      } catch (e){
-        RestMiddleware.handleErrorAsJson(e, req, res, next);
-        return;
-      }
-      if (userId) {
-        req.userId = userId;
-      }
+  async function (req, res, next) {
+    let userId;
+    try {
+      userId = await getUserIdFromAuthToken(req.authToken);
+    } catch (error) {
+      handleErrorAsJson(error, req, res, next);
+      return;
+    }
+    if (userId) {
+      req.userId = userId;
+    }
 
-      next();
-    }).run();
+    next();
   };
 
 /**
  * Retrieves the ID of the Meteor.user that the given auth token belongs to
  *
  * @param token An unhashed auth token
- * @returns {String} The ID of the authenticated Meteor.user, or null if token
- *     is invalid
+ * @returns {Promise<String>} The ID of the authenticated Meteor.user, or null
+ *     if token is invalid
  */
-function getUserIdFromAuthToken(token) {
+async function getUserIdFromAuthToken(token) {
   if (!token) {
     return null;
   }
 
-  var user = Meteor.users.findOne({
+  const user = await Meteor.users.findOneAsync({
     'services.resume.loginTokens.hashedToken': Accounts._hashLoginToken(token),
   });
   if (user) {

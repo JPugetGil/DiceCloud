@@ -4,7 +4,7 @@ import propsFromForest, { ForestProp } from '/imports/api/engine/computation/uti
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import computeCreature from '/imports/api/engine/computeCreature';
-import { loadCreature, unloadAllCreatures } from '/imports/api/engine/loadCreatures';
+import { loadCreature, loadedCreatures, unloadAllCreatures } from '/imports/api/engine/loadCreatures';
 import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { LogContent, Mutation, Removal, Update } from '/imports/api/engine/action/tasks/TaskResult';
@@ -14,16 +14,16 @@ import inputProvider from './userInput/inputProviderForTests.testFn';
  */
 export async function removeAllCreaturesAndProps() {
   if (Meteor.isServer) {
-    unloadAllCreatures();
+    await unloadAllCreatures();
     return Promise.all([
       CreatureProperties.removeAsync({}),
       Creatures.removeAsync({}),
       CreatureVariables.removeAsync({}),
     ]);
   } else {
-    CreatureProperties.find({}).forEach(doc => CreatureProperties.remove(doc._id));
-    Creatures.find({}).forEach(doc => Creatures.remove(doc._id));
-    CreatureVariables.find({}).forEach((doc: any) => CreatureVariables.remove(doc._id));
+    await CreatureProperties.find({}).forEachAsync(async doc => await CreatureProperties.removeAsync(doc._id));
+    await Creatures.find({}).forEachAsync(async doc => await Creatures.removeAsync(doc._id));
+    await CreatureVariables.find({}).forEachAsync(async (doc: any) => await CreatureVariables.removeAsync(doc._id));
   }
 }
 
@@ -44,8 +44,13 @@ export async function createTestCreature(creature: TestCreature) {
     return CreatureProperties.insertAsync(prop);
   });
   await Promise.all(propsInserted);
+  // Compute before loading. Meteor 3 delivers observer changes asynchronously,
+  // so a cache loaded first still holds pre-computation values when the test
+  // runs, and the props' dirty flags start background recomputes that overlap
+  // the following tests.
+  await computeCreature(creature._id);
   loadCreature(creature._id, dummySubscription);
-  await computeCreature(creature._id,);
+  await loadedCreatures.get(creature._id)?.ready;
 }
 
 export type TestCreature = {

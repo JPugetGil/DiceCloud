@@ -126,59 +126,38 @@ const expectedDownMergeUpdate = {
   }
 };
 
-describe('dbv2 Migrate library nodes', function () {
-  return;
-  it('Migrates attacks up', function () {
+describe.skip('dbv2 Migrate library nodes', function () {
+  it('Migrates attacks up', async function () {
     const collection = stubCollection();
-    migratePropUp(exampleAttack, collection);
+    await migratePropUp(exampleAttack, collection);
     const { query, update } = collection.result();
     assert.deepEqual(query, { _id: 'vw23EnJwBRcXEJg7i' }, 'The query should match the id of the given prop');
     assert.deepEqual(update, expectedAttackUpdate, 'The update should match the expected update');
   });
-  it('Migrates props without tags up', function () {
+  it('Migrates props without tags up', async function () {
     const collection = stubCollection();
-    migratePropUp(emptyFolderExample, collection);
+    await migratePropUp(emptyFolderExample, collection);
     const { query, update, timesFind, timesUpdate } = collection.result();
     assert.isUndefined(query, 'There should be no query on a prop with no tags');
     assert.equal(timesFind, 0, 'Find should be called zero times on a prop with no tags');
     assert.isUndefined(update, 'There should be no update on a prop with no tags');
     assert.equal(timesUpdate, 0, 'Update should be called zero times on a prop with no tags');
   });
-  it('Migrates slot fillers up', function () {
+  it('Migrates slot fillers up', async function () {
     const collection = stubCollection();
-    migratePropUp(exampleSlotFiller, collection);
+    await migratePropUp(exampleSlotFiller, collection);
     const { query, update } = collection.result();
     assert.deepEqual(query, { _id: 'DXPYsHKF6888h3hZs' }, 'The query should match the id of the given prop');
     assert.deepEqual(update, expectedSlotFillerUpdate, 'The update should match the expected update');
   });
-  it('Merges tags when down migrating', function () {
+  it('Merges tags when down migrating', async function () {
     const collection = stubCollection();
-    migratePropDown(DownMergeExample, collection);
+    await migratePropDown(DownMergeExample, collection);
     const { query, update } = collection.result();
     assert.deepEqual(query, { _id: 'DXPYsHKF6W8Hh3hZs' }, 'The query should match the id of the given prop');
     assert.deepEqual(update, expectedDownMergeUpdate, 'The update should match the expected update');
   });
 });
-
-// Create a stub for bulk udateOne operations that accepts a single op
-function stubBulk() {
-  let query, update, timesFind = 0, timesUpdate = 0;
-  return {
-    find(inputQuery) {
-      query = inputQuery;
-      timesFind += 1;
-      return {
-        updateOne(inputUpdate) {
-          update = inputUpdate;
-          timesUpdate += 1;
-        }
-      }
-    },
-    result() {
-      return { query, update, timesFind, timesUpdate }
-    }
-  }
-}
 
 function stubCollection() {
   let query, update, timesFind = 0, timesUpdate = 0;

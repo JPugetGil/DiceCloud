@@ -1,15 +1,16 @@
-<template lang="html">
+<template>
   <outlined-input
     :name="label"
     class="mb-6 pt-1"
   >
     <v-btn-toggle
       v-bind="$attrs"
+      class="smart-toggle-group"
       mandatory
       tile
       group
-      :value="safeValue"
-      color="accent"
+      :model-value="safeValue"
+      color="primary"
       style="flex-wrap: wrap;"
     >
       <v-btn
@@ -17,14 +18,14 @@
         :key="`toggle-option-${i}`"
         :value="option.value"
         :disabled="isDisabled || (clickedValue != option.value && loading)"
-        :plain="clickedValue != option.value && loading"
+        :variant="clickedValue != option.value && loading ? 'plain' : undefined"
         :loading="clickedValue == option.value && loading"
         height="42"
-        v-on="(value == option.value) ? {} : { click() { click(option.value) } }"
+        v-on="((modelValue ?? value) == option.value) ? {} : { click: () => click(option.value) }"
       >
         <v-icon
           v-if="option.icon"
-          left
+          start
         >
           {{ option.icon }}
         </v-icon>
@@ -34,7 +35,7 @@
     <v-expand-transition>
       <div
         v-if="errors.length"
-        class="pa-2 error--text"
+        class="pa-2 text-error"
       >
         {{ errors.join('\n\n') }}
       </div>
@@ -42,35 +43,62 @@
   </outlined-input>
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { ref } from 'vue';
+import { useSmartInput, smartInputProps } from '/imports/client/ui/components/global/useSmartInput';
 import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
 
-export default {
-  components: {
-    OutlinedInput,
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  ...smartInputProps,
+  label: {
+    type: String,
+    default: '',
   },
-  mixins: [SmartInput],
-  props: {
-    label: {
-      type: String,
-      default: '',
-    },
-    options: {
-      type: Array,
-      default: () => [],
-    }
+  options: {
+    type: Array,
+    default: () => [],
   },
-  data() {
-    return {
-      clickedValue: undefined,
-    };
-  },
-  methods: {
-    click(val) {
-      this.clickedValue = val;
-      this.change(val);
-    },
-  }
-};
+});
+
+const emit = defineEmits(['change', 'input', 'update:modelValue']);
+
+const {
+  loading,
+  safeValue,
+  isDisabled,
+  errors,
+  change,
+} = useSmartInput(props, emit);
+
+const clickedValue = ref(undefined);
+
+function click(val) {
+  clickedValue.value = val;
+  change(val);
+}
 </script>
+
+<style scoped>
+/*
+ * Options wrap onto more rows when they do not fit (narrow screens, long
+ * labels). Vuetify 3's button group has a fixed height and hides overflow, which
+ * cut every row after the first; Vuetify 2's toggle grew with its content.
+ */
+.v-btn-group.smart-toggle-group {
+  height: auto;
+}
+
+/*
+ * The selected option is marked by its fill. Vuetify also lays its "activated"
+ * overlay on it, which lightened the light theme's red under white text to
+ * 4.4:1; without it the text is 6.6:1 (light) and 9.8:1 (dark). Hover and focus
+ * feedback are kept.
+ */
+.smart-toggle-group :deep(.v-btn--active:not(:hover):not(:focus-visible) > .v-btn__overlay) {
+  opacity: 0;
+}
+</style>

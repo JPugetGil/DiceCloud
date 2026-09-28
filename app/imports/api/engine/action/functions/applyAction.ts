@@ -35,19 +35,6 @@ export default async function applyAction(action: EngineAction, userInput: Input
   action._stepThrough = stepThrough;
   action._isSimulation = simulate;
   action.taskCount = 0;
-  // Get the target Ids from the user input if they are expected and not found
-  if (
-    !action.task.targetIds?.length
-    && action.tabletopId
-    && 'prop' in action.task
-    && 'target' in action.task.prop
-    && (
-      action.task.prop?.target === 'singleTarget' ||
-      action.task.prop?.target === 'multipleTargets'
-    )
-  ) {
-    action.task.targetIds = await (userInput.targetIds(action.task.prop.target));
-  }
 
   await applyTask(action, action.task, userInput);
   return action;

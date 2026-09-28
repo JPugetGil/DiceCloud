@@ -1,9 +1,8 @@
-<template lang="html">
+<template>
   <div class="tag-targeting">
-    <v-layout
-      align-center
-    >
+    <div class="d-flex flex-1-1 align-center">
       <v-btn
+        variant="text"
         icon
         style="margin-top: -30px;"
         class="mr-2"
@@ -16,7 +15,7 @@
         </v-icon>
       </v-btn>
       <smart-combobox
-        label="Tags Required"
+        :label="$t('forms.tagsRequired')"
         :hint="tagHint"
         class="mb-2"
         multiple
@@ -25,27 +24,27 @@
         persistent-hint
         :value="model[tagField]"
         :error-messages="errors[tagField]"
-        @change="change(tagField, ...arguments)"
+        @change="(value, ack) => change(tagField, value, ack)"
       />
-    </v-layout>
+    </div>
     <v-slide-x-transition
       group
     >
       <div
         v-for="(extras, i) in model[extraTagsField]"
         :key="extras._id"
-        class="target-tags layout align-center justify-space-between"
+        class="target-tags d-flex flex-1-1 align-center justify-space-between"
       >
         <smart-select
-          label="Operation"
+          :label="$t('forms.operation')"
           style="width: 90px; flex-grow: 0;"
-          :items="['OR', 'NOT']"
+          :items="[{ title: $t('common.or'), value: 'OR' }, { title: $t('common.not'), value: 'NOT' }]"
           :value="extras.operation"
           :error-messages="errors[extraTagsField] && errors[extraTagsField][i]"
-          @change="change([extraTagsField, i, 'operation'], ...arguments)"
+          @change="(value, ack) => change([extraTagsField, i, 'operation'], value, ack)"
         />
         <smart-combobox
-          label="Tags"
+          :label="$t('forms.tags')"
           :hint="extras.operation === 'OR' ? orHint : notHint"
           class="mx-2 mb-2"
           multiple
@@ -53,9 +52,10 @@
           deletable-chips
           persistent-hint
           :value="extras.tags"
-          @change="change([extraTagsField, i, 'tags'], ...arguments)"
+          @change="(value, ack) => change([extraTagsField, i, 'tags'], value, ack)"
         />
         <v-btn
+          variant="text"
           icon
           style="margin-top: -30px;"
           @click="$emit('pull', {path: [extraTagsField, i]})"
@@ -67,75 +67,74 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { t } from '/imports/client/ui/i18n';
+import { ref, computed } from 'vue';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 
-export default {
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    errors: {
-      type: Object,
-      required: true,
-    },
-    tagField: {
-      type: String,
-      default: 'targetTags',
-    },
-    extraTagsField: {
-      type: String,
-      default: 'extraTags',
-    },
-    tagHint: {
-      type: String,
-      default: 'Applied to properties that have all the listed tags',
-    },
-    orHint: {
-      type: String,
-      default: 'Also applied to properties that have all of these tags',
-    },
-    notHint: {
-      type: String,
-      default: 'Ignore properties that have any of these tags',
-    },
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  data() {
-    return {
-      addExtraTagsLoading: false,
-    }
+  errors: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    maxTags() {
-      if (!this.model?.type) return 0;
-      const schema = propertySchemasIndex[this.model.type];
-      return schema.get(this.extraTagsField, 'maxCount');
-    },
-    extraTagsFull() {
-      if (!this.model[this.extraTagsField]) return false;
-      return this.model[this.extraTagsField].length >= this.maxTags;
-    },
+  tagField: {
+    type: String,
+    default: 'targetTags',
   },
-  methods: {
-    addExtraTags() {
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: [this.extraTagsField],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: () => this.addExtraTagsLoading = false,
-      });
-    },
-    change(path, value, ack) {
-      if (!Array.isArray(path)) {
-        path = [path];
-      }
-      this.$emit('change', { path, value, ack });
-    },
+  extraTagsField: {
+    type: String,
+    default: 'extraTags',
   },
+  tagHint: {
+    type: String,
+    default: () => t('forms.tagTargeting.tagHint'),
+  },
+  orHint: {
+    type: String,
+    default: () => t('forms.tagTargeting.orHint'),
+  },
+  notHint: {
+    type: String,
+    default: () => t('forms.tagTargeting.notHint'),
+  },
+});
+
+const emit = defineEmits(['pull', 'push', 'change']);
+
+const addExtraTagsLoading = ref(false);
+
+const maxTags = computed(() => {
+  if (!props.model?.type) return 0;
+  const schema = propertySchemasIndex[props.model.type];
+  return schema.get(props.extraTagsField, 'maxCount');
+});
+
+const extraTagsFull = computed(() => {
+  if (!props.model[props.extraTagsField]) return false;
+  return props.model[props.extraTagsField].length >= maxTags.value;
+});
+
+function addExtraTags() {
+  addExtraTagsLoading.value = true;
+  emit('push', {
+    path: [props.extraTagsField],
+    value: {
+      _id: Random.id(),
+      operation: 'OR',
+      tags: [],
+    },
+    ack: () => addExtraTagsLoading.value = false,
+  });
+}
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>

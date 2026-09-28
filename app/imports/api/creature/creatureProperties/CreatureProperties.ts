@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
 import ChildSchema from '/imports/api/parenting/ChildSchema';
 import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';

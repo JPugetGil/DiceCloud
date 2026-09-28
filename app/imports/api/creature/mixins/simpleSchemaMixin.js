@@ -1,6 +1,6 @@
 // Copied from https://github.com/sethjgore/meteor-simple-schema-mixin
 // and updated to simpl-schema npm package
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 
 export default function simpleSchemaMixin(methodOptions) {
   // If the user didn't give us a schema and they did give us a validate, assume
@@ -48,4 +48,4 @@ export default function simpleSchemaMixin(methodOptions) {
   }
   newOptions.validate = simpleSchema.validator(newOptions.schemaValidatorOptions);
   return newOptions;
-};
+}

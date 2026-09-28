@@ -1,30 +1,33 @@
-<template lang="html">
+<template>
   <div class="saving-throw-viewer">
     <v-row dense>
       <property-field
-        name="DC"
+        :name="$t('check.dc')"
         large
         center
         :calculation="model.dc"
       />
       <property-field
-        name="Save"
+        :name="$t('forms.save')"
         mono
         :value="model.stat"
       />
       <property-field
         v-if="model.target === 'self'"
-        name="Target"
-        value="Self"
+        :name="$t('viewers.target')"
+        :value="$t('targets.self')"
       />
     </v-row>
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-}
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>

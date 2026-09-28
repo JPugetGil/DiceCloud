@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 
@@ -15,9 +15,9 @@ const removeEmail = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 5000,
   },
-  run({ email }) {
+  async run({ email }) {
     const userId = Meteor.userId();
-    const user = Meteor.users.findOne(userId);
+    const user = await Meteor.users.findOneAsync(userId);
     if (!user) throw new Meteor.Error('No user',
       'You must be logged in to remove an email address');
     if (!user.emails) {
@@ -29,7 +29,7 @@ const removeEmail = new ValidatedMethod({
         'You may not remove the last email address from your account');
     }
     if (Meteor.isServer) {
-      Accounts.removeEmail(userId, email);
+      await Accounts.removeEmail(userId, email);
     }
   }
 });

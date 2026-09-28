@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="roll-form">
     <v-row dense>
       <v-col
@@ -6,12 +6,12 @@
         md="6"
       >
         <text-field
-          label="Variable name"
+          :label="$t('forms.variableName')"
           :value="model.variableName"
           style="flex-basis: 300px;"
-          hint="Use this name in action formulae to refer to the result of this roll"
+          :hint="$t('forms.roll.variableNameHint')"
           :error-messages="errors.variableName"
-          @change="change('variableName', ...arguments)"
+          @change="(value, ack) => change('variableName', value, ack)"
         />
       </v-col>
       <v-col
@@ -19,8 +19,8 @@
         md="6"
       >
         <computed-field
-          label="Roll"
-          hint="The calculation that will be evaluated when the roll is triggered by an action. The result will be saved as the variable name in the context of the roll."
+          :label="$t('forms.roll.roll')"
+          :hint="$t('forms.roll.rollHint')"
           :model="model.roll"
           :error-messages="errors.roll"
           @change="({path, value, ack}) =>
@@ -29,12 +29,12 @@
       </v-col>
     </v-row>
     <form-sections type="roll">
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -42,27 +42,32 @@
   </div>
 </template>
 
-<script lang="js">
-import FormSection, { FormSections } from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    FormSection,
-    FormSections,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data() {
-    return {
-      addResultLoading: false,
-    }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  methods: {
-    acknowledgeAddResult() {
-      this.addResultLoading = false;
-    },
-  },
-};
+});
+
+const emit = defineEmits(['change']);
+
+
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>
 
 <style lang="css" scoped>

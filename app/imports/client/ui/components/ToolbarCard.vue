@@ -1,18 +1,17 @@
-<template lang="html">
+<template>
   <v-card
     :hover="hasClickListener"
     class="toolbar-card"
     :class="{'transparent-toolbar': transparentToolbar, hovering}"
     :elevation="hovering ? 8 : undefined"
-    @click.native="$emit('click')"
+    @click="$emit('click')"
   >
     <v-toolbar
       flat
       :style="`transform: none; ${hasToolbarClickListener ? 'cursor: pointer;' : ''}`"
       :class="{}"
       :color="transparentToolbar ? undefined : color"
-      :dark="transparentToolbar ? undefined : isDark"
-      :light="transparentToolbar ? undefined : !isDark"
+      :theme="transparentToolbar ? undefined : isDark ? 'dark' : 'light'"
       @click="$emit('toolbarclick')"
       @mouseover="hoverToolbar(true)"
       @mouseleave="hoverToolbar(false)"
@@ -26,52 +25,40 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, useAttrs } from 'vue';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 import getThemeColor from '/imports/client/ui/utility/getThemeColor';
 import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
 
-export default {
-  components: {
-    CardHighlight,
-  },
-  props: {
-    color: {
-      type: String,
-      default() {
-        return getThemeColor('secondary');
-      },
-    },
-    transparentToolbar: Boolean,
-  },
-  data() {
-    return {
-      hovering: false,
-    }
-  },
-  computed: {
-    isDark() {
-      return isDarkColor(this.color);
-    },
-    hasClickListener() {
-      return this.$listeners && !!this.$listeners.click;
-    },
-    hasToolbarClickListener() {
-      return this.$listeners && !!this.$listeners.toolbarclick;
+
+defineEmits(['click', 'toolbarclick']);
+
+const props = defineProps({
+  color: {
+    type: String,
+    default() {
+      return getThemeColor('secondary');
     },
   },
-  methods: {
-    hoverToolbar(val) {
-      this.hovering = this.$listeners &&
-        !!this.$listeners.toolbarclick &&
-        val;
-    }
-  }
-};
+  transparentToolbar: Boolean,
+});
+
+const attrs = useAttrs();
+
+const hovering = ref(false);
+
+const isDark = computed(() => isDarkColor(props.color));
+const hasClickListener = computed(() => !!attrs.onClick);
+const hasToolbarClickListener = computed(() => !!attrs.onToolbarclick);
+
+function hoverToolbar(val) {
+  hovering.value = !!attrs.onToolbarclick && val;
+}
 </script>
 
 <style lang="css">
-.toolbar-card .v-toolbar__title {
+.toolbar-card .v-toolbar-title {
   font-size: 15px;
 }
 
@@ -79,7 +66,7 @@ export default {
   transition: box-shadow .4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.toolbar-card.transparent-toolbar .theme--dark.v-toolbar.v-sheet {
+.toolbar-card.transparent-toolbar .v-theme--dark.v-toolbar.v-sheet {
   background-color: #303030;
 }
 </style>

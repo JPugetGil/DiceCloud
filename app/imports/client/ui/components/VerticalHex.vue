@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     class="d-flex justify-center align-center"
     :style="`height: ${height}px; width: ${width}px;`"
@@ -11,7 +11,7 @@
       <path
         d="M 251.313 23.844 L 49.438 140.25 L 49.062 373.75 L 251.687 490.156 L 453.563 373.75 L 453.938 140.25 L 251.313 23.844 Z"
         fill-opacity="1"
-        :fill="hover ? '#f44336 ' : '#f44336 '"
+        style="fill: rgb(var(--v-theme-primary));"
       />
       <path
         d="M 249.801 51.001 L 71.808 153.637 L 71.477 359.513 L 250.131 462.148 L 428.125 359.513 L 428.455 153.637 L 249.801 51.001 Z"
@@ -35,30 +35,27 @@
   </div>
 </template>
 
-<script lang="js">
-  export default {
-    inject: {
-      theme: {
-        default: {
-          isDark: false,
-        },
-      },
-    },
-    props: {
-      height: {
-        type: Number,
-        default: 120,
-      },
-      width: {
-        type: Number,
-        default: 120,
-      },
-      disableHover: Boolean,
-    },
-    data(){return {
-      hover: false,
-    }},
-  }
+<script setup>
+import { ref} from 'vue';
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+const theme = useThemeState();
+
+defineProps({
+  height: {
+    type: Number,
+    default: 120,
+  },
+  width: {
+    type: Number,
+    default: 120,
+  },
+  disableHover: Boolean,
+});
+
+defineEmits(['click']);
+
+const hover = ref(false);
 </script>
 
 <style lang="css" scoped>

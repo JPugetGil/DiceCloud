@@ -1,10 +1,9 @@
-<template lang="html">
+<template>
   <v-card
     class="resource-card"
     :class="hover ? 'elevation-8': ''"
     :color="model.color"
-    :dark="model.color && isDark"
-    :light="model.color && !isDark"
+    :theme="model.color ? (isDark ? 'dark' : 'light') : undefined"
   >
     <resource-card-content
       :model="model"
@@ -18,37 +17,28 @@
   </v-card>
 </template>
 
-<script lang="js">
+<script setup>
+import {ref, computed } from 'vue';
 import CardHighlight from '/imports/client/ui/components/CardHighlight.vue';
 import ResourceCardContent from '/imports/client/ui/properties/components/attributes/ResourceCardContent.vue';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 
-export default {
-  components: {
-    CardHighlight,
-    ResourceCardContent,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    }
-  },
-  data() {
-    return {
-      hover: false,
-    }
-  },
-  computed: {
-    isDark() {
-      if (!this.model.color) return;
-      return isDarkColor(this.model.color);
-    },
-  }
-};
+});
+
+defineEmits(['click', 'change']);
+
+
+const hover = ref(false);
+
+const isDark = computed(() => {
+  if (!props.model.color) return;
+  return isDarkColor(props.model.color);
+});
 </script>
 
 <style lang="css">

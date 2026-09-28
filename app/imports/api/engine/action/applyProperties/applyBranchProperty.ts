@@ -27,19 +27,19 @@ export default async function applyBranchProperty(
           value: 'If branch does not have a condition set',
           silenced: prop.silent,
         }, targets);
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
       await recalculateCalculation(prop.condition, action, 'reduce', userInput);
       if (prop.condition?.value) {
-        return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+        return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'index': {
       const children = await getPropertyChildren(action.creatureId, prop);
       if (!children.length) {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
       if (!prop.condition) {
         result.appendLog({
@@ -47,7 +47,7 @@ export default async function applyBranchProperty(
           value: 'Index branch does not have a condition set',
           silenced: prop.silent,
         }, targets);
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
       await recalculateCalculation(prop.condition, action, 'reduce', userInput);
       let index = Number(prop.condition.value);
@@ -57,13 +57,13 @@ export default async function applyBranchProperty(
           value: `Index did not resolve into a valid number, got \`${prop.condition?.value}\` instead`,
           silenced: prop.silent,
         }, targets);
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
       index = Math.floor(index);
       if (index < 1) index = 1;
       if (index > children.length) index = children.length;
       const child = children[index - 1];
-      return applyAfterPropTasksForSingleChild(action, prop, child, targets, userInput);
+      return await applyAfterPropTasksForSingleChild(action, prop, child, targets, userInput);
     }
     case 'hit': {
       const scope = await getEffectiveActionScope(action);
@@ -74,9 +74,9 @@ export default async function applyBranchProperty(
             silenced: prop.silent,
           }, targets);
         }
-        return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+        return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'miss': {
@@ -88,9 +88,9 @@ export default async function applyBranchProperty(
             silenced: prop.silent,
           }, targets);
         }
-        return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+        return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'failedSave': {
@@ -102,9 +102,9 @@ export default async function applyBranchProperty(
             silenced: prop.silent,
           }, targets);
         }
-        return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+        return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'successfulSave': {
@@ -116,9 +116,9 @@ export default async function applyBranchProperty(
             silenced: prop.silent,
           }, targets);
         }
-        return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+        return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'random': {
@@ -126,16 +126,16 @@ export default async function applyBranchProperty(
       if (children.length) {
         const index = (await userInput.rollDice([{ number: 1, diceSize: children.length }]))[0][0];
         const child = children[index - 1];
-        return applyAfterPropTasksForSingleChild(action, prop, child, targets, userInput);
+        return await applyAfterPropTasksForSingleChild(action, prop, child, targets, userInput);
       } else {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
     }
     case 'eachTarget':
       if (targets.length > 1) {
-        return applyTaskToEachTarget(action, task, targets, userInput);
+        return await applyTaskToEachTarget(action, task, targets, userInput);
       }
-      return applyDefaultAfterPropTasks(action, prop, targets, userInput);
+      return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
     case 'choice': {
       const children = await getPropertyChildren(action.creatureId, prop);
       let choices: string[];
@@ -145,9 +145,9 @@ export default async function applyBranchProperty(
         chosenChildren = filter(children, child => choices.includes(child._id));
       }
       if (!children.length || !chosenChildren.length) {
-        return applyAfterTasksSkipChildren(action, prop, targets, userInput);
+        return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
-      return applyAfterPropTasksForSomeChildren(action, prop, chosenChildren, targets, userInput);
+      return await applyAfterPropTasksForSomeChildren(action, prop, chosenChildren, targets, userInput);
     }
   }
 }

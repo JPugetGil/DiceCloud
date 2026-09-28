@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="trigger-form">
     <v-row dense>
       <v-col
@@ -6,13 +6,13 @@
         md="6"
       >
         <smart-select
-          label="Timing"
+          :label="$t('forms.trigger.timing')"
           style="flex-basis: 300px;"
-          hint="When this trigger will fire"
+          :hint="$t('forms.trigger.timingHint')"
           :items="timingOptions"
           :value="model.timing"
           :error-messages="errors.timing"
-          @change="change('timing', ...arguments)"
+          @change="(value, ack) => change('timing', value, ack)"
         />
       </v-col>
       <v-col
@@ -20,13 +20,13 @@
         md="6"
       >
         <smart-select
-          label="Event"
+          :label="$t('forms.trigger.event')"
           style="flex-basis: 300px;"
-          hint="What causes this trigger to fire"
+          :hint="$t('forms.trigger.eventHint')"
           :items="eventOptions"
           :value="model.event"
           :error-messages="errors.event"
-          @change="change('event', ...arguments)"
+          @change="(value, ack) => change('event', value, ack)"
         />
       </v-col>
       <v-col
@@ -34,9 +34,9 @@
         md="6"
       >
         <computed-field
-          label="Condition"
-          hint="A calculation to determine if this trigger should fire"
-          placeholder="Always active"
+          :label="$t('forms.condition')"
+          :hint="$t('forms.trigger.conditionHint')"
+          :placeholder="$t('forms.alwaysActive')"
           persistent-placeholder
           :model="model.condition"
           :error-messages="errors.condition"
@@ -51,13 +51,13 @@
           md="6"
         >
           <smart-select
-            label="Event Type"
+            :label="$t('forms.trigger.eventType')"
             style="flex-basis: 300px;"
-            hint="Which action event causes this trigger to fire"
+            :hint="$t('forms.trigger.eventTypeHint')"
             :items="actionPropertyTypeOptions"
             :value="model.actionPropertyType"
             :error-messages="errors.actionPropertyType"
-            @change="change('actionPropertyType', ...arguments)"
+            @change="(value, ack) => change('actionPropertyType', value, ack)"
           />
         </v-col>
       </v-expand-transition>
@@ -74,8 +74,8 @@
 
     <inline-computation-field
       class="mt-6"
-      label="Description"
-      hint="The rest of the description that doesn't fit in the summary goes here"
+      :label="$t('common.description')"
+      :hint="$t('forms.feature.descriptionHint')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -84,13 +84,13 @@
 
     <form-sections type="trigger">
       <form-section
-        name="Log"
+        :name="$t('forms.log')"
       >
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -98,66 +98,45 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
-import {
-  TriggerSchema, eventOptions, timingOptions, actionPropertyTypeOptions
-} from '/imports/api/properties/Triggers';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import {
+  eventOptions as EVENT_OPTIONS,
+  timingOptions as TIMING_OPTIONS,
+  actionPropertyTypeOptions as ACTION_PROPERTY_TYPE_OPTIONS,
+} from '/imports/api/properties/Triggers';
+import { translateOr } from '/imports/client/ui/i18n';
 
-export default {
-  components: {
-    FormSection,
-    TagTargeting,
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  inject: {
-    context: { default: {} }
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  data(){
-    return {
-      addExtraTagsLoading: false,
-      extraTagOperations: ['OR', 'NOT'],
-      eventOptions: Object.keys(eventOptions).map(value => {
-        return { value, text: eventOptions[value] };
-      }),
-      timingOptions: Object.keys(timingOptions).map(value => {
-        return { value, text: timingOptions[value] };
-      }),
-      actionPropertyTypeOptions: Object.keys(actionPropertyTypeOptions).map(value => {
-        return { value, text: actionPropertyTypeOptions[value] };
-      }),
-    };
-  },
-  computed: {
-    extraTagsFull(){
-      if (!this.model.extraTags) return false;
-      let maxCount = TriggerSchema.get('extraTags', 'maxCount');
-      return this.model.extraTags.length >= maxCount;
-    },
-    showTags() {
-      return this.model.event !== 'shortRest' &&
-        this.model.event !== 'longRest' &&
-        this.model.event !== 'anyRest';
-    }
-  },
-  methods: {
-    acknowledgeAddResult(){
-      this.addExtraTagsLoading = false;
-    },
-    addExtraTags(){
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: ['extraTags'],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
-};
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+// The select items; the imported maps are { value: English label }
+const toItems = (options, group) => Object.keys(options).map(value => ({
+  value,
+  title: translateOr(`triggers.${group}.${value}`, options[value]),
+}));
+const eventOptions = toItems(EVENT_OPTIONS, 'event');
+const timingOptions = toItems(TIMING_OPTIONS, 'timing');
+const actionPropertyTypeOptions = toItems(ACTION_PROPERTY_TYPE_OPTIONS, 'actionPropertyType');
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
 </script>

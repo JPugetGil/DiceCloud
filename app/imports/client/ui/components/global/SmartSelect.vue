@@ -1,31 +1,37 @@
-<template lang="html">
+<template>
   <v-select
     v-bind="$attrs"
     :loading="loading"
     :error-messages="errors"
-    :value="safeValue"
+    :model-value="safeValue"
     :menu-props="{auto: true, lazy: true}"
     :disabled="isDisabled"
-    outlined
-    @change="change"
+    variant="outlined"
+    @update:model-value="change"
     @focus="focused = true"
     @blur="focused = false"
   >
-    <slot
-      slot="prepend"
-      name="prepend"
-    />
-    <slot
-      slot="prepend-inner"
-      name="prepend-inner"
-    />
+    <template #prepend>
+      <slot name="prepend" />
+    </template>
+    <template #prepend-inner>
+      <slot name="prepend-inner" />
+    </template>
   </v-select>
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { useSmartInput, smartInputProps } from '/imports/client/ui/components/global/useSmartInput';
 
-export default {
-  mixins: [SmartInput],
-};
+const props = defineProps(smartInputProps);
+const emit = defineEmits(['input', 'change', 'update:modelValue']);
+
+const {
+  loading,
+  errors,
+  safeValue,
+  isDisabled,
+  change,
+  focused,
+} = useSmartInput(props, emit);
 </script>

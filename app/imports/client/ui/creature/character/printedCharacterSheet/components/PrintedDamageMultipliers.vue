@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div>
     <div
       v-for="(multiplier, multiplierIndex) in multipliers"
@@ -25,7 +25,7 @@
           class="d-flex flex-wrap align-center"
         >
           <div>
-            For:
+            {{ $t('damageMultipliers.for') }}
           </div>
           {{ multiplier.includeTags.join(', ') }}
         </div>
@@ -34,7 +34,7 @@
           class="d-flex flex-wrap align-center"
         >
           <div>
-            Except:
+            {{ $t('damageMultipliers.except') }}
           </div>
           {{ multiplier.excludeTags.join(', ') }}
         </div>
@@ -43,22 +43,24 @@
   </div>
 </template>
 
-<script lang="js">
-export default {
-  props: {
-    multipliers:{
-      type: Array,
-      required: true,
-    }
+<script setup>
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+defineProps({
+  multipliers: {
+    type: Array,
+    required: true,
   },
-  methods: {
-    title(prop){
-      switch (prop.value){
-        case 0: return 'Immunity';
-        case 0.5: return 'Resistance';
-        case 2: return 'Vulnerability';
-      }
-    }
+});
+
+defineEmits(['click-multiplier']);
+
+function title(prop) {
+  switch (prop.value) {
+    case 0: return t('damageMultipliers.immunity');
+    case 0.5: return t('damageMultipliers.resistance');
+    case 2: return t('damageMultipliers.vulnerability');
   }
 }
 </script>

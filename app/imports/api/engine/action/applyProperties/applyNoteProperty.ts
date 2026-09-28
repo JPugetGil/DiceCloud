@@ -34,5 +34,5 @@ export default async function applyNoteProperty(
       silenced: prop.silent,
     }, task.targetIds);
   }
-  return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
+  return await applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
 }

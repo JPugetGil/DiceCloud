@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-sheet
     class="tree-node"
     :class="{
@@ -8,14 +8,15 @@
     :data-id="`tree-node-${node._id}`"
   >
     <div
-      class="layout align-center justify-start tree-node-title"
+      class="d-flex flex-1-1 align-center justify-start tree-node-title"
       style="cursor: pointer;"
-      :class="selected && 'primary--text'"
+      :class="selected && 'text-primary'"
       @click.stop="$emit('selected', node._id)"
     >
       <v-btn
         v-if="!startExpanded"
-        small
+        variant="text"
+        size="small"
         icon
         :class="showExpanded ? 'rotate-90' : null"
         :disabled="!hasChildren && !organize || !canExpand"
@@ -26,14 +27,14 @@
         </v-icon>
       </v-btn>
       <div
-        class="layout align-center justify-start pr-1"
+        class="d-flex align-center justify-start pr-1"
         :class="{'ml-4': startExpanded}"
-        style="flex-grow: 0;"
+        style="flex: 0 1 auto;"
       >
         <drag-handle
           v-if="organize"
           class="mr-2"
-          :class="selected && 'primary--text'"
+          :class="selected && 'text-primary'"
           :disabled="expanded"
         />
         <tree-node-view
@@ -74,93 +75,83 @@
   </v-sheet>
 </template>
 
-<script lang="js">
+<script setup>
 /**
 * TreeNode's are list item views of character properties. Every property which
 * can belong to the character is shown in the tree view of the character
 * the tree view shows off the full character structure, and where each part of
 * character comes from.
 **/
-import { getPropertyIcon } from '/imports/constants/PROPERTIES';
+import { ref, computed, watch } from 'vue';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import { isAncestor } from '/imports/api/parenting/parentingFunctions';
-import { some } from 'lodash';
+import TreeNodeList from './TreeNodeList.vue';
 
-export default {
-  name: 'TreeNode',
-  components: {
-    TreeNodeView,
+const props = defineProps({
+  node: {
+    type: Object,
+    required: true,
   },
-  props: {
-    node: {
-      type: Object,
-      required: true,
-    },
-    group: {
-      type: String,
-      default: undefined,
-    },
-    organize: Boolean,
-    children: {
-      type: Array,
-      default: () => [],
-    },
-    getChildren: {
-      type: Function,
-      default: undefined,
-    },
-    selectedNode: {
-      type: Object,
-      default: undefined,
-    },
-    selected: Boolean,
-    startExpanded: Boolean,
+  group: {
+    type: String,
+    default: undefined,
   },
-  data() {
-    return {
-      expanded: this.startExpanded ||
-        this.node._ancestorOfMatchedDocument ||
-        isAncestor(this.node, this.selectedNode),
-    }
+  organize: Boolean,
+  children: {
+    type: Array,
+    default: () => [],
   },
-  computed: {
-    hasChildren() {
-      return this.children && !!this.children.length || this.lazy && !this.expanded;
-    },
-    showExpanded() {
-      return this.expanded && (this.organize || this.hasChildren)
-    },
-    computedChildren() {
-      let children = [];
-      if (this.children) {
-        children.push(...this.children)
-      }
-      if (this.getChildren) {
-        children.push(...this.getChildren())
-      }
-      return children;
-    },
-    canExpand() {
-      return true;
-    },
+  getChildren: {
+    type: Function,
+    default: undefined,
   },
-  watch: {
-    'node._ancestorOfMatchedDocument'(value) {
-      this.expanded = !!value || isAncestor(this.node, this.selectedNode);
-    },
-    'selectedNode.parentId'() {
-      this.expanded = isAncestor(this.node, this.selectedNode) || this.expanded;
-    },
+  selectedNode: {
+    type: Object,
+    default: undefined,
   },
-  beforeCreate() {
-    this.$options.components.TreeNodeList = require('./TreeNodeList.vue').default
-  },
-  methods: {
-    icon(type) {
-      return getPropertyIcon(type);
-    },
+  selected: Boolean,
+  startExpanded: Boolean,
+});
+
+defineEmits(['selected', 'move-within-root', 'move-between-roots']);
+
+const expanded = ref(
+  props.startExpanded ||
+  props.node._ancestorOfMatchedDocument ||
+  isAncestor(props.node, props.selectedNode)
+);
+
+const hasChildren = computed(() => {
+  return (props.children && !!props.children.length);
+});
+
+const showExpanded = computed(() => {
+  return expanded.value && (props.organize || hasChildren.value);
+});
+
+const computedChildren = computed(() => {
+  let children = [];
+  if (props.children) {
+    children.push(...props.children);
   }
-};
+  if (props.getChildren) {
+    children.push(...props.getChildren());
+  }
+  return children;
+});
+
+const canExpand = computed(() => {
+  return true;
+});
+
+watch(() => props.node?._ancestorOfMatchedDocument, (value) => {
+  expanded.value = !!value || isAncestor(props.node, props.selectedNode);
+});
+
+watch(() => props.selectedNode?.parentId, () => {
+  expanded.value = isAncestor(props.node, props.selectedNode) || expanded.value;
+});
+
 </script>
 
 <style lang="css" scoped>
@@ -199,11 +190,11 @@ export default {
   transition: none !important;
 }
 
-.theme--light .tree-node-title:hover {
+.v-theme--light .tree-node-title:hover {
   background-color: rgba(0, 0, 0, .04);
 }
 
-.theme--dark .tree-node-title:hover {
+.v-theme--dark .tree-node-title:hover {
   background-color: rgba(255, 255, 255, .04);
 }
 

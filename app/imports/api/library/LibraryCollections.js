@@ -1,10 +1,9 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import SharingSchema from '/imports/api/sharing/SharingSchema';
 import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
-import { getUserTier } from '/imports/api/users/patreon/tiers'
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 /**
@@ -55,18 +54,13 @@ const insertLibraryCollection = new ValidatedMethod({
     simpleSchemaMixin,
   ],
   schema: LibraryCollectionSchema.omit('owner'),
-  run(libraryCollection) {
+  async run(libraryCollection) {
     if (!this.userId) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',
         'You need to be logged in to insert a library');
     }
-    let tier = getUserTier(this.userId);
-    if (!tier.paidBenefits) {
-      throw new Meteor.Error('LibraryCollections.methods.insert.denied',
-        `The ${tier.name} tier does not allow you to insert a library collection`);
-    }
     libraryCollection.owner = this.userId;
-    return LibraryCollections.insert(libraryCollection);
+    return await LibraryCollections.insertAsync(libraryCollection);
   },
 });
 
@@ -95,15 +89,15 @@ const updateLibraryCollection = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ _id, update }) {
-    const libraryCollection = LibraryCollections.findOne(_id, {
+  async run({ _id, update }) {
+    const libraryCollection = await LibraryCollections.findOneAsync(_id, {
       fields: {
         owner: 1,
         writers: 1,
       }
     });
-    assertEditPermission(libraryCollection, this.userId);
-    return LibraryCollections.update(_id, { $set: update });
+    await assertEditPermission(libraryCollection, this.userId);
+    return await LibraryCollections.updateAsync(_id, { $set: update });
   },
 });
 
@@ -120,19 +114,19 @@ const removeLibraryCollection = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ _id }) {
-    const libraryCollection = LibraryCollections.findOne(_id, {
+  async run({ _id }) {
+    const libraryCollection = await LibraryCollections.findOneAsync(_id, {
       fields: {
         owner: 1,
       }
     });
     assertOwnership(libraryCollection, this.userId);
-    return LibraryCollections.remove(_id);
+    return await LibraryCollections.removeAsync(_id);
   }
 });
 
-function getLibraryIdsByCollectionId(libraryCollectionId) {
-  const libraryCollection = LibraryCollections.findOne(libraryCollectionId)
+async function getLibraryIdsByCollectionId(libraryCollectionId) {
+  const libraryCollection = await LibraryCollections.findOneAsync(libraryCollectionId)
   return libraryCollection?.libraries || [];
 }
 

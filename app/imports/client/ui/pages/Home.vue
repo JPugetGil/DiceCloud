@@ -1,6 +1,6 @@
 <template>
   <div
-    class="home content layout column justify-space-between"
+    class="home content d-flex flex-1-1 flex-column justify-space-between"
     style="min-height: 100%;"
   >
     <section
@@ -16,52 +16,50 @@
           cols="12"
         >
           <h1 class="text-h4 mb-4">
-            Free, Auditable, real-time character tracking for 5th edition
+            {{ $t('home.tagline') }}
           </h1>
-          <h4 class="subheading">
-            Spend less time shuffling paper, and more time playing the game
+          <h4 class="text-subtitle-1">
+            {{ $t('home.subtitle') }}
           </h4>
         </v-col>
       </v-row>
-      <v-layout
+      <div
         v-if="!signedIn"
-        align-center
-        justify-center
+        class="d-flex flex-1-1 align-center justify-center"
       >
         <v-btn
           color="accent"
           rounded
-          large
+          size="large"
           to="/register"
           class="mr-4"
         >
-          Register
+          {{ $t('home.register') }}
         </v-btn>
         <v-btn
           color="accent"
           rounded
-          outlined
-          large
+          variant="outlined"
+          size="large"
           to="/sign-in"
         >
-          Sign In
+          {{ $t('home.signIn') }}
         </v-btn>
-      </v-layout>
-      <v-layout
+      </div>
+      <div
         v-else
-        align-center
-        justify-center
+        class="d-flex flex-1-1 align-center justify-center"
       >
         <v-btn
           color="accent"
           rounded
-          large
+          size="large"
           to="/character-list"
           class="mr-4"
         >
-          My Characters
+          {{ $t('home.myCharacters') }}
         </v-btn>
-      </v-layout>
+      </div>
     </section>
     <section>
       <v-parallax
@@ -70,66 +68,50 @@
       />
     </section>
     <section class="text-center py-8 px-4">
-      <v-layout
-        wrap
-        justify-space-around
-        class="selling-points"
-      >
-        <v-layout
-          column
-          align-center
-        >
+      <div class="d-flex flex-1-1 flex-wrap justify-space-around selling-points">
+        <div class="d-flex flex-1-1 flex-column align-center">
           <v-icon
-            x-large
+            size="x-large"
             class="ma-2"
           >
             mdi-currency-usd-off
           </v-icon>
           <h3 class="mb-2">
-            Free, open source, community funded
+            {{ $t('home.freeTitle') }}
           </h3>
           <p>
-            DiceCloud is free to use, funded via Patreon,
-            and the source code is available on Github under a GPL license.
+            {{ $t('home.freeText') }}
           </p>
-        </v-layout>
-        <v-layout
-          column
-          align-center
-        >
+        </div>
+        <div class="d-flex flex-1-1 flex-column align-center">
           <v-icon
-            x-large
+            size="x-large"
             class="ma-2"
           >
             mdi-ballot-outline
           </v-icon>
           <h3 class="mb-2">
-            Custom everything
+            {{ $t('home.customTitle') }}
           </h3>
           <p>
-            Add new ability scores, skills, health-bars, and stats to your character.
-            The entire sheet is under your control.
+            {{ $t('home.customText') }}
           </p>
-        </v-layout>
-        <v-layout
-          column
-          align-center
-        >
+        </div>
+        <div class="d-flex flex-1-1 flex-column align-center">
           <v-icon
-            x-large
+            size="x-large"
             class="ma-2"
           >
             mdi-file-tree-outline
           </v-icon>
           <h3 class="mb-2">
-            Advanced Character Engine
+            {{ $t('home.engineTitle') }}
           </h3>
           <p>
-            Characters are computed in real-time based on their equipment,
-            features, and buffs.
+            {{ $t('home.engineText') }}
           </p>
-        </v-layout>
-      </v-layout>
+        </div>
+      </div>
     </section>
     <section class="pa-8">
       <v-row>
@@ -143,78 +125,73 @@
             :elevation="0"
           >
             <v-img
-              class="white--text align-end"
+              class="text-white align-end"
               :src="'/images/screenshots/' + card.img"
               gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,.5)"
               height="360px"
+              cover
             >
-              <v-card-title v-text="card.text" />  
+              <v-card-title>
+                {{ $t(card.text) }}
+              </v-card-title>
             </v-img>
           </v-card>
         </v-col>
       </v-row>
     </section>
-    <section class="text-center grey darken-3 white--text pa-5">
+    <section class="text-center bg-grey-darken-3 text-white pa-5">
       <h1>
-        Get involved in the DiceCloud community
+        {{ $t('home.community') }}
       </h1>
-      <v-layout
-        wrap
-        align-center
-        justify-space-around
-        class="pa-4"
-      >
+      <div class="d-flex flex-1-1 flex-wrap align-center justify-space-around pa-4">
         <v-btn
           v-for="btn in [
             {link: 'https://discord.gg/qEvdfeB', name: 'Discord'},
-            {link: 'https://www.patreon.com/dicecloud', name: 'Patreon'},
             {link: 'https://github.com/ThaumRystra/DiceCloud', name: 'Github'},
           ]"
           :key="btn.name"
           :href="btn.link"
-          outlined
-          large
-          dark
+          variant="outlined"
+          size="large"
+          theme="dark"
         >
           {{ btn.name }}
           <v-icon
-            right
+            end
           >
             mdi-open-in-new
           </v-icon>
         </v-btn>
-      </v-layout>
+      </div>
     </section>
   </div>
 </template>
 
-<script lang="js">
-export default {
-  data() {return {
-    cols: {
-      cols: 12,
-      sm: 6,
-      md: 4,
-      lg: 3,
-      xl: 2,
-    },
-    highlightCards: [
-      { text: 'Automated actions', img: 'actions.webp' },
-      { text: 'Auditable stats', img: 'auditable.webp' },
-      { text: 'Dice rolling', img: 'automated-dice-rolls.webp' },
-      { text: 'Hackable character builder', img: 'build-system.webp' },
-      { text: 'Drag and drop inventory manager', img: 'inventory.webp' },
-      { text: 'Custom libraries of content', img: 'libraries-of-content.webp' },
-      { text: 'Discord webhooks', img: 'send-to-discord.webp' },
-      { text: 'Printed character sheets', img: 'printing.webp' },
-    ],
-  }},
-  meteor: {
-    signedIn() {
-      return Meteor.userId();
-    },
-  }
-};
+<script setup>
+import { ref } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
+
+const cols = ref({
+  cols: 12,
+  sm: 6,
+  md: 4,
+  lg: 3,
+  xl: 2,
+});
+
+const highlightCards = ref([
+  { text: 'home.highlights.actions', img: 'actions.webp' },
+  { text: 'home.highlights.auditable', img: 'auditable.webp' },
+  { text: 'home.highlights.dice', img: 'automated-dice-rolls.webp' },
+  { text: 'home.highlights.builder', img: 'build-system.webp' },
+  { text: 'home.highlights.inventory', img: 'inventory.webp' },
+  { text: 'home.highlights.libraries', img: 'libraries-of-content.webp' },
+  { text: 'home.highlights.discord', img: 'send-to-discord.webp' },
+  { text: 'home.highlights.printing', img: 'printing.webp' },
+]);
+
+const signedIn = autorun(() => Meteor.userId()).result;
 </script>
 
 <style scoped>

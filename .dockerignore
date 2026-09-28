@@ -1,0 +1,18 @@
+# The image installs dependencies and builds on its own: local installs and
+# build output would overwrite them (app/ is copied after `meteor npm ci`)
+app/node_modules
+app/.meteor/local
+app/_build
+app/public/build-assets
+app/public/build-chunks
+app/private/build-assets
+
+# Settings files can hold secrets (Google OAuth, mail); pass settings to the
+# container with METEOR_SETTINGS instead
+app/*settings*.json
+
+# Not needed to build the app
+.git
+build
+tests
+tools

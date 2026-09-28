@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
 import SharingSchema from '/imports/api/sharing/SharingSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
@@ -160,18 +160,6 @@ const CreatureSchema = TypedSimpleSchema.from({
   },
   lastComputedAt: {
     type: Date,
-    optional: true,
-  },
-
-  // Tabletop
-  tabletopId: {
-    index: 1,
-    type: String,
-    max: 32,
-    optional: true,
-  },
-  initiativeRoll: {
-    type: SimpleSchema.Integer,
     optional: true,
   },
 

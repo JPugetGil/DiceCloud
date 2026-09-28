@@ -7,14 +7,11 @@ import cleanAtCurrent from './cleanArchiveAtCurrent';
 migration steps after the current version of the file. */
 export default function migrateArchive(archive) {
   switch (archive.meta.schemaVersion) {
-    // V1 of DiceCloud
-    case 'version1':
-      migrateLegacyArchive(archive);
-    // V2 of DiceCloud, Schema version 1
+    // Schema version 1
     case 1:
       migrateTo1(archive);
       migrate1To2(archive);
-    // V2 of DiceCloud, Schema version 2
+    // Schema version 2
     case 2:
       migrate2To3(archive);
     case 3:
@@ -23,9 +20,4 @@ export default function migrateArchive(archive) {
     default:
       throw 'Archive version not supported';
   }
-}
-
-function migrateLegacyArchive() {
-  // TODO:
-  throw 'Not implemented';
 }

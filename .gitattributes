@@ -1,0 +1,135 @@
+# ============================================================================
+#  Line endings
+# ----------------------------------------------------------------------------
+#  This repository stores every text file with LF in history, and checks them
+#  out with LF on every platform, Windows included.
+#
+#  These rules override each developer's local `core.autocrlf` setting, so the
+#  working tree is byte-identical for everyone and files never show up as
+#  "modified" purely because of line endings.
+#
+#  LF is used in the working tree (not just in history) because this project
+#  builds and runs on Linux (see Dockerfile) and the whole Node/Meteor
+#  toolchain is LF-native. VS Code, WebStorm and modern Windows editors all
+#  handle LF files without complaint.
+#
+#  After editing this file, apply it to the existing tree once:
+#      git add --renormalize .
+#      git status            # review, then commit if anything was rewritten
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+#  Default
+# ----------------------------------------------------------------------------
+#  text=auto -> let Git detect text vs binary
+#  eol=lf    -> text files are LF in history AND in the working tree
+* text=auto eol=lf
+
+
+# ----------------------------------------------------------------------------
+#  Source code (explicit, so detection is never guessed wrong)
+# ----------------------------------------------------------------------------
+*.js      text eol=lf
+*.mjs     text eol=lf
+*.cjs     text eol=lf
+*.ts      text eol=lf
+*.tsx     text eol=lf
+*.jsx     text eol=lf
+*.vue     text eol=lf
+*.ne      text eol=lf
+
+
+# ----------------------------------------------------------------------------
+#  Styles, markup, data and docs
+# ----------------------------------------------------------------------------
+*.css     text eol=lf
+*.scss    text eol=lf
+*.less    text eol=lf
+*.html    text eol=lf
+*.xml     text eol=lf
+*.svg     text eol=lf
+*.json    text eol=lf
+*.jsonc   text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.toml    text eol=lf
+*.md      text eol=lf
+*.txt     text eol=lf
+
+
+# ----------------------------------------------------------------------------
+#  Tooling and config, including extensionless files
+# ----------------------------------------------------------------------------
+Dockerfile          text eol=lf
+Dockerfile.*        text eol=lf
+.dockerignore       text eol=lf
+.gitattributes      text eol=lf
+.gitignore          text eol=lf
+.gitmodules         text eol=lf
+.editorconfig       text eol=lf
+.eslintrc           text eol=lf
+.eslintrc.*         text eol=lf
+.babelrc            text eol=lf
+.npmrc              text eol=lf
+.nvmrc              text eol=lf
+LICENSE             text eol=lf
+License.md          text eol=lf
+
+#  Meteor's extensionless metadata files under app/.meteor/
+app/.meteor/packages             text eol=lf
+app/.meteor/platforms            text eol=lf
+app/.meteor/release              text eol=lf
+app/.meteor/versions             text eol=lf
+app/.meteor/cordova-plugins      text eol=lf
+app/.meteor/.finished-upgraders  text eol=lf
+app/.meteor/.id                  text eol=lf
+
+
+# ----------------------------------------------------------------------------
+#  Scripts
+# ----------------------------------------------------------------------------
+#  Shell scripts MUST be LF: a CRLF shebang breaks them inside Docker/Linux.
+*.sh      text eol=lf
+*.bash    text eol=lf
+
+#  Windows scripts MUST be CRLF: cmd.exe mis-parses LF-only batch files.
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+*.ps1     text eol=crlf
+
+
+# ----------------------------------------------------------------------------
+#  Binary — never converted, never diffed as text
+# ----------------------------------------------------------------------------
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.webp    binary
+*.ico     binary
+*.pdf     binary
+
+#  Fonts
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
+*.otf     binary
+
+#  Media
+*.mp3     binary
+*.mp4     binary
+*.webm    binary
+*.ogg     binary
+*.wav     binary
+
+#  Archives and other opaque blobs
+*.zip     binary
+*.gz      binary
+*.tgz     binary
+*.7z      binary
+*.stl     binary
+*.wasm    binary
+*.node    binary
+.DS_Store binary

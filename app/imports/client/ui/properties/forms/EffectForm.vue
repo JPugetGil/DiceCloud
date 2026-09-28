@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="effect-form">
     <v-row dense>
       <v-col
@@ -6,30 +6,31 @@
         md="6"
       >
         <smart-select
-          label="Operation"
+          :label="$t('forms.operation')"
           append-icon="mdi-menu-down"
           :hint="operationHint"
           :error-messages="errors.operation"
           :menu-props="{transition: 'slide-y-transition', lazy: true}"
           :items="operations"
           :value="model.operation"
-          @change="change('operation', ...arguments)"
+          @change="(...args) => change('operation', ...args)"
         >
-          <v-icon
-            slot="prepend-inner"
-            class="icon ml-0"
-            :class="iconClass"
-          >
-            {{ displayedIcon }}
-          </v-icon>
+          <template #prepend-inner>
+            <v-icon
+
+              class="icon ml-0"
+              :class="iconClass"
+            >
+              {{ displayedIcon }}
+            </v-icon>
+          </template>
           <template
-            slot="item"
-            slot-scope="item"
+            #item="item"
           >
             <v-icon class="icon mr-2">
               {{ getEffectIcon(item.item.value, 1) }}
             </v-icon>
-            {{ item.item.text }}
+            {{ item.item.title }}
           </template>
         </smart-select>
       </v-col>
@@ -39,16 +40,16 @@
       >
         <text-field
           v-if="model.operation === 'conditional'"
-          label="Text"
-          hint="The text to display on the affected stats"
+          :label="$t('forms.text')"
+          :hint="$t('forms.effect.textHint')"
           :value="model.text"
           :error-messages="errors.text"
-          @change="change('text', ...arguments)"
+          @change="(...args) => change('text', ...args)"
         />
         <computed-field
           v-else
-          label="Value"
-          hint="Number or calculation to determine the value of this effect"
+          :label="$t('forms.value')"
+          :hint="$t('forms.effect.valueHint')"
           :disabled="!needsValue"
           :model="model.amount"
           :error-messages="errors.amount"
@@ -59,11 +60,11 @@
     </v-row>
 
     <smart-toggle
-      label="Target properties"
+      :label="$t('forms.targetProperties')"
       :value="radioGroup"
       :options="[
-        {name: 'Target by variable name', value: 'stats'},
-        {name: 'Target by tags', value: 'tags'},
+        {name: $t('forms.targetByVariable'), value: 'stats'},
+        {name: $t('forms.targetByTags'), value: 'tags'},
       ]"
       @change="changeTargetByTags"
     />
@@ -71,17 +72,17 @@
     <v-slide-y-transition hide-on-leave>
       <smart-combobox
         v-if="!model.targetByTags"
-        label="Stats"
+        :label="$t('forms.effect.stats')"
         class="mr-2"
         multiple
         small-chips
         deletable-chips
-        hint="Which stats will this effect apply to"
+        :hint="$t('forms.effect.statsHint')"
         persistent-hint
         :value="model.stats"
         :items="attributeList"
         :error-messages="errors.stats"
-        @change="change('stats', ...arguments)"
+        @change="(...args) => change('stats', ...args)"
       />
       <tag-targeting
         v-if="model.targetByTags"
@@ -98,13 +99,13 @@
         cols="12"
       >
         <text-field
-          label="Target field"
+          :label="$t('forms.targetField')"
           :value="model.targetField"
-          hint="Target a specific calculation field on the affected properties"
-          placeholder="Default field"
+          :hint="$t('forms.targetFieldHint')"
+          :placeholder="$t('forms.defaultField')"
           persistent-placeholder
           :error-messages="errors.targetField"
-          @change="change('targetField', ...arguments)"
+          @change="(...args) => change('targetField', ...args)"
         />
       </v-col>
     </v-expand-transition>
@@ -117,111 +118,120 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, watch } from 'vue';
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
-import attributeListMixin from '/imports/client/ui/properties/forms/shared/lists/attributeListMixin';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import { useAttributeList } from '/imports/client/ui/properties/forms/shared/lists/useAttributeList';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+function change(path, value, ack) {
+  emit('change', { path: [path], value, ack });
+}
+
+const attributeList = useAttributeList();
 
 const ICON_SPIN_DURATION = 300;
-export default {
-  components: {
-    TagTargeting,
-  },
-  mixins: [propertyFormMixin, attributeListMixin],
-  data() {
-    return {
-      displayedIcon: 'add',
-      iconClass: '',
-      oldOperation: undefined,
-      operations: [
-        { value: 'base', text: 'Base Value' },
-        { value: 'add', text: 'Add' },
-        { value: 'mul', text: 'Multiply' },
-        { value: 'min', text: 'Minimum' },
-        { value: 'max', text: 'Maximum' },
-        { value: 'set', text: 'Set' },
-        { value: 'advantage', text: 'Advantage' },
-        { value: 'disadvantage', text: 'Disadvantage' },
-        { value: 'passiveAdd', text: 'Passive Bonus' },
-        { value: 'fail', text: 'Fail' },
-        { value: 'conditional', text: 'Conditional Benefit' },
-      ],
-    }
-  },
-  computed: {
-    radioGroup() {
-      return this.model.targetByTags ? 'tags' : 'stats';
-    },
-    needsValue() {
-      switch (this.model.operation) {
-        case 'base': return true;
-        case 'add': return true;
-        case 'mul': return true;
-        case 'min': return true;
-        case 'max': return true;
-        case 'set': return true;
-        case 'advantage': return false;
-        case 'disadvantage': return false;
-        case 'passiveAdd': return true;
-        case 'fail': return false;
-        case 'conditional': return false;
-        default: return true;
-      }
-    },
-    operationHint() {
-      switch (this.model.operation) {
-        case 'base': return 'Stats take their largest base value, and then apply all other effects';
-        case 'add': return 'Add this value to the stat';
-        case 'mul': return 'Multiply the stat by this value';
-        case 'min': return 'The stat will be at least this value';
-        case 'max': return 'The stat will not exceed this value';
-        case 'set': return 'The stat will be set to this value';
-        case 'advantage': return 'If this stat is the basis for a check, that check will be at advantage';
-        case 'disadvantage': return 'If this stat is the basis for a check, that check will be at advantage';
-        case 'passiveAdd': return 'This value will be added to the passive check';
-        case 'fail': return 'Targeted skills and checks will always fail';
-        case 'conditional': return 'Add a text note to this stat';
-        default: return '';
-      }
-    },
-  },
-  watch: {
-    'model.operation': {
-      immediate: true,
-      handler(newValue, oldValue) {
-        let newIcon = getEffectIcon(newValue, 1);
-        if (!oldValue) {
-          // Skip animation
-          this.displayedIcon = newIcon;
-        } else {
-          this.iconClass = 'leaving';
-          setTimeout(() => {
-            this.displayedIcon = newIcon;
-            this.iconClass = 'arriving';
-            requestAnimationFrame(() => {
-              this.iconClass = '';
-            });
-          }, ICON_SPIN_DURATION / 2);
-        }
-      },
-    },
-  },
-  methods: {
-    getEffectIcon,
-    changeTargetByTags(value, ack) {
-      if (value === 'stats') {
-        this.$emit('change', { path: ['targetByTags'], value: undefined, ack });
-      } else if (value === 'tags') {
-        this.$emit('change', { path: ['targetByTags'], value: true, ack });
-      }
-    },
+
+const displayedIcon = ref('add');
+const iconClass = ref('');
+const operations = [
+  { value: 'base', title: t('forms.effectOps.base') },
+  { value: 'add', title: t('forms.effectOps.add') },
+  { value: 'mul', title: t('forms.effectOps.mul') },
+  { value: 'min', title: t('forms.effectOps.min') },
+  { value: 'max', title: t('forms.effectOps.max') },
+  { value: 'set', title: t('forms.effectOps.set') },
+  { value: 'advantage', title: t('forms.effectOps.advantage') },
+  { value: 'disadvantage', title: t('forms.effectOps.disadvantage') },
+  { value: 'passiveAdd', title: t('forms.effectOps.passiveAdd') },
+  { value: 'fail', title: t('forms.effectOps.fail') },
+  { value: 'conditional', title: t('forms.effectOps.conditional') },
+];
+
+const radioGroup = computed(() => {
+  return props.model.targetByTags ? 'tags' : 'stats';
+});
+
+const needsValue = computed(() => {
+  switch (props.model.operation) {
+    case 'base': return true;
+    case 'add': return true;
+    case 'mul': return true;
+    case 'min': return true;
+    case 'max': return true;
+    case 'set': return true;
+    case 'advantage': return false;
+    case 'disadvantage': return false;
+    case 'passiveAdd': return true;
+    case 'fail': return false;
+    case 'conditional': return false;
+    default: return true;
   }
-};
+});
+
+const operationHint = computed(() => {
+  switch (props.model.operation) {
+    case 'base': return t('forms.effectHelp.base');
+    case 'add': return t('forms.effectHelp.add');
+    case 'mul': return t('forms.effectHelp.mul');
+    case 'min': return t('forms.effectHelp.min');
+    case 'max': return t('forms.effectHelp.max');
+    case 'set': return t('forms.effectHelp.set');
+    case 'advantage': return t('forms.effectHelp.advantage');
+    case 'disadvantage': return t('forms.effectHelp.disadvantage');
+    case 'passiveAdd': return t('forms.effectHelp.passiveAdd');
+    case 'fail': return t('forms.effectHelp.fail');
+    case 'conditional': return t('forms.effectHelp.conditional');
+    default: return '';
+  }
+});
+
+watch(() => props.model.operation, (newValue, oldValue) => {
+  let newIcon = getEffectIcon(newValue, 1);
+  if (!oldValue) {
+    // Skip animation
+    displayedIcon.value = newIcon;
+  } else {
+    iconClass.value = 'leaving';
+    setTimeout(() => {
+      displayedIcon.value = newIcon;
+      iconClass.value = 'arriving';
+      requestAnimationFrame(() => {
+        iconClass.value = '';
+      });
+    }, ICON_SPIN_DURATION / 2);
+  }
+}, { immediate: true });
+
+function changeTargetByTags(value, ack) {
+  if (value === 'stats') {
+    emit('change', { path: ['targetByTags'], value: undefined, ack });
+  } else if (value === 'tags') {
+    emit('change', { path: ['targetByTags'], value: true, ack });
+  }
+}
 </script>
 
 <style lang="css" scoped>
-.theme--light .icon {
+.v-theme--light .icon {
   color: black;
 }
 

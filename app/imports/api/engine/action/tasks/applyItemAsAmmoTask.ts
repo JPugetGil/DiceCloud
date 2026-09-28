@@ -63,5 +63,5 @@ export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: 
   } else {
     await applyDefaultAfterPropTasks(action, item, task.targetIds, userInput);
   }
-  return applyTriggers(action, item, task.targetIds, 'ammoTriggerIds.afterChildren', userInput);
+  return await applyTriggers(action, item, task.targetIds, 'ammoTriggerIds.afterChildren', userInput);
 }

@@ -1,13 +1,13 @@
-<template lang="html">
+<template>
   <div class="roll-viewer">
     <v-row dense>
       <property-field
-        name="Variable Name"
+        :name="$t('viewers.variableName')"
         mono
         :value="model.variableName"
       />
       <property-field
-        name="Roll"
+        :name="$t('forms.roll.roll')"
         large
         center
         :calculation="model.roll"
@@ -16,10 +16,13 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin'
+<script setup>
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
 
-export default {
-  mixins: [propertyViewerMixin],
-}
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
 </script>

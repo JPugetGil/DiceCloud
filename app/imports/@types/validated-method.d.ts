@@ -1,4 +1,7 @@
 declare module 'meteor/mdg:validated-method' {
+  // Augments the upstream interfaces in @types/meteor-mdg-validated-method, so the
+  // type parameters have to match theirs even where this file does not read them
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ValidatedMethodOptionsMixinFields<TRunArg, TRunReturn> {
     rateLimit: {
       numRequests: number,
@@ -9,6 +12,7 @@ declare module 'meteor/mdg:validated-method' {
   type Argument<TFunc> = TFunc extends (...args: infer TArgs) => any ? TArgs extends [infer TArg] ? TArg
     : NoArguments
     : never;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ValidatedMethod<TName extends string, TRun extends (...args: any[]) => any> {
     callAsync: Argument<TRun> extends NoArguments
     // methods with no argument can be called with () or just a callback

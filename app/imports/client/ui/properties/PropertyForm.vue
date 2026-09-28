@@ -9,7 +9,7 @@
         <text-field
           v-if="schemaHasName"
           ref="focusFirst"
-          label="Name"
+          :label="$t('common.name')"
           style="flex-basis: 320px;"
           :value="model.name"
           :error-messages="errors.name"
@@ -22,7 +22,7 @@
       </v-col>
     </v-row>
     <component
-      :is="model.type"
+      :is="propertyFormIndex[model?.type] || model?.type"
       class="creature-property-form mb-4"
       :model="model"
       :errors="errors"
@@ -32,7 +32,7 @@
     >
       <form-section
         v-if="context.isLibraryForm"
-        name="Library"
+        :name="$t('forms.property.library')"
       >
         <v-row
           v-if="context.isLibraryForm"
@@ -43,7 +43,7 @@
             md="6"
           >
             <smart-switch
-              label="Can fill slots"
+              :label="$t('forms.property.canFillSlots')"
               :value="model.fillSlots"
               :error-messages="errors.fillSlots"
               @change="(value, ack) => $emit('change', {path: ['fillSlots'], value, ack})"
@@ -54,7 +54,7 @@
             md="6"
           >
             <smart-switch
-              label="Searchable from character sheet"
+              :label="$t('forms.property.searchable')"
               :value="model.searchable"
               :error-messages="errors.searchable"
               @change="(value, ack) => $emit('change', {path: ['searchable'], value, ack})"
@@ -65,10 +65,10 @@
             md="6"
           >
             <smart-select
-              label="Slot fill type"
+              :label="$t('forms.property.slotFillType')"
               style="flex-basis: 300px;"
               clearable
-              hint="The property type that this slot filler pretends to be when being searched for by a slot"
+              :hint="$t('forms.property.slotFillTypeHint')"
               :items="slotTypes"
               :value="model.slotFillerType"
               :error-messages="errors.slotFillerType"
@@ -80,10 +80,10 @@
             md="6"
           >
             <text-field
-              label="Slot quantity filled"
+              :label="$t('forms.property.slotQuantity')"
               type="number"
               min="0"
-              hint="How many properties this counts as when filling a slot"
+              :hint="$t('forms.property.slotQuantityHint')"
               :value="model.slotQuantityFilled"
               :error-messages="errors.slotQuantityFilled"
               @change="(value, ack) => $emit('change', {path: ['slotQuantityFilled'], value, ack})"
@@ -95,9 +95,9 @@
           >
             <text-field
               v-if="context.isLibraryForm"
-              label="Condition"
-              hint="A caclulation to determine if this property can be added to a character"
-              placeholder="Always active"
+              :label="$t('forms.condition')"
+              :hint="$t('forms.property.conditionHint')"
+              :placeholder="$t('forms.alwaysActive')"
               :value="model.slotFillerCondition"
               :error-messages="errors.slotFillerCondition"
               @change="(value, ack) => $emit('change', {path: ['slotFillerCondition'], value, ack})"
@@ -109,9 +109,9 @@
           >
             <text-field
               v-if="context.isLibraryForm"
-              label="Condition Error Text"
-              hint="Text to display if the condition isn't met"
-              placeholder="Always active"
+              :label="$t('forms.property.conditionErrorText')"
+              :hint="$t('forms.property.conditionErrorTextHint')"
+              :placeholder="$t('forms.alwaysActive')"
               :value="model.slotFillerConditionNote"
               :error-messages="errors.slotFillerConditionNote"
               @change="(value, ack) => $emit('change', {path: ['slotFillerConditionNote'], value, ack})"
@@ -121,11 +121,11 @@
             cols="12"
           >
             <smart-combobox
-              label="Library Tags"
+              :label="$t('forms.property.libraryTags')"
               multiple
               small-chips
               deletable-chips
-              hint="Used to let slots find this property in a library"
+              :hint="$t('forms.property.libraryTagsHint')"
               :value="model.libraryTags"
               :error-messages="errors.libraryTags"
               @change="(value, ack) => $emit('change', {path: ['libraryTags'], value, ack})"
@@ -142,11 +142,11 @@
         cols="12"
       >
         <smart-combobox
-          label="Tags"
+          :label="$t('forms.tags')"
           multiple
           small-chips
           deletable-chips
-          hint="Tags let other properties target this property with interactions"
+          :hint="$t('forms.property.tagsHint')"
           :value="model.tags"
           :error-messages="errors.tags"
           @change="(value, ack) => $emit('change', {path: ['tags'], value, ack})"
@@ -163,7 +163,7 @@
         style="gap: 8px"
       >
         <outlined-input
-          name="Child properties"
+          :name="$t('forms.property.childProperties')"
           style="width: 100%"
           class="pa-2 no-hover"
         >
@@ -180,35 +180,35 @@
             :key="suggestion.type"
             :disabled="noChildInsert"
             tile
-            plain
+            variant="plain"
             :data-id="`insert-${suggestion.type}-property-btn`"
             @click="$event => $emit('add-child', {suggestedType: suggestion.type, elementId: `insert-${suggestion.type}-property-btn`})"
           >
-            <v-icon left>
+            <v-icon start>
               mdi-plus
             </v-icon>
-            {{ suggestion.details.name }}
+            {{ getPropertyName(suggestion.type) }}
           </v-btn>
           <v-btn
             :disabled="noChildInsert || context.editPermission === false"
             tile
-            plain
+            variant="plain"
             data-id="insert-any-property-btn"
             @click="$event => $emit('add-child', {elementId: 'insert-any-property-btn'})"
           >
             <v-icon
               v-if="!suggestedChildren.length"
-              left
+              start
             >
               mdi-plus
             </v-icon>
-            {{ suggestedChildren.length ? '...Other' : 'Child' }}
+            {{ suggestedChildren.length ? $t('forms.property.otherChild') : $t('forms.property.child') }}
           </v-btn>
           <div
             v-if="noChildInsert"
-            class="ma-2 text--disabled"
+            class="ma-2 text-disabled"
           >
-            Children can be added after this property is created
+            {{ $t('forms.property.childrenAfterCreate') }}
           </div>
         </outlined-input>
       </v-col>
@@ -216,96 +216,87 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 /*
   All of the shared fields common to all properties go in this form,
   property-specific forms are included as dynamic components
 */
-import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
-import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
-import FormSection, { FormSections } from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import { ref, computed, inject } from 'vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
 import propertyFormIndex from '/imports/client/ui/properties/forms/shared/propertyFormIndex';
 import IconColorMenu from '/imports/client/ui/properties/forms/shared/IconColorMenu.vue';
 import DescendantPropertiesTree from '/imports/client/ui/creature/creatureProperties/DescendantPropertiesTree.vue';
 import OutlinedInput from '/imports/client/ui/properties/viewers/shared/OutlinedInput.vue';
 import { getSuggestedChildren } from '/imports/constants/PROPERTIES';
+import { getPropertyName } from '/imports/client/ui/i18n/propertyNames';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  collection: {
+    type: String,
+    default: 'creatureProperties',
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+  embedded: Boolean, // This dialog is embedded in a page
+  noChildInsert: Boolean, // Don't allow inserting of children in this form
+});
+
+defineEmits(['change', 'push', 'pull', 'select-sub-property', 'add-child']);
+
+const context = inject('context', {});
 
 const slotTypes = [];
 for (let key in PROPERTIES) {
-  slotTypes.push({ text: PROPERTIES[key].name, value: key });
+  slotTypes.push({ title: getPropertyName(key), value: key });
 }
-    
-export default {
-  components: {
-    ComputedField,
-    InlineComputationField,
-    FormSection,
-    FormSections,
-    IconColorMenu,
-    DescendantPropertiesTree,
-    OutlinedInput,
-    ...propertyFormIndex,
-  },
-  inject: {
-    context: { default: {} }
-  },
-  props: {
-    model: {
-      type: [Object, Array],
-      default: () => ({}),
-    },
-    collection: {
-      type: String,
-      default: 'creatureProperties'
-    },
-    errors: {
-      type: Object,
-      default: () => ({}),
-    },
-    embedded: Boolean, // This dialog is embedded in a page
-    noChildInsert: Boolean, // Don't allow inserting of children in this form
-  },
-  data() {
-    return {
-      slotTypes,
-    };
-  },
-  computed: {
-    suggestedChildren() {
-      if (!this.model?.type) return [];
-      return getSuggestedChildren(this.model.type);
-    },
-    schemaHasName() {
-      if (!this.model?.type) return true;
-      const schema = propertySchemasIndex[this.model.type];
-      return schema.allowsKey('name');
-    }
-  },
-  mounted() {
-    /** Disable auto-focus, it gets in the way more than it helps
-    // Don't autofocus on mobile, it brings up the on-screen keyboard
-    if (this.$vuetify.breakpoint.smAndDown) return;
 
-    setTimeout(() => {
-      if (this.$refs.focusFirst && this.$refs.focusFirst.focus) {
-        this.$refs.focusFirst.focus()
-      }
-    }, 300);
-    */
-  },
-  methods: {
-    selectSubProperty(_id){
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `tree-node-${_id}`,
-        data: {
-          _id,
-          startInEditTab: this.editing,
-        },
-      });
+const suggestedChildren = computed(() => {
+  if (!props.model?.type) return [];
+  return getSuggestedChildren(props.model.type);
+});
+
+const schemaHasName = computed(() => {
+  if (!props.model?.type) return true;
+  const schema = propertySchemasIndex[props.model.type];
+  return schema ? schema.allowsKey('name') : true;
+});
+
+const focusFirst = ref(null);
+
+/** Disable auto-focus, it gets in the way more than it helps
+// Don't autofocus on mobile, it brings up the on-screen keyboard
+if (this.$vuetify.display.smAndDown) return;
+
+setTimeout(() => {
+  if (this.$refs.focusFirst && this.$refs.focusFirst.focus) {
+    this.$refs.focusFirst.focus()
+  }
+}, 300);
+*/
+
+function selectSubProperty(_id) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `tree-node-${_id}`,
+    data: {
+      _id,
+      startInEditTab: undefined,
     },
-  },
+  });
 }
+
+defineExpose({
+  selectSubProperty,
+});
 </script>

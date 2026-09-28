@@ -1,8 +1,8 @@
-<template lang="html">
+<template>
   <v-list
-    expand
+    v-model:opened="openFolders"
     :nav="nav"
-    :dense="dense"
+    :density="dense ? 'compact' : undefined"
     class="creature-folder-list"
   >
     <creature-list
@@ -10,7 +10,7 @@
       :selection="selection"
       :selected-creature="selectedCreature"
       :dense="dense"
-      @creature-selected="id => $emit('creature-selected', id)"
+      @creature-selected="id => emit('creature-selected', id)"
     />
     <v-slide-x-transition
       group
@@ -19,16 +19,21 @@
       <v-list-group
         v-for="folder in folders"
         :key="folder._id"
-        v-model="openFolders[folder._id]"
-        :dense="dense"
+        :value="folder._id"
+        :raw-id="`${listId}-${folder._id}`"
       >
-        <template #activator>
-          <creature-folder-header
-            :open="openFolders[folder._id]"
-            :model="folder"
-            :selection="selection"
-            :dense="dense"
-          />
+        <template #activator="{ props: activatorProps, isOpen }">
+          <v-list-item
+            v-bind="activatorProps"
+            :density="dense ? 'compact' : undefined"
+          >
+            <creature-folder-header
+              :open="isOpen"
+              :model="folder"
+              :selection="selection"
+              :dense="dense"
+            />
+          </v-list-item>
         </template>
         <creature-list
           :creatures="folder.creatures"
@@ -36,47 +41,46 @@
           :selection="selection"
           :selected-creature="selectedCreature"
           :dense="dense"
-          @creature-selected="id => $emit('creature-selected', id)"
+          @creature-selected="id => emit('creature-selected', id)"
         />
       </v-list-group>
     </v-slide-x-transition>
   </v-list>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, useId } from 'vue';
 import CreatureFolderHeader from '/imports/client/ui/creature/creatureList/CreatureFolderHeader.vue';
 import CreatureList from '/imports/client/ui/creature/creatureList/CreatureList.vue';
 
-export default {
-  components: {
-    CreatureFolderHeader,
-    CreatureList,
+defineProps({
+  creatures: {
+    type: Array,
+    default: () => [],
   },
-  props:{
-    creatures: {
-      type: Array,
-      default: () => [],
-    },
-    folders: {
-      type: Array,
-      default: () => [],
-    },
-    selection: Boolean,
-    selectedCreature: {
-      type: String,
-      default: undefined,
-    },
-    dense: Boolean,
-    nav: Boolean,
+  folders: {
+    type: Array,
+    default: () => [],
   },
-  data(){return{
-    openFolders: {},
-  }},
-}
+  selection: Boolean,
+  selectedCreature: {
+    type: String,
+    default: undefined,
+  },
+  dense: Boolean,
+  nav: Boolean,
+});
+
+const emit = defineEmits(['creature-selected']);
+
+// Ids of the open folders: Vuetify 3 keeps a group's open state on its list
+const openFolders = ref([]);
+// The sidebar and the page list the same folders: keep their element ids apart
+const listId = useId();
 </script>
 
 <style lang="css">
-.creature-folder-list .v-list-item__icon.v-list-group__header__append-icon {
-  margin-left: 0 !important;
+.creature-folder-list .v-list-group__header .v-list-item__append {
+  margin-inline-start: 0 !important;
 }
 </style>

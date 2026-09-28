@@ -1,4 +1,3 @@
-import SimpleSchema from 'simpl-schema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 let SoftRemovableSchema = TypedSimpleSchema.from({

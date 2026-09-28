@@ -1,23 +1,20 @@
 <template>
-  <v-layout
-    wrap
-    align-center
-    justify-center
+  <div
+    class="d-flex flex-1-1 flex-wrap align-center justify-center my-1 health-bar"
     style="min-height: 42px;"
     :class="{ hover }"
-    class="my-1 health-bar"
     :data-id="model._id"
   >
     <div
-      class="subheading text-truncate pa-2 name"
+      class="text-subtitle-1 text-truncate pa-2 name"
       @mouseover="hover = true"
       @mouseleave="hover = false"
       @click="$emit('click')"
     >
       {{ model.name }}
     </div>
-    <v-flex
-      style="height: 24px; flex-basis: 300px; flex-grow: 100;"
+    <div
+      style="height: 24px; flex: 100 1 300px;"
     >
       <health-bar-progress
         :model="model"
@@ -27,8 +24,8 @@
         <div
           class="value"
           :class="{
-            'white--text': isTextLight,
-            'black--text': !isTextLight,
+            'text-white': isTextLight,
+            'text-black': !isTextLight,
           }"
           style="font-size: 15px;
               line-height: 24px;
@@ -45,12 +42,10 @@
       </health-bar-progress>
       <v-menu
         v-model="editing"
-        absolute
         transition="scale-transition"
         origin="center center"
         content-class="no-menu-shadow"
-        :position-x="x"
-        :position-y="y"
+        :target="[x, y]"
         :min-width="305"
         :close-on-content-click="false"
       >
@@ -61,103 +56,95 @@
           @close="cancelEdit"
         />
       </v-menu>
-    </v-flex>
-  </v-layout>
+    </div>
+  </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed, nextTick} from 'vue';
+import { useTheme } from 'vuetify';
+import chroma from 'chroma-js';
 import IncrementMenu from '/imports/client/ui/components/IncrementMenu.vue';
 import isDarkColor from '/imports/client/ui/utility/isDarkColor';
 import HealthBarProgress from '/imports/client/ui/properties/components/attributes/HealthBarProgress.vue';
-import chroma from 'chroma-js';
 
-export default {
-  components: {
-    IncrementMenu,
-    HealthBarProgress,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    theme: {
-      default: {
-        isDark: false,
-      },
-    },
+  _id: {
+    type: String,
+    default: undefined,
   },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    _id: String,
-  },
-  data() {
-    return {
-      editing: false,
-      hover: false,
-      x: 0,
-      y: 0,
-    };
-  },
-  computed: {
-    fillFraction() {
-      let fraction = this.model.value / this.model.total;
-      if (fraction < 0) fraction = 0;
-      if (fraction > 1) fraction = 1;
-      return fraction;
-    },
-    color() {
-      return this.model.color || this.$vuetify.theme.currentTheme.primary
-    },
-    barColor() {
-      const fraction = this.model.value / this.model.total;
-      if (!Number.isFinite(fraction)) return this.color;
-      if (fraction > 0.5) {
-        return this.color;
-      } else if (this.model.healthBarColorMid && this.model.healthBarColorLow) {
-        return chroma.mix(this.model.healthBarColorLow, this.model.healthBarColorMid, fraction * 2).hex();
-      } else if (this.model.healthBarColorMid) {
-        return this.model.healthBarColorMid;
-      }
-      return this.color;
-    },
-    barBackgroundColor() {
-      return chroma(this.barColor)
-        .darken(1.5)
-        .desaturate(1.5)
-        .hex();
-    },
-    isTextLight() {
-      return isDarkColor(this.barBackgroundColor);
-      /* Change color at the halfway mark
-      const fraction = this.model.value / this.model.total;
-      if (fraction >= 0.5){
-        return isDarkColor(this.barColor);
-      } else {
-        return isDarkColor(this.barBackgroundColor);
-      }
-      */
-    }
-  },
-  methods: {
-    edit(e) {
-      e.preventDefault()
-      this.editing = false;
-      this.x = e.clientX - 165;
-      this.y = e.clientY - 24;
-      this.$nextTick(() => {
-        this.editing = true
-      });
-    },
-    cancelEdit() {
-      this.editing = false;
-    },
-    changeIncrementMenu({ type, value }) {
-      if (type === 'increment') value = -value;
-      this.$emit('change', { type, value });
-      this.editing = false;
-    }
-  },
-};
+});
+
+const emit = defineEmits(['click', 'change']);
+
+
+const vuetifyTheme = useTheme();
+
+const editing = ref(false);
+const hover = ref(false);
+const x = ref(0);
+const y = ref(0);
+
+
+const color = computed(() => {
+  return props.model.color || vuetifyTheme.current.value.colors.primary;
+});
+
+const barColor = computed(() => {
+  const fraction = props.model.value / props.model.total;
+  if (!Number.isFinite(fraction)) return color.value;
+  if (fraction > 0.5) {
+    return color.value;
+  } else if (props.model.healthBarColorMid && props.model.healthBarColorLow) {
+    return chroma.mix(props.model.healthBarColorLow, props.model.healthBarColorMid, fraction * 2).hex();
+  } else if (props.model.healthBarColorMid) {
+    return props.model.healthBarColorMid;
+  }
+  return color.value;
+});
+
+const barBackgroundColor = computed(() => {
+  return chroma(barColor.value)
+    .darken(1.5)
+    .desaturate(1.5)
+    .hex();
+});
+
+const isTextLight = computed(() => {
+  return isDarkColor(barBackgroundColor.value);
+  /* Change color at the halfway mark
+  const fraction = this.model.value / this.model.total;
+  if (fraction >= 0.5){
+    return isDarkColor(this.barColor);
+  } else {
+    return isDarkColor(this.barBackgroundColor);
+  }
+  */
+});
+
+function edit(e) {
+  e.preventDefault();
+  editing.value = false;
+  x.value = e.clientX - 165;
+  y.value = e.clientY - 24;
+  nextTick(() => {
+    editing.value = true;
+  });
+}
+
+function cancelEdit() {
+  editing.value = false;
+}
+
+function changeIncrementMenu({ type, value }) {
+  if (type === 'increment') value = -value;
+  emit('change', { type, value });
+  editing.value = false;
+}
 </script>
 
 <style>
@@ -206,15 +193,15 @@ export default {
   background: #f5f5f5 !important;
 }
 
-.theme--dark .hover {
+.v-theme--dark .hover {
   background: #515151 !important;
 }
 
-.filled.theme--light {
+.filled.v-theme--light {
   background: #fff !important;
 }
 
-.filled.theme--dark {
+.filled.v-theme--dark {
   background: #424242 !important;
 }
 
@@ -223,7 +210,7 @@ export default {
   transition: all 0.2s;
 }
 
-.background-transition-enter,
+.background-transition-enter-from,
 .background-transition-leave-to {
   opacity: 0;
 }
@@ -237,12 +224,12 @@ export default {
 }
 
 .transition-enter-to,
-.transition-leave {
+.transition-leave-from {
   opacity: 1;
   transform: scaleY(1) !important;
 }
 
-.transition-enter,
+.transition-enter-from,
 .transition-leave-to {
   opacity: 0;
   transform: scaleY(0) !important;

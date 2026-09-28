@@ -1,9 +1,9 @@
-<template lang="html">
+<template>
   <div class="effect-viewer">
     <v-row dense>
-      <property-field name="Operation">
+      <property-field :name="$t('forms.operation')">
         <div
-          class="layout"
+          class="d-flex flex-1-1"
           style="overflow: hidden;"
         >
           <v-icon class="mr-2">
@@ -14,7 +14,7 @@
       </property-field>
       <property-field
         v-if="model.operation !== 'conditional'"
-        name="Amount"
+        :name="$t('viewers.amount')"
         :value="displayedValue || ' '"
       />
       <property-target-tags
@@ -23,7 +23,7 @@
       />
       <property-field
         v-else
-        name="Stats"
+        :name="$t('viewers.stats')"
       >
         <div class="d-flex flex-wrap">
           <v-chip
@@ -37,7 +37,7 @@
       </property-field>
       <property-field
         v-if="model.operation === 'conditional'"
-        name="Text"
+        :name="$t('forms.text')"
         :cols="{cols: 12}"
         :value="model.text || ' '"
       />
@@ -45,62 +45,68 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { computed } from 'vue';
 import PropertyTargetTags from '/imports/client/ui/properties/viewers/shared/PropertyTargetTags.vue';
 import getEffectIcon from '/imports/client/ui/utility/getEffectIcon';
 import { isFinite } from 'lodash';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  components: {
-    PropertyTargetTags,
+const { t } = useI18n();
+
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  computed: {
-    resolvedValue() {
-      if (!this.model.amount) return;
-      return this.model.amount.value !== undefined ?
-        this.model.amount.value :
-        this.model.amount.calculation;
-    },
-    effectIcon() {
-      let value = this.resolvedValue;
-      return getEffectIcon(this.model.operation, value);
-    },
-    operation() {
-      switch (this.model.operation) {
-        case 'base': return 'Base value';
-        case 'add': return 'Add';
-        case 'mul': return 'Multiply';
-        case 'min': return 'Minimum';
-        case 'max': return 'Maximum';
-        case 'set': return 'Set';
-        case 'advantage': return 'Advantage';
-        case 'disadvantage': return 'Disadvantage';
-        case 'passiveAdd': return 'Passive bonus';
-        case 'fail': return 'Always fail';
-        case 'conditional': return 'Conditional benefit';
-        default: return this.model.operation;
-      }
-    },
-    displayedValue() {
-      let value = this.resolvedValue;
-      switch (this.model.operation) {
-        case 'base': return value;
-        case 'add': return isFinite(value) ? Math.abs(value) : value;
-        case 'mul': return value;
-        case 'min': return value;
-        case 'max': return value;
-        case 'advantage': return;
-        case 'disadvantage': return;
-        case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
-        case 'fail': return;
-        case 'conditional': return;
-        default: return undefined;
-      }
-    }
-  },
-};
+});
+
+const resolvedValue = computed(() => {
+  if (!props.model.amount) return;
+  return props.model.amount.value !== undefined ?
+    props.model.amount.value :
+    props.model.amount.calculation;
+});
+
+const effectIcon = computed(() => {
+  let value = resolvedValue.value;
+  return getEffectIcon(props.model.operation, value);
+});
+
+const operation = computed(() => {
+  switch (props.model.operation) {
+    case 'base': return t('effectOps.base');
+    case 'add': return t('effectOps.add');
+    case 'mul': return t('effectOps.mul');
+    case 'min': return t('effectOps.min');
+    case 'max': return t('effectOps.max');
+    case 'set': return t('effectOps.set');
+    case 'advantage': return t('effectOps.advantage');
+    case 'disadvantage': return t('effectOps.disadvantage');
+    case 'passiveAdd': return t('effectOps.passiveAdd');
+    case 'fail': return t('effectOps.fail');
+    case 'conditional': return t('effectOps.conditional');
+    default: return props.model.operation;
+  }
+});
+
+const displayedValue = computed(() => {
+  let value = resolvedValue.value;
+  switch (props.model.operation) {
+    case 'base': return value;
+    case 'add': return isFinite(value) ? Math.abs(value) : value;
+    case 'mul': return value;
+    case 'min': return value;
+    case 'max': return value;
+    case 'advantage': return;
+    case 'disadvantage': return;
+    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
+    case 'fail': return;
+    case 'conditional': return;
+    default: return undefined;
+  }
+});
 </script>
 
 <style lang="css" scoped>

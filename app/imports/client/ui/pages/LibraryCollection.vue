@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <v-container class="pa-6">
     <v-row
       v-if="collection && collection.description"
@@ -43,30 +43,23 @@
   </v-container>
 </template>
 
-<script lang="js">
+<script setup>
+import { useRoute } from 'vue-router';
+import { autorun, subscribe } from 'vue-meteor-tracker';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import Libraries from '/imports/api/library/Libraries';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 
-export default {
-  components: {
-    MarkdownText,
-  },
-  meteor: {
-    $subscribe: {
-      'libraryCollection'() {
-        return [this.$route.params.id];
-      },
-    },
-    collection() {
-      return LibraryCollections.findOne(this.$route.params.id);
-    },
-    libraries() {
-      if (!this.collection) return;
-      return Libraries.find({
-        _id: { $in: this.collection.libraries },
-      });
-    }
-  }   
-}
+const route = useRoute();
+
+subscribe(() => ['libraryCollection', route.params.id]);
+
+const collection = autorun(() => LibraryCollections.findOne(route.params.id)).result;
+
+const libraries = autorun(() => {
+  if (!collection.value) return;
+  return Libraries.find({
+    _id: { $in: collection.value.libraries },
+  }).fetch();
+}).result;
 </script>

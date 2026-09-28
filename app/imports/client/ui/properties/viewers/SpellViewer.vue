@@ -1,64 +1,63 @@
-<template lang="html">
+<template>
   <action-viewer
     :model="model"
     class="spell-viewer"
   >
     <property-field
-      name="School"
+      :name="$t('forms.spell.school')"
       :value="model.school"
     />
     <property-field
-      name="Level"
+      :name="$t('forms.level')"
       :value="levelText"
     />
     <property-field
-      name="Casting time"
+      :name="$t('printed.castingTimeName')"
       :value="model.castingTime"
     />
     <property-field
-      name="Range"
+      :name="$t('forms.spell.range')"
       :value="model.range"
     />
     <property-field
-      name="Components"
+      :name="$t('viewers.components')"
       :value="spellComponents"
     />
     <property-field
-      name="Duration"
+      :name="$t('viewers.duration')"
       :value="model.duration"
     />
   </action-viewer>
 </template>
 
-<script lang="js">
-import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
+<script setup>
+import { computed } from 'vue';
 import ActionViewer from './ActionViewer.vue';
+import PropertyField from '/imports/client/ui/properties/viewers/shared/PropertyField.vue';
+import { useI18n } from 'vue-i18n';
 
-const levelText = [
-  'cantrip', '1st-level', '2nd-level', '3rd-level', '4th-level', '5th-level',
-  '6th-level', '7th-level', '8th-level', '9th-level'
-];
+const { t } = useI18n();
 
-export default {
-  components: {
-    ActionViewer,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyViewerMixin],
-  computed: {
-    levelText() {
-      return levelText[this.model.level]
-    },
-    spellComponents() {
-      let components = [];
-      if (this.model.ritual) components.push('Ritual');
-      if (this.model.concentration) components.push('Concentration');
-      if (this.model.verbal) components.push('Verbal');
-      if (this.model.somatic) components.push('Somatic');
-      if (this.model.material) components.push(`Material (${this.model.material})`);
-      return components.join(', ');
-    },
-  }
-}
+});
+
+const levelText = computed(() => {
+  return levelText[props.model.level]
+});
+
+const spellComponents = computed(() => {
+  let components = [];
+  if (props.model.ritual) components.push(t('spellComponents.ritual'));
+  if (props.model.concentration) components.push(t('spellComponents.concentration'));
+  if (props.model.verbal) components.push(t('spellComponents.verbal'));
+  if (props.model.somatic) components.push(t('spellComponents.somatic'));
+  if (props.model.material) components.push(t('viewers.materialWith', { material: props.model.material }));
+  return components.join(', ');
+});
 </script>
 
 <style lang="css" scoped>

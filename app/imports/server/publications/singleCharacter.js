@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -24,9 +24,9 @@ Meteor.publish('singleCharacter', function (creatureId) {
   } catch (e) {
     this.error(e);
   }
-  this.autorun(function (computation) {
+  this.autorun(async function (computation) {
     let userId = this.userId;
-    let permissionCreature = Creatures.findOne({
+    let permissionCreature = await Creatures.findOneAsync({
       _id: creatureId,
     }, {
       fields: {
@@ -35,23 +35,19 @@ Meteor.publish('singleCharacter', function (creatureId) {
         writers: 1,
         public: 1,
         computeVersion: 1,
-        tabletopId: 1,
       }
     });
-    try { assertViewPermission(permissionCreature, userId) }
-    catch (e) { return [] }
+    try { await assertViewPermission(permissionCreature, userId) }
+    catch { return [] }
     loadCreature(creatureId, self);
     if (permissionCreature?.computeVersion !== VERSION && computation.firstRun) {
-      try {
-        rebuildCreatureNestedSets(creatureId).then(() => {
-          try {
-            computeCreature(creatureId)
-          } catch (e) {
-            console.error(e);
-          }
-        });
-      }
-      catch (e) { console.error(e) }
+      // Not awaited, as before Meteor 3: the results reach the client through
+      // the cursors below as they land. Blocking the first run on it made the
+      // first open of a newly created character never become ready -- the
+      // compute finished, but the subscription never did.
+      rebuildCreatureNestedSets(creatureId)
+        .then(() => computeCreature(creatureId))
+        .catch(e => console.error(e));
     }
     return [
       Creatures.find({

@@ -34,7 +34,6 @@ const ifNode: IfFactory = {
   },
   toString(node, stringOthers) {
     const { condition, consequent, alternative } = node;
-    condition.parseType
     return `${stringOthers(condition)} ? ${stringOthers(consequent)} : ${stringOthers(alternative)}`
   },
   async resolve(fn, node, scope, context, inputProvider, resolveOthers): Promise<ResolvedResult> {

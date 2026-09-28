@@ -1,11 +1,11 @@
-<template lang="html">
+<template>
   <div class="buff-remover-form">
     <smart-toggle
-      label="Target buffs"
+      :label="$t('forms.buffRemover.targetBuffs')"
       :value="model.targetParentBuff ? 'parent' : 'tag'"
       :options="[
-        {name: 'Remove tagged buffs', value: 'tag'},
-        {name: 'Remove parent buff', value: 'parent'},
+        {name: $t('forms.buffRemover.tagged'), value: 'tag'},
+        {name: $t('forms.buffRemover.parent'), value: 'parent'},
       ]"
       @change="(value, ack) => change('targetParentBuff', value === 'parent' ? true : undefined, ack)"
     />
@@ -25,11 +25,11 @@
             md="6"
           >
             <smart-toggle
-              label="Remove matching buffs"
+              :label="$t('forms.buffRemover.matching')"
               :value="model.removeAll ? 'all' : 'one'"
               :options="[
-                {name: 'Remove 1 buff', value: 'one'},
-                {name: 'Remove all buffs', value: 'all'},
+                {name: $t('forms.buffRemover.one'), value: 'one'},
+                {name: $t('forms.buffRemover.all'), value: 'all'},
               ]"
               @change="(value, ack) => change('removeAll', value === 'all' ? true : undefined, ack)"
             />
@@ -39,14 +39,14 @@
             md="6"
           >
             <smart-toggle
-              label="Target creature"
+              :label="$t('forms.targetCreature')"
               :value="model.target"
               :options="[
-                {name: 'Action Target', value: 'target'},
-                {name: 'Self', value: 'self'},
+                {name: $t('forms.actionTarget'), value: 'target'},
+                {name: $t('forms.self'), value: 'self'},
               ]"
               :error-messages="errors.target"
-              @change="change('target', ...arguments)"
+              @change="(value, ack) => change('target', value, ack)"
             />
           </v-col>
         </v-row>
@@ -55,19 +55,19 @@
     <form-sections type="buffRemover">
       <form-section
         v-if="$slots.children"
-        name="Children"
+        :name="$t('forms.children')"
         standalone
       >
         <slot name="children" />
       </form-section>
       <form-section
-        name="Log"
+        :name="$t('forms.log')"
       >
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -75,47 +75,34 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-import {
-  BuffRemoverSchema
-} from '/imports/api/properties/BuffRemovers';
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-export default {
-  components: {
-    TagTargeting,
-  },
-  mixins: [propertyFormMixin],
-  data(){return {
-    addExtraTagsLoading: false,
-    extraTagOperations: ['OR', 'NOT'],
-  }},
-  computed: {
-    extraTagsFull(){
-      if (!this.model.extraTags) return false;
-      let maxCount = BuffRemoverSchema.get('extraTags', 'maxCount');
-      return this.model.extraTags.length >= maxCount;
-    },
-  },
-  methods: {
-    acknowledgeAddResult(){
-      this.addExtraTagsLoading = false;
-    },
-    addExtraTags(){
-      this.addExtraTagsLoading = true;
-      this.$emit('push', {
-        path: ['extraTags'],
-        value: {
-          _id: Random.id(),
-          operation: 'OR',
-          tags: [],
-        },
-        ack: this.acknowledgeAddResult,
-      });
-    },
-  },
+const emit = defineEmits(['change', 'push', 'pull']);
+
+
+
+
+
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

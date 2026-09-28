@@ -1,56 +1,57 @@
-<template lang="html">
+<template>
   <v-combobox
     v-bind="$attrs"
+    v-model:search="searchInput"
     :loading="loading"
     :error-messages="errors"
-    :value="safeValue"
+    :model-value="safeValue"
     :menu-props="{auto: true, lazy: true}"
-    :search-input.sync="searchInput"
     :disabled="isDisabled"
     :multiple="multiple"
-    outlined
-    @change="customChange"
+    variant="outlined"
+    @update:model-value="customChange"
     @focus="focused = true"
     @blur="focused = false"
   >
-    <slot
-      slot="prepend"
-      name="prepend"
-    />
+    <template #prepend>
+      <slot
+
+        name="prepend"
+      />
+    </template>
   </v-combobox>
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { ref } from 'vue';
+import { useSmartInput, smartInputProps } from '/imports/client/ui/components/global/useSmartInput';
 
-export default {
-  mixins: [SmartInput],
-  props: {
-    multiple: Boolean,
-  },
-  data() {
-    return {
-      searchInput: '',
-    }
-  },
-  computed: {
-    // Multiple combobox gets a long default debounce time while single
-    // value gets a shorter one
-    debounceTime() {
-      if (Number.isFinite(this.debounce)) {
-        return this.debounce;
-      } else if (Number.isFinite(this.context.debounceTime)) {
-        return this.context.debounceTime;
-      } else {
-        return this.multiple ? 1000 : 100;
-      }
-    },
-  },
-  methods: {
-    customChange(val) {
-      this.input(val);
-      this.searchInput = '';
-    },
-  }
-};
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  ...smartInputProps,
+  multiple: Boolean,
+});
+
+const emit = defineEmits(['input', 'change', 'update:modelValue']);
+
+const searchInput = ref('');
+
+const {
+  loading,
+  errors,
+  safeValue,
+  isDisabled,
+  focused,
+  input
+} = useSmartInput(props, emit, {
+  defaultDebounceTime: () => props.multiple ? 1000 : 100,
+});
+
+function customChange(val) {
+  input(val);
+  searchInput.value = '';
+}
 </script>

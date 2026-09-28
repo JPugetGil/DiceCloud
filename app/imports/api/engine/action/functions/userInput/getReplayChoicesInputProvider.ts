@@ -8,9 +8,6 @@ export default function getReplayChoicesInputProvider(actionId: string, decision
   const decisionStack = [...decisions].reverse();
   const dRoller = getDeterministicDiceRoller(actionId);
   const replaySavedInput: InputProvider = {
-    targetIds() {
-      return Promise.resolve(decisionStack.pop());
-    },
     nextStep() {
       return Promise.resolve();
     },

@@ -1,18 +1,16 @@
-<template lang="html">
+<template>
   <v-slider
-    ref="input"
+    ref="inputRef"
     v-bind="$attrs"
     class="dc-text-field"
     :hide-details="!(errors && errors.length)"
-    :loading="loading"
     :error-messages="errors"
-    :value="safeValue"
-    :disabled="isDisabled"
-    :outlined="!regular"
-    @change="change"
-    @input="e => $emit('input', e)"
-    @end="e => $emit('end', e)"
-    @start="e => $emit('start', e)"
+    :model-value="safeValue"
+    :disabled="isDisabled || loading"
+    :variant="!regular ? 'outlined' : undefined"
+    @update:model-value="e => { emit('input', e); emit('update:modelValue', e); }"
+    @end="e => { change(e); emit('end', e); }"
+    @start="e => emit('start', e)"
     @focus="focused = true"
     @blur="focused = false"
   >
@@ -25,13 +23,51 @@
   </v-slider>
 </template>
 
-<script lang="js">
-import SmartInput from '/imports/client/ui/components/global/SmartInputMixin';
+<script setup>
+import { ref } from 'vue';
+import { useSmartInput } from '/imports/client/ui/components/global/useSmartInput';
 
-export default {
-  mixins: [SmartInput],
-  props: {
-    regular: Boolean,
+const props = defineProps({
+  regular: Boolean,
+  modelValue: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
   },
-};
+  value: {
+    type: [String, Number, Date, Array, Object, Boolean],
+    default: undefined,
+  },
+  errorMessages: {
+    type: [String, Array],
+    default: undefined,
+  },
+  disabled: Boolean,
+  debounce: {
+    type: Number,
+    default: undefined,
+  },
+  rules: {
+    type: Array,
+    default: undefined,
+  },
+});
+
+const emit = defineEmits(['input', 'update:modelValue', 'change', 'end', 'start']);
+
+const {
+  errors,
+  safeValue,
+  isDisabled,
+  loading,
+  focused,
+  change,
+} = useSmartInput(props, emit);
+
+const inputRef = ref(null);
+
+function focus() {
+  inputRef.value?.focus();
+}
+
+defineExpose({ focus });
 </script>

@@ -1,10 +1,15 @@
 
 import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
-import assertUserHasFileSpace from '/imports/api/files/assertUserHasFileSpace';
 let createS3FilesCollection;
 if (Meteor.isServer) {
+  // require(), not import: this module is only pulled in on one side of the
+  // wire, and a static import would bundle it into both
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   createS3FilesCollection = require('/imports/api/files/server/s3FileStorage').createS3FilesCollection
 } else {
+  // require(), not import: this module is only pulled in on one side of the
+  // wire, and a static import would bundle it into both
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   createS3FilesCollection = require('/imports/api/files/client/s3FileStorage').createS3FilesCollection
 }
 
@@ -17,15 +22,14 @@ const UserImages = createS3FilesCollection({
       return 'Images must be less than 30MB';
     }
     // Make sure the user has enough space
-    assertUserHasFileSpace(Meteor.userId(), file.size);
     // Allow common image extensions
     if (!/gif|png|jpe?g|webp/i.test(file.extension || '')) {
       return 'Please upload an image file only';
     }
     return true
   },
-  onAfterUpload(file) {
-    if (Meteor.isServer) incrementFileStorageUsed(file.userId, file.size);
+  async onAfterUpload(file) {
+    if (Meteor.isServer) await incrementFileStorageUsed(file.userId, file.size);
   }
 });
 

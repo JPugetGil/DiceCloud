@@ -1,41 +1,39 @@
-<template lang="html">
+<template>
   <dialog-base>
-    <v-toolbar-title slot="toolbar">
-      Add from library
-    </v-toolbar-title>
-    <library-and-node
-      slot="unwrapped-content"
-      style="height: 100%;"
-      selection
-      @selected="val => node = val"
-    />
-    <template slot="actions">
+    <template #toolbar>
+      <v-toolbar-title>
+        {{ $t('library.addFromLibrary') }}
+      </v-toolbar-title>
+    </template>
+    <template #unwrapped-content>
+      <library-and-node
+        style="height: 100%;"
+        selection
+        @selected="val => node = val"
+      />
+    </template>
+    <template #actions>
       <v-spacer />
       <v-btn
-        text
+        variant="text"
         color="primary"
-        @click="$store.dispatch('popDialogStack', node)"
+        @click="dialogStackStore.popDialogStack(node)"
       >
-        Insert
+        {{ $t('common.insert') }}
       </v-btn>
     </template>
   </dialog-base>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref } from 'vue';
 import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import LibraryAndNode from '/imports/client/ui/library/LibraryAndNode.vue';
-export default {
-  components: {
-    DialogBase,
-    LibraryAndNode,
-  },
-  data() {
-    return {
-      node: undefined,
-    };
-  },
-};
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+
+const dialogStackStore = useDialogStackStore();
+
+const node = ref(undefined);
 </script>
 
 <style lang="css" scoped>

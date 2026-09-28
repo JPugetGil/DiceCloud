@@ -1,7 +1,7 @@
-<template lang="html">
+<template>
   <div class="buff-form">
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -10,8 +10,8 @@
 
     <!-- Duration not implemented yet
     <computed-field
-      label="Duration"
-      hint="How many rounds the buff lasts"
+      :label="$t('forms.buff.duration')"
+      :hint="$t('forms.buff.durationHint')"
       :model="model.duration"
       :error-messages="errors.duration"
       @change="({path, value, ack}) =>
@@ -20,24 +20,24 @@
     -->
     <smart-toggle
       v-if="!model.applied"
-      label="Target creature"
+      :label="$t('forms.targetCreature')"
       :value="model.target"
       :options="[
-        {name: 'Action Target', value: 'target'},
-        {name: 'Self', value: 'self'},
+        {name: $t('forms.actionTarget'), value: 'target'},
+        {name: $t('forms.self'), value: 'self'},
       ]"
       :error-messages="errors.target"
-      @change="change('target', ...arguments)"
+      @change="(value, ack) => change('target', value, ack)"
     />
     <form-sections type="buff">
       <form-section
         v-if="$slots.children"
-        name="Children"
+        :name="$t('forms.children')"
         standalone
       >
         <slot name="children" />
       </form-section>
-      <form-section name="Behavior">
+      <form-section :name="$t('forms.behavior')">
         <v-row dense>
           <v-col
             cols="12"
@@ -45,10 +45,10 @@
             md="4"
           >
             <smart-switch
-              label="Hide remove button"
+              :label="$t('forms.buff.hideRemoveButton')"
               :value="model.hideRemoveButton"
               :error-messages="errors.hideRemoveButton"
-              @change="change('hideRemoveButton', ...arguments)"
+              @change="(value, ack) => change('hideRemoveButton', value, ack)"
             />
           </v-col>
           <v-col
@@ -57,20 +57,20 @@
             md="4"
           >
             <smart-switch
-              label="Don't freeze variables"
+              :label="$t('forms.buff.dontFreeze')"
               :value="model.skipCrystalization"
               :error-messages="errors.skipCrystalization"
-              @change="change('skipCrystalization', ...arguments)"
+              @change="(value, ack) => change('skipCrystalization', value, ack)"
             />
           </v-col>
         </v-row>
       </form-section>
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -78,11 +78,29 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
+<script setup>
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  mixins: [propertyFormMixin],
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
 }
 </script>
 

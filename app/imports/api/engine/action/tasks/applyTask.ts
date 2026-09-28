@@ -43,15 +43,15 @@ export default async function applyTask(
     action.results.push(result);
     switch (task.subtaskFn) {
       case 'damageProp':
-        return applyDamagePropTask(task, action, result, inputProvider);
+        return await applyDamagePropTask(task, action, result, inputProvider);
       case 'consumeItemAsAmmo':
-        return applyItemAsAmmoTask(task, action, result, inputProvider);
+        return await applyItemAsAmmoTask(task, action, result, inputProvider);
       case 'check':
-        return applyCheckTask(task, action, result, inputProvider);
+        return await applyCheckTask(task, action, result, inputProvider);
       case 'reset':
-        return applyResetTask(task, action, result, inputProvider);
+        return await applyResetTask(task, action, result, inputProvider);
       case 'castSpell':
-        return applyCastSpellTask(task, action, result, inputProvider);
+        return await applyCastSpellTask(task, action, result, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }

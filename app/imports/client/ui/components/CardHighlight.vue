@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div
     v-if="dark || theme.isDark"
     class="overlay"
@@ -6,20 +6,15 @@
   />
 </template>
 
-<script lang="js">
-  export default {
-    inject: {
-      theme: {
-        default: {
-          isDark: false,
-        },
-      },
-    },
-    props: {
-      active: Boolean,
-      dark: Boolean,
-    },
-  }
+<script setup>
+import useThemeState from '/imports/client/ui/utility/useThemeState';
+
+defineProps({
+  active: Boolean,
+  dark: Boolean,
+});
+
+const theme = useThemeState();
 </script>
 
 <style lang="css" scoped>

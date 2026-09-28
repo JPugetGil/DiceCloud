@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="proficiency-form">
     <v-row dense>
       <v-col
@@ -6,11 +6,11 @@
         md="6"
       >
         <proficiency-select
-          label="Proficiency"
+          :label="$t('propertyTypes.proficiency.name')"
           style="flex-basis: 300px;"
           :clearable="false"
           :value="model.value"
-          @change="change('value', ...arguments)"
+          @change="(value, ack) => change('value', value, ack)"
         />
       </v-col>
       <v-col
@@ -18,11 +18,11 @@
         md="6"
       >
         <smart-toggle
-          label="Target properties"
+          :label="$t('forms.targetProperties')"
           :value="model.targetByTags ? 'tags' : 'skills'"
           :options="[
-            {name: 'Target by variable name', value: 'skills'},
-            {name: 'Target by tags', value: 'tags'},
+            {name: $t('forms.targetByVariable'), value: 'skills'},
+            {name: $t('forms.targetByTags'), value: 'tags'},
           ]"
           @change="(val, ack) => {
             if (val === 'skills') val = undefined;
@@ -45,16 +45,16 @@
           />
           <smart-combobox
             v-else
-            label="Skills"
+            :label="$t('forms.proficiency.skills')"
             class="mr-2"
             multiple
             small-chips
             deletable-chips
-            hint="Which skills does this proficiency apply to"
+            :hint="$t('forms.proficiency.skillsHint')"
             :value="model.stats"
             :items="skillList"
             :error-messages="errors.stats"
-            @change="change('stats', ...arguments)"
+            @change="(value, ack) => change('stats', value, ack)"
           />
         </v-slide-y-transition>
       </v-col>
@@ -64,13 +64,13 @@
           cols="12"
         >
           <text-field
-            label="Target field"
+            :label="$t('forms.targetField')"
             :value="model.targetField"
-            hint="Target a specific calculation field on the affected properties"
-            placeholder="Default field"
+            :hint="$t('forms.targetFieldHint')"
+            :placeholder="$t('forms.defaultField')"
             persistent-placeholder
             :error-messages="errors.targetField"
-            @change="change('targetField', ...arguments)"
+            @change="(value, ack) => change('targetField', value, ack)"
           />
         </v-col>
       </v-expand-transition>
@@ -84,18 +84,32 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
 import ProficiencySelect from '/imports/client/ui/properties/forms/shared/ProficiencySelect.vue';
-import skillListMixin from '/imports/client/ui/properties/forms/shared/lists/skillListMixin';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import TagTargeting from '/imports/client/ui/properties/forms/shared/TagTargeting.vue';
+import { useSkillList } from '/imports/client/ui/properties/forms/shared/lists/useSkillList';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
 
-export default {
-  components: {
-    ProficiencySelect,
-    TagTargeting,
+defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  mixins: [propertyFormMixin, skillListMixin],
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+const skillList = useSkillList();
+
+const change = (field, value, ack) => {
+  emit('change', { [field]: value });
+  if (typeof ack === 'function') {
+    ack();
+  }
 };
 </script>
 

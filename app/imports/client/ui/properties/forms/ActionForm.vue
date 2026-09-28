@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="action-form">
     <v-row dense>
       <v-col
@@ -9,14 +9,14 @@
           <v-switch
             v-if="!isAttack"
             class="ml-4"
-            label="Attack roll"
+            :label="$t('forms.attackRoll')"
             :value="attackSwitch"
-            @change="e => attackSwitch = e"
+            @update:model-value="e => attackSwitch = e"
           />
           <computed-field
             v-else
-            label="Base attack roll bonus"
-            hint="Must be set for the action to have an attack roll"
+            :label="$t('forms.action.baseAttackBonus')"
+            :hint="$t('forms.action.baseAttackBonusHint')"
             :model="model.attackRoll"
             :error-messages="errors.attackRoll"
             @change="({path, value, ack}) =>
@@ -24,6 +24,7 @@
           >
             <template #prepend>
               <v-btn
+                variant="text"
                 :disabled="!!(model.attackRoll && model.attackRoll.calculation)"
                 icon
                 style="margin-top: -12px;"
@@ -40,13 +41,13 @@
         md="4"
       >
         <smart-select
-          label="Action type"
+          :label="$t('forms.action.actionType')"
           :items="actionTypes"
           :value="model.actionType"
           :error-messages="errors.actionType"
           :menu-props="{auto: true, lazy: true}"
           :hint="actionTypeHints[model.actionType]"
-          @change="change('actionType', ...arguments)"
+          @change="(value, ack) => change('actionType', value, ack)"
         />
       </v-col>
     </v-row>
@@ -54,29 +55,29 @@
     <v-slide-x-transition mode="out-in">
       <text-field
         v-if="model.actionType === 'event'"
-        label="Event variable name"
+        :label="$t('forms.action.eventVariableName')"
         :value="model.variableName"
-        hint="Variable name of the event that this action represents"
+        :hint="$t('forms.action.eventVariableNameHint')"
         :error-messages="errors.variableName"
-        @change="change('variableName', ...arguments)"
+        @change="(value, ack) => change('variableName', value, ack)"
       />
     </v-slide-x-transition>
 
     <smart-toggle
-      label="Target creature"
+      :label="$t('forms.targetCreature')"
       :value="model.target"
       :options="[
-        {name: 'Single Target', value: 'singleTarget'},
-        {name: 'Multiple Targets', value: 'multipleTargets'},
-        {name: 'Self', value: 'self'},
+        {name: $t('forms.singleTarget'), value: 'singleTarget'},
+        {name: $t('forms.multipleTargets'), value: 'multipleTargets'},
+        {name: $t('forms.self'), value: 'self'},
       ]"
       :error-messages="errors.target"
-      @change="change('target', ...arguments)"
+      @change="(value, ack) => change('target', value, ack)"
     />
 
     <inline-computation-field
-      label="Summary"
-      hint="This will appear in the action card in the character sheet, summarise what the action does. This text will be displayed in the log when the action is taken"
+      :label="$t('forms.summary')"
+      :hint="$t('forms.action.summaryHint')"
       :model="model.summary"
       :error-messages="errors['summary.text']"
       @change="({path, value, ack}) =>
@@ -84,7 +85,7 @@
     />
 
     <inline-computation-field
-      label="Description"
+      :label="$t('common.description')"
       :model="model.description"
       :error-messages="errors['description.text']"
       @change="({path, value, ack}) =>
@@ -92,7 +93,7 @@
     />
 
     <form-sections type="action">
-      <form-section name="Resources Consumed">
+      <form-section :name="$t('forms.resourcesConsumed')">
         <resources-form
           :model="model.resources"
           @change="({path, value, ack}) => $emit('change', {path: ['resources', ...path], value, ack})"
@@ -100,15 +101,15 @@
           @pull="({path, ack}) => $emit('pull', {path: ['resources', ...path], ack})"
         />
       </form-section>
-      <form-section name="Limit Uses">
+      <form-section :name="$t('forms.limitUses')">
         <v-row dense>
           <v-col
             cols="12"
             md="6"
           >
             <computed-field
-              label="Uses"
-              hint="How many times this action can be used before needing to be reset"
+              :label="$t('forms.uses')"
+              :hint="$t('forms.usesHint')"
               class="mr-2"
               :model="model.uses"
               :error-messages="errors.uses"
@@ -121,30 +122,30 @@
             md="6"
           >
             <text-field
-              label="Uses used"
+              :label="$t('forms.usesUsed')"
               type="number"
-              hint="How many times this action has already been used: should be 0 in most cases"
+              :hint="$t('forms.usesUsedHint')"
               style="flex-basis: 300px;"
               :value="model.usesUsed"
               :error-messages="errors.uses"
-              @change="change('usesUsed', ...arguments)"
+              @change="(value, ack) => change('usesUsed', value, ack)"
             />
           </v-col>
         </v-row>
         <reset-selector
-          hint="When number of uses used should be reset to zero"
+          :hint="$t('forms.resetUsesHint')"
           :value="model.reset"
           :error-messages="errors.reset"
-          @change="change('reset', ...arguments)"
+          @change="(value, ack) => change('reset', value, ack)"
         />
       </form-section>
-      <form-section name="Log">
+      <form-section :name="$t('forms.log')">
         <smart-switch
-          label="Don't show in log"
+          :label="$t('forms.dontShowInLog')"
           class="ml-4 mt-0 mb-4"
           :value="model.silent"
           :error-messages="errors.silent"
-          @change="change('silent', ...arguments)"
+          @change="(value, ack) => change('silent', value, ack)"
         />
       </form-section>
       <slot />
@@ -152,73 +153,77 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { ref, computed } from 'vue';
 import ResourcesForm from '/imports/client/ui/properties/forms/ResourcesForm.vue';
-import propertyFormMixin from '/imports/client/ui/properties/forms/shared/propertyFormMixin';
 import ResetSelector from '/imports/client/ui/components/ResetSelector.vue';
+import ComputedField from '/imports/client/ui/properties/forms/shared/ComputedField.vue';
+import InlineComputationField from '/imports/client/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSection from '/imports/client/ui/properties/forms/shared/FormSection.vue';
+import FormSections from '/imports/client/ui/properties/forms/shared/FormSections.vue';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  components: {
-    ResourcesForm,
-    ResetSelector,
+const { t } = useI18n();
+
+const props = defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
   },
-  mixins: [propertyFormMixin],
-  data(){
-    let data = {
-      actionTypes: [
-        {
-          text: 'Action',
-          value: 'action',
-        }, {
-          text: 'Bonus action',
-          value: 'bonus',
-        }, {
-          text: 'Attack action',
-          value: 'attack',
-          help: 'Attack actions replace a single attack when you choose to use your Action to attack',
-        }, {
-          text: 'Reaction',
-          value: 'reaction',
-        }, {
-          text: 'Free action',
-          value: 'free',
-          help: 'You can take one free action on your turn without using an action or bonus action'
-        }, {
-          text: 'Long action',
-          value: 'long',
-          help: 'Long actions take longer than one turn to complete'
-        }, {
-          text: 'Event',
-          value: 'event',
-          help: 'Events are actions that happen to the character like rests or dawn'
-        },
-      ],
-      targetOptions: [
-        {
-          text: 'Self',
-          value: 'self',
-        }, {
-          text: 'Single target',
-          value: 'singleTarget',
-        }, {
-          text: 'Multiple targets',
-          value: 'multipleTargets',
-        },
-      ],
-      attackSwitch: false,
-    };
-    data.actionTypeHints = {};
-    data.actionTypes.forEach(type => {
-      data.actionTypeHints[type.value] = type.help;
-    });
-    return data;
+  errors: {
+    type: Object,
+    default: () => ({}),
   },
-  computed: {
-    isAttack(){
-      return this.attackSwitch || !!this.model.attackRoll?.calculation
-    }
+});
+
+const emit = defineEmits(['change', 'push', 'pull']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
+
+const actionTypes = [
+  {
+    title: t('forms.actionTypes.action'),
+    value: 'action',
+  }, {
+    title: t('forms.actionTypes.bonus'),
+    value: 'bonus',
+  }, {
+    title: t('forms.actionTypes.attack'),
+    value: 'attack',
+    help: t('forms.actionTypes.attackHelp'),
+  }, {
+    title: t('forms.actionTypes.reaction'),
+    value: 'reaction',
+  }, {
+    title: t('forms.actionTypes.free'),
+    value: 'free',
+    help: t('forms.actionTypes.freeHelp'),
+  }, {
+    title: t('forms.actionTypes.long'),
+    value: 'long',
+    help: t('forms.actionTypes.longHelp'),
+  }, {
+    title: t('forms.actionTypes.event'),
+    value: 'event',
+    help: t('forms.actionTypes.eventHelp'),
   },
-};
+];
+
+const attackSwitch = ref(false);
+
+const actionTypeHints = {};
+actionTypes.forEach(type => {
+  actionTypeHints[type.value] = type.help;
+});
+
+const isAttack = computed(() => {
+  return attackSwitch.value || !!props.model.attackRoll?.calculation;
+});
 </script>
 
 <style lang="css" scoped>

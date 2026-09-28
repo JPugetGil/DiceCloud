@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="features">
     <column-layout wide-columns>
       <folder-group-card
@@ -31,65 +31,67 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup>
+import { toRef } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import ColumnLayout from '/imports/client/ui/components/ColumnLayout.vue';
 import FeatureCard from '/imports/client/ui/properties/components/features/FeatureCard.vue';
-import tabFoldersMixin from '/imports/client/ui/properties/components/folders/tabFoldersMixin';
+import FolderGroupCard from '/imports/client/ui/properties/components/folders/FolderGroupCard.vue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { useTabFolders } from '/imports/client/ui/properties/components/folders/useTabFolders';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
 
-export default {
-  components: {
-    ColumnLayout,
-    FeatureCard,
+const dialogStackStore = useDialogStackStore();
+
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
   },
-  mixins: [tabFoldersMixin],
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
+});
+
+const tabName = 'features';
+
+
+const {
+  startFolders,
+  endFolders,
+  clickProperty,
+  clickTreeProperty,
+  softRemove,
+} = useTabFolders(toRef(props, 'creatureId'), tabName);
+
+const features = autorun(() => {
+  const folderIds = CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(props.creatureId),
+    type: 'folder',
+    groupStats: true,
+    hideStatsGroup: true,
+    removed: { $ne: true },
+    inactive: { $ne: true },
+  }, { fields: { _id: 1 } }).map(folder => folder._id);
+  
+  return CreatureProperties.find({
+    ...getFilter.descendantsOfRoot(props.creatureId),
+    'parentId': {
+      $nin: folderIds,
     },
-  },
-  data() {
-    return {
-      tabName: 'features',
-    };
-  },
-  // @ts-ignore Meteor isn't defined on vue
-  meteor: {
-    features() {
-      const folderIds = CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'folder',
-        groupStats: true,
-        hideStatsGroup: true,
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, { fields: { _id: 1 } }).map(folder => folder._id);
-      
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        'parentId': {
-          $nin: folderIds,
-        },
-        type: 'feature',
-        removed: { $ne: true },
-        inactive: { $ne: true },
-      }, {
-        sort: { left: 1 }
-      });
-    },
-  },
-  methods: {
-    featureClicked({ _id }) {
-      this.$store.commit('pushDialogStack', {
-        component: 'creature-property-dialog',
-        elementId: `${_id}`,
-        data: { _id },
-      });
-    },
-  },
-};
+    type: 'feature',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+  }, {
+    sort: { left: 1 }
+  }).fetch();
+}).result;
+
+function featureClicked({ _id }) {
+  dialogStackStore.pushDialogStack({
+    component: 'creature-property-dialog',
+    elementId: `${_id}`,
+    data: { _id },
+  });
+}
 </script>
 
 <style lang="css" scoped>

@@ -1,167 +1,170 @@
 <template>
-  <v-layout
-    align-center
-    justify-center
-    class="increment-menu"
-  >
+  <div class="d-flex flex-1-1 align-center justify-center increment-menu">
     <v-spacer />
     <v-btn-toggle
-      :value="operation === 'add' ? 0: operation === 'subtract' ? 1 : null"
+      :model-value="operation === 'add' ? 0: operation === 'subtract' ? 1 : null"
       class="mx-2"
-      @click="$refs.editInput.focus()"
+      @click="focusInput"
     >
       <v-btn
         :disabled="context.editPermission === false"
         class="filled"
-        @click="toggleAdd(); $nextTick(() => $refs.editInput.focus())"
+        @click="toggleAdd(); focusInput()"
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
       <v-btn
         :disabled="context.editPermission === false"
         class="filled"
-        @click="toggleSubtract(); $nextTick(() => $refs.editInput.focus())"
+        @click="toggleSubtract(); focusInput()"
       >
         <v-icon>mdi-minus</v-icon>
       </v-btn>
     </v-btn-toggle>
     <v-text-field
       ref="editInput"
-      :solo="!flat"
+      :variant="!flat ? 'solo' : undefined"
       :class="flat && 'ma-0 pa-0'"
       hide-details
       type="number"
       style="max-width: 120px;"
       min="0"
-      :value="editValue"
+      :model-value="editValue"
       :prepend-inner-icon="operationIcon(operation)"
       :disabled="context.editPermission === false"
       @focus="$event.target.select()"
       @keypress="keypress"
-      @input="input"
+      @update:model-value="input"
     />
     <v-btn
-      :small="!flat"
-      :fab="!flat"
-      :text="flat"
-      :icon="flat"
+      :size="!flat ? 'small' : undefined"
+      icon
+      :variant="flat ? 'text' : undefined"
       class="mx-2 filled"
       @click="commitEdit"
     >
       <v-icon>mdi-check</v-icon>
     </v-btn>
     <v-btn
-      :small="!flat"
-      :fab="!flat"
-      :text="flat"
-      :icon="flat"
+      :size="!flat ? 'small' : undefined"
+      icon
+      :variant="flat ? 'text' : undefined"
       class="filled"
       @click="cancelEdit"
     >
       <v-icon>mdi-close</v-icon>
     </v-btn>
     <v-spacer />
-  </v-layout>
+  </div>
 </template>
 
-<script lang="js">
-export default {
-  inject: {
-    context: { default: {} }
+<script setup>
+import { ref, watch, inject, nextTick } from 'vue';
+
+const context = inject('context', {});
+
+const props = defineProps({
+  value: {
+    type: Number,
+    default: 0,
   },
-  props: {
-    value: {
-      type: Number,
-      default: 0,
-    },
-    open: Boolean,
-    flat: Boolean,
-  },
-  data() {
-    return {
-      editValue: this.value,
-      operation: 'set',
-      hover: false,
-    };
-  },
-  watch: {
-    open: {
-      immediate: true,
-      handler(isOpen) {
-        if (isOpen) this.resetData();
-      },
-    },
-  },
-  methods: {
-    resetData() {
-      this.editValue = this.value;
-      this.operation = 'set';
-      // this.$nextTick didn't work, using timeout instead did
-      setTimeout(() => {
-        if (this.$refs.editInput) {
-          this.$refs.editInput.focus();
-        }
-      }, 100);
-    },
-    cancelEdit() {
-      this.$emit('close');
-    },
-    commitEdit() {
-      this.editing = false;
-      let value = +this.$refs.editInput.lazyValue;
-      if (this.operation === 'add') {
-        value = -value;
-      }
-      let type = this.operation === 'set' ? 'set' : 'increment';
-      this.$emit('change', { type, value });
-    },
-    operationIcon(operation) {
-      switch (operation) {
-        case 'set':
-          return 'mdi-forward';
-        case 'add':
-          return 'mdi-plus';
-        case 'subtract':
-          return 'mdi-minus';
-      }
-    },
-    toggleAdd() {
-      this.operation = (this.operation === 'add') ? 'set' : 'add';
-    },
-    toggleSubtract() {
-      this.operation = (this.operation === 'subtract') ? 'set' : 'subtract';
-    },
-    keypress(event) {
-      let digitsOnly = /[0-9]/;
-      let key = event.key;
-      if (key === '+') {
-        this.toggleAdd();
-        event.preventDefault();
-      } else if (key === '-') {
-        this.toggleSubtract();
-        event.preventDefault();
-      } else if (key === 'Enter') {
-        this.commitEdit();
-      } else if (!digitsOnly.test(key)) {
-        event.preventDefault();
-      }
-    },
-    input(value) {
-      if (+value < 0) {
-        this.editValue = -value;
-        this.operation = 'subtract';
-      }
+  open: Boolean,
+  flat: Boolean,
+});
+
+const emit = defineEmits(['close', 'change']);
+
+const editInput = ref(null);
+const editValue = ref(props.value);
+const operation = ref('set');
+const editing = ref(false);
+
+watch(() => props.open, (isOpen) => {
+  if (isOpen) resetData();
+}, { immediate: true });
+
+function resetData() {
+  editValue.value = props.value;
+  operation.value = 'set';
+  // nextTick didn't work, using timeout instead did
+  setTimeout(() => {
+    if (editInput.value) {
+      editInput.value.focus();
     }
+  }, 100);
+}
+
+function cancelEdit() {
+  emit('close');
+}
+
+function commitEdit() {
+  editing.value = false;
+  // Use editValue which is synced via the input event
+  let value = +editValue.value;
+  if (operation.value === 'add') {
+    value = -value;
   }
-};
+  let type = operation.value === 'set' ? 'set' : 'increment';
+  emit('change', { type, value });
+}
+
+function operationIcon(operation) {
+  switch (operation) {
+    case 'set':
+      return 'mdi-forward';
+    case 'add':
+      return 'mdi-plus';
+    case 'subtract':
+      return 'mdi-minus';
+  }
+}
+
+function toggleAdd() {
+  operation.value = (operation.value === 'add') ? 'set' : 'add';
+}
+
+function toggleSubtract() {
+  operation.value = (operation.value === 'subtract') ? 'set' : 'subtract';
+}
+
+async function focusInput() {
+  await nextTick();
+  editInput.value?.focus();
+}
+
+function keypress(event) {
+  let digitsOnly = /[0-9]/;
+  let key = event.key;
+  if (key === '+') {
+    toggleAdd();
+    event.preventDefault();
+  } else if (key === '-') {
+    toggleSubtract();
+    event.preventDefault();
+  } else if (key === 'Enter') {
+    commitEdit();
+  } else if (!digitsOnly.test(key)) {
+    event.preventDefault();
+  }
+}
+
+function input(value) {
+  if (+value < 0) {
+    editValue.value = -value;
+    operation.value = 'subtract';
+  } else {
+    editValue.value = value;
+  }
+}
 </script>
 
 <style scoped>
-.filled.theme--light {
+.filled.v-theme--light {
   background: #fff !important;
 }
 
-.filled.theme--dark {
+.filled.v-theme--dark {
   background: #424242 !important;
 }
 </style>

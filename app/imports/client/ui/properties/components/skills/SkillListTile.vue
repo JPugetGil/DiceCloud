@@ -1,14 +1,14 @@
-<template lang="html">
+<template>
   <v-list-item
     class="skill-list-tile pl-0"
     style="min-height: 36px;"
     v-on="hasClickListener ? {click} : {}"
   >
-    <v-list-item-content class="py-0">
+    <div class="py-0">
       <v-list-item-title class="d-flex align-center">
         <v-btn
           v-if="!hideModifier"
-          text
+          variant="text"
           tile
           :loading="checkLoading"
           :disabled="!context.editPermission"
@@ -51,79 +51,70 @@
           </template>
         </div>
       </v-list-item-title>
-    </v-list-item-content>
+    </div>
   </v-list-item>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { inject, ref, computed, useAttrs } from 'vue';
 import ProficiencyIcon from '/imports/client/ui/properties/shared/ProficiencyIcon.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import doAction from '/imports/client/ui/creature/actions/doAction';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 
-export default {
-  components: {
-    ProficiencyIcon,
+const props = defineProps({
+  model: {
+    type: Object,
+    required: true,
   },
-  inject: {
-    context: {
-      default: {},
-    },
-  },
-  props: {
-    model: {
-      type: Object,
-      required: true,
-    },
-    hideModifier: Boolean,
-  },
-  data() {
-    return {
-      checkLoading: false,
-    }
-  },
-  computed: {
-    displayedModifier() {
-      let mod = this.model.value;
-      if (this.model.fail) {
-        return 'fail';
-      } else {
-        return numberToSignedString(mod);
-      }
-    },
-    hasClickListener() {
-      return this.$listeners && this.$listeners.click
-    },
-    passiveScore() {
-      return 10 + this.model.value + this.model.passiveBonus;
-    }
-  },
-  methods: {
-    click(e) {
-      this.$emit('click', e);
-    },
-    check() {
-      this.checkLoading = true;
-      doAction({
-        creatureId: this.model.root.id,
-        $store: this.$store, 
-        elementId: `check-btn-${this.model._id}`, 
-        task: {
-          subtaskFn: 'check',
-          targetIds: [this.model.root.id],
-          advantage: this.model.advantage,
-          skillVariableName: this.model.variableName,
-          abilityVariableName: this.model.ability,
-          dc: null,
-        },
-      }).catch(error => {
-        snackbar({ text: error.reason || error.message || error.toString() });
-        console.error(error);
-      }).finally(() => {
-        this.checkLoading = false;
-      });
-    },
+  hideModifier: Boolean,
+});
+
+const emit = defineEmits(['click']);
+
+const context = inject('context', {});
+const attrs = useAttrs();
+
+const checkLoading = ref(false);
+
+const displayedModifier = computed(() => {
+  let mod = props.model.value;
+  if (props.model.fail) {
+    return 'fail';
+  } else {
+    return numberToSignedString(mod);
   }
+});
+
+const hasClickListener = computed(() => !!attrs.onClick);
+
+const passiveScore = computed(() => {
+  return 10 + props.model.value + props.model.passiveBonus;
+});
+
+function click(e) {
+  emit('click', e);
+}
+
+async function check() {
+  checkLoading.value = true;
+  await doAction({
+    creatureId: props.model.root.id,
+    elementId: `check-btn-${props.model._id}`,
+    task: {
+      subtaskFn: 'check',
+      targetIds: [props.model.root.id],
+      advantage: props.model.advantage,
+      skillVariableName: props.model.variableName,
+      abilityVariableName: props.model.ability,
+      dc: null,
+    },
+  }).catch(error => {
+    snackbar({ text: error.reason || error.message || error.toString() });
+    console.error(error);
+  }).finally(() => {
+    checkLoading.value = false;
+  });
 }
 </script>
 
@@ -136,7 +127,7 @@ export default {
   min-width: 32px;
 }
 
-.v-icon.theme--light {
+.v-icon.v-theme--light {
   color: rgba(0, 0, 0, 0.54) !important;
 }
 </style>

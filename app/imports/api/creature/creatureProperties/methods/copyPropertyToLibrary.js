@@ -1,4 +1,4 @@
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -16,6 +16,7 @@ import {
 } from '/imports/api/parenting/parentingFunctions';
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import Libraries from '/imports/api/library/Libraries';
+import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 const DUPLICATE_CHILDREN_LIMIT = 500;
 
 const copyPropertyToLibrary = new ValidatedMethod({
@@ -38,35 +39,35 @@ const copyPropertyToLibrary = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 5000,
   },
-  run({ propId, parentRef, order }) {
+  async run({ propId, parentRef, order }) {
     // get the new ancestry for the properties
-    const parentDoc = fetchDocByRef(parentRef);
+    const parentDoc = await fetchDocByRef(parentRef);
 
     // Check permission to edit the destination
     let rootLibrary;
     if (parentRef.collection === 'libraries') {
       rootLibrary = parentDoc;
     } else if (parentRef.collection === 'libraryNodes') {
-      rootLibrary = Libraries.findOne(parentDoc.root.id)
+      rootLibrary = await Libraries.findOneAsync(parentDoc.root.id)
     } else {
       throw `${parentRef.collection} is not a valid parent collection`
     }
-    assertEditPermission(rootLibrary, this.userId);
+    await assertEditPermission(rootLibrary, this.userId);
 
-    const insertedRootNode = insertNodeFromProperty(propId, order, this);
+    const insertedRootNode = await insertNodeFromProperty(propId, order, this);
 
     // Tree structure changed by inserts, reorder the tree
-    rebuildNestedSets(LibraryNodes, rootLibrary._id);
+    await rebuildNestedSets(LibraryNodes, rootLibrary._id);
 
     // Return the docId of the inserted root property
     return insertedRootNode?._id;
   },
 });
 
-function insertNodeFromProperty(propId, order, method) {
+async function insertNodeFromProperty(propId, order, method) {
   // Fetch the property and its descendants, provided they have not been
   // removed
-  let prop = CreatureProperties.findOne({
+  let prop = await CreatureProperties.findOneAsync({
     _id: propId,
     removed: { $ne: true },
   });
@@ -81,21 +82,20 @@ function insertNodeFromProperty(propId, order, method) {
   }
 
   // Make sure we can edit this property
-  assertDocEditPermission(prop, method.userId);
+  await assertDocEditPermission(prop, method.userId);
 
-  let oldParentId = prop.parentId;
   const propCursor = CreatureProperties.find({
     ...getFilter.descendants(prop),
     removed: { $ne: true },
   });
 
   // Make sure there aren't too many descendants
-  if (propCursor.count() > DUPLICATE_CHILDREN_LIMIT) {
+  if (await propCursor.countAsync() > DUPLICATE_CHILDREN_LIMIT) {
     throw new Meteor.Error('Copy children limit',
       `The property has over ${DUPLICATE_CHILDREN_LIMIT} descendants and cannot be copied`);
   }
 
-  let props = propCursor.fetch();
+  let props = await propCursor.fetchAsync();
 
   // The root prop is first in the array of props
   // It must get the first generated ID to prevent flickering
@@ -103,7 +103,7 @@ function insertNodeFromProperty(propId, order, method) {
 
   // If the docs came from a library, that library must consent to this user copying their
   // properties
-  assertSourceLibraryCopyPermission(props, method);
+  await assertSourceLibraryCopyPermission(props, method);
 
   // Give the docs new IDs without breaking internal references
   renewDocIds({
@@ -119,17 +119,17 @@ function insertNodeFromProperty(propId, order, method) {
   props = cleanProps(props);
 
   // Insert the props as library nodes
-  LibraryNodes.batchInsert(props);
+  await batchInsertAsync(LibraryNodes, props);
   return prop;
 }
 
 /**
- * 
+ *
  * @param props The properties to check
  * @param userId The userId trying to copy these properties to a library
  * Checks that every property can be copied out of the library that originated it by this user
  */
-function assertSourceLibraryCopyPermission(props, method) {
+async function assertSourceLibraryCopyPermission(props, method) {
   // Skip on the client
   if (method.isSimulation) return;
 
@@ -142,16 +142,16 @@ function assertSourceLibraryCopyPermission(props, method) {
 
   // Get the actual library Ids that each of these source nodes came from
   const sourceLibIds = new Set();
-  LibraryNodes.find({
+  await LibraryNodes.find({
     _id: { $in: libraryNodeIds }
   }, {
     fields: { root: 1 }
-  }).forEach(node => {
+  }).forEachAsync(node => {
     sourceLibIds.add(node.root.id);
   });
 
   // Assert copy permission on each of those libraries
-  Libraries.find({
+  await Libraries.find({
     _id: { $in: Array.from(sourceLibIds) }
   }, {
     fields: {
@@ -162,10 +162,10 @@ function assertSourceLibraryCopyPermission(props, method) {
       public: 1,
       readersCanCopy: 1,
     }
-  }).forEach(lib => {
+  }).forEachAsync(async lib => {
     try {
-      assertCopyPermission(lib, method.userId);
-    } catch (e) {
+      await assertCopyPermission(lib, method.userId);
+    } catch {
       throw new Meteor.Error('Copy permission denied',
         `One of the properties you are copying comes from ${lib.name}, which you do not have permission to copy from`);
     }

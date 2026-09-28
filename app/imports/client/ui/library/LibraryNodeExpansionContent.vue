@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div :key="id">
     <v-progress-linear
       v-if="!subsReady"
@@ -11,7 +11,7 @@
         class="pt-4"
       >
         <component
-          :is="model.type"
+          :is="model?.type"
           :model="model"
           class="property-viewer"
         />
@@ -27,58 +27,56 @@
 </template>
 
 <script lang="js">
-import { docsToForest, getFilter } from '/imports/api/parenting/parentingFunctions';
-import LibraryNodes from '/imports/api/library/LibraryNodes';
 import propertyViewerIndex from '/imports/client/ui/properties/viewers/shared/propertyViewerIndex';
-import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
 
 export default {
   components: {
-    TreeNodeList,
     ...propertyViewerIndex,
   },
-  props: {
-    id: {
-      type: String,
-      required: true,
-    },
+};
+</script>
+
+<script setup lang="js">
+import { computed } from 'vue';
+import { useDialogStackStore } from '/imports/client/ui/dialogStack/dialogStackStore';
+import { autorun, subscribe } from 'vue-meteor-tracker';
+import { docsToForest, getFilter } from '/imports/api/parenting/parentingFunctions';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
+
+const props = defineProps({
+  id: {
+    type: String,
+    required: true,
   },
-  computed: {
-    subsReady() {
-      return this.$subReady.descendantLibraryNodes && this.$subReady.libraryNode;
-    }
-  },
-  methods: {
-    clickChild(id){
-      this.$store.commit('pushDialogStack', {
-        component: 'library-node-dialog',
-        elementId: `tree-node-${id}`,
-        data: {
-          _id: id,
-        },
-      });
+});
+
+const dialogStackStore = useDialogStackStore();
+
+const { ready: libraryNodeReady } = subscribe(() => ['libraryNode', props.id]);
+const { ready: descendantLibraryNodesReady } = subscribe(() => ['descendantLibraryNodes', props.id]);
+
+const subsReady = computed(() => libraryNodeReady.value && descendantLibraryNodesReady.value);
+
+const model = autorun(() => LibraryNodes.findOne(props.id)).result;
+
+const propertyChildren = autorun(() => {
+  if (!model.value) return [];
+  const descendants = LibraryNodes.find({
+    ...getFilter.descendants(model.value),
+    removed: { $ne: true },
+  }).fetch();
+  return docsToForest(descendants);
+}).result;
+
+function clickChild(childId) {
+  dialogStackStore.pushDialogStack({
+    component: 'library-node-dialog',
+    elementId: `tree-node-${childId}`,
+    data: {
+      _id: childId,
     },
-  },
-  meteor: {
-    $subscribe: {
-      libraryNode(){
-        return [this.id];
-      },
-      descendantLibraryNodes(){
-        return [this.id];
-      },
-    },
-    model() {
-      return LibraryNodes.findOne(this.id);
-    },
-    propertyChildren() {
-      const descendants = LibraryNodes.find({
-        ...getFilter.descendants(this.model),
-        removed: { $ne: true },
-      }).fetch();
-      return docsToForest(descendants);
-    },
-  }
+  });
 }
 </script>
 

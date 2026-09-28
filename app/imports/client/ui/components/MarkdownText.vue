@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <!-- eslint-disable vue/no-v-html -->
   <div
     class="markdown"
@@ -7,22 +7,22 @@
   />
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import { computed } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
-export default {
-  props: {
-    markdown: {
-      type: String,
-      default: undefined,
-    },
+const props = defineProps({
+  markdown: {
+    type: String,
+    default: undefined,
   },
-  computed: {
-    compiledMarkdown() {
-      if (!this.markdown) return;
-      return DOMPurify.sanitize(marked(this.markdown));
-    },
-  },
-}
+});
+
+defineEmits(['click']);
+
+const compiledMarkdown = computed(() => {
+  if (!props.markdown) return;
+  return DOMPurify.sanitize(marked(props.markdown));
+});
 </script>

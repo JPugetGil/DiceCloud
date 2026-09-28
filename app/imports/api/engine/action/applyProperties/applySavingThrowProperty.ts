@@ -23,11 +23,11 @@ export default async function applySavingThrowProperty(
   const saveTargetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
 
   if (saveTargetIds.length > 1) {
-    return applyTaskToEachTarget(action, task, saveTargetIds, inputProvider);
+    return await applyTaskToEachTarget(action, task, saveTargetIds, inputProvider);
   }
 
   if (prop.dc) {
-    recalculateCalculation(prop.dc, action, 'reduce', inputProvider);
+    await recalculateCalculation(prop.dc, action, 'reduce', inputProvider);
   }
 
   if (!isFiniteNode(prop.dc?.valueNode)) {
@@ -36,7 +36,7 @@ export default async function applySavingThrowProperty(
       value: 'Saving throw requires a DC',
       silenced: prop.silent,
     }, saveTargetIds);
-    return applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
   }
 
   const dc = Number(prop.dc?.value ?? 0);
@@ -56,11 +56,11 @@ export default async function applySavingThrowProperty(
       ['~saveFailed']: { value: true },
       ['~saveSucceeded']: { value: true },
     }
-    return applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
   }
 
   // Each target makes the saving throw
-  const save = prop.stat ? getFromScope(prop.stat, getVariables(targetId)) : undefined;
+  const save = prop.stat ? await getFromScope(prop.stat, await getVariables(targetId)) : undefined;
 
   if (!save) {
     result.appendLog({
@@ -68,7 +68,7 @@ export default async function applySavingThrowProperty(
       value: 'No saving throw found: ' + prop.stat,
       silenced: prop.silent,
     }, [targetId]);
-    return applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
+    return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
   }
 
   const rollModifierText = numberToSignedString(save.value, true);
@@ -116,5 +116,5 @@ export default async function applySavingThrowProperty(
     inline: true,
     silenced: prop.silent,
   }, [targetId]);
-  return applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
+  return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
 }

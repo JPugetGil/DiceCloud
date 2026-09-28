@@ -1,4 +1,4 @@
-<template lang="html">
+<template>
   <div class="stats">
     <div
       class="d-flex wrap justify-space-between px-2 pt-3 pb-2"
@@ -113,7 +113,7 @@
         <div class="double-border">
           <div>
             <b>
-              Total:
+              {{ $t('common.total') }}
             </b>
             <span>
               {{ healthBar.total }}
@@ -140,7 +140,7 @@
         <div class="double-border">
           <div>
             <b>
-              Total:
+              {{ $t('common.total') }}
             </b>
             <span
               v-for="hitDie in hitDice"
@@ -155,7 +155,7 @@
             style="text-align: center;"
             class="label"
           >
-            Hit Dice
+            {{ $t('stats.hitDice') }}
           </div>
         </div>
       </div>
@@ -177,7 +177,7 @@
           <div
             v-if="resource.total > 8"
           >
-            total: {{ resource.total }}
+            {{ $t('printed.totalLower', { total: resource.total }) }}
             <div style="height: 60px;" />
           </div>
           <div
@@ -220,7 +220,7 @@
             * {{ effect.text }}
           </div>
           <div class="label text-center">
-            Saving Throws
+            {{ $t('stats.savingThrows') }}
           </div>
         </div>
       </div>
@@ -245,7 +245,7 @@
             * {{ effect.text }}
           </div>
           <div class="label text-center">
-            Skills
+            {{ $t('stats.skills') }}
           </div>
         </div>
       </div>
@@ -254,19 +254,19 @@
           class="double-border"
         >
           <p>
-            <b>Weapons:</b> {{ weapons.map(p => p.name).join(', ') }}
+            <b>{{ $t('printed.weapons') }}</b> {{ weapons.map(p => p.name).join(', ') }}
           </p>
           <p>
-            <b>Armor:</b> {{ armors.map(p => p.name).join(', ') }}
+            <b>{{ $t('printed.armor') }}</b> {{ armors.map(p => p.name).join(', ') }}
           </p>
           <p>
-            <b>Tools:</b> {{ tools.map(p => p.name).join(', ') }}
+            <b>{{ $t('printed.tools') }}</b> {{ tools.map(p => p.name).join(', ') }}
           </p>
           <p>
-            <b>Languages:</b> {{ languages.map(p => p.name).join(', ') }}
+            <b>{{ $t('printed.languages') }}</b> {{ languages.map(p => p.name).join(', ') }}
           </p>
           <div class="label text-center">
-            Proficiencies
+            {{ $t('stats.proficiencies') }}
           </div>
         </div>
       </div>
@@ -276,7 +276,7 @@
       >
         <div class="double-border">
           <div class="label text-center">
-            Spell Slots
+            {{ $t('stats.spellSlots') }}
           </div>
           <div
             v-for="spellSlot in spellSlots"
@@ -290,7 +290,7 @@
             <div
               v-if="spellSlot.total > 8"
             >
-              Total: {{ spellSlot.total }}
+              {{ $t('printed.totalValue', { total: spellSlot.total }) }}
             </div>
             <div
               v-else
@@ -350,7 +350,9 @@
   </div>
 </template>
 
-<script lang="js">
+<script setup lang="js">
+import {computed } from 'vue';
+import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import ColumnLayout from '/imports/client/ui/components/ColumnLayout.vue';
 import PrintedAction from '/imports/client/ui/creature/character/printedCharacterSheet/components/PrintedAction.vue';
@@ -362,10 +364,18 @@ import PropertyDescription from '/imports/client/ui/properties/viewers/shared/Pr
 import { uniqBy } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
+const props = defineProps({
+  creatureId: {
+    type: String,
+    required: true,
+  },
+});
+
+
 const getProperties = function (creature, filter, options = {
   sort: { left: 1 }
 }) {
-  if (!creature) return;
+  if (!creature) return [];
   if (creature.settings.hideUnusedStats) {
     filter.hide = { $ne: true };
   }
@@ -378,7 +388,7 @@ const getProperties = function (creature, filter, options = {
     { hideWhenValueZero: true, value: 0 },
   ];
 
-  return CreatureProperties.find(filter, options);
+  return CreatureProperties.find(filter, options).fetch();
 };
 
 const getAttributeOfType = function (creature, type) {
@@ -393,148 +403,90 @@ const getSkillOfType = function (creature, type) {
     type: 'skill',
     skillType: type,
   });
-}
-
-export default {
-  components: {
-    ColumnLayout,
-    PrintedDamageMultipliers,
-    PrintedAction,
-    PrintedSkill,
-    PropertyDescription,
-  },
-  props: {
-    creatureId: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      doCheckLoading: false,
-    }
-  },
-  //@ts-ignore-error Meteor not defined
-  meteor: {
-    creature() {
-      return Creatures.findOne(this.creatureId, { fields: { settings: 1 } });
-    },
-    abilities() {
-      return getAttributeOfType(this.creature, 'ability');
-    },
-    stats() {
-      return getAttributeOfType(this.creature, 'stat');
-    },
-    toggles() {
-      return CreatureProperties.find({
-        ...getFilter.descendantsOfRoot(this.creatureId),
-        type: 'toggle',
-        removed: { $ne: true },
-        deactivatedByAncestor: { $ne: true },
-        deactivatedByToggle: { $ne: true },
-        showUI: true,
-      }, {
-        sort: { left: 1 }
-      });
-    },
-    healthBars() {
-      return getAttributeOfType(this.creature, 'healthBar');
-    },
-    modifiers() {
-      return getAttributeOfType(this.creature, 'modifier');
-    },
-    resources() {
-      return getAttributeOfType(this.creature, 'resource');
-    },
-    spellSlots() {
-      return getAttributeOfType(this.creature, 'spellSlot');
-    },
-    hasSpells() {
-      const cursor = getProperties(this.creature, {
-        type: 'spell',
-      })
-      return cursor && cursor.count();
-    },
-    hitDice() {
-      return getAttributeOfType(this.creature, 'hitDice');
-    },
-    checks() {
-      return getSkillOfType(this.creature, 'check');
-    },
-    savingThrows() {
-      return getSkillOfType(this.creature, 'save');
-    },
-    saveConditionals(){
-      const conditionals = [];
-      this.savingThrows?.forEach(prop => {
-        prop?.effects?.forEach(effect => {
-          if (effect.operation === 'conditional') {
-            conditionals.push(effect);
-          }
-        });
-      });
-      return uniqBy(conditionals, '_id');
-    },
-    skills() {
-      return getSkillOfType(this.creature, 'skill');
-    },
-    skillConditionals(){
-      const conditionals = [];
-      this.skills?.forEach(prop => {
-        prop?.effects?.forEach(effect => {
-          if (effect.operation === 'conditional') {
-            conditionals.push(effect);
-          }
-        });
-      });
-      return uniqBy(conditionals, '_id');
-    },
-    tools() {
-      return getSkillOfType(this.creature, 'tool');
-    },
-    weapons() {
-      return getSkillOfType(this.creature, 'weapon');
-    },
-    armors() {
-      return getSkillOfType(this.creature, 'armor');
-    },
-    languages() {
-      return getSkillOfType(this.creature, 'language');
-    },
-    actions() {
-      return getProperties(this.creature, { type: 'action' }, {
-        sort: { actionType: 1, order: 1 }
-      });
-    },
-    appliedBuffs() {
-      return getProperties(this.creature, { type: 'buff' });
-    },
-    multipliers() {
-      return getProperties(this.creature, {
-        type: 'damageMultiplier'
-      }, {
-        sort: { value: 1, order: 1 }
-      });
-    },
-    features() {
-      return getProperties(this.creature, { type: 'feature' });
-    },
-    notes(){
-      const allNoteIds = getProperties(this.creature, { 
-        type: 'note',
-      }).map(note => note._id);
-      const topLevelNotes = getProperties(this.creature, {
-        type: 'note',
-        summary: { $exists: true },
-        'ancestor.id': {$nin: allNoteIds}
-      });
-      return topLevelNotes;
-    },
-  },
-  methods: {
-    numberToSignedString,
-  },
 };
+
+const creature = autorun(() => Creatures.findOne(props.creatureId, { fields: { settings: 1 } })).result;
+
+const abilities = autorun(() => getAttributeOfType(creature.value, 'ability')).result;
+const stats = autorun(() => getAttributeOfType(creature.value, 'stat')).result;
+const toggles = autorun(() => CreatureProperties.find({
+  ...getFilter.descendantsOfRoot(props.creatureId),
+  type: 'toggle',
+  removed: { $ne: true },
+  deactivatedByAncestor: { $ne: true },
+  deactivatedByToggle: { $ne: true },
+  showUI: true,
+}, {
+  sort: { left: 1 }
+}).fetch()).result;
+
+const healthBars = autorun(() => getAttributeOfType(creature.value, 'healthBar')).result;
+const modifiers = autorun(() => getAttributeOfType(creature.value, 'modifier')).result;
+const resources = autorun(() => getAttributeOfType(creature.value, 'resource')).result;
+const spellSlots = autorun(() => getAttributeOfType(creature.value, 'spellSlot')).result;
+
+
+const hitDice = autorun(() => getAttributeOfType(creature.value, 'hitDice')).result;
+const checks = autorun(() => getSkillOfType(creature.value, 'check')).result;
+const savingThrows = autorun(() => getSkillOfType(creature.value, 'save')).result;
+
+const saveConditionals = computed(() => {
+  const conditionals = [];
+  savingThrows.value?.forEach(prop => {
+    prop?.effects?.forEach(effect => {
+      if (effect.operation === 'conditional') {
+        conditionals.push(effect);
+      }
+    });
+  });
+  return uniqBy(conditionals, '_id');
+});
+
+const skills = autorun(() => getSkillOfType(creature.value, 'skill')).result;
+
+const skillConditionals = computed(() => {
+  const conditionals = [];
+  skills.value?.forEach(prop => {
+    prop?.effects?.forEach(effect => {
+      if (effect.operation === 'conditional') {
+        conditionals.push(effect);
+      }
+    });
+  });
+  return uniqBy(conditionals, '_id');
+});
+
+const tools = autorun(() => getSkillOfType(creature.value, 'tool')).result;
+const weapons = autorun(() => getSkillOfType(creature.value, 'weapon')).result;
+const armors = autorun(() => getSkillOfType(creature.value, 'armor')).result;
+const languages = autorun(() => getSkillOfType(creature.value, 'language')).result;
+
+const actions = autorun(() => getProperties(creature.value, { type: 'action' }, {
+  sort: { actionType: 1, order: 1 }
+})).result;
+
+
+const multipliers = autorun(() => getProperties(creature.value, {
+  type: 'damageMultiplier'
+}, {
+  sort: { value: 1, order: 1 }
+})).result;
+
+const features = autorun(() => getProperties(creature.value, { type: 'feature' })).result;
+
+const notes = autorun(() => {
+  const allNotes = getProperties(creature.value, { 
+    type: 'note',
+  });
+  if (!allNotes || !allNotes.length) return [];
+  const allNoteIds = allNotes.map(note => note._id);
+  const topLevelNotes = getProperties(creature.value, {
+    type: 'note',
+    summary: { $exists: true },
+    'ancestor.id': {$nin: allNoteIds}
+  });
+  return topLevelNotes;
+}).result;
 </script>
 
 <style lang="css" scoped>
