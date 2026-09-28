@@ -1,8 +1,12 @@
 <template>
-  <div class="computed-field">
+  <div
+    class="computed-field"
+    :class="$attrs.class"
+    :style="$attrs.style"
+  >
     <text-field
       :model-value="model.calculation"
-      v-bind="$attrs"
+      v-bind="{ ...$attrs, class: undefined, style: undefined }"
       @change="(value, ack) => $emit('change', {path: ['calculation'], value, ack})"
     >
       <template
@@ -22,6 +26,13 @@
 <script setup>
 import { computed } from 'vue';
 import CalculationErrorList from '/imports/ui/properties/forms/shared/CalculationErrorList.vue';
+
+// The field's attributes (label, prefix, hint...) belong to the text field;
+// only class and style lay out the wrapper. Inherited, they all landed on the
+// div too, and a prefix there throws: Element.prefix is read-only
+defineOptions({
+  inheritAttrs: false,
+});
 
 const props = defineProps({
   model: {

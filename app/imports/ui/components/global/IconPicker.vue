@@ -87,7 +87,7 @@
 import { ref, watch, inject } from 'vue';
 import SvgIcon from '/imports/ui/components/global/SvgIcon.vue';
 import { findIcons } from '/imports/api/icons/Icons';
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 const props = defineProps({
   label: {
@@ -109,6 +109,8 @@ const props = defineProps({
   ...smartInputProps,
 });
 
+const model = defineModel(smartInputModel);
+
 const emit = defineEmits(smartInputEmits);
 
 const context = inject('context', {});
@@ -118,7 +120,7 @@ const searchString = ref('');
 const icons = ref([]);
 const iconSearchField = ref(null);
 
-const { loading, safeValue, change } = useSmartInput(props, emit);
+const { loading, safeValue, change } = useSmartInput(props, model, emit);
 
 watch(menu, (value) => {
   if (value) {

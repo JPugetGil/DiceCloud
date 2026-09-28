@@ -1,11 +1,11 @@
 <template>
   <smart-select
+    v-model="model"
     :label="$t('common.reset')"
     clearable
     style="flex-basis: 300px;"
     :hint="hint"
     :items="resetOptions"
-    :model-value="modelValue"
     :error-messages="errorMessages"
     :menu-props="{auto: true, lazy: true}"
     @change="(value, ack) => $emit('change', value, ack)"
@@ -16,14 +16,11 @@
 import { autorun } from 'vue-meteor-tracker';
 import createListOfProperties from '/imports/ui/properties/forms/shared/lists/createListOfProperties';
 import { useI18n } from 'vue-i18n';
+import { smartInputModel } from '/imports/ui/composables/useSmartInput';
 
 const { t } = useI18n();
 
 defineProps({
-  modelValue: {
-    type: [String, Number, Date, Array, Object, Boolean],
-    default: undefined,
-  },
   errorMessages: {
     type: [String, Array],
     default: undefined,
@@ -33,6 +30,8 @@ defineProps({
     default: undefined,
   }
 });
+
+const model = defineModel(smartInputModel);
 
 defineEmits(['change']);
 

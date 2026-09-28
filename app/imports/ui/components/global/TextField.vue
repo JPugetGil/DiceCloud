@@ -26,6 +26,7 @@
 import { ref, computed, watch, inject, onBeforeUnmount, nextTick } from 'vue';
 import { debounce as debounceFn } from 'lodash';
 import { useI18n } from 'vue-i18n';
+import { smartInputModel } from '/imports/ui/composables/useSmartInput';
 
 const { t } = useI18n();
 
@@ -35,10 +36,6 @@ defineOptions({
 
 const props = defineProps({
   regular: Boolean,
-  modelValue: {
-    type: [String, Number, Date, Array, Object, Boolean],
-    default: undefined,
-  },
   errorMessages: {
     type: [String, Array],
     default: undefined,
@@ -61,7 +58,9 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['keyup', 'update:modelValue', 'change']);
+const model = defineModel(smartInputModel);
+
+const emit = defineEmits(['keyup', 'change']);
 
 const context = inject('context', {});
 
@@ -71,8 +70,8 @@ const rulesErrors = ref(null);
 const focused = ref(false);
 const loading = ref(false);
 const dirty = ref(false);
-const safeValue = ref(props.modelValue);
-const inputValue = ref(props.modelValue);
+const safeValue = ref(model.value);
+const inputValue = ref(model.value);
 
 const inputRef = ref(null);
 
@@ -108,7 +107,7 @@ const hasChangeListener = () => !!props.onChange;
 const forceSafeValueUpdate = () => {
   safeValue.value = null;
   nextTick(() => {
-    safeValue.value = props.modelValue;
+    safeValue.value = model.value;
   });
 };
 
@@ -139,7 +138,7 @@ const change = (val) => {
 const debouncedChange = debounceFn(change, debounceTime.value);
 
 const onInput = (val) => {
-  emit('update:modelValue', val);
+  model.value = val;
   // v-text-field is controlled by safeValue, and Vue 3 re-applies an input's
   // value on every render: unless safeValue follows the typing, the next render
   // (a validation message appearing, say) wipes out what was typed
@@ -191,7 +190,7 @@ watch(dirty, (newDirty) => {
   }
 });
 
-watch(() => props.modelValue, (newValue) => {
+watch(model, (newValue) => {
   if (
     !focused.value &&
     !(rulesErrors.value && rulesErrors.value.length)

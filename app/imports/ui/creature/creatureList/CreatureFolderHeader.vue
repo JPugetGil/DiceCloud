@@ -13,11 +13,10 @@
       <text-field
         v-if="renaming"
         ref="nameInput"
+        v-model="newName"
         regular
         hide-details
         density="compact"
-        :model-value="newName"
-        @update:model-value="name => newName = name"
         @click.stop=""
         @keydown.stop=""
         @keyup.stop="e => e.key === 'Enter' && (renaming = false)"

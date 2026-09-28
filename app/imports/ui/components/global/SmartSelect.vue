@@ -21,9 +21,11 @@
 </template>
 
 <script setup>
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 const props = defineProps(smartInputProps);
+const model = defineModel(smartInputModel);
+
 const emit = defineEmits(smartInputEmits);
 
 const {
@@ -33,5 +35,5 @@ const {
   isDisabled,
   change,
   focused,
-} = useSmartInput(props, emit);
+} = useSmartInput(props, model, emit);
 </script>

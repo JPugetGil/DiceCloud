@@ -1,7 +1,7 @@
 <template>
   <transition-group name="slide">
     <dialog-base
-      v-show="!modelValue"
+      v-show="!model"
       key="left"
       class="step-1"
     >
@@ -22,12 +22,12 @@
         <property-selector
           :no-library-only-props="noLibraryOnlyProps"
           :parent-type="parentType"
-          @select="type => $emit('update:modelValue', type)"
+          @select="type => model = type"
         />
       </template>
     </dialog-base>
     <div
-      v-show="modelValue"
+      v-show="model"
       key="right"
       class="step-2"
       style="height: 100%;"
@@ -46,17 +46,17 @@ import { Meteor } from 'meteor/meteor';
 
 defineProps({
   noLibraryOnlyProps: Boolean,
-  modelValue: {
-    type: String,
-    default: undefined,
-  },
   parentType: {
     type: String,
     default: undefined,
   },
 });
 
-defineEmits(['update:modelValue']);
+// The selected property type
+const model = defineModel({
+  type: String,
+  default: undefined,
+});
 
 const showPropertyHelp = autorun(() => {
   let user = Meteor.user();

@@ -21,7 +21,7 @@
         :variant="clickedValue != option.value && loading ? 'plain' : undefined"
         :loading="clickedValue == option.value && loading"
         height="42"
-        v-on="(modelValue == option.value) ? {} : { click: () => click(option.value) }"
+        v-on="(model == option.value) ? {} : { click: () => click(option.value) }"
       >
         <v-icon
           v-if="option.icon"
@@ -45,7 +45,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 
 defineOptions({
@@ -64,6 +64,8 @@ const props = defineProps({
   },
 });
 
+const model = defineModel(smartInputModel);
+
 const emit = defineEmits(smartInputEmits);
 
 const {
@@ -72,7 +74,7 @@ const {
   isDisabled,
   errors,
   change,
-} = useSmartInput(props, emit);
+} = useSmartInput(props, model, emit);
 
 const clickedValue = ref(undefined);
 

@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { smartInputProps, smartInputEmits, useSmartInput } from '/imports/ui/composables/useSmartInput';
+import { smartInputModel, smartInputProps, smartInputEmits, useSmartInput } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({
   inheritAttrs: false,
@@ -18,7 +18,9 @@ defineOptions({
 
 const props = defineProps(smartInputProps);
 
+const model = defineModel(smartInputModel);
+
 const emit = defineEmits(smartInputEmits);
 
-const { loading, errors, safeValue, isDisabled, change } = useSmartInput(props, emit);
+const { loading, errors, safeValue, isDisabled, change } = useSmartInput(props, model, emit);
 </script>

@@ -14,11 +14,11 @@
         <v-expansion-panel-title>
           <template #default="{ open }">
             <v-checkbox
-              v-model="selectedItems"
+              v-model="model"
               class="my-0 py-0 mr-2 flex-grow-0"
               hide-details
               :value="prop._id"
-              :disabled="!selectedItems.includes(prop._id) && selectedItems.length >= quantity.max"
+              :disabled="!model.includes(prop._id) && model.length >= quantity.max"
               @click.stop
             />
             <tree-node-view :model="prop" />
@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 import TreeNodeView from '/imports/ui/properties/treeNodeViews/TreeNodeView.vue';
 import PropertyViewer from '/imports/ui/properties/shared/PropertyViewer.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -66,32 +66,18 @@ const props = defineProps({
     type: Object,
     default: () => ({ min: 0, max: 1 }),
   },
-  modelValue: {
-    type: Array,
-    default: undefined,
-  },
 });
 
-const emit = defineEmits(['continue', 'update:modelValue']);
+// The ids of the chosen properties
+const model = defineModel({
+  type: Array,
+  default: () => [],
+});
 
-
-const selectedItems = ref(props.modelValue || []);
+const emit = defineEmits(['continue']);
 
 const canContinue = computed(() => {
-  return selectedItems.value.length >= (props.quantity?.min ?? 0);
-});
-
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (val !== undefined && val !== selectedItems.value) {
-      selectedItems.value = [...val];
-    }
-  }
-);
-
-watch(selectedItems, (val) => {
-  emit('update:modelValue', val);
+  return model.value.length >= (props.quantity?.min ?? 0);
 });
 
 function openPropertyDetails(id) {

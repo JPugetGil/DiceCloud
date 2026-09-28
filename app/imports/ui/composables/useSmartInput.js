@@ -2,13 +2,17 @@ import { t } from '/imports/ui/i18n';
 import { ref, computed, watch, inject, nextTick, onBeforeUnmount } from 'vue';
 import { debounce } from 'lodash';
 
+// Options for each smart input's `defineModel`. The value only flows down: the
+// parent saves it when the input emits `change`, so a parent binds
+// `:model-value` to the stored value rather than `v-model`.
+// `default: undefined` stops Vue's Boolean casting: a Boolean-typed prop the
+// parent leaves out would otherwise become `false`
+export const smartInputModel = {
+  type: [String, Number, Date, Array, Object, Boolean],
+  default: undefined,
+};
+
 export const smartInputProps = {
-  // `default: undefined` stops Vue's Boolean casting: a Boolean-typed prop the
-  // parent leaves out would otherwise become `false`
-  modelValue: {
-    type: [String, Number, Date, Array, Object, Boolean],
-    default: undefined,
-  },
   errorMessages: [String, Array],
   disabled: Boolean,
   debounce: {
@@ -25,9 +29,9 @@ export const smartInputProps = {
   },
 };
 
-export const smartInputEmits = ['update:modelValue', 'change'];
+export const smartInputEmits = ['change'];
 
-export function useSmartInput(props, emit, options = {}) {
+export function useSmartInput(props, model, emit, options = {}) {
   const context = inject('context', {});
 
   const error = ref(false);
@@ -36,8 +40,8 @@ export function useSmartInput(props, emit, options = {}) {
   const focused = ref(false);
   const loading = ref(false);
   const dirty = ref(false);
-  const safeValue = ref(props.modelValue);
-  const inputValue = ref(props.modelValue);
+  const safeValue = ref(model.value);
+  const inputValue = ref(model.value);
 
   const debounceTime = computed(() => {
     if (Number.isFinite(props.debounce)) {
@@ -73,7 +77,7 @@ export function useSmartInput(props, emit, options = {}) {
   const forceSafeValueUpdate = () => {
     safeValue.value = null;
     nextTick(() => {
-      safeValue.value = props.modelValue;
+      safeValue.value = model.value;
     });
   };
 
@@ -108,7 +112,7 @@ export function useSmartInput(props, emit, options = {}) {
   });
 
   const input = (val) => {
-    emit('update:modelValue', val);
+    model.value = val;
     // The Vuetify input is controlled by safeValue, and Vue 3 re-applies its
     // value on every render: safeValue must follow the user's input, or the next
     // render undoes it
@@ -148,7 +152,7 @@ export function useSmartInput(props, emit, options = {}) {
     }
   });
 
-  watch(() => props.modelValue, (newValue) => {
+  watch(model, (newValue) => {
     if (!focused.value && !(rulesErrors.value && rulesErrors.value.length)) {
       safeValue.value = newValue;
     }

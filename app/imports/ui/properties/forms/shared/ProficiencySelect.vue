@@ -1,12 +1,12 @@
 <template>
   <smart-select
+    v-bind="$attrs"
+    v-model="model"
     append-icon="mdi-menu-down"
     :clearable="clearable"
     class="ml-3"
-    v-bind="$attrs"
     :menu-props="{transition: 'slide-y-transition', lazy: true}"
     :items="values"
-    :model-value="modelValue"
     @change="(value, ack) => $emit('change', value, ack)"
   >
     <template #prepend>
@@ -30,15 +30,16 @@ const { t } = useI18n();
 
 const ICON_SPIN_DURATION = 300;
 
-const props = defineProps({
-  modelValue: {
-    type: Number,
-    default: undefined,
-  },
+defineProps({
   clearable: {
     type: Boolean,
     default: true,
   },
+});
+
+const model = defineModel({
+  type: Number,
+  default: undefined,
 });
 
 defineEmits(['change']);
@@ -54,7 +55,7 @@ const values = ref([
   {value: 2, title: t('proficiencyLevels.double')},
 ]);
 
-watch(() => props.modelValue, (newValue) => {
+watch(model, (newValue) => {
   let newIcon = getProficiencyIcon(newValue);
   iconClass.value='leaving';
   setTimeout(() => {

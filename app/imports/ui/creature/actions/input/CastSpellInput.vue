@@ -175,18 +175,17 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  modelValue: {
-    type: Object,
-    required: true,
-  },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const model = defineModel({
+  type: Object,
+  required: true,
+});
 
 const goTo = useGoTo();
 
-const selectedSlotId = ref(props.modelValue.slotId);
-const selectedSpellId = ref(props.modelValue.spellId);
+const selectedSlotId = ref(model.value.slotId);
+const selectedSpellId = ref(model.value.spellId);
 const selectedSlot = ref(undefined);
 const selectedSpell = ref(undefined);
 const searchValue = ref(undefined);
@@ -217,7 +216,7 @@ const filtersApplied = computed(() => {
 
 watch(selectedSpellId, (spellId) => {
   selectedSpell.value = CreatureProperties.findOne(spellId);
-  emit('update:modelValue', { ...props.modelValue, spellId });
+  model.value = { ...model.value, spellId };
 }, { immediate: true });
 
 watch(selectedSpell, (spell) => {
@@ -249,9 +248,9 @@ watch(selectedSpell, (spell) => {
 watch(selectedSlotId, (slotId) => {
   selectedSlot.value = CreatureProperties.findOne(slotId);
   if (slotId === 'ritual') {
-    emit('update:modelValue', { ...props.modelValue, slotId: undefined, ritual: true });
+    model.value = { ...model.value, slotId: undefined, ritual: true };
   } else {
-    emit('update:modelValue', { ...props.modelValue, slotId, ritual: false });
+    model.value = { ...model.value, slotId, ritual: false };
   }
 }, { immediate: true });
 

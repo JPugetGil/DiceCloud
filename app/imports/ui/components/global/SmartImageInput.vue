@@ -9,18 +9,18 @@
     @dragleave="handleDragLeave"
     @drop="handleDrop"
   >
-    <template v-if="modelValue">
+    <template v-if="model">
       <img
-        v-if="modelValue"
+        v-if="model"
         class="image"
-        :src="modelValue"
+        :src="model"
       >
       <div
         class="image-overlay"
         :class="themeClasses"
       />
       <v-btn
-        v-if="modelValue"
+        v-if="model"
         variant="text"
         icon
         theme="dark"
@@ -82,7 +82,7 @@
 import { ref, computed} from 'vue';
 import { Random } from 'meteor/random';
 
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import useThemeState from '/imports/ui/composables/useThemeState';
@@ -97,9 +97,11 @@ const props = defineProps({
   ...smartInputProps,
 });
 
+const model = defineModel(smartInputModel);
+
 const emit = defineEmits([...smartInputEmits, 'keyup']);
 
-const { change } = useSmartInput(props, emit);
+const { change } = useSmartInput(props, model, emit);
 
 const theme = useThemeState();
 
@@ -118,7 +120,7 @@ function openImageInputDialog() {
     component: 'image-input-dialog',
     elementId: id.value,
     data: {
-      href: props.modelValue,
+      href: model.value,
     },
     callback: (href) => {
       if (href) {

@@ -110,17 +110,18 @@ import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import escapeRegex from '/imports/api/utility/escapeRegex';
 
 const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: undefined,
-  },
   isLibrary: {
     type: Boolean,
     default: false
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'extra-fields-changed']);
+const model = defineModel({
+  type: Object,
+  default: undefined,
+});
+
+const emit = defineEmits(['extra-fields-changed']);
 
 const baseFilterOptions = [];
 for (let key in PROPERTIES) {
@@ -186,7 +187,7 @@ const numFilters = computed(() => {
 
 watch(menu, (val) => {
   if (!val) {
-    emit('update:modelValue', filter.value);
+    model.value = filter.value;
     emit('extra-fields-changed', extraFields.value);
   }
 });

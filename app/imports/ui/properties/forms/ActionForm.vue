@@ -8,10 +8,9 @@
         <v-slide-x-transition mode="out-in">
           <v-switch
             v-if="!isAttack"
+            v-model="attackSwitch"
             class="ml-4"
             :label="$t('forms.attackRoll')"
-            :value="attackSwitch"
-            @update:model-value="e => attackSwitch = e"
           />
           <computed-field
             v-else

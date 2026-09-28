@@ -8,7 +8,7 @@
     :model-value="safeValue"
     :disabled="isDisabled || loading"
     :variant="!regular ? 'outlined' : undefined"
-    @update:model-value="e => emit('update:modelValue', e)"
+    @update:model-value="e => model = e"
     @end="e => { change(e); emit('end', e); }"
     @start="e => emit('start', e)"
     @focus="focused = true"
@@ -25,12 +25,14 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 const props = defineProps({
   regular: Boolean,
   ...smartInputProps,
 });
+
+const model = defineModel(smartInputModel);
 
 const emit = defineEmits([...smartInputEmits, 'end', 'start']);
 
@@ -41,7 +43,7 @@ const {
   loading,
   focused,
   change,
-} = useSmartInput(props, emit);
+} = useSmartInput(props, model, emit);
 
 const inputRef = ref(null);
 

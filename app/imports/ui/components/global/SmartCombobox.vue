@@ -24,7 +24,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({
   inheritAttrs: false,
@@ -34,6 +34,8 @@ const props = defineProps({
   ...smartInputProps,
   multiple: Boolean,
 });
+
+const model = defineModel(smartInputModel);
 
 const emit = defineEmits(smartInputEmits);
 
@@ -46,7 +48,7 @@ const {
   isDisabled,
   focused,
   input
-} = useSmartInput(props, emit, {
+} = useSmartInput(props, model, emit, {
   defaultDebounceTime: () => props.multiple ? 1000 : 100,
 });
 

@@ -1,13 +1,11 @@
 <template>
   <v-snackbar
+    v-bind="$attrs"
+    v-model="isShown"
     location="bottom left"
-
     variant="outlined"
     color="accent"
-    v-bind="$attrs"
-    :model-value="isShown"
     :timeout="timeout"
-    @update:model-value="value => isShown = value"
   >
     <div class="d-flex flex-1-1 align-center">
       <template v-if="snackbar && snackbar.data">

@@ -1,9 +1,8 @@
 <template>
   <div class="d-flex flex-column justify-center align-center">
     <v-btn-toggle
-      :model-value="modelValue"
+      v-model="model"
       color="accent"
-      @update:model-value="emitInput"
     >
       <v-btn :value="-1">
         {{ $t('common.disadvantage') }}
@@ -17,10 +16,10 @@
         origin="center center"
       >
         <vertical-hex
-          v-if="modelValue"
+          v-if="model"
           id="extra-hex"
           style="position:absolute; transition: margin-left 0.3s ease;"
-          :style="{marginLeft: modelValue == 1 ? '24px' : '-24px'}"
+          :style="{marginLeft: model == 1 ? '24px' : '-24px'}"
           disable-hover
         />
       </v-scale-transition>
@@ -39,17 +38,12 @@
 <script setup>
 import VerticalHex from '/imports/ui/components/VerticalHex.vue';
 
-defineProps({
-  modelValue: {
-    type: Number,
-    required: true,
-  }
+// Deselecting both buttons means a straight roll: 0, not undefined
+const model = defineModel({
+  type: Number,
+  required: true,
+  set: value => value || 0,
 });
 
-const emit = defineEmits(['update:modelValue', 'continue']);
-
-function emitInput(e) {
-  e = e || 0;
-  emit('update:modelValue', e);
-}
+const emit = defineEmits(['continue']);
 </script>

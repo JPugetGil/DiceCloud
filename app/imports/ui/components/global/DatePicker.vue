@@ -29,7 +29,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { format } from 'date-fns';
-import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({
   inheritAttrs: false,
@@ -38,6 +38,8 @@ defineOptions({
 const props = defineProps({
   ...smartInputProps,
 });
+
+const model = defineModel(smartInputModel);
 
 const emit = defineEmits(smartInputEmits);
 
@@ -48,7 +50,7 @@ const {
   errors,
   isDisabled,
   focused,
-} = useSmartInput(props, emit);
+} = useSmartInput(props, model, emit);
 
 const menu = ref(false);
 

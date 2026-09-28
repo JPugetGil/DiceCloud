@@ -19,7 +19,7 @@
         {{ label }}
         <v-icon
           :end="!!label"
-          :color="noColorChange ? undefined : modelValue"
+          :color="noColorChange ? undefined : model"
         >
           mdi-format-paint
         </v-icon>
@@ -82,7 +82,7 @@
       <v-card-actions>
         <v-btn
           variant="text"
-          @click="$emit('update:modelValue')"
+          @click="model = undefined"
         >
           {{ $t('common.clear') }}
         </v-btn>
@@ -104,12 +104,7 @@ import isDarkColor from '/imports/ui/utility/isDarkColor';
 import vuetifyColors from 'vuetify/util/colors';
 import { kebabToCamelCase, camelToKebabCase } from '/imports/ui/utility/swapCase';
 
-const props = defineProps({
-  //hex string
-  modelValue: {
-    type: String,
-    default: undefined,
-  },
+defineProps({
   label: {
     type: String,
     default: undefined,
@@ -125,7 +120,11 @@ const props = defineProps({
   noColorChange: Boolean,
 });
 
-const emit = defineEmits(['update:modelValue']);
+// hex string
+const model = defineModel({
+  type: String,
+  default: undefined,
+});
 
 const context = inject('context', {});
 
@@ -187,8 +186,8 @@ const shades = [
 const opened = ref(false);
 
 const combination = computed(() => {
-  if (!props.modelValue) return;
-  return hexToColor(props.modelValue) || {};
+  if (!model.value) return;
+  return hexToColor(model.value) || {};
 });
 
 const color = computed({
@@ -196,7 +195,7 @@ const color = computed({
     return combination.value && combination.value.color;
   },
   set(newColor) {
-    emit('update:modelValue', colorToHex(newColor, shade.value));
+    model.value = colorToHex(newColor, shade.value);
   },
 });
 
@@ -205,7 +204,7 @@ const shade = computed({
     return combination.value && combination.value.shade;
   },
   set(newShade) {
-    emit('update:modelValue', colorToHex(color.value, newShade));
+    model.value = colorToHex(color.value, newShade);
   },
 });
 

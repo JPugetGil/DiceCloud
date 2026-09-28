@@ -14,10 +14,6 @@
 
 <script setup>
 const props = defineProps({
-  modelValue: {
-    type: Array,
-    default: () => [],
-  },
   dice: {
     type: Array,
     required: true,
@@ -28,16 +24,16 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'continue']);
+const model = defineModel({
+  type: Array,
+  default: () => [],
+});
 
-function emitInput(e) {
-  e = e || 0;
-  emit('update:modelValue', e);
-}
+const emit = defineEmits(['continue']);
 
 function rollDice() {
   const values = props.deterministicDiceRoller(props.dice);
-  emitInput(values);
+  model.value = values;
   emit('continue');
 }
 </script>

@@ -2,7 +2,7 @@
   <div class="d-flex flex-wrap">
     <div class="d-flex flex-column justify-center align-center ma-2">
       <v-btn-toggle
-        :model-value="modelValue.advantage"
+        :model-value="model.advantage"
         color="accent"
         @update:model-value="changeAdvantage"
       >
@@ -18,10 +18,10 @@
           origin="center center"
         >
           <vertical-hex
-            v-if="modelValue.advantage"
+            v-if="model.advantage"
             id="extra-hex"
             style="position:absolute; transition: margin-left 0.3s ease;"
-            :style="{marginLeft: modelValue.advantage == 1 ? '24px' : '-24px'}"
+            :style="{marginLeft: model.advantage == 1 ? '24px' : '-24px'}"
             disable-hover
           />
         </v-scale-transition>
@@ -39,18 +39,18 @@
       <smart-select
         :label="$t('check.ability')"
         :items="abilityOptions"
-        :model-value="modelValue.abilityVariableName"
+        :model-value="model.abilityVariableName"
         @change="(value, ack) => change('abilityVariableName', value, ack)"
       />
       <smart-select
         :label="$t('check.skill')"
         :items="skillOptions"
-        :model-value="modelValue.skillVariableName"
+        :model-value="model.skillVariableName"
         @change="(value, ack) => change('skillVariableName', value, ack)"
       />
       <text-field
         :label="$t('check.dc')"
-        :model-value="modelValue.dc"
+        :model-value="model.dc"
         @change="(value, ack) => change('dc', value, ack)"
       />
     </div>
@@ -61,7 +61,7 @@
 import VerticalHex from '/imports/ui/components/VerticalHex.vue';
 import createListOfProperties from '/imports/ui/properties/forms/shared/lists/createListOfProperties';
 
-const props = defineProps({
+const model = defineModel({
   /**
     advantage: 0 | 1 | -1;
     skillVariableName?: string;
@@ -71,18 +71,16 @@ const props = defineProps({
     targetSkillVariableName?: string;
     targetAbilityVariableName?: string;
   */
-  modelValue: {
-    type: Object,
-    required: true,
-  }
+  type: Object,
+  required: true,
 });
 
-const emit = defineEmits(['update:modelValue', 'continue']);
+const emit = defineEmits(['continue']);
 
 // The checked creature's abilities and skills. A check task has no `prop` (it
 // was read here, so the dialog failed as soon as it opened); its target is the
 // creature being checked.
-const creatureId = props.modelValue.targetIds?.[0];
+const creatureId = model.value.targetIds?.[0];
 
 const abilityOptions = createListOfProperties({
   attributeType: 'ability',
@@ -95,13 +93,11 @@ const skillOptions = createListOfProperties({
 }, true);
 
 function changeAdvantage(e) {
-  const newValue = { ...props.modelValue, advantage: e };
-  emit('update:modelValue', newValue);
+  model.value = { ...model.value, advantage: e };
 }
 
 function change(key, value, ack) {
-  const newValue = { ...props.modelValue, [key]: value };
-  emit('update:modelValue', newValue);
+  model.value = { ...model.value, [key]: value };
   ack();
 }
 </script>
