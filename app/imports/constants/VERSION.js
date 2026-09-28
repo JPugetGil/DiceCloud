@@ -1,4 +1,6 @@
 
+import { Meteor } from 'meteor/meteor';
+
 const VERSION = Meteor.isClient ?
   'CLIENT' :
   process.env.CONTAINER_VERSION || getVersionFromGit();

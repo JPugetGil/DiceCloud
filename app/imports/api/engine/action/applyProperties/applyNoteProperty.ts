@@ -4,6 +4,7 @@ import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyNoteProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider

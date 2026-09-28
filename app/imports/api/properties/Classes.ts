@@ -2,6 +2,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 // Classes are like slots, except they only take class levels and enforce that
 // lower levels are taken before higher levels

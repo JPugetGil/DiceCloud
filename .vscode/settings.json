@@ -34,7 +34,6 @@
     "vars",
     "vuedraggable",
     "vuetify",
-    "Vuex",
     "walkdown"
   ],
   "javascript.preferences.importModuleSpecifier": "non-relative",

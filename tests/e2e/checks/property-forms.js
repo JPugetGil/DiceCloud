@@ -3,7 +3,7 @@
  * Opens one library node of every property type found in public libraries, in
  * view and then edit mode, and checks its form:
  * - every select, combobox and autocomplete item carries the key Vuetify
- *   displays (`itemTitle`, default `title`): Vuetify 2's `text` printed
+ *   displays (`itemTitle`, default `title`), or the item prints
  *   "[object Object]";
  * - no field shows "false" (a Boolean-cast prop once hid every stored value);
  * - nothing logs a console error, including the viewers (one crashed).

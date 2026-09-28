@@ -10,6 +10,9 @@ import '/imports/api/users/methods/updateFileStorageUsed';
 import '/imports/api/users/methods/searchUsers';
 import '/imports/api/users/methods/setUserRole';
 import { some } from 'lodash';
+import { Accounts } from 'meteor/accounts-base';
+import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 const defaultLibraries = process.env.DEFAULT_LIBRARIES && process.env.DEFAULT_LIBRARIES.split(',') || [];
 const defaultLibraryCollections = process.env.DEFAULT_LIBRARY_COLLECTIONS && process.env.DEFAULT_LIBRARY_COLLECTIONS.split(',') || [];
 
@@ -122,7 +125,7 @@ const userSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
-  // Interface language, see imports/client/ui/i18n
+  // Interface language, see imports/ui/i18n
   'preferences.language': {
     type: String,
     allowedValues: ['en', 'fr'],

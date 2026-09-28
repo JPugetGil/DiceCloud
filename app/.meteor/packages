@@ -11,7 +11,6 @@ email@3.2.0
 meteor-base@1.5.2
 mobile-experience@1.1.2
 mongo@2.5.1
-session@1.2.3
 tracker@1.3.4
 logging@1.3.6
 reload@1.3.2
@@ -30,8 +29,6 @@ aldeed:schema-index@4.0.0
 bozhao:link-accounts@3.1.0
 percolate:migrations
 ostrio:files
-#mdg:meteor-apm-agent
-#mixmax:smart-disconnect
 zodern:types
 typescript@5.11.1
 ecmascript@0.19.1
@@ -39,6 +36,5 @@ standard-minifier-css@1.10.1
 nachocodoner:reactive-publish
 quave:synced-cron
 simple:json-routes
-underscore@1.6.4
 aldeed:simple-schema
 rspack

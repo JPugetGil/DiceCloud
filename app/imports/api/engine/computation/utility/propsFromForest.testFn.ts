@@ -2,6 +2,7 @@ import type { CreatureProperty } from '/imports/api/creature/creatureProperties/
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 export type ForestProp = Partial<CreatureProperty> & {
   type: CreatureProperty['type'];

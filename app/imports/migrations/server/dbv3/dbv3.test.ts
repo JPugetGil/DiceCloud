@@ -1,6 +1,7 @@
 import { migrateCollection } from './dbv3'
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { assert } from 'chai';
+import { Mongo } from 'meteor/mongo';
 
 describe('dbv3 Migrate parenting structure', function () {
   // We are going to be adding malformed docs to the collection, so allow any

@@ -1,0 +1,32 @@
+<template>
+  <v-switch
+    v-bind="$attrs"
+    :loading="loading"
+    :error-messages="errors"
+    :model-value="safeValue"
+    :disabled="isDisabled"
+    @update:model-value="change"
+  />
+</template>
+
+<script setup>
+import { useSmartInput, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = defineProps({
+  ...smartInputProps,
+});
+
+const emit = defineEmits(smartInputEmits);
+
+const {
+  loading,
+  errors,
+  safeValue,
+  isDisabled,
+  change,
+} = useSmartInput(props, emit);
+</script>

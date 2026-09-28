@@ -6,6 +6,7 @@ import CreatureLogs, { trimCreatureLogs } from '/imports/api/creature/log/Creatu
 import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeCreature from '/imports/api/engine/computeCreature';
+import { Meteor } from 'meteor/meteor';
 
 export default async function writeActionResults(action: EngineAction) {
   if (!action._id) throw new Meteor.Error('type-error', 'Action does not have an _id');

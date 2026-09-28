@@ -1,0 +1,27 @@
+<template>
+  <div class="slot-filler-viewer">
+    <v-row dense>
+      <property-field
+        v-if="model.description"
+        :name="$t('common.description')"
+        :cols="{cols: 12}"
+      >
+        <markdown-text :markdown="model.description" />
+      </property-field>
+    </v-row>
+  </div>
+</template>
+
+<script setup>
+import MarkdownText from '/imports/ui/components/MarkdownText.vue';
+import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
+
+defineProps({
+  model: {
+    type: Object,
+    required: true,
+  },
+});
+
+
+</script>

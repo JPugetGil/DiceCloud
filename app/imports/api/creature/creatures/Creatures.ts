@@ -4,6 +4,7 @@ import SharingSchema from '/imports/api/sharing/SharingSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { Simplify } from 'type-fest';
+import { Mongo } from 'meteor/mongo';
 
 const CreatureSettingsSchema = TypedSimpleSchema.from({
   //slowed down by carrying too much?

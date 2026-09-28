@@ -6,6 +6,7 @@ import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '../functions/writeActionResults';
 import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/userInput/getReplayChoicesInputProvider';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
+import { Meteor } from 'meteor/meteor';
 
 export const runAction = new ValidatedMethod({
   name: 'actions.runAction',

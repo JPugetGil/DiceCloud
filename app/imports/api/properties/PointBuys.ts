@@ -3,6 +3,7 @@ import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 /*
  * PointBuys are reason-value attached to skills and abilities

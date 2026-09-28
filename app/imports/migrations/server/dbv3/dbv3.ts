@@ -5,6 +5,7 @@ import Docs, { DOC_ROOT_ID } from '/imports/api/docs/Docs';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
+import { Mongo } from 'meteor/mongo';
 
 // Git version 2.0.59
 // Database version 3
@@ -32,11 +33,9 @@ Migrations.add({
 
     console.log('Removing all docs and replacing them with default docs');
     await Docs.removeAsync({});
-    // Read synchronously and inserted with for...of: the callback form plus an
-    // async forEach meant rebuildNestedSets below ran before the inserts landed.
-    const docs = JSON.parse(Assets.getTextAsync
-      ? await Assets.getTextAsync('docs/defaultDocs.json')
-      : Assets.getText('docs/defaultDocs.json'));
+    // Inserted one after the other, so that rebuildNestedSets below only runs
+    // once every doc has landed
+    const docs = JSON.parse(await Assets.getTextAsync('docs/defaultDocs.json'));
     for (const doc of docs) {
       await Docs.insertAsync(doc);
     }

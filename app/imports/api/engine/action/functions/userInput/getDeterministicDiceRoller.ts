@@ -1,4 +1,5 @@
 import Alea from 'alea';
+import { Meteor } from 'meteor/meteor';
 
 /**
  * Return a function that can be be used as InputProvider.rollDice

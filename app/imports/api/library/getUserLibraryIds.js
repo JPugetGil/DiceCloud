@@ -1,6 +1,7 @@
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import Libraries from '/imports/api/library/Libraries';
 import { union } from 'lodash';
+import { Meteor } from 'meteor/meteor';
 
 export default async function getUserLibraryIds(userId) {
   if (!userId) return [];

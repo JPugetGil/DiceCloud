@@ -13,7 +13,7 @@ DiceCloud follows **Material Design**, the design system its UI library,
   **4.5:1** for text, **3:1** for large text, icons and other graphics that carry
   meaning.
 
-The palette lives in [`app/imports/client/ui/themes.js`](app/imports/client/ui/themes.js).
+The palette lives in [`app/imports/ui/plugins/themes.js`](app/imports/ui/plugins/themes.js).
 The browser checks in [`tests/e2e`](tests/e2e/README.md) verify it (`palette`,
 `contrast` and `accessibility`).
 
@@ -47,7 +47,7 @@ theme, and **6.4:1** / **7.7:1** under its on- colour.
 Neutrals
 --------
 
-DiceCloud keeps its own greys, carried over from its Vuetify 2 design:
+DiceCloud keeps its own greys:
 
 | | Light | Dark | Where |
 |--|-------|------|-------|

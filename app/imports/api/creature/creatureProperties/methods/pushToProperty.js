@@ -4,6 +4,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import { get } from 'lodash';
+import { Meteor } from 'meteor/meteor';
 
 const pushToProperty = new ValidatedMethod({
   name: 'creatureProperties.push',

@@ -11,6 +11,7 @@ import { restore } from '/imports/api/parenting/softRemove';
 import { getFilter, rebuildNestedSets, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
 import ChildSchema, { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import { withoutLegacyOrigin } from '/imports/api/docs/docUrls';
+import { Mongo } from 'meteor/mongo';
 
 // Give the docs a common root, so they can share parenting logic
 export const DOC_ROOT_ID = 'DDDDDDDDDDDDDDDDD'

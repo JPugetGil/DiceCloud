@@ -3,6 +3,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { incrementFileStorageUsed, getUserFileStorageError } from '/imports/api/users/methods/updateFileStorageUsed';
 import { CreaturePropertySchema } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { CreatureSchema } from '/imports/api/creature/creatures/Creatures';
+import { Meteor } from 'meteor/meteor';
 let createS3FilesCollection;
 if (Meteor.isServer) {
   // require(), not import: this module is only pulled in on one side of the

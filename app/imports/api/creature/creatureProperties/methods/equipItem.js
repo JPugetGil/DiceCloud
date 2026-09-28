@@ -6,6 +6,7 @@ import { organizeDoc } from '/imports/api/parenting/organizeMethods';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
 import getParentRefByTag from './getParentByTag';
+import { Meteor } from 'meteor/meteor';
 
 // Equipping or unequipping an item will also change its parent
 const equipItem = new ValidatedMethod({

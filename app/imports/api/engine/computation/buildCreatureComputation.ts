@@ -15,6 +15,7 @@ import computeSlotQuantityFilled from './buildComputation/computeSlotQuantityFil
 import CreatureComputation from './CreatureComputation';
 import removeSchemaFields from './buildComputation/removeSchemaFields';
 import type { Creature } from '/imports/api/creature/creatures/Creatures';
+import { Meteor } from 'meteor/meteor';
 
 /**
  * Store index of properties

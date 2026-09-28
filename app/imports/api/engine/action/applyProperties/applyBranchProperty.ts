@@ -7,6 +7,7 @@ import recalculateCalculation from '/imports/api/engine/action/functions/recalcu
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getPropertyChildren } from '/imports/api/engine/loadCreatures';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyBranchProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider

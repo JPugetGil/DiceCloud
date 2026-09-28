@@ -12,6 +12,7 @@ import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileS
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
+import { Meteor } from 'meteor/meteor';
 
 let migrateArchive;
 if (Meteor.isServer) {

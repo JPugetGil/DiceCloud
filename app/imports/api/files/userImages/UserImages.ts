@@ -36,5 +36,6 @@ const UserImages = createS3FilesCollection({
 });
 
 import './methods';
+import { Meteor } from 'meteor/meteor';
 
 export default UserImages;

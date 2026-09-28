@@ -14,6 +14,7 @@ import {
 } from '/imports/api/parenting/parentingFunctions';
 import { union } from 'lodash';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
+import { Meteor } from 'meteor/meteor';
 
 const insertPropertyFromLibraryNode = new ValidatedMethod({
   name: 'creatureProperties.insertPropertyFromLibraryNode',

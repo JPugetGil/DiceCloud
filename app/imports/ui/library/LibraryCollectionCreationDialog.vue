@@ -1,0 +1,111 @@
+<template>
+  <dialog-base>
+    <template #toolbar>
+      <v-toolbar-title>
+        {{ $t('library.newCollection') }}
+      </v-toolbar-title>
+    </template>
+    <template #default>
+      <text-field
+        :label="$t('common.name')"
+        :model-value="libraryCollection.name"
+        :debounce-time="0"
+        @change="nameChanged"
+      />
+      <text-area
+        :label="$t('common.description')"
+        :model-value="libraryCollection.description"
+        :debounce-time="0"
+        @change="descriptionChanged"
+      />
+      <smart-select
+        :label="$t('library.libraries')"
+        :items="libraryOptions"
+        :model-value="libraryCollection.libraries"
+        :debounce-time="0"
+        multiple
+        chips
+        deletable-chips
+        :no-data-text="$t('library.noLibrariesFound')"
+        @change="librariesChanged"
+      />
+    </template>
+    <template #actions>
+      <v-spacer />
+      <v-btn
+        variant="text"
+        :disabled="!valid"
+        @click="dialogStackStore.popDialogStack(libraryCollection)"
+      >
+        {{ $t('library.insertCollection') }}
+      </v-btn>
+    </template>
+  </dialog-base>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
+import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
+import Libraries from '/imports/api/library/Libraries';
+import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const dialogStackStore = useDialogStackStore();
+
+
+const libraryCollection = ref({
+  name: t('library.newCollection'),
+  description: undefined,
+  libraries: [],
+});
+
+const valid = ref(true);
+
+const libraryOptions = autorun(() => {
+  const userId = Meteor.userId();
+  return Libraries.find(
+    {
+      $or: [
+        { owner: userId },
+        { writers: userId },
+        { readers: userId },
+        { public: true },
+      ]
+    },
+    { sort: { name: 1 } }
+  ).map(library => {
+    return {
+      title: library.name,
+      value: library._id,
+    };
+  });
+}).result;
+
+function nameChanged(val, ack) {
+  if (val) {
+    libraryCollection.value.name = val;
+    valid.value = true;
+    ack();
+  } else {
+    valid.value = false;
+    ack(t('common.nameRequired'));
+  }
+}
+
+function descriptionChanged(val, ack) {
+  libraryCollection.value.description = val;
+  ack();
+}
+
+function librariesChanged(val, ack) {
+  libraryCollection.value.libraries = val;
+  ack();
+}
+</script>
+
+<style lang="css" scoped>
+</style>

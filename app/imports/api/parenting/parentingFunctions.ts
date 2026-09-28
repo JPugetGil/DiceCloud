@@ -2,6 +2,9 @@ import { chain, reverse } from 'lodash';
 import { TreeDoc, treeDocFields, Reference } from '/imports/api/parenting/ChildSchema';
 import { getProperties } from '/imports/api/engine/loadCreatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { DDP } from 'meteor/ddp';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 export function getCollectionByName<T = TreeDoc>(name: string): Mongo.Collection<T> {
   const collection = Mongo.Collection.get<T>(name)

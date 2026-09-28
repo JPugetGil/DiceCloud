@@ -1,3 +1,6 @@
+import { DDP } from 'meteor/ddp';
+import { Meteor } from 'meteor/meteor';
+
 export default function rollDice(number: number, diceSize: number): number[] {
   const values: number[] = [];
   const randomSrc = DDP.randomStream('diceRoller');

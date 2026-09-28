@@ -1,5 +1,6 @@
 import migrate2To3 from './migrateApiCreature2To3';
 import cleanAtCurrent from './cleanApiCreatureAtCurrent';
+import { Meteor } from 'meteor/meteor';
 
 /* eslint no-fallthrough: "off" -- Using switch fallthrough to run all
 migration steps after the current version of the file. */

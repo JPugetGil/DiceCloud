@@ -3,6 +3,7 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import UserImages from '/imports/api/files/userImages/UserImages';
 import { getFileStorageError } from '/imports/api/users/roles';
+import { Meteor } from 'meteor/meteor';
 const fileCollections = [ArchiveCreatureFiles, UserImages];
 
 const updateFileStorageUsed = new ValidatedMethod({

@@ -19,6 +19,8 @@ import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import INLINE_CALCULATION_REGEX from '/imports/constants/INLINE_CALCULATION_REGEX';
 import { applyAfterTasksSkipChildren } from '/imports/api/engine/action/functions/applyTaskGroups';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import { EJSON } from 'meteor/ejson';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyBuffProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider

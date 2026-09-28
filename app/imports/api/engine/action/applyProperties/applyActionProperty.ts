@@ -14,6 +14,7 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyActionProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider

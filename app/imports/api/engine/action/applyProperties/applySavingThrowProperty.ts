@@ -9,6 +9,7 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applySavingThrowProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider

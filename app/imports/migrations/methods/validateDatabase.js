@@ -1,6 +1,8 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 const validateDatabase = new ValidatedMethod({
   name: 'validateDatabase',
@@ -19,7 +21,7 @@ const validateDatabase = new ValidatedMethod({
 
     // for...of rather than forEach: an async callback handed to forEach is
     // never awaited.
-    for (const collection of Meteor.Collection.getAll()) {
+    for (const collection of Mongo.Collection.getAll()) {
       // `continue`, not `return`: this was a forEach callback, where returning
       // only skipped that one collection.
       if (!collection.instance._c2?._simpleSchemas) continue;

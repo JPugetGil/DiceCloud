@@ -8,6 +8,7 @@ import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getSingleProperty, getVariables } from '/imports/api/engine/loadCreatures';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyAdjustmentProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider

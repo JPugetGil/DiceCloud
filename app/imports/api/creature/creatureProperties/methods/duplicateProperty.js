@@ -10,13 +10,15 @@ import {
 } from '/imports/api/parenting/parentingFunctions';
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
+import { DDP } from 'meteor/ddp';
+import { Meteor } from 'meteor/meteor';
 var snackbar;
 if (Meteor.isClient) {
   // require(), not import: this module is only pulled in on one side of the
   // wire, and a static import would bundle it into both
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   snackbar = require(
-    '/imports/client/ui/components/snackbars/SnackbarQueue'
+    '/imports/ui/components/snackbars/SnackbarQueue'
   ).snackbar
 }
 

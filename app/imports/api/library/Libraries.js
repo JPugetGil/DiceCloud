@@ -8,6 +8,8 @@ import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 /**
  * Libraries are trees of library nodes where each node represents a character

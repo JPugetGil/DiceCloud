@@ -124,14 +124,6 @@
       },
       {
         "files": [
-          "imports/client/ui/pages/*.vue"
-        ],
-        "rules": {
-          "vue/multi-word-component-names": "off"
-        }
-      },
-      {
-        "files": [
           "rspack.config.js"
         ],
         "rules": {
@@ -144,14 +136,13 @@
       "sourceType": "module"
     },
     "globals": {
-      "Migrations": "readonly"
+      "Assets": "readonly"
     },
     "env": {
       "es2021": true,
       "es2020": true,
       "browser": true,
       "node": true,
-      "meteor": true,
       "mocha": true
     },
     "rules": {
@@ -159,7 +150,6 @@
         "error",
         "single"
       ],
-      "vue/no-v-for-template-key": "off",
       "vue/prop-name-casing": [
         "warn",
         "camelCase",

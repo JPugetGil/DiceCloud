@@ -4,6 +4,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { Meteor } from 'meteor/meteor';
 
 const selectAmmoItem = new ValidatedMethod({
   name: 'creatureProperties.selectAmmoItem',

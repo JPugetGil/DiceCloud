@@ -7,6 +7,8 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 let Experiences = new Mongo.Collection('experiences');
 

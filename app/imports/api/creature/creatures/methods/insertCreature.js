@@ -11,6 +11,7 @@ import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { insertExperienceForCreature } from '/imports/api/creature/experience/Experiences';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
+import { Meteor } from 'meteor/meteor';
 
 const insertCreature = new ValidatedMethod({
   name: 'creatures.insertCreature',

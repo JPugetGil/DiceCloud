@@ -4,6 +4,7 @@ import { applyAfterTasksSkipChildren, applyDefaultAfterPropTasks } from '/import
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyToggle(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider

@@ -5,6 +5,7 @@ import { escapeRegExp } from 'lodash';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { assertCanManageRoles } from '/imports/api/users/assertRolePermissions';
 import { getUserRole } from '/imports/api/users/roles';
+import { Meteor } from 'meteor/meteor';
 
 export const SEARCH_USERS_LIMIT = 25;
 

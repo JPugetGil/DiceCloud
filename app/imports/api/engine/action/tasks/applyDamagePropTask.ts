@@ -7,6 +7,8 @@ import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { lowerCase, upperFirst } from 'lodash';
+import { EJSON } from 'meteor/ejson';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyDamagePropTask(
   task: DamagePropTask, action: EngineAction, result: TaskResult, userInput

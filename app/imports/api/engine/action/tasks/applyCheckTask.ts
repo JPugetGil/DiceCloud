@@ -7,6 +7,7 @@ import { getVariables } from '/imports/api/engine/loadCreatures';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import { Meteor } from 'meteor/meteor';
 
 /**
  * A skill property is applied as a check or a saving throw

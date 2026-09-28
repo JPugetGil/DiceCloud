@@ -2,6 +2,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import {
   getCharacterLimitError, getLibraryCreationError, getUserPermissions, ROLES,
 } from '/imports/api/users/roles';
+import { Meteor } from 'meteor/meteor';
 
 async function getUserRoles(userId: string | null | undefined) {
   if (!userId) {

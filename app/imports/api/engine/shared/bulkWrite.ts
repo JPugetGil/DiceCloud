@@ -1,3 +1,6 @@
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
+
 // This is more efficient on the database, but significantly less efficient
 // in the UI because of incompatibility with latency compensation. If the
 // duplicate redraws can be fixed, this is a strictly better way of processing
@@ -29,7 +32,6 @@ async function writePropertiesSequentially(bulkWriteOps: any[], collection: Mong
     if (updateOneOrMany) {
       await collection.updateAsync(updateOneOrMany.filter, updateOneOrMany.update, {
         // The bulk code is bypassing validation, so do the same here
-        // @ts-expect-error Collection 2 has no typescript support
         bypassCollection2: true,
       });
     }

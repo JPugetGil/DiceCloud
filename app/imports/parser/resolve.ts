@@ -7,6 +7,7 @@ import ResolveLevel from './types/ResolveLevel';
 import ResolvedResult from './types/ResolvedResult';
 import Context from './types/Context';
 import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
+import { Meteor } from 'meteor/meteor';
 
 // Takes a parse node and computes it to a set detail level
 // returns {result, context}

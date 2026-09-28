@@ -2,6 +2,7 @@ import createPropertySchema from '/imports/api/properties/subSchemas/createPrope
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import { UnionToTuple } from 'type-fest';
+import { Random } from 'meteor/random';
 
 const eventOptions = {
   doActionProperty: 'Do action',

@@ -9,6 +9,7 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
+import { Meteor } from 'meteor/meteor';
 
 let migrateApiCreature;
 if (Meteor.isServer) {

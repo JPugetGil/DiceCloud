@@ -1,6 +1,7 @@
 // Copied from https://github.com/sethjgore/meteor-simple-schema-mixin
 // and updated to simpl-schema npm package
 import SimpleSchema from 'meteor/aldeed:simple-schema';
+import { Meteor } from 'meteor/meteor';
 
 export default function simpleSchemaMixin(methodOptions) {
   // If the user didn't give us a schema and they did give us a validate, assume

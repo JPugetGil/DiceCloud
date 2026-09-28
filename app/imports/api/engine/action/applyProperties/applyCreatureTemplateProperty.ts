@@ -2,6 +2,7 @@ import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyCreatureTemplateProperty(
   task: PropTask, action: EngineAction, result, userInput

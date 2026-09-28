@@ -23,8 +23,8 @@ async function checkRoutes(label, routes, signedIn) {
       const text = await page.evaluate(() => document.body.innerText.trim());
       if (!text) throw new Error('empty page');
       if (text.includes('[object Promise]')) throw new Error('renders "[object Promise]"');
-      // Vuetify 3 indents list subheaders only inside a v-list; the app restores
-      // Vuetify 2's 16px elsewhere (card titles sat against the card's edge)
+      // Vuetify indents list subheaders only inside a v-list; the app gives them
+      // the same 16px elsewhere (card titles would sit against the card's edge)
       const flush = await page.evaluate(() => [...document.querySelectorAll('.v-list-subheader')]
         .filter(e => parseFloat(getComputedStyle(e).paddingInlineStart) < 16).map(e => e.innerText.trim()));
       if (flush.length) throw new Error(`subheaders without their indent: ${flush.join(', ')}`);

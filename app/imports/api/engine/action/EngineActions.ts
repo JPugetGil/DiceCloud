@@ -2,6 +2,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
 import Task from './tasks/Task';
+import { Mongo } from 'meteor/mongo';
 
 const EngineActions = new Mongo.Collection<EngineAction>('actions');
 

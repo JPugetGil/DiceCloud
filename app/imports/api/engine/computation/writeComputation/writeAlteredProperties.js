@@ -1,6 +1,7 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import propertySchemasIndex from '/imports/api/properties/computedOnlyPropertySchemasIndex';
 import bulkWrite, { addSetOp, addUnsetOp, newOperation } from '/imports/api/engine/shared/bulkWrite';
+import { EJSON } from 'meteor/ejson';
 
 export default async function writeAlteredProperties(computation) {
   let bulkWriteOperations = [];

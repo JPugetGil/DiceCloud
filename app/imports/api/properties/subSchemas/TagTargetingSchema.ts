@@ -1,5 +1,6 @@
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 const TagTargetingSchema = TypedSimpleSchema.from({
   // True when targeting by tags instead of stats

@@ -1,6 +1,8 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
+import { Meteor } from 'meteor/meteor';
+import { Migrations } from 'meteor/percolate:migrations';
 // `Migrations` is a server-only global (percolate:migrations exports it through
 // Meteor's global-imports on the server only), and run() below bails out on the
 // client before touching it. Importing it here instead put the server-only

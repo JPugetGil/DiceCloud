@@ -4,6 +4,7 @@ import writeAlteredProperties from './computation/writeComputation/writeAlteredP
 import writeScope from './computation/writeComputation/writeScope';
 import writeErrorsAndPropCount from './computation/writeComputation/writeErrorsAndPropCount';
 import type CreatureComputation from './computation/CreatureComputation';
+import { Meteor } from 'meteor/meteor';
 
 export default async function computeCreature(creatureId: string) {
   if (Meteor.isClient) return;

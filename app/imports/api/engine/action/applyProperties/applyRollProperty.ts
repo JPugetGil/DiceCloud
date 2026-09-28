@@ -6,6 +6,7 @@ import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import toString from '/imports/parser/toString';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyRollProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider

@@ -1,6 +1,7 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
+import { Meteor } from 'meteor/meteor';
 
 
 export default async function applyFolderProperty(

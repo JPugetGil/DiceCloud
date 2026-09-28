@@ -7,6 +7,8 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 const iconsSchema = TypedSimpleSchema.from({
   name: {

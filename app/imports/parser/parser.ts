@@ -1,6 +1,7 @@
 import grammar from '/imports/parser/grammar';
 import { Parser, Grammar } from 'nearley';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
+import { Meteor } from 'meteor/meteor';
 
 const nearleyGrammar = Grammar.fromCompiled(grammar);
 

@@ -9,6 +9,8 @@ import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 const PER_CREATURE_LOG_LIMIT = 100;
 
@@ -16,7 +18,7 @@ if (Meteor.isServer) {
   // require(), not import: this module is only pulled in on one side of the
   // wire, and a static import would bundle it into both
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  var sendWebhookAsCreature = require('/imports/server/discord/sendWebhook').sendWebhookAsCreature;
+  var sendWebhookAsCreature = require('/imports/api/creature/log/server/sendWebhook').sendWebhookAsCreature;
 }
 
 let CreatureLogs = new Mongo.Collection('creatureLogs');

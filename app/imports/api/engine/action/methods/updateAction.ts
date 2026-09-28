@@ -3,6 +3,7 @@ import EngineActions from '/imports/api/engine/action/EngineActions';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
+import { Meteor } from 'meteor/meteor';
 
 export const updateAction = new ValidatedMethod({
   name: 'actions.updateAction',

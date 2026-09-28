@@ -35,5 +35,6 @@ let creatureFolderSchema = new SimpleSchema({
 
 CreatureFolders.attachSchema(creatureFolderSchema);
 
-import '/imports/api/creature/creatureFolders/methods.js/index';
+import '/imports/api/creature/creatureFolders/methods/index';
+import { Mongo } from 'meteor/mongo';
 export default CreatureFolders;

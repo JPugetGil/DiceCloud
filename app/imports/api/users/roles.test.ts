@@ -8,6 +8,7 @@ import {
 import {
   assertCanCreateCharacter, assertCanCreateLibrary, assertCanManageRoles,
 } from '/imports/api/users/assertRolePermissions';
+import { Meteor } from 'meteor/meteor';
 
 describe('User roles', function () {
   describe('getUserRole', function () {

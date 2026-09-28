@@ -3,6 +3,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import EngineActions, { EngineAction, ActionSchema } from '/imports/api/engine/action/EngineActions';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
+import { Meteor } from 'meteor/meteor';
 
 export const insertAction = new ValidatedMethod({
   name: 'actions.insertAction',

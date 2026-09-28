@@ -6,6 +6,7 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computedSchemas from '/imports/api/properties/computedPropertySchemasIndex';
 import applyFnToKey from '/imports/api/engine/computation/utility/applyFnToKey';
+import { Meteor } from 'meteor/meteor';
 
 // Git version 2.0.52
 // Database version 2

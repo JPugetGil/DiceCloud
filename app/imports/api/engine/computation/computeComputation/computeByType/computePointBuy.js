@@ -1,5 +1,6 @@
 import { has } from 'lodash';
 import { resolveCalculationNode } from '/imports/api/engine/computation/computeComputation/computeByType/computeCalculation';
+import { EJSON } from 'meteor/ejson';
 
 export default async function computePointBuy(computation, node) {
   const prop = node.data;

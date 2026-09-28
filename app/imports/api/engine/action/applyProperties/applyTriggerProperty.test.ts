@@ -8,6 +8,7 @@ import {
   TestCreature
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { Random } from 'meteor/random';
 
 const [
   creatureId, targetCreatureId, targetCreature2Id,

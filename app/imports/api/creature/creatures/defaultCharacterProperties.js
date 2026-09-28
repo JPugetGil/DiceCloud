@@ -1,4 +1,5 @@
 import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
+import { DDP } from 'meteor/ddp';
 
 export default function defaultCharacterProperties(creatureId) {
   if (!creatureId) throw 'creatureId is required';

@@ -5,6 +5,8 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getCreature, getPropertiesByFilter, getPropertiesOfType } from '/imports/api/engine/loadCreatures';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 export default async function applyResetTask(
   task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider

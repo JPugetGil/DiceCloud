@@ -3,6 +3,7 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileStorageUsed';
 import UserImages from '/imports/api/files/userImages/UserImages';
+import { Meteor } from 'meteor/meteor';
 
 const removeUserImage = new ValidatedMethod({
   name: 'userImages.methods.remove',

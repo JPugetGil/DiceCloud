@@ -3,6 +3,7 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertCanManageRoles } from '/imports/api/users/assertRolePermissions';
 import { ROLE_ORDER, replaceRole } from '/imports/api/users/roles';
+import { Meteor } from 'meteor/meteor';
 
 /**
  * Admin only: make a user a player, an active player, or an admin. Roles

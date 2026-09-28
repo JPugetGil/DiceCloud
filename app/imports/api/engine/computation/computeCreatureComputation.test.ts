@@ -5,6 +5,7 @@ import CreatureProperties, { CreatureProperty } from '/imports/api/creature/crea
 import computeTests from '/imports/api/engine/computation/computeComputation/tstFns';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 describe('Compute computation', function () {
   it('Computes something at all', async function () {

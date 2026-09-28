@@ -2,6 +2,7 @@ import '/imports/api/simpleSchemaConfig';
 import { docsToForest, calculateNestedSetOperations, getFilter, moveDocWithinRoot, moveDocBetweenRoots } from '/imports/api/parenting/parentingFunctions'
 import { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import { assert } from 'chai';
+import { Mongo } from 'meteor/mongo';
 
 function doc(_id, left, right, parentId?): TreeDoc {
   const doc = { _id, root: { id: 'root', collection: 'col' }, left, right, parentId };

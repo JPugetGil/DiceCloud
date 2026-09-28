@@ -1,5 +1,6 @@
 import nodeTypeIndex from './parseTree';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
+import { Meteor } from 'meteor/meteor';
 
 export default async function map(node: ParseNode, fn: (ParseNode) => Promise<any>): Promise<any> {
   if (!node) return;

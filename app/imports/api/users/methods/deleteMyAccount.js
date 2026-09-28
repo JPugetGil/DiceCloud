@@ -3,6 +3,7 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Libraries, { removeLibaryWork } from '/imports/api/library/Libraries';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
+import { Meteor } from 'meteor/meteor';
 
 Meteor.users.deleteMyAccount = new ValidatedMethod({
   name: 'users.deleteMyAccount',

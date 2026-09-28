@@ -1,5 +1,6 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { set } from 'lodash';
+import { Meteor } from 'meteor/meteor';
 
 // Everything here must be in place before the first schema is *defined*, so it
 // all stays synchronous. The entry modules import this first, then await

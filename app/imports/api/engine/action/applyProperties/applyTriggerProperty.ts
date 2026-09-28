@@ -4,6 +4,7 @@ import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
+import { Meteor } from 'meteor/meteor';
 
 export default async function applyTriggerProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput

@@ -10,6 +10,7 @@ import applyCheckTask from '/imports/api/engine/action/tasks/applyCheckTask';
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellTask';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
+import { Meteor } from 'meteor/meteor';
 
 // DamagePropTask promises a number of actual damage done
 export default async function applyTask(

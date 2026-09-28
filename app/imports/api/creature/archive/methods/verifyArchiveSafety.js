@@ -1,5 +1,6 @@
 import { slice } from 'lodash';
 import { PER_CREATURE_LOG_LIMIT } from '/imports/api/creature/log/CreatureLogs';
+import { Meteor } from 'meteor/meteor';
 
 export default function verifyArchiveSafety({ creature, properties, experiences, logs }) {
   const creatureId = creature._id;

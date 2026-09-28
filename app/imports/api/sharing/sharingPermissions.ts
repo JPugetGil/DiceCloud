@@ -2,6 +2,7 @@ import { includes } from 'lodash';
 import { fetchDocByRef, getCollectionByName } from '/imports/api/parenting/parentingFunctions';
 import type { Shared } from '/imports/api/sharing/SharingSchema';
 import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import { Meteor } from 'meteor/meteor';
 
 function assertIdValid(userId: string | undefined | null): asserts userId {
   if (!userId || typeof userId !== 'string') {

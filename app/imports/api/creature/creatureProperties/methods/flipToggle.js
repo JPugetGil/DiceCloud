@@ -3,6 +3,7 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
+import { Meteor } from 'meteor/meteor';
 
 const flipToggle = new ValidatedMethod({
   name: 'creatureProperties.flipToggle',

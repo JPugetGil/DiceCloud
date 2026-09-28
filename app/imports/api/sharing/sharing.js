@@ -4,6 +4,7 @@ import { getCollectionByName, fetchDocByRef } from '/imports/api/parenting/paren
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
+import { Meteor } from 'meteor/meteor';
 
 const setPublic = new ValidatedMethod({
   name: 'sharing.setPublic',

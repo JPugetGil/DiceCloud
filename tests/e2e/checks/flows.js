@@ -20,8 +20,8 @@ main(async () => {
     await page.waitForTimeout(3500);
   });
   await step('health bar spans the row (label left, bar filling the rest)', messages, async () => {
-    // Vue 2 gave the bar flex-grow 100 against the label's 1; Vuetify 3's
-    // !important flex-1-1 once split the row in half
+    // The bar takes the room its label leaves; Vuetify's !important flex-1-1
+    // utility would split the row in half
     const r = await page.evaluate(() => {
       const bar = document.querySelector('.health-bar');
       if (!bar) return null;

@@ -8,6 +8,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { ConvertToUnion, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import { Simplify } from 'type-fest';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
+import { Mongo } from 'meteor/mongo';
 
 const PreComputeCreaturePropertySchema = TypedSimpleSchema.from({
   _id: {

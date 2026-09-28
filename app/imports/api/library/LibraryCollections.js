@@ -6,6 +6,8 @@ import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
 import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 /**
  * LibraryCollections are groups of libraries that are subscribed together at once

@@ -5,6 +5,10 @@ import CreatureProperties, { CreatureProperty, CreaturePropertyTypes } from '/im
 import computeCreature from './computeCreature';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
+import { EJSON } from 'meteor/ejson';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
+import { Tracker } from 'meteor/tracker';
 
 const COMPUTE_DEBOUNCE_TIME = 100; // ms
 export const loadedCreatures: Map<string, LoadedCreature> = new Map(); // creatureId => {creature, properties, etc.}

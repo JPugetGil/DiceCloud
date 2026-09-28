@@ -9,6 +9,9 @@ import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineAc
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { LogContent, Mutation, Removal, Update } from '/imports/api/engine/action/tasks/TaskResult';
 import inputProvider from './userInput/inputProviderForTests.testFn';
+import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
+import { Tracker } from 'meteor/tracker';
 /**
  * Removes all creatures, properties, and creatureVariable documents from the database
  */

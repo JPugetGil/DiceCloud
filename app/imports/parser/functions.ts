@@ -1,4 +1,4 @@
-import { ResolveLevel } from '/imports/parser/parseTree/NodeFactory';
+import type ResolveLevel from '/imports/parser/types/ResolveLevel';
 import resolve from '/imports/parser/resolve'
 import rollDice from '/imports/parser/rollDice';
 

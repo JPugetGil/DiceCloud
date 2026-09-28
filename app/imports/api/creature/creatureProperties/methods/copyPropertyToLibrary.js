@@ -17,6 +17,7 @@ import {
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import Libraries from '/imports/api/library/Libraries';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
+import { Meteor } from 'meteor/meteor';
 const DUPLICATE_CHILDREN_LIMIT = 500;
 
 const copyPropertyToLibrary = new ValidatedMethod({

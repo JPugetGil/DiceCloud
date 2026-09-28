@@ -4,6 +4,7 @@ import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Random } from 'meteor/random';
 
 /*
  * Actions are things a character can do

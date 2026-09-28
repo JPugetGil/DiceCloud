@@ -89,6 +89,39 @@ Run `meteor run --settings exampleMeteorSettings.json` to start the app with the
 Now, visiting [http://localhost:3000/](http://localhost:3000/) should show you an
 empty instance of DiceCloud running.
 
+Project layout
+--------------
+
+The app follows Meteor 3's
+[application structure](https://docs.meteor.com/tutorials/application-structure/):
+the entry points only import the startup code, and everything else lives in
+`app/imports/`, loaded when something imports it.
+
+| Path | Holds |
+|------|-------|
+| `app/client/main.html`, `app/client/main.js` | Client entry: the page's head and body, then `imports/startup/client` |
+| `app/server/main.js` | Server entry: `imports/startup/server` |
+| `app/tests/main.js` | Test entry (`meteor test`): every `*.test.js` and `*.test.ts` in `imports/` |
+| `app/imports/startup/` | Startup, run in order: `both/` loads collection2 and the schema options, then `client/` or `server/` (package configuration, then `register-api.js`) |
+| `app/imports/api/<domain>/` | Each domain's collections, schemas and methods (creatures, library, users...), with its server-only code (publications, REST routes, cron jobs) in a `server/` folder |
+| `app/imports/ui/` | The Vue app: `main.js` creates it, `App.vue` is its root and `router.js` its routes; `pages/` holds one component per route, next to `layouts/`, `components/` and a folder per feature; `plugins/` (Vuetify and its themes), `stores/` (Pinia), `composables/` (shared `use...` functions), `i18n/` and `stylesheets/` |
+| `app/imports/parser/`, `app/imports/constants/`, `app/imports/migrations/` | The calculation parser, shared constants, database migrations |
+| `app/public/`, `app/private/` | Files served as they are; files only the server reads (the default docs) |
+
+Conventions:
+
+- Components are single-file components with `<script setup>`, named in
+  PascalCase with at least two words; pages end in `Page`.
+- Inputs work with `v-model` (`modelValue` and `update:modelValue`). A component
+  that needs to know whether its parent listens to one of its events declares
+  that listener as a prop (`onChange`, `onClick`...): Vue keeps the listeners of
+  declared events out of `$attrs`.
+- Meteor's APIs are imported from their packages
+  (`import { Meteor } from 'meteor/meteor'`) rather than used as globals;
+  `meteor npm run lint` reports a missing import in JavaScript and Vue files.
+- Server code uses the asynchronous collection and method APIs (`findOneAsync`,
+  `updateAsync`, `callAsync`...).
+
 User roles
 ----------
 

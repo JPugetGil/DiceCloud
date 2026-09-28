@@ -2,6 +2,8 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
 import array from '/imports/parser/parseTree/array';
 import constant, { isFiniteNode } from '/imports/parser/parseTree/constant';
+import { Meteor } from 'meteor/meteor';
+import { Mongo } from 'meteor/mongo';
 
 //set up the collection for creature variables
 const CreatureVariables = new Mongo.Collection('creatureVariables');

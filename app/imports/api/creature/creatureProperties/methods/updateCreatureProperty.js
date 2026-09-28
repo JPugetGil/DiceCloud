@@ -2,6 +2,7 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { assertDocEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { Meteor } from 'meteor/meteor';
 
 const updateCreatureProperty = new ValidatedMethod({
   name: 'creatureProperties.update',

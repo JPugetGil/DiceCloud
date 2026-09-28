@@ -19,6 +19,7 @@ import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import { ConvertToUnion, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
 import { Simplify } from 'type-fest';
+import { Mongo } from 'meteor/mongo';
 
 const LibraryNodeSchema = TypedSimpleSchema.from({
   _id: {

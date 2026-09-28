@@ -1,0 +1,76 @@
+<template>
+  <div class="class-form">
+    <v-row dense>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <text-field
+          :label="$t('forms.classLevel.classVariableName')"
+          :model-value="model.variableName"
+          style="flex-basis: 300px;"
+          :hint="$t('forms.classLevel.classVariableNameHint')"
+          :error-messages="errors.variableName"
+          @change="(value, ack) => change('variableName', value, ack)"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <text-field
+          :label="$t('forms.level')"
+          type="number"
+          class="base-value-field text-center large-format no-flex"
+          :model-value="model.level"
+          :error-messages="errors.level"
+          @change="(value, ack) => change('level', value, ack)"
+        />
+      </v-col>
+    </v-row>
+
+    <inline-computation-field
+      :label="$t('common.description')"
+      :hint="$t('forms.classLevel.descriptionHint')"
+      :model="model.description"
+      :error-messages="errors['description.text']"
+      @change="({path, value, ack}) =>
+        $emit('change', {path: ['description', ...path], value, ack})"
+    />
+    <form-sections
+      v-if="$slots.default"
+      type="classLevel"
+    >
+      <slot />
+    </form-sections>
+  </div>
+</template>
+
+<script setup>
+import InlineComputationField from '/imports/ui/properties/forms/shared/InlineComputationField.vue';
+import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
+
+defineProps({
+  model: {
+    type: [Object, Array],
+    default: () => ({}),
+  },
+  errors: {
+    type: Object,
+    default: () => ({}),
+  },
+});
+
+const emit = defineEmits(['change']);
+
+function change(path, value, ack) {
+  if (!Array.isArray(path)) {
+    path = [path];
+  }
+  emit('change', { path, value, ack });
+}
+</script>
+
+<style lang="css" scoped>
+
+</style>
