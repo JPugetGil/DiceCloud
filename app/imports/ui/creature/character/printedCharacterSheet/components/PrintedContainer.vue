@@ -62,7 +62,7 @@
             >
               $weight
             </v-icon>
-            {{ $t('common.weightLb', { weight: model.weight }) }}
+            {{ $t('common.weightKg', { weight: model.weight }) }}
           </div>
 
           <div class="d-flex flex-1-1 align-center mb-2">
@@ -72,7 +72,7 @@
             >
               $injustice
             </v-icon>
-            {{ $t('common.weightLb', { weight: model.contentsWeight }) }}
+            {{ $t('common.weightKg', { weight: model.contentsWeight }) }}
             <span
               class="ml-1"
             >

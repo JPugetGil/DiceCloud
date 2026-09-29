@@ -25,7 +25,7 @@
           <template
             v-if="model.weight"
           >
-            {{ $t('common.weightLb', { weight: model.weight }) }}
+            {{ $t('common.weightKg', { weight: model.weight }) }}
           </template>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <template
             v-if="model.weight"
           >
-            {{ $t('common.weightLb', { weight: totalWeight }) }}
+            {{ $t('common.weightKg', { weight: totalWeight }) }}
           </template>
         </div>
       </div>

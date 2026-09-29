@@ -25,7 +25,7 @@
 
               <template #append>
                 <v-list-item-title>
-                  {{ weightCarried }} lb
+                  {{ $t('common.weightKg', { weight: weightCarried }) }}
                 </v-list-item-title>
               </template>
             </v-list-item>

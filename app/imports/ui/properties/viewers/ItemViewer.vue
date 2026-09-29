@@ -93,7 +93,7 @@
               $injustice
             </v-icon>
             <span class="text-body-large">
-              {{ $t('common.weightLb', { weight: totalWeight }) }}
+              {{ $t('common.weightKg', { weight: totalWeight }) }}
             </span>
           </div>
           <div class="d-flex flex-1-1 align-center">
@@ -104,7 +104,7 @@
               $weight
             </v-icon>
             <span class="text-body-large mr-2">
-              {{ $t('common.weightLb', { weight: model.weight }) }}
+              {{ $t('common.weightKg', { weight: model.weight }) }}
             </span>
             <span
               v-if="model.quantity > 1"

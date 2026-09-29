@@ -25,7 +25,7 @@
       >
         <text-field
           :label="$t('forms.weight')"
-          :suffix="$t('forms.lb')"
+          :suffix="$t('forms.kg')"
           type="number"
           min="0"
           class="mx-1"
