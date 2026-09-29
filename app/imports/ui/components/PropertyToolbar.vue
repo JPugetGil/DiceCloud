@@ -16,7 +16,12 @@
       :model="model"
       class="mr-2"
     />
-    <v-toolbar-title v-if="model">
+    <!-- Sized to its text: Vuetify's own flex: 1 1 gives the title an equal
+    share of the free space, so a long name was cut short with room to spare -->
+    <v-toolbar-title
+      v-if="model"
+      class="flex-0-1"
+    >
       {{ title }}
     </v-toolbar-title>
     <v-spacer />

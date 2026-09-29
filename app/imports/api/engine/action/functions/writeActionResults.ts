@@ -6,6 +6,7 @@ import CreatureLogs, { trimCreatureLogs } from '/imports/api/creature/log/Creatu
 import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeCreature from '/imports/api/engine/computeCreature';
+import { reloadCachedProperties } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
 
 export default async function writeActionResults(action: EngineAction) {
@@ -39,8 +40,14 @@ export default async function writeActionResults(action: EngineAction) {
 
   await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
 
-  // Recompute the creatures involved
-  const recomputePromises = uniq([action.creatureId, ...allTargetIds]).map(async creatureId => await computeCreature(creatureId));
+  // Recompute the creatures involved. Their caches have not heard of the writes
+  // above yet: computing from them would evaluate everything that depends on a
+  // changed value (a toggle's condition, a slot's condition) as it was before
+  // the action, and nothing would recompute it afterwards.
+  const recomputePromises = uniq([action.creatureId, ...allTargetIds]).map(async creatureId => {
+    await reloadCachedProperties(creatureId);
+    await computeCreature(creatureId);
+  });
 
   return Promise.all(recomputePromises);
 }

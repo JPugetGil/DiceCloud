@@ -55,10 +55,13 @@ subscribe(() => ['libraryCollection', route.params.id]);
 
 const collection = autorun(() => LibraryCollections.findOne(route.params.id)).result;
 
+// In the collection's own order, which its owner chose: the database's would
+// be arbitrary
 const libraries = autorun(() => {
   if (!collection.value) return;
+  const ids = collection.value.libraries;
   return Libraries.find({
-    _id: { $in: collection.value.libraries },
-  }).fetch();
+    _id: { $in: ids },
+  }).fetch().sort((a, b) => ids.indexOf(a._id) - ids.indexOf(b._id));
 }).result;
 </script>

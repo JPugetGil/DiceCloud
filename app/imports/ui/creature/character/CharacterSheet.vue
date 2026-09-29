@@ -18,8 +18,8 @@
       >
         <v-window
           :key=" '' +
-            creature.settings.hideSpellsTab +
-            creature.settings.showTreeTab
+            creature.settings?.hideSpellsTab +
+            creature.settings?.showTreeTab
           "
           :model-value="appStore.tabById(creatureId)"
           @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
@@ -30,7 +30,7 @@
           <v-window-item>
             <actions-tab :creature-id="creatureId" />
           </v-window-item>
-          <v-window-item v-if="!creature.settings.hideSpellsTab">
+          <v-window-item v-if="!creature.settings?.hideSpellsTab">
             <spells-tab :creature-id="creatureId" />
           </v-window-item>
           <v-window-item>
@@ -45,7 +45,7 @@
           <v-window-item>
             <build-tab :creature-id="creatureId" />
           </v-window-item>
-          <v-window-item v-if="creature.settings.showTreeTab">
+          <v-window-item v-if="creature.settings?.showTreeTab">
             <tree-tab :creature-id="creatureId" />
           </v-window-item>
         </v-window>

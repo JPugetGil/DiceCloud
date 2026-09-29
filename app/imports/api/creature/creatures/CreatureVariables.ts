@@ -2,6 +2,7 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
 import array from '/imports/parser/parseTree/array';
 import constant, { isFiniteNode } from '/imports/parser/parseTree/constant';
+import { parse } from '/imports/parser/parser';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
@@ -38,6 +39,16 @@ export async function getFromScope(name: string, scope) {
     value = await getSingleProperty(scope._creatureId, propId);
     if (rowIdentifier === 'row' && value?.type === 'pointBuy') {
       value = value.values[rowNumber];
+    }
+  }
+  // A constant's parsed value only exists while the creature computes: the
+  // stored property keeps just its calculation, so a linked constant (every
+  // `showPHB`-style source flag) read undefined everywhere else
+  if (value?.type === 'constant' && value.value === undefined && value.calculation) {
+    try {
+      value = { ...value, value: parse(value.calculation) };
+    } catch {
+      // A calculation that doesn't parse stays undefined, as in the computation
     }
   }
   return value;

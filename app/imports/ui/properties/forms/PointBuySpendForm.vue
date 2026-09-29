@@ -45,6 +45,7 @@
           :show-ticks="max(row) - min(row) <= 20"
           :min="min(row)"
           :max="max(row)"
+          :step="1"
           :model-value="row.value"
           :error-messages="errors.values && errors.values[i] && errors.values[i].value"
           @change="(value, ack) => releaseSlider(i, value, ack)"
@@ -96,6 +97,7 @@ import CalculationErrorList from '/imports/ui/properties/forms/shared/Calculatio
 import { resolveCalculationNode } from '/imports/api/engine/computation/computeComputation/computeByType/computeCalculation';
 import { Tracker } from 'meteor/tracker'
 import { EJSON } from 'meteor/ejson';
+import toPrimitiveOrString from '/imports/parser/toPrimitiveOrString';
 
 const props = defineProps({
   model: {
@@ -127,8 +129,10 @@ async function dragSlider(row, value) {
   let newSpent = currentSpent - row.spent;
   const costFunction = EJSON.clone(row.cost || props.model.cost);
   if (!costFunction?.parseNode) return;
-  if (costFunction) costFunction.parseLevel = 'reduce';
+  if (costFunction) costFunction._parseLevel = 'reduce';
   await resolveCalculationNode(costFunction, costFunction.parseNode, { value });
+  // resolveCalculationNode leaves only the valueNode, as in computePointBuy
+  costFunction.value = toPrimitiveOrString(costFunction.valueNode);
   if (Number.isFinite(costFunction.value)) {
     newSpent += costFunction.value;
     if (useEstimate.value) estimatedCost.value = newSpent;

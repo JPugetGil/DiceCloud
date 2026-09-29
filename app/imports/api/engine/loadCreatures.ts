@@ -91,6 +91,19 @@ export async function getSingleProperty(creatureId: string, propertyId: string) 
   return prop;
 }
 
+/**
+ * Replace a loaded creature's cached properties with the database's. The
+ * observers apply a write only some time after it lands, so a computation
+ * started straight after writing reads the properties as they were before.
+ */
+export async function reloadCachedProperties(creatureId: string) {
+  const creature = await getLoadedCreature(creatureId);
+  if (!creature) return;
+  // The same selector as the property observer, removed properties included
+  const props = await CreatureProperties.find({ 'root.id': creatureId }).fetchAsync();
+  creature.properties = new Map(props.map(prop => [prop._id, prop]));
+}
+
 export async function getProperties(creatureId: string): Promise<CreatureProperty[]> {
   const creature = await getLoadedCreature(creatureId);
   if (creature) {
@@ -312,7 +325,9 @@ class LoadedCreature {
         },
         changed(id, fields) {
           self.changeProperty(id, fields);
-          if (fields.dirty) compute();
+          // Soft removing or restoring a property sets no dirty flag, but takes
+          // it out of or puts it back into the computation all the same
+          if (fields.dirty || 'removed' in fields) compute();
         },
         removed(id) {
           self.removeProperty(id);

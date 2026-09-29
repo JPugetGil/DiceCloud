@@ -8,7 +8,7 @@
     :model-value="safeValue"
     :disabled="isDisabled || loading"
     :variant="!regular ? 'outlined' : undefined"
-    @update:model-value="e => model = e"
+    @update:model-value="e => { model = e; safeValue = e; }"
     @end="e => { change(e); emit('end', e); }"
     @start="e => emit('start', e)"
     @focus="focused = true"

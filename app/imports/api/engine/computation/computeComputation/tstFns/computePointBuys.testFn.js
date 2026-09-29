@@ -8,6 +8,11 @@ export default async function () {
   await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   assert.equal(prop('strengthId').value, 11, 'Point buys should apply a base value when active');
+  // 15 costs 7 + 2, 14 costs 6 + 1, 8 costs nothing, the empty row is skipped
+  const costed = prop('costedPointBuy');
+  assert.deepEqual(costed.values.map(row => row.spent), [9, 0, 7, 0], 'Each row should be costed');
+  assert.equal(costed.spent, 16, 'Point buys should total what their rows cost');
+  assert.equal(costed.pointsLeft, 11, 'Point buys should subtract what was spent from the total');
 }
 
 var testProperties = propsFromForest([
@@ -34,5 +39,16 @@ var testProperties = propsFromForest([
   }, {
     type: 'pointBuy',
     values: [{ variableName: 'strength', value: 11 }],
+  }, {
+    _id: 'costedPointBuy',
+    type: 'pointBuy',
+    cost: { calculation: 'max(value-8, 0) + max(value-13, 0)' },
+    total: { calculation: '27' },
+    values: [
+      { variableName: 'costedStrength', value: 15 },
+      { variableName: 'costedDexterity' },
+      { variableName: 'costedConstitution', value: 14 },
+      { variableName: 'costedIntelligence', value: 8 },
+    ],
   }
 ]);
