@@ -12,7 +12,10 @@
       >
         {{ $t('deleteConfirm.cantUndo') }}
       </v-alert>
-      <p v-if="name">
+      <p
+        v-if="name"
+        class="my-0"
+      >
         {{ $t('deleteConfirm.typeName', { name }) }}
       </p>
       <v-text-field

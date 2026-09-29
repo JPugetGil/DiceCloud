@@ -34,8 +34,14 @@ const vuetify = createVuetify({
     VToolbar: {
       color: 'toolbar',
     },
+    // An avatar is transparent unless given a colour: `flat` (Vuetify's default)
+    // fills it with the surface colour, a circle that shows on hovered or
+    // selected list items and in the drawer. Coloured avatars set `flat`
+    VAvatar: {
+      variant: 'text',
+    },
     // Material marks a focused field and a selected control with the primary
-    // colour. Vuetify 3 leaves them grey unless given a colour (Vuetify 2 used
+    // colour. Vuetify leaves them grey unless given a colour (Vuetify 2 used
     // primary), so focus and checked states barely showed
     VTextField: { color: 'primary' },
     VTextarea: { color: 'primary' },

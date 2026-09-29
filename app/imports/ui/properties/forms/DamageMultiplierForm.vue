@@ -1,6 +1,6 @@
 <template>
   <div class="damage-multiplier-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
       >
@@ -22,7 +22,7 @@
         />
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <smart-combobox
           :label="$t('forms.damageMultiplier.damageTypes')"
@@ -47,7 +47,7 @@
         <slot name="children" />
       </form-section>
       <form-section :name="$t('forms.damageMultiplier.applyByTag')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col cols="12">
             <smart-combobox
               :label="$t('forms.damageMultiplier.tagsRequired')"
@@ -127,17 +127,3 @@ function change(path, value, ack) {
   emit('change', { path, value, ack });
 }
 </script>
-
-<style lang="css" scoped>
-.no-flex {
-  flex: initial;
-}
-
-.layout.row.wrap {
-  margin-right: -8px;
-}
-
-.layout.row.wrap>* {
-  margin-right: 8px;
-}
-</style>

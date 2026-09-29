@@ -8,7 +8,7 @@
     @mouseover="hover = true"
     @mouseleave="hover = false"
   >
-    <v-card-title class="text-h6">
+    <v-card-title class="text-title-large">
       {{ model.name }}
     </v-card-title>
     <v-card-text v-if="model.summary">

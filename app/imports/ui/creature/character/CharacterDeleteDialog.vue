@@ -6,7 +6,10 @@
       </v-toolbar-title>
     </template>
     <div>
-      <p v-if="name">
+      <p
+        v-if="name"
+        class="my-0"
+      >
         {{ $t('deleteCharacter.typeName', { name }) }}
       </p>
       <v-text-field

@@ -1,7 +1,6 @@
 <template>
   <v-row
-    justify="center"
-    class="doc-viewer"
+    class="doc-viewer justify-center"
   >
     <!--
       Content column (title, description, then the child docs) beside a table
@@ -56,11 +55,13 @@
           </v-avatar>
           <h1
             v-if="doc"
+            class="my-0"
           >
             {{ doc.name }}
           </h1>
           <h1
             v-else
+            class="my-0"
           >
             {{ $t('pageTitle.documentation') }}
           </h1>
@@ -70,6 +71,7 @@
         <markdown-text
           v-if="doc"
           :key="doc._id"
+          class="text-body-large"
           :markdown="expandRootUrl(doc.description)"
           @click="mdClick"
         />

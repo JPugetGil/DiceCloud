@@ -112,17 +112,3 @@ function change({ added, moved }) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-.flip-list-leave-active {
-  display: none;
-}
-
-.flip-list-move {
-  transition: transform 0.5s;
-}
-
-.no-move {
-  transition: transform 0s;
-}
-</style>

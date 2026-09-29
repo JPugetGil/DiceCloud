@@ -1,6 +1,6 @@
 <template>
   <div class="action-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="context.creatureId"
         :name="model.type === 'spell'? $t('viewers.castSpell') : $t('viewers.applyAction')"
@@ -216,11 +216,6 @@ async function resetUses() {
 </script>
 
 <style lang="css" scoped>
-.action-sub-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .action-child {
   height: 40px;

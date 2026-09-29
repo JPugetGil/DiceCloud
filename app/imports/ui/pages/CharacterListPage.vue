@@ -1,12 +1,11 @@
 <template>
   <div
-    class="card-background"
+    class="bg-page"
     style="height: 100%"
   >
     <v-container>
       <v-row
-        justify="center"
-        class="mb-16"
+        class="mb-16 justify-center"
       >
         <v-col
           cols="12"
@@ -21,7 +20,7 @@
           <div class="d-flex flex-1-1 justify-end align-center mt-2">
             <span
               v-if="characterLimit !== Infinity"
-              class="text-body-2 text-medium-emphasis mr-auto"
+              class="text-body-medium text-medium-emphasis mr-auto"
               data-id="character-count"
             >
               {{ $t('characterList.characterCount', { count: ownedCharacterCount, limit: characterLimit }) }}

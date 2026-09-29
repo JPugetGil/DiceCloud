@@ -1,7 +1,7 @@
 <template>
   <v-container class="documentation">
     <v-row
-      justify="center"
+      class="justify-center"
     >
       <v-col
         cols="12"
@@ -21,13 +21,15 @@
       <v-row
         v-else-if="docNotFound"
         key="failed"
-        justify="center"
+        class="justify-center"
       >
         <v-col
           cols="12"
           md="8"
         >
-          <h1>{{ $t('docs.notFound') }}</h1>
+          <h1 class="my-0">
+            {{ $t('docs.notFound') }}
+          </h1>
         </v-col>
       </v-row>
       <doc-edit-form
@@ -144,9 +146,9 @@ watch(title, (value) => {
 
 <style>
 .documentation .fade-transition-enter-active {
-  transition: all .25s linear !important;
+  transition: all .25s linear;
 }
 .documentation .fade-transition-leave-active {
-  transition: all .1s linear !important;
+  transition: all .1s linear;
 }
 </style>

@@ -1,15 +1,13 @@
 <template>
-  <div class="card-raised-background">
+  <div class="bg-raised">
     <v-container fluid>
       <v-row
-        wrap
-        dense
-        justify="center"
-        justify-sm="start"
+        class="justify-center justify-sm-start"
+        density="compact"
       >
         <template v-if="properties.suggested">
           <v-col cols="12">
-            <v-list-subheader>
+            <v-list-subheader class="ps-4">
               {{ $t('selector.suggested') }}
             </v-list-subheader>
           </v-col>
@@ -36,7 +34,7 @@
           v-if="properties.suggested"
           cols="12"
         >
-          <v-list-subheader>
+          <v-list-subheader class="ps-4">
             {{ $t('selector.more') }}
           </v-list-subheader>
         </v-col>

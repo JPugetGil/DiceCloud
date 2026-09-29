@@ -19,7 +19,7 @@
           @pull="e => $emit('pull', e)"
         />
         <div class="mb-6" />
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"

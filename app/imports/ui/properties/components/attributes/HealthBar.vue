@@ -6,7 +6,7 @@
     :data-id="model._id"
   >
     <div
-      class="text-subtitle-1 text-truncate pa-2 name"
+      class="text-body-large text-truncate pa-2 name"
       @mouseover="hover = true"
       @mouseleave="hover = false"
       @click="$emit('click')"
@@ -152,13 +152,13 @@ function changeIncrementMenu({ type, value }) {
   margin-left: -50%;
   margin-right: -50%;
   width: 200%;
-  margin-top: -34px !important;
+  margin-top: -34px;
   z-index: 7;
   position: relative;
 }
 
 .no-menu-shadow {
-  box-shadow: none !important;
+  box-shadow: none;
 }
 </style>
 
@@ -180,68 +180,11 @@ function changeIncrementMenu({ type, value }) {
   font-weight: 500;
 }
 
-.bar {
-  transition: box-shadow 0.2s;
-}
-
-.bar:hover {
-  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-    0 1px 5px 0 rgba(0, 0, 0, 0.12) !important;
-}
-
 .hover {
   background: #f5f5f5 !important;
 }
 
 .v-theme--dark .hover {
   background: #515151 !important;
-}
-
-.filled.v-theme--light {
-  background: #fff !important;
-}
-
-.filled.v-theme--dark {
-  background: #424242 !important;
-}
-
-.background-transition-enter-active,
-.background-transition-leave-active {
-  transition: all 0.2s;
-}
-
-.background-transition-enter-from,
-.background-transition-leave-to {
-  opacity: 0;
-}
-
-.transition-enter-active {
-  transition: all 0.2s;
-}
-
-.transition-leave-active {
-  transition: all 0.3s;
-}
-
-.transition-enter-to,
-.transition-leave-from {
-  opacity: 1;
-  transform: scaleY(1) !important;
-}
-
-.transition-enter-from,
-.transition-leave-to {
-  opacity: 0;
-  transform: scaleY(0) !important;
-}
-
-.page-tint {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.15);
-  z-index: 6;
 }
 </style>

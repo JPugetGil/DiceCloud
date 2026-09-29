@@ -21,7 +21,7 @@
         </div>
         <div
           v-if="model.total"
-          class="ml-2 max-value"
+          class="ml-2 max-value text-medium-emphasis"
         >
           /{{ model.total }}
         </div>
@@ -115,7 +115,6 @@ const canEdit = computed(() => {
   return context.editPermission && !props.viewOnly;
 });
 
-
 function click(e) {
   emit('click', e);
 }
@@ -158,19 +157,8 @@ async function damageProperty({ type, value, ack }) {
   flex-shrink: 0;
 }
 
-.spell-slot-list-tile.hover {
-  background: rgba(var(--v-theme-on-surface), var(--v-hover-opacity)) !important;
-}
-
 .disabled-icon {
   opacity: 0.3;
 }
 
-.content {
-  cursor: pointer;
-}
-
-.max-value {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-}
 </style>

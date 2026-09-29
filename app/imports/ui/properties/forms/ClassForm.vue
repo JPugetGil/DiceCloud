@@ -1,6 +1,6 @@
 <template>
   <div class="class-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
       >

@@ -15,17 +15,17 @@
       :disabled="!context.editPermission"
       @click.stop="check"
     >
-      <v-card-title class="value text-h4 flex-shrink-0">
+      <v-card-title class="value text-headline-large flex-shrink-0">
         {{ computedValue }}
       </v-card-title>
     </v-btn>
     <v-card-title
       v-else
-      class="value text-h4 flex-shrink-0"
+      class="value text-headline-large flex-shrink-0"
     >
       {{ computedValue }}
     </v-card-title>
-    <v-card-title class="name text-subtitle-1 text-truncate d-block pl-0">
+    <v-card-title class="name text-body-large text-truncate d-block pl-0">
       {{ model.name }}
       <v-icon
         v-if="model.advantage > 0"

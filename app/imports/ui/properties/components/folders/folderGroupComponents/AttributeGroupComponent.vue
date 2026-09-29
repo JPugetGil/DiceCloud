@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      class="attribute"
+      class="attribute position-relative"
       :data-id="dataId"
     >
       <ability-list-tile
@@ -36,7 +36,7 @@
       />
       <attribute-card-content
         v-else-if="model.attributeType !== 'utility'"
-        class="pointer"
+        class="pointer cursor-pointer"
         :model="model"
         @click="$emit('click')"
         @mouseover="hover = true"
@@ -110,12 +110,3 @@ async function damageProperty({ value, type, ack }) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-  .attribute {
-    position: relative;
-  }
-  .pointer {
-    cursor: pointer;
-  }
-</style>

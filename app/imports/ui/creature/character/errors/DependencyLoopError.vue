@@ -2,14 +2,14 @@
   <v-alert
     border="bottom"
     border-color="warning"
-    elevation="2"
+    elevation="1"
     type="warning"
     class="dependency-loop-error"
   >
-    <p>
+    <p class="my-0">
       {{ $t('errors.dependencyLoop') }}
     </p>
-    <p>
+    <p class="my-0">
       {{ $t('errors.dependencyLoopText') }}
     </p>
     <div class="d-flex align-center flex-wrap">
@@ -25,6 +25,7 @@
         <a
           v-if="prop.type"
           :key="index + 'link'"
+          class="text-primary cursor-pointer"
           :data-id="`breadcrumb-${prop._id}`"
           @click="click(prop._id)"
         >
@@ -36,7 +37,7 @@
         <span
           v-else
           :key="index + 'variable'"
-          style="font-family: monospace !important;"
+          class="text-mono"
         >
           {{ prop.name }} {{ prop.path }}
         </span>
@@ -61,8 +62,6 @@ const props = defineProps({
     default: undefined,
   }
 });
-
-
 
 const { result: loopProperties } = autorun(() => {
   if (!props.model) return;
@@ -90,6 +89,3 @@ function click(id) {
   });
 }
 </script>
-
-<style>
-</style>

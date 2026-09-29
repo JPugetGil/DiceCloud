@@ -6,7 +6,7 @@
       class="content-line"
     >
       <h4
-        class="content-name"
+        class="content-name my-0"
         style="min-height: 12px;"
       >
         {{ content.name }}
@@ -50,13 +50,10 @@ const filteredModel = computed(() => {
   margin-top: 8px;
   margin-bottom: 2px;
 }
-.content-line .details {
-  display: inline-block;
-}
 </style>
 
 <style lang="css">
-  .log-content .content-value > p:last-of-type{
+  .log-content .content-value > p:last-of-type {
     margin-bottom: 0;
   }
 </style>

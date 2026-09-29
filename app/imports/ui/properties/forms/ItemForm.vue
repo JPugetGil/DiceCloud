@@ -10,7 +10,7 @@
         />
       </div>
     </div>
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -84,7 +84,7 @@
       <form-section
         :name="$t('forms.behavior')"
       >
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"
@@ -112,7 +112,7 @@
       <form-section
         :name="$t('forms.item.attunement')"
       >
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"

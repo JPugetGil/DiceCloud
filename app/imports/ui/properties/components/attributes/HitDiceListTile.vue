@@ -28,10 +28,10 @@
           </div>
 
           <div class="d-flex flex-1-1 align-end">
-            <div class="text-h4">
+            <div class="text-headline-large">
               {{ model.value }}
             </div>
-            <div class="text-h6 max-value ml-2">
+            <div class="text-title-large max-value ml-2 text-medium-emphasis">
               /{{ model.total }}
             </div>
           </div>
@@ -40,7 +40,7 @@
     </template>
 
     <div
-      class="content"
+      class="content cursor-pointer"
       @click="click"
       @mouseover="hover = true"
       @mouseleave="hover = false"
@@ -88,10 +88,6 @@ function increment(value) {
   min-height: 88px;
 }
 
-.left {
-  height: 100%;
-}
-
 .buttons {
   height: 100%;
 }
@@ -101,14 +97,7 @@ function increment(value) {
 }
 
 .hit-dice-list-tile.hover {
-  background: rgba(var(--v-theme-on-surface), var(--v-hover-opacity)) !important;
+  background: rgba(var(--v-theme-on-surface), var(--v-hover-opacity));
 }
 
-.content {
-  cursor: pointer;
-}
-
-.max-value {
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-}
 </style>

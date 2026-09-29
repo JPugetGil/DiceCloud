@@ -17,15 +17,15 @@
     </section>
     <section class="d-flex flex-1-1 flex-column align-center ma-2 mt-4">
       <div>
-        <h3 class="text-h5 mb-2">
+        <h3 class="text-headline-small mb-2 mt-0">
           {{ $t('about.specialThanks') }}
         </h3>
-        <p>
+        <p class="my-0">
           <b>Sam;</b> {{ $t('about.samThanks') }}
-        </p><p>
+        </p><p class="my-0">
           <b>{{ $t('about.heroes') }}</b> {{ $t('about.heroesThanks') }}
         </p>
-        <h3 class="text-h6">
+        <h3 class="text-title-large my-0">
           {{ $t('about.supporters') }}
         </h3>
         <v-list

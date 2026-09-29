@@ -17,7 +17,7 @@
       v-if="$slots.value"
       #append-inner
     >
-      <span class="dc-text-field__value text-body-2 text-medium-emphasis">
+      <span class="dc-text-field__value text-body-medium text-medium-emphasis">
         <slot name="value" />
       </span>
     </template>

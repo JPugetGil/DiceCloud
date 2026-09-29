@@ -1,10 +1,10 @@
 <template>
   <div
-    class="card-background"
+    class="bg-page"
     style="height: 100%"
   >
     <v-container>
-      <v-row justify="center">
+      <v-row class="justify-center">
         <v-col
           cols="12"
           xl="8"
@@ -16,9 +16,7 @@
             >
               <v-row
                 v-if="!librariesReady"
-                align="center"
-                justify="center"
-                class="pa-4"
+                class="pa-4 align-center justify-center"
               >
                 <v-progress-circular
                   indeterminate
@@ -49,7 +47,7 @@
           </div>
           <p
             v-if="!permissions.canCreateLibraries"
-            class="text-body-2 text-medium-emphasis text-right mt-2"
+            class="text-body-medium text-medium-emphasis text-right mt-2 mb-0"
             data-id="players-cant-create-libraries"
           >
             {{ $t('library.playersCantCreate') }}

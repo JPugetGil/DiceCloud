@@ -6,7 +6,7 @@
   >
     <span
       v-if="prefix"
-      class="mx-1 text-overline"
+      class="mx-1 text-label-medium"
     >
       {{ prefix }}
     </span>

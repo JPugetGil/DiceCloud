@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex flex-1-1 justify-center card-background"
+    class="d-flex flex-1-1 justify-center bg-page"
     style="height: 100%;"
   >
     <v-card
@@ -93,7 +93,7 @@
           </v-list-item-subtitle>
         </v-list-item>
         <v-list-item v-if="role === ROLES.player">
-          <p class="text-body-2 text-medium-emphasis">
+          <p class="text-body-medium text-medium-emphasis my-0">
             {{ $t('account.askAdmin') }}
           </p>
         </v-list-item>

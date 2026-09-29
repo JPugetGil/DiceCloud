@@ -1,6 +1,6 @@
 <template>
   <div class="item-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.quantity > 1 || model.showIncrement"
         :name="$t('forms.quantity')"
@@ -53,7 +53,7 @@
               $cash
             </v-icon>
             <coin-value
-              class="text-subtitle-1"
+              class="text-body-large"
               :value="totalValue"
             />
           </div>
@@ -65,12 +65,12 @@
               $two_coins
             </v-icon>
             <coin-value
-              class="text-subtitle-1 mr-2"
+              class="text-body-large mr-2"
               :value="model.value"
             />
             <span
               v-if="model.quantity > 1"
-              class="text-subtitle-1"
+              class="text-body-large"
             >
               {{ $t('common.each') }}
             </span>
@@ -92,7 +92,7 @@
             >
               $injustice
             </v-icon>
-            <span class="text-subtitle-1">
+            <span class="text-body-large">
               {{ $t('common.weightLb', { weight: totalWeight }) }}
             </span>
           </div>
@@ -103,12 +103,12 @@
             >
               $weight
             </v-icon>
-            <span class="text-subtitle-1 mr-2">
+            <span class="text-body-large mr-2">
               {{ $t('common.weightLb', { weight: model.weight }) }}
             </span>
             <span
               v-if="model.quantity > 1"
-              class="text-subtitle-1"
+              class="text-body-large"
             >
               {{ $t('common.each') }}
             </span>

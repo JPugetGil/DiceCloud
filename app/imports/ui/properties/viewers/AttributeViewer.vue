@@ -1,10 +1,8 @@
 <template>
   <div class="attribute-viewer">
     <v-row
-      dense
-      align="stretch"
-      justify="center"
-      justify-sm="start"
+      class="align-stretch justify-center justify-sm-start"
+      density="compact"
     >
       <property-field
         v-if="model.value !== undefined ||
@@ -16,19 +14,19 @@
         <div class="mr-3">
           <div
             v-if="model.damage !== undefined"
-            class="text-h4 mr-3"
+            class="text-headline-large mr-3"
           >
             {{ model.value }} / {{ model.total }}
           </div>
           <div
             v-if="model.value !== undefined"
-            class="text-h4 mr-3"
+            class="text-headline-large mr-3"
           >
             {{ model.value }}
           </div>
           <div
             v-else
-            class="mono"
+            class="text-mono"
           >
             {{ fallbackValue }}
           </div>
@@ -54,7 +52,7 @@
           numberToSignedString(model.modifier) :
           model.modifier"
       >
-        <div class="text-h6">
+        <div class="text-title-large">
           {{ numberToSignedString(model.modifier) }}
         </div>
       </property-field>
@@ -110,13 +108,13 @@
         :value="$t('viewers.overriddenText')"
       />
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <property-description
         :name="$t('common.description')"
         :model="model.description"
       />
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="effects && effects.length"
         :cols="{col: 12}"
@@ -244,21 +242,3 @@ async function damageProperty({ type, value }) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-  .ability-value {
-    font-weight: 600;
-    font-size: 24px !important;
-    color: rgba(0, 0, 0, 0.54);
-  }
-  .mod, .ability-value {
-    text-align: center;
-    width: 100%;
-  }
-  .attribute-value {
-    text-align: center;
-  }
-  .mono {
-    font-family: monospace !important;
-  }
-</style>

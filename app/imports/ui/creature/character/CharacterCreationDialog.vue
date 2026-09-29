@@ -214,14 +214,3 @@ async function submit(){
   }
 }
 </script>
-
-<style scoped>
-.point-buy-table {
-  width: 100%;
-}
-.point-buy-table td {
-  text-align: center;
-  padding: 0 8px 0 8px;
-  max-width: 50px;
-}
-</style>

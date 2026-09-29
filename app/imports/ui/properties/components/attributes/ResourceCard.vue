@@ -1,7 +1,7 @@
 <template>
   <v-card
     class="resource-card"
-    :class="hover ? 'elevation-8': ''"
+    :class="hover ? 'elevation-3': ''"
     :color="model.color"
     :theme="model.color ? (isDark ? 'dark' : 'light') : undefined"
   >

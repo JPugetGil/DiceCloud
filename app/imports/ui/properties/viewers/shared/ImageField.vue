@@ -3,33 +3,27 @@
     class="mb-3"
     v-bind="cols"
   >
-    <fieldset
-      :class="theme.isDark? 'v-theme--dark' :'v-theme--light'"
-      class="d-flex rounded v-sheet--outlined pt-4 flex-1-1 flex-column align-center justify-center fill-height"
-      style="overflow: hidden"
+    <outlined-input
+      :name="name"
+      class="h-100"
+      hide-details
+      no-hover
+      content-class="pa-3 d-flex flex-column align-center justify-center h-100 overflow-hidden"
       @click="$emit('click', $event)"
     >
-      <legend
-        v-if="name"
-        class="text-caption px-1 name"
-        style="line-height: 0;"
-      >
-        {{ name }}
-      </legend>
- 
-      <img 
+      <img
         :src="href"
         class="image"
         :data-id="`image-${href}`"
         @click="previewImage"
       >
-    </fieldset>
+    </outlined-input>
   </v-col>
 </template>
 
 <script setup>
+import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
-import useThemeState from '/imports/ui/composables/useThemeState';
 
 const props = defineProps({
   name: {
@@ -51,8 +45,6 @@ const props = defineProps({
 });
 
 defineEmits(['click']);
-
-const theme = useThemeState();
 
 const dialogStackStore = useDialogStackStore();
 

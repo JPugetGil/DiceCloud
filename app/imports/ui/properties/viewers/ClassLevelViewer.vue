@@ -1,8 +1,8 @@
 <template>
   <div class="class-level-viewer">
     <v-row
-      dense
-      justify="center"
+      class="justify-center"
+      density="compact"
     >
       <property-field
         :name="$t('forms.level')"

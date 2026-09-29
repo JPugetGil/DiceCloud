@@ -4,14 +4,14 @@
       :name="$t('viewers.duration')"
       :value="model.duration"
     />-->
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.target === 'self'"
         :name="$t('viewers.target')"
         :value="$t('targets.self')"
       />
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <property-description
         :name="$t('common.description')"
         :model="model.description"
@@ -32,21 +32,3 @@ defineProps({
 });
 
 </script>
-
-<style lang="css" scoped>
-.ability-value {
-  font-weight: 600;
-  font-size: 24px !important;
-  color: rgba(0, 0, 0, 0.54);
-}
-
-.mod,
-.ability-value {
-  text-align: center;
-  width: 100%;
-}
-
-.attribute-value {
-  text-align: center;
-}
-</style>

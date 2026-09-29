@@ -1,6 +1,6 @@
 <template>
   <div class="creature-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-description
         :name="$t('common.description')"
         :model="model.description"

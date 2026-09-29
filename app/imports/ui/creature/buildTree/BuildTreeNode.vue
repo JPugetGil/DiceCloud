@@ -297,7 +297,7 @@ async function remove(model) {
     opacity: 0.4;
   }
   .found {
-    background: rgba(200, 0, 0, 0.1) !important;
+    background: rgba(var(--v-theme-primary), 0.1) !important;
   }
   .ghost {
     opacity: 0.5;
@@ -307,7 +307,7 @@ async function remove(model) {
     opacity: 0;
   }
   .v-icon {
-    transition: none !important;
+    transition: none;
   }
   .v-theme--light .tree-node-title:hover {
     background-color: rgba(0,0,0,.04);

@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="smAndUp"
-    class="d-flex flex-1-1 split"
+    class="d-flex flex-1-1 split h-100"
   >
     <v-list
       class="float-left"
@@ -55,9 +55,6 @@ const { smAndUp } = useDisplay();
 </script>
 
 <style lang="css" scoped>
-.split{
-  height: 100%;
-}
 .left, .right {
   height: 100%;
   overflow: auto;

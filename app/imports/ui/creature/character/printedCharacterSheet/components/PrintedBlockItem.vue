@@ -154,9 +154,6 @@ const attunementText = computed(() => {
 </script>
 
 <style lang="css" scoped>
-.item-avatar {
-  min-width: 32px;
-}
 .item .label {
   font-size: 14pt;
   font-variant: all-small-caps;

@@ -7,7 +7,7 @@
     />
     <form-sections type="pointBuy">
       <form-section :name="$t('forms.pointBuy.settings')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"
@@ -73,7 +73,7 @@
           <v-row
             v-for="(row, i) in model.values"
             :key="row._id"
-            dense
+            density="compact"
           >
             <v-divider
               v-if="i"
@@ -81,7 +81,7 @@
               class="mb-6"
             />
             <v-col cols="11">
-              <v-row dense>
+              <v-row density="compact">
                 <v-col
                   cols="12"
                   md="6"
@@ -145,9 +145,8 @@
           </v-row>
           <v-row
             key="addButton"
-            dense
-            justify="end"
-            class="mb-4"
+            density="compact"
+            class="mb-4 justify-end"
           >
             <v-col
               cols="1"

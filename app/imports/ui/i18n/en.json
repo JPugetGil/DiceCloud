@@ -94,8 +94,8 @@
     "roleChanged": "{user} is now: {role}"
   },
   "characterList": {
-    "importCharacter": "import character",
-    "addFolder": "add folder",
+    "importCharacter": "Import character",
+    "addFolder": "Add folder",
     "archiveCharacters": "Archive Characters",
     "moved": "Moved {item} to {target}",
     "item": "item",
@@ -601,8 +601,7 @@
   "components": {
     "uploadImage": "Upload Image",
     "addImage": "Add image",
-    "searchIcons": "Search icons",
-    "clearLower": "clear"
+    "searchIcons": "Search icons"
   },
   "sharing": {
     "sharedWrite": "Shared with edit permission",
@@ -1154,7 +1153,6 @@
     "new": "New",
     "create": "Create",
     "library": "Library",
-    "createLower": "create",
     "type": "Type"
   },
   "damageTypes": {

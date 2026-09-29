@@ -33,10 +33,10 @@
         @mouseleave="hovering = false"
         @click="$emit('click')"
       >
-        <div class="action-title my-1">
+        <div class="text-body-large text-truncate w-100 my-1">
           {{ model.name || propertyName }}
         </div>
-        <div class="action-sub-title d-flex flex-1-1 align-center">
+        <div class="action-sub-title d-flex flex-1-1 align-center text-body-small text-medium-emphasis text-no-wrap overflow-hidden w-100">
           <div
             v-if="targetingError"
             class="flex-1-1 text-error"
@@ -115,7 +115,6 @@ import TreeNodeList from '/imports/ui/components/tree/TreeNodeList.vue';
 import { getFilter, docsToForest as nodeArrayToTree } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
-import useThemeState from '/imports/ui/composables/useThemeState';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -134,7 +133,6 @@ const props = defineProps({
 defineEmits(['click', 'sub-click']);
 
 const context = inject('context', {});
-const theme = useThemeState();
 
 
 const activated = ref(undefined);
@@ -162,11 +160,9 @@ const propertyName = computed(() => {
 
 const cardClasses = computed(() => {
   return {
-    'v-theme--dark': theme.isDark,
-    'v-theme--light': !theme.isDark,
-    'muted-text': props.model.insufficientResources,
+    'text-disabled': props.model.insufficientResources,
     'active': activated.value,
-    'elevation-8': hovering.value,
+    'elevation-3': hovering.value,
   }
 });
 
@@ -236,59 +232,16 @@ async function handleDoAction() {
   transform: scale(0.92);
 }
 
-.action-title {
-  font-size: 16px;
-  font-weight: 400;
-  height: 24px;
-  line-height: 24px;
-  position: relative;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: .3s cubic-bezier(.25, .8, .5, 1);
-  width: 100%;
-}
-
 .action-sub-title {
-  /* Material's medium emphasis; the fixed #9e9e9e was 2.7:1 on white */
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-  flex-grow: 0;
-  font-size: 12px;
-  line-height: 12px;
   height: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
 }
 
 .action-child {
   height: 32px;
 }
-
-.v-theme--light.muted-text {
-  color: rgba(0, 0, 0, .3) !important;
-}
-
-.v-theme--dark.muted-text {
-  color: hsla(0, 0%, 100%, .3) !important;
-}
-
-.action-card {
-  transition: transform 0.15s cubic;
-}
 </style>
 
 <style lang="css">
-.action-card.v-theme--light.muted-text .v-icon {
-  color: rgba(0, 0, 0, .3) !important;
-}
-
-.action-card.v-theme--dark.muted-text .v-icon {
-  color: hsla(0, 0%, 100%, .3) !important;
-}
-
 .action-card .property-description>p:last-of-type {
   margin-bottom: 0;
 }

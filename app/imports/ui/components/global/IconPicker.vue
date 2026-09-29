@@ -55,7 +55,7 @@
             variant="text"
             @click="select()"
           >
-            {{ $t('components.clearLower') }}
+            {{ $t('common.clear') }}
           </v-btn>
         </div>
         <div

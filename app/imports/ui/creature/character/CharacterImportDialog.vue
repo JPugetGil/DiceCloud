@@ -6,10 +6,10 @@
       </v-toolbar-title>
     </template>
     <div>
-      <h2 class="mb-4">
+      <h2 class="mb-4 mt-0">
         {{ $t('importCharacter.text') }}
       </h2>
-      <p>
+      <p class="my-0">
         {{ $t('importCharacter.sharingHint') }}
       </p>
       <text-field

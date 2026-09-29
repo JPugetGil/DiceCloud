@@ -36,7 +36,7 @@
       >
         <v-row
           v-if="context.isLibraryForm"
-          dense
+          density="compact"
         >
           <v-col
             cols="12"
@@ -155,7 +155,7 @@
     </v-row>
     <v-row
       class="mt-1"
-      dense
+      density="compact"
     >
       <v-col
         cols="12"

@@ -32,7 +32,7 @@
           class="print-fab"
           color="accent"
           variant="elevated"
-          elevation="4"
+          elevation="2"
           icon
           @click="doPrint"
         >

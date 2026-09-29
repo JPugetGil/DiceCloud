@@ -1,7 +1,7 @@
 <template>
   <div class="folder-viewer">
     <v-row
-      dense
+      density="compact"
     >
       <property-field
         :name="$t('common.name')"

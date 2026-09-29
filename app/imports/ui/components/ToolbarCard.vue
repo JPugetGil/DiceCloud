@@ -3,7 +3,7 @@
     :hover="hasClickListener"
     class="toolbar-card"
     :class="{'transparent-toolbar': transparentToolbar, hovering}"
-    :elevation="hovering ? 8 : undefined"
+    :elevation="hovering ? 3 : undefined"
     @click="$emit('click')"
   >
     <v-toolbar

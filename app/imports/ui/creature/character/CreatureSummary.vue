@@ -11,7 +11,7 @@
       cover
       :src="creature.picture"
     />
-    <v-card-title class="text-h6">
+    <v-card-title class="text-title-large">
       {{ creature.name }}
     </v-card-title>
     <v-card-text>

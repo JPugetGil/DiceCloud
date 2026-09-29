@@ -16,8 +16,7 @@
             variant="outlined"
             icon
             size="large"
-            class="ma-3"
-            style="margin-bottom: 30px !important;"
+            class="ma-3 mb-8"
             @click="$emit('pull', {path: [i]})"
           >
             <v-icon>mdi-delete</v-icon>

@@ -1,6 +1,6 @@
 <template>
   <div class="buff-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         mono
         :name="$t('viewers.variableNameLower')"

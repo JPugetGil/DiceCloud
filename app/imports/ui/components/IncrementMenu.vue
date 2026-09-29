@@ -8,14 +8,14 @@
     >
       <v-btn
         :disabled="context.editPermission === false"
-        class="filled"
+        class="bg-surface-light"
         @click="toggleAdd(); focusInput()"
       >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
       <v-btn
         :disabled="context.editPermission === false"
-        class="filled"
+        class="bg-surface-light"
         @click="toggleSubtract(); focusInput()"
       >
         <v-icon>mdi-minus</v-icon>
@@ -40,7 +40,7 @@
       :size="!flat ? 'small' : undefined"
       icon
       :variant="flat ? 'text' : undefined"
-      class="mx-2 filled"
+      class="mx-2 bg-surface-light"
       @click="commitEdit"
     >
       <v-icon>mdi-check</v-icon>
@@ -49,7 +49,7 @@
       :size="!flat ? 'small' : undefined"
       icon
       :variant="flat ? 'text' : undefined"
-      class="filled"
+      class="bg-surface-light"
       @click="cancelEdit"
     >
       <v-icon>mdi-close</v-icon>
@@ -158,13 +158,3 @@ function input(value) {
   }
 }
 </script>
-
-<style scoped>
-.filled.v-theme--light {
-  background: #fff !important;
-}
-
-.filled.v-theme--dark {
-  background: #424242 !important;
-}
-</style>

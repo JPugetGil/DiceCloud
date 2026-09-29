@@ -200,7 +200,6 @@ const router = useRouter();
 const { smAndUp } = useDisplay();
 const theme = useTheme();
 
-
 const creatureId = computed(() => route.params.id);
 
 const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
@@ -305,14 +304,6 @@ async function unshareWithMe() {
 </script>
 
 <style lang="css">
-.character-sheet-toolbar .v-tabs__container--grow .v-tabs__div {
-  max-width: 120px !important;
-}
-
-.character-sheet-toolbar .v-tabs__bar {
-  background: none !important;
-}
-
 .character-sheet-extension-fab {
   bottom: -24px;
   right: 8px;

@@ -19,7 +19,7 @@
           </div>
           <markdown-text
             v-if="content.value"
-            class="content-value text-body-2"
+            class="content-value text-body-medium"
             :markdown="content.value"
           />
           <div
@@ -39,17 +39,19 @@
         >
           <template #activator="{ props: activatorProps }">
             <v-avatar
+              variant="flat"
               :color="model.color || 'grey'"
               size="28"
               class="ma-2"
-
               v-bind="activatorProps"
             >
-              <img
+              <v-img
                 v-if="creature.avatarPicture"
                 :src="creature.avatarPicture"
                 :alt="creature.name"
-              >
+                cover
+                position="top"
+              />
               <span v-else>
                 {{ creature.name && creature.name[0] || '?' }}
               </span>

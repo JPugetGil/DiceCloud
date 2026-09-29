@@ -18,7 +18,7 @@
         :data-id="library._id"
       >
         <v-expansion-panel-title>
-          <div class="text-h6">
+          <div class="text-title-large">
             {{ library.name }}
           </div>
         </v-expansion-panel-title>
@@ -135,6 +135,6 @@ function editPermission(library) {
 
 <style lang="css">
 .library-browser .v-expansion-panel-text__wrapper, .library-browser .v-expansion-panel-title {
-  padding: 0 !important;
+  padding: 0;
 }
 </style>

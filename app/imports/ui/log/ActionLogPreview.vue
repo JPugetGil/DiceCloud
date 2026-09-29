@@ -10,14 +10,17 @@
     >
       <template #prepend>
         <v-avatar
+          variant="flat"
           :color="model.color || 'grey'"
           size="32"
         >
-          <img
+          <v-img
             v-if="creature.avatarPicture"
             :src="creature.avatarPicture"
             :alt="creature.name"
-          >
+            cover
+            position="top"
+          />
           <span v-else>
             {{ creature.name && creature.name[0] || '?' }}
           </span>

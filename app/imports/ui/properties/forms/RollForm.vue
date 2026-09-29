@@ -1,6 +1,6 @@
 <template>
   <div class="roll-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -69,17 +69,3 @@ function change(path, value, ack) {
   emit('change', { path, value, ack });
 }
 </script>
-
-<style lang="css" scoped>
-.no-flex {
-  flex: initial;
-}
-
-.layout.row.wrap {
-  margin-right: -8px;
-}
-
-.layout.row.wrap>* {
-  margin-right: 8px;
-}
-</style>

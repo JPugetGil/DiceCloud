@@ -1,9 +1,8 @@
 <template>
   <div class="skill-viewer">
     <v-row
-      dense
-      justify="center"
-      justify-sm="start"
+      class="justify-center justify-sm-start"
+      density="compact"
     >
       <property-field
         v-if="model.value !== undefined"
@@ -57,7 +56,7 @@
         :model="model"
       />
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <property-description
         :name="$t('viewers.descriptionLower')"
         :model="model.description"
@@ -65,7 +64,7 @@
     </v-row>
     <v-row
       v-if="ability || (effects && effects.length)"
-      dense
+      density="compact"
     >
       <property-field
         :cols="{col: 12}"
@@ -93,7 +92,7 @@
     </v-row>
     <v-row
       v-if="proficiencies && proficiencies.length"
-      dense
+      density="compact"
     >
       <property-field
         :cols="{col: 12}"

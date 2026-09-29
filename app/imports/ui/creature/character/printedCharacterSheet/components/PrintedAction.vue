@@ -82,7 +82,6 @@ import TreeNodeList from '/imports/ui/components/tree/TreeNodeList.vue';
 import { getFilter, docsToForest } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
-import useThemeState from '/imports/ui/composables/useThemeState';
 
 const props = defineProps({
   model: {
@@ -93,8 +92,6 @@ const props = defineProps({
 
 defineEmits(['sub-click']);
 
-const theme = useThemeState();
-
 const activated = ref(undefined);
 const hovering = ref(false);
 
@@ -103,18 +100,15 @@ const rollBonus = computed(() => {
   return numberToSignedString(props.model.attackRoll.value);
 });
 
-
 const propertyName = computed(() => {
   return getPropertyName(props.model.type);
 });
 
 const cardClasses = computed(() => {
   return {
-    'v-theme--dark': theme.isDark,
-    'v-theme--light': !theme.isDark,
-    'muted-text': props.model.insufficientResources,
+    'text-disabled': props.model.insufficientResources,
     'active': activated.value,
-    'elevation-8': hovering.value,
+    'elevation-3': hovering.value,
   };
 });
 
@@ -169,17 +163,6 @@ const children = autorun(() => {
   min-height: 24px;
   line-height: 24px;
 }
-
-.label {
-  font-size: 10pt;
-  font-variant: all-small-caps;
-  flex-grow: 1;
-}
-
-.damage {
-  font-size: 12pt;
-  font-weight: 500;
-}
 .action-title {
   font-size: 12pt;
   font-weight: 600;
@@ -198,33 +181,9 @@ const children = autorun(() => {
 .resources {
   font-size: 10pt;
 }
-
-.action-child {
-  height: 32px;
-}
-
-.v-theme--light.muted-text {
-  color: rgba(0, 0, 0, .3) !important;
-}
-
-.v-theme--dark.muted-text {
-  color: hsla(0, 0%, 100%, .3) !important;
-}
-
-.action-card {
-  transition: transform 0.15s cubic;
-}
 </style>
 
 <style lang="css">
-.action-card.v-theme--light.muted-text .v-icon {
-  color: rgba(0, 0, 0, .3) !important;
-}
-
-.action-card.v-theme--dark.muted-text .v-icon {
-  color: hsla(0, 0%, 100%, .3) !important;
-}
-
 .action-card .property-description>p:last-of-type {
   margin-bottom: 0;
 }

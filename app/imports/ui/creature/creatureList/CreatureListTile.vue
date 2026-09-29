@@ -26,6 +26,7 @@
       >
         <template #prepend>
           <v-avatar
+            variant="flat"
             :color="isSelected ? 'red-darken-1' : model.color || 'grey'"
             :size="dense ? 30 : undefined"
             class="text-white"
@@ -35,11 +36,13 @@
               <v-icon v-if="isSelected">
                 mdi-check
               </v-icon>
-              <img
+              <v-img
                 v-else-if="model.avatarPicture"
                 :src="model.avatarPicture"
                 :alt="model.name"
-              >
+                cover
+                position="top"
+              />
               <template v-else>
                 <span>
                   {{ model.initial }}

@@ -1,7 +1,7 @@
 <template>
   <div
     ref="stackElement"
-    class="dialog-stack"
+    class="dialog-stack pa-8"
   >
     <transition name="backdrop-fade">
       <div
@@ -31,7 +31,7 @@
           :data-id="dialog._id"
           :data-index="index"
           :style="getDialogStyle(index)"
-          :elevation="6"
+          :elevation="2"
           @pop="popDialogStack($event)"
         />
         <v-card
@@ -41,7 +41,7 @@
           :data-id="dialog._id"
           :data-index="index"
           :style="getDialogStyle(index)"
-          :elevation="6"
+          :elevation="2"
         >
           <transition name="slide">
             <component
@@ -315,7 +315,7 @@ async function leave(target, done) {
     right: 0;
     bottom: 0;
     pointer-events: none;
-    /* Above Vuetify 3's app bars and drawers, below its menus and overlays */
+    /* Above Vuetify's app bars and drawers, below its menus and overlays */
     z-index: 1500;
   }
 
@@ -389,9 +389,6 @@ async function leave(target, done) {
     transform: translate(-50%, -50%) scale(1);
   }
   @media only screen and  (min-width:  601px){
-    .dialog-stack {
-      padding: 32px;
-    }
   }
   .dialog > .sized-dialog {
     height: 100%;

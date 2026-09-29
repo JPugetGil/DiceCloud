@@ -14,29 +14,19 @@ const { createChecker, main } = require('../lib/check');
 const ROLES = ['primary', 'accent', 'error', 'warning', 'info', 'success'];
 const CONTAINERS = ['primary-container', 'error-container'];
 
-// Runs in the page: the theme's colours, and the app's page backgrounds
-// (card-background, card-raised-background) rendered inside that theme
+// Runs in the page: the theme's colours, including the app's page backgrounds
+// (`page` and `raised`, used as bg-page and bg-raised)
 function readTheme(themeClass) {
   const root = document.querySelector(`.${themeClass}`) || document.body;
   const vars = getComputedStyle(root);
   const color = name => vars.getPropertyValue(`--v-theme-${name}`).trim();
-  const background = className => {
-    const probe = document.createElement('div');
-    probe.className = className;
-    root.appendChild(probe);
-    const value = getComputedStyle(probe).backgroundColor.match(/[\d.]+/g).slice(0, 3).join(',');
-    probe.remove();
-    return value;
-  };
   const names = ['primary', 'accent', 'error', 'warning', 'info', 'success', 'primary-container', 'error-container',
-    'surface', 'background', 'drawer', 'toolbar'];
+    'surface', 'background', 'drawer', 'toolbar', 'page', 'raised'];
   const colors = {};
   for (const name of names) {
     colors[name] = color(name);
     colors[`on-${name}`] = color(`on-${name}`);
   }
-  colors.page = background('card-background');
-  colors.raised = background('card-raised-background');
   return colors;
 }
 

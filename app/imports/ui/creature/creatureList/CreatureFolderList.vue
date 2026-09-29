@@ -73,7 +73,7 @@ defineProps({
 
 const emit = defineEmits(['creature-selected']);
 
-// Ids of the open folders: Vuetify 3 keeps a group's open state on its list
+// Ids of the open folders: Vuetify keeps a group's open state on its list
 const openFolders = ref([]);
 // The sidebar and the page list the same folders: keep their element ids apart
 const listId = useId();
@@ -81,6 +81,6 @@ const listId = useId();
 
 <style lang="css">
 .creature-folder-list .v-list-group__header .v-list-item__append {
-  margin-inline-start: 0 !important;
+  margin-inline-start: 0;
 }
 </style>

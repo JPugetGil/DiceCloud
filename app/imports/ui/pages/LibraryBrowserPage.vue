@@ -1,6 +1,6 @@
 <template>
   <div
-    class="card-background"
+    class="bg-page"
     style="height: 100%"
   >
     <v-container>
@@ -8,7 +8,7 @@
         <v-row
           v-if="subReady"
           key="loaded-cards"
-          dense
+          density="compact"
         >
           <v-col
             v-for="card in libraryCards"

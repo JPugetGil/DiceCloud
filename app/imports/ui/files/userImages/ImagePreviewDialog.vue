@@ -1,6 +1,6 @@
 <template>
   <img
-    class="preview-image v-sheet v-card elevation-6"
+    class="preview-image v-sheet v-card elevation-2"
     :class="themeClasses"
     :src="href"
     @click="back"

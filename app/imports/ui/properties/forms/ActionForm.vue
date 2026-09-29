@@ -1,6 +1,6 @@
 <template>
   <div class="action-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="8"
@@ -101,7 +101,7 @@
         />
       </form-section>
       <form-section :name="$t('forms.limitUses')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"
@@ -224,15 +224,3 @@ const isAttack = computed(() => {
   return attackSwitch.value || !!props.model.attackRoll?.calculation;
 });
 </script>
-
-<style lang="css" scoped>
-  .no-flex {
-    flex: initial;
-  }
-  .layout.row.wrap {
-    margin-right: -8px;
-  }
-  .layout.row.wrap > *{
-    margin-right: 8px;
-  }
-</style>

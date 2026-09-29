@@ -1,6 +1,6 @@
 <template>
   <div class="trigger-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('forms.trigger.timing')"
         :value="timingText"
@@ -24,7 +24,7 @@
             v-for="tags in model.extraTags"
             :key="tags._id"
           >
-            <div class="text-caption">
+            <div class="text-body-small">
               {{ tags.operation }}
             </div>
             <property-tags :tags="tags.tags" />

@@ -1,6 +1,6 @@
 <template>
   <div class="point-buy-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-for="row in model.values"
         :key="row._id"

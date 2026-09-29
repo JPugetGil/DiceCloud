@@ -55,7 +55,7 @@ main(async () => {
     const { browser, page, messages } = await openPage({ colorScheme });
     await step(`${colorScheme}: links in the docs`, messages, async () => {
       await visit(page, '/docs/property');
-      return `lowest ${assertAll(await page.evaluate(measure, '.v-application a:not([class])'), 'links')}:1`;
+      return `lowest ${assertAll(await page.evaluate(measure, '.markdown a'), 'links')}:1`;
     });
     await step(`${colorScheme}: selected toggle option`, messages, async () => {
       await visit(page, '/account');

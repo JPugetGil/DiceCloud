@@ -1,161 +1,20 @@
-.markdown {
-  width: 100%;
+/*
+ * Rendered markdown. MarkdownText.vue gives each element Vuetify's classes
+ * (typography, spacing, VDivider, VTable, VCode); these are what classes
+ * cannot express.
+ */
+
+/* A heading that opens the text has no space above it */
+.markdown > :first-child {
+  margin-top: 0;
 }
 
-.markdown h1,
-.markdown h2,
-.markdown h3,
-.markdown h4,
-.markdown h5,
-.markdown h6 {
-  line-height: initial;
-  margin-bottom: 12px;
-}
-
-.markdown h1:not(:first-child),
-.markdown h2:not(:first-child),
-.markdown h3:not(:first-child),
-.markdown h4:not(:first-child),
-.markdown h5:not(:first-child),
-.markdown h6:not(:first-child) {
-  margin-top: 24px;
-}
-
-:not(:first-child) .markdown h1 {
-  font-size: 2rem;
-  letter-spacing: -.0083333333em;
-  font-weight: 300;
-}
-
-.markdown h2 {
-  font-size: 1.5rem;
-  font-weight: 400;
-}
-
-.markdown h3 {
-  font-size: 1.25rem;
-  letter-spacing: .0073529412em;
-  font-weight: 400;
-}
-
-.markdown h4 {
-  font-size: 1rem;
-  letter-spacing: .0125em;
-  font-weight: 500;
-}
-
-.markdown h5 {
-  font-size: 0.95rem;
-  letter-spacing: .0125em;
-  font-weight: 500;
-}
-
-.markdown h6 {
-  font-size: 0.875rem;
-  letter-spacing: .0125em;
-  font-weight: 500;
-}
-
-.markdown pre code {
-  display: block;
-  overflow: auto;
-}
-
-.v-theme--dark.v-application .markdown hr {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
+/* An image never overflows its card */
 .markdown img {
   max-width: 100%;
-  margin: 8px 0;
 }
 
-.markdown table {
-  min-width: 100%;
-  border-spacing: 0;
-  margin-bottom: 16px;
-}
-
-.markdown th {
-  font-weight: initial;
-  padding: 4px;
-}
-
-.markdown td {
-  padding: 2px 4px;
-}
-
-.markdown tbody>tr:nth-child(odd) {
-  background-color: rgba(0, 0, 0, 0.03)
-}
-
-/*
- * Vuetify's reset zeroes the padding and margin of every element
- * (`* { padding: 0; margin: 0 }` in vuetify/styles). Rendered markdown needs
- * paragraphs with a bottom margin and indented lists, or paragraphs run
- * together and list bullets hang outside the box, so they are set here for
- * markdown only.
- */
-.markdown p,
-.markdown ul,
-.markdown ol,
-.markdown blockquote,
-.markdown pre {
-  margin-bottom: 16px;
-}
-
-.markdown ul,
-.markdown ol {
-  padding-left: 24px;
-}
-
-/* A nested list continues its item rather than starting a new block */
-.markdown li > ul,
-.markdown li > ol {
-  margin-bottom: 0;
-}
-
-.markdown blockquote {
-  padding-left: 16px;
-  border-left: 4px solid rgba(128, 128, 128, 0.4);
-}
-
-.markdown pre {
-  padding: 8px 12px;
-}
-
-.markdown code {
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
-  background-color: rgba(128, 128, 128, 0.15);
-}
-
-.markdown pre code {
-  padding: 0;
-  background-color: transparent;
-}
-
-.v-theme--dark.v-application .markdown tbody>tr:nth-child(odd) {
-  background-color: rgba(255, 255, 255, 0.03)
-}
-
-.documentation .markdown {
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.documentation .markdown p {
-  line-height: 24px;
-}
-
+/* The documentation's lists are airier (the docs text is text-body-large) */
 .documentation .markdown ul {
   line-height: 32px;
-}
-
-.documentation .markdown td {
-  padding: 8px;
-}
-
-.documentation .markdown th {
-  padding: 8px;
 }

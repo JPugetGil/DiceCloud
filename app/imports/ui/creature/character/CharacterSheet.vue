@@ -6,7 +6,7 @@
           <h2 style="margin: 48px 28px 16px">
             {{ $t('sheet.notFound') }}
           </h2>
-          <h3>
+          <h3 class="my-0">
             {{ $t('sheet.notFoundText') }}
           </h3>
         </div>
@@ -14,7 +14,7 @@
       <div
         v-else
         key="character-tabs"
-        class="card-background fill-height"
+        class="bg-page fill-height"
       >
         <v-window
           :key=" '' +
@@ -196,11 +196,11 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.bottom-nav-btns > .v-btn{
-  min-width: 0 !important;
-  padding: 0 !important;
-  flex: 1 1 auto !important;
-  font-size: 0.6rem !important;
+.bottom-nav-btns > .v-btn {
+  min-width: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  font-size: 0.6rem;
 }
 .character-sheet-bottom-fab {
   z-index: 5;

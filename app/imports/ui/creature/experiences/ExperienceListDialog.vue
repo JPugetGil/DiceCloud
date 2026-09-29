@@ -34,10 +34,10 @@
       v-else-if="experiences.length === 0"
       class="d-flex flex-1-1 flex-column align-center justify-center fill-height"
     >
-      <v-icon class="big-icon">
+      <v-icon size="240">
         $baby_face
       </v-icon>
-      <p class="text-h5">
+      <p class="text-headline-small my-0">
         {{ $t('xp.noExperiences') }}
       </p>
     </div>
@@ -53,7 +53,7 @@
         >
           <template #prepend>
             <div class="mr-3">
-              <span class="text-caption">
+              <span class="text-body-small">
                 {{ formatDate(experience.date) }}
               </span>
             </div>
@@ -108,7 +108,6 @@ const props = defineProps({
     type: Boolean,
   },
 });
-
 
 const experiencesRemovalLoading = ref(new Set());
 const recomputeLoading = ref(false);
@@ -174,10 +173,3 @@ function addExperience(){
   });
 }
 </script>
-
-<style lang="css">
-.big-icon, .big-icon * {
-  width: 240px !important;
-  height: 240px !important;
-}
-</style>

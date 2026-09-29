@@ -5,13 +5,13 @@
   >
     <h1
       v-if="maintenanceMode"
-      class="ma-4 text-h3"
+      class="ma-4 text-display-medium"
     >
       {{ $t('maintenance.underMaintenance') }}
     </h1>
     <template v-else>
       <h1
-        class="ma-4 text-h3"
+        class="ma-4 text-display-medium"
       >
         {{ $t('maintenance.live') }}
       </h1>
@@ -24,7 +24,7 @@
     </template>
     <h1
       v-if="maintenanceMode && maintenanceMode.reason"
-      class="ma-4 text-h4"
+      class="ma-4 text-headline-large"
     >
       {{ maintenanceMode.reason }}
     </h1>

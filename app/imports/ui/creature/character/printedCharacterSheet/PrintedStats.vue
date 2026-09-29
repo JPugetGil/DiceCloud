@@ -253,16 +253,16 @@
         <div
           class="double-border"
         >
-          <p>
+          <p class="mt-0">
             <b>{{ $t('printed.weapons') }}</b> {{ weapons.map(p => p.name).join(', ') }}
           </p>
-          <p>
+          <p class="mt-0">
             <b>{{ $t('printed.armor') }}</b> {{ armors.map(p => p.name).join(', ') }}
           </p>
-          <p>
+          <p class="mt-0">
             <b>{{ $t('printed.tools') }}</b> {{ tools.map(p => p.name).join(', ') }}
           </p>
-          <p>
+          <p class="mt-0">
             <b>{{ $t('printed.languages') }}</b> {{ languages.map(p => p.name).join(', ') }}
           </p>
           <div class="label text-center">

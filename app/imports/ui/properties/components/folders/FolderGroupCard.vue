@@ -5,20 +5,26 @@
     <v-card
       class="folder-group-card pb-2"
     >
-      <v-list-subheader v-if="model.name">
+      <v-list-subheader
+        v-if="model.name"
+        class="ps-4"
+      >
         {{ model.name }}
       </v-list-subheader>
-      <component
-        :is="propComponents[prop.type]"
-        v-for="prop in properties"
-        :key="prop._id"
-        :model="prop"
-        :data-id="prop._id"
-        @click="$emit('click-property', {_id: prop._id})"
-        @click-property="e => $emit('click-property', e)"
-        @sub-click="e => $emit('sub-click', e)"
-        @remove="id => $emit('remove', id || prop._id)"
-      />
+      <!-- The folder's properties sit flat inside its card -->
+      <v-defaults-provider :defaults="{ VCard: { elevation: 0, rounded: 0 } }">
+        <component
+          :is="propComponents[prop.type]"
+          v-for="prop in properties"
+          :key="prop._id"
+          :model="prop"
+          :data-id="prop._id"
+          @click="$emit('click-property', {_id: prop._id})"
+          @click-property="e => $emit('click-property', e)"
+          @sub-click="e => $emit('sub-click', e)"
+          @remove="id => $emit('remove', id || prop._id)"
+        />
+      </v-defaults-provider>
     </v-card>
   </div>
 </template>
@@ -71,11 +77,7 @@ const properties = autorun(() => {
 </script>
 
 <style>
-.folder-group-card .v-card {
-  box-shadow: none !important;
-  border-radius: 0 !important;
-}
 .folder-group-card .drag-handle {
-  display: none !important;
+  display: none;
 }
 </style>

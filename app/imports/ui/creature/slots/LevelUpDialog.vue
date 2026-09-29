@@ -24,7 +24,7 @@
       text
       :string="model?.description"
     />
-    <p>
+    <p class="my-0">
       <property-tags
         v-for="(tags, index) in tagsSearched.or"
         :key="index"
@@ -83,13 +83,13 @@
                     {{ libraryNode._conditionError }}
                   </div>
                 </div>
-                <div class="text-caption text-no-wrap text-truncate">
+                <div class="text-body-small text-no-wrap text-truncate">
                   {{ libraryNames[libraryNode.root.id ] }}
                 </div>
               </div>
               <div
                 v-if="libraryNode.slotQuantityFilled !== undefined && libraryNode.slotQuantityFilled !== 1"
-                class="text-overline flex-grow-0 text-no-wrap"
+                class="text-label-medium flex-grow-0 text-no-wrap"
                 :class="{
                   'text-error': isDisabled(libraryNode) &&
                     libraryNode._disabledByQuantityFilled

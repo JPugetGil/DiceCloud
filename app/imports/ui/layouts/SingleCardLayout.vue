@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pa-4 d-flex flex-1-1 flex-column align-center card-background"
+    class="pa-4 d-flex flex-1-1 flex-column align-center bg-page"
     style="height: calc(100vh - 96px); display: flex;"
   >
     <v-card

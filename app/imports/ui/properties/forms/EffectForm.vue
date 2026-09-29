@@ -1,6 +1,6 @@
 <template>
   <div class="effect-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -11,25 +11,17 @@
           :error-messages="errors.operation"
           :menu-props="{transition: 'slide-y-transition', lazy: true}"
           :items="operations"
+          item-props
           :model-value="model.operation"
           @change="(...args) => change('operation', ...args)"
         >
           <template #prepend-inner>
             <v-icon
-
-              class="icon ml-0"
+              class="icon"
               :class="iconClass"
             >
               {{ displayedIcon }}
             </v-icon>
-          </template>
-          <template
-            #item="item"
-          >
-            <v-icon class="icon mr-2">
-              {{ getEffectIcon(item.item.value, 1) }}
-            </v-icon>
-            {{ item.item.title }}
           </template>
         </smart-select>
       </v-col>
@@ -150,19 +142,15 @@ const ICON_SPIN_DURATION = 300;
 
 const displayedIcon = ref('add');
 const iconClass = ref('');
+// Each operation is listed with its icon (the select's `item-props`)
 const operations = [
-  { value: 'base', title: t('forms.effectOps.base') },
-  { value: 'add', title: t('forms.effectOps.add') },
-  { value: 'mul', title: t('forms.effectOps.mul') },
-  { value: 'min', title: t('forms.effectOps.min') },
-  { value: 'max', title: t('forms.effectOps.max') },
-  { value: 'set', title: t('forms.effectOps.set') },
-  { value: 'advantage', title: t('forms.effectOps.advantage') },
-  { value: 'disadvantage', title: t('forms.effectOps.disadvantage') },
-  { value: 'passiveAdd', title: t('forms.effectOps.passiveAdd') },
-  { value: 'fail', title: t('forms.effectOps.fail') },
-  { value: 'conditional', title: t('forms.effectOps.conditional') },
-];
+  'base', 'add', 'mul', 'min', 'max', 'set', 'advantage', 'disadvantage',
+  'passiveAdd', 'fail', 'conditional',
+].map(value => ({
+  value,
+  title: t(`forms.effectOps.${value}`),
+  props: { prependIcon: getEffectIcon(value, 1) },
+}));
 
 const radioGroup = computed(() => {
   return props.model.targetByTags ? 'tags' : 'stats';
@@ -229,15 +217,10 @@ function changeTargetByTags(value, ack) {
 </script>
 
 <style lang="css" scoped>
-.v-theme--light .icon {
-  color: black;
-}
-
 .icon {
   min-width: 30px;
   transition: transform 0.15s linear, opacity 0.15s ease;
   transform-origin: 18px center;
-  margin-left: -12px;
 }
 
 .icon.leaving {
@@ -249,10 +232,6 @@ function changeTargetByTags(value, ack) {
   transform: translateY(24px);
   opacity: 0;
   transition: none;
-}
-
-.hidden {
-  visibility: hidden;
 }
 
 .effect-form>div {

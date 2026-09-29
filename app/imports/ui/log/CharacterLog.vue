@@ -7,7 +7,7 @@
       group
       tag="div"
       hide-on-leave
-      class="card-raised-background flex-1-1 d-flex flex-column flex-column-reverse align-end pa-3"
+      class="bg-raised flex-1-1 d-flex flex-column-reverse align-end pa-3"
       style="overflow: auto;"
     >
       <log-entry
@@ -175,9 +175,3 @@ const { result: editPermission } = autorun(() => {
   return hasEditPermission(creature.value, Meteor.user());
 });
 </script>
-
-<style lang="css">
-  .log-tab p:last-child {
-    margin-bottom: 0;
-  }
-</style>

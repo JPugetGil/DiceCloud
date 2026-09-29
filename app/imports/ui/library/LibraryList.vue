@@ -95,7 +95,7 @@ defineEmits(['select-library', 'select-library-collection']);
 
 const router = useRouter();
 
-// Ids of the open collections: Vuetify 3 keeps a group's open state on its list
+// Ids of the open collections: Vuetify keeps a group's open state on its list
 const openCollections = ref([]);
 // Pages can show more than one library list: keep their element ids apart
 const listId = useId();

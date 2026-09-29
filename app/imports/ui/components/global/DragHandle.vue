@@ -1,6 +1,6 @@
 <template>
   <v-icon
-    class="handle"
+    class="handle cursor-grab"
     v-bind="$attrs"
     @click="e => { }"
     @touchstart.stop="e => { }"
@@ -24,18 +24,13 @@ function portalEvent(e) {
 </script>
 
 <style scoped>
-.handle {
-  cursor: move !important;
-  cursor: -webkit-grab !important;
-}
 .handle::after {
-  opacity: 0 !important;
+  opacity: 0;
 }
 </style>
 
 <style>
 .sortable-drag.handle {
-  cursor: move !important;
-  cursor: -webkit-grabbing !important;
+  cursor: grabbing;
 }
 </style>

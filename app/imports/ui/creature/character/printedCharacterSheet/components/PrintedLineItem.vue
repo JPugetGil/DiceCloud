@@ -12,7 +12,7 @@
     <div class="weight-value d-flex flex-column align-end">
       <div
         v-if="model.quantity !== 1"
-        class="each d-flex align-center"
+        class="each d-flex align-center font-weight-light"
       >
         <coin-value
           v-if="model.value"
@@ -29,7 +29,7 @@
           </template>
         </div>
       </div>
-      <div class="total d-flex align-center">
+      <div class="total d-flex align-center font-weight-medium">
         <coin-value
           v-if="totalValue"
           class="value text-no-wrap"
@@ -104,12 +104,6 @@ const attunementText = computed(() => {
     font-weight: 700;
     text-align: end;
     padding-right: 8px;
-  }
-  .each {
-    font-weight: 300;
-  }
-  .total {
-    font-weight: 500;
   }
   .value {
     min-width: 40px;

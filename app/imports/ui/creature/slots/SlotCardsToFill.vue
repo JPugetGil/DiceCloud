@@ -9,7 +9,7 @@
     <div
       v-for="pointBuy in pointBuys"
       :key="pointBuy._id"
-      style="transition: all 0.3s !important"
+      style="transition: all 0.3s"
     >
       <point-buy-card
         :model="pointBuy"
@@ -21,7 +21,7 @@
     <div
       v-for="slot in slots"
       :key="slot._id"
-      style="transition: all 0.3s !important"
+      style="transition: all 0.3s"
     >
       <slot-card
         :model="slot"
@@ -114,6 +114,3 @@ function editPointBuy(_id) {
   });
 }
 </script>
-
-<style>
-</style>

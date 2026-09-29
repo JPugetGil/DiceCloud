@@ -3,21 +3,21 @@
     <v-slide-x-reverse-transition hide-on-leave>
       <v-card
         :key="`${activeInput}`"
-        elevation="6"
+        elevation="2"
         class="action-dialog"
       >
         <component
           :is="activeInputComponent"
           v-if="activeInput"
           v-model="userInput"
-          class="action-input"
+          class="action-input overflow-y-auto"
           v-bind="activeInputParams"
           @continue="continueAction"
           @set-input-ready="setInputReady"
         />
         <div
           v-else
-          class="log-preview card-raised-background"
+          class="log-preview bg-raised"
         >
           <action-log-preview :model="simulatedLog" />
         </div>
@@ -70,7 +70,6 @@ const props = defineProps({
   }
 });
 
-
 const actionBusy = ref(false);
 const actionDone = ref(false);
 // The engine updates the action it is given through its own references, which
@@ -86,8 +85,6 @@ const userInputReady = ref(true);
 let deterministicDiceRoller = undefined;
 
 const action = autorun(() => EngineActions.findOne(props.actionId)).result;
-
-
 
 const simulatedLog = computed(() => {
   const actionRes = actionResult.value;
@@ -115,7 +112,6 @@ const activeInputComponent = computed(() => {
 const setInputReady = (val) => {
   userInputReady.value = val;
 };
-
 
 const promiseInput = () => {
   triggerRef(actionResult);
@@ -182,7 +178,6 @@ const startAction = async ({ stepThrough }) => {
   if (props.actionFinishedCallback) props.actionFinishedCallback(finalActionResult);
 };
 
-
 const continueAction = () => {
   if (actionResult.value) {
     actionResult.value._stepThrough = false;
@@ -206,10 +201,6 @@ onMounted(() => {
   max-height: min(100vh, 800px);
   max-width: min(100vh, 1000px);
   min-width: 300px;
-}
-
-.action-input {
-  overflow-y: auto;
 }
 
 .log-preview {

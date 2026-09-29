@@ -70,7 +70,7 @@
       <template #left>
         <div
           key="slot-title"
-          class="text-h6 my-3"
+          class="text-title-large my-3"
         >
           {{ $t('castSpell.slot') }}
         </div>
@@ -116,7 +116,7 @@
       <template #right>
         <div
           key="spell-title-right"
-          class="text-h6 my-3"
+          class="text-title-large my-3"
         >
           {{ $t('castSpell.spell') }}
         </div>

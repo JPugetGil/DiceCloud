@@ -1,6 +1,6 @@
 <template>
   <div class="slot-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <smart-select
           :label="$t('common.type')"
@@ -107,7 +107,7 @@
 
     <form-sections type="slot">
       <form-section :name="$t('forms.behavior')">
-        <v-row dense>
+        <v-row density="compact">
           <!--
           <v-col
             cols="12"

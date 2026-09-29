@@ -1,6 +1,6 @@
 <template>
   <div class="effect-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field :name="$t('forms.operation')">
         <div
           class="d-flex flex-1-1"
@@ -110,18 +110,6 @@ const displayedValue = computed(() => {
 </script>
 
 <style lang="css" scoped>
-.icon {
-  min-width: 30px;
-}
-
-.icon {
-  color: inherit !important;
-}
-
-.net-effect {
-  flex-grow: 0;
-  flex-shrink: 0;
-}
 
 .value,
 .calculation {

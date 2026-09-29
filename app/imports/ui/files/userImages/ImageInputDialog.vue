@@ -33,7 +33,7 @@
               cover
               :data-id="file._id"
               class="user-image ma-1 v-sheet"
-              :class="{'elevation-4': file.link === href}"
+              :class="{'elevation-2': file.link === href}"
               height="250"
               :src="file.link"
               :lazy-src="file.thumbHashDataUrl"
@@ -176,13 +176,10 @@ function selectUserImage(href) {
   flex-grow: 1;
   flex-shrink: 1;
 }
-.user-image-list > .upload-image-button {
-  height: 250px;
-}
 .user-image {
   cursor: pointer;
 }
-.user-image.elevation-4 {
+.user-image.elevation-2 {
   border: 2px solid rgb(var(--v-theme-primary));
 }
 .zoom-button {

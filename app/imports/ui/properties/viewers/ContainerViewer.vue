@@ -1,6 +1,6 @@
 <template>
   <div class="container-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('viewers.value')"
         :cols="{cols: 12, md: 6}"
@@ -17,7 +17,7 @@
               $two_coins
             </v-icon>
             <coin-value
-              class="text-subtitle-1 mr-2"
+              class="text-body-large mr-2"
               :value="model.value"
             />
           </div>
@@ -29,10 +29,10 @@
               $cash
             </v-icon>
             <coin-value
-              class="text-subtitle-1 mr-2"
+              class="text-body-large mr-2"
               :value="model.contentsValue"
             />
-            <span class="text-subtitle-1">
+            <span class="text-body-large">
               {{ $t('common.contents') }}
             </span>
           </div>
@@ -53,7 +53,7 @@
             >
               $weight
             </v-icon>
-            <span class="text-subtitle-1 mr-2">
+            <span class="text-body-large mr-2">
               {{ $t('common.weightLb', { weight: model.weight }) }}
             </span>
           </div>
@@ -67,10 +67,10 @@
             >
               $injustice
             </v-icon>
-            <span class="text-subtitle-1 mr-2">
+            <span class="text-body-large mr-2">
               {{ $t('common.weightLb', { weight: model.contentsWeight }) }}
             </span>
-            <span class="text-subtitle-1">
+            <span class="text-body-large">
               {{ $t('common.contents') }}
             </span>
           </div>

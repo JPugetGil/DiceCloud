@@ -2,7 +2,7 @@
   <div class="smart-toggle mb-6">
     <div
       :id="labelId"
-      class="smart-toggle__label text-caption text-medium-emphasis"
+      class="smart-toggle__label text-body-small text-medium-emphasis mb-1 ps-1"
     >
       {{ label }}
     </div>
@@ -38,7 +38,7 @@
     <v-expand-transition>
       <div
         v-if="errors.length"
-        class="pt-2 text-caption text-error"
+        class="pt-2 text-body-small text-error"
       >
         {{ errors.join('\n\n') }}
       </div>
@@ -88,11 +88,6 @@ function click(val) {
 </script>
 
 <style scoped>
-.smart-toggle__label {
-  margin-bottom: 4px;
-  padding-inline-start: 4px;
-}
-
 /* The outline and dividers as strong as a text field's (Vuetify's is 0.12) */
 .smart-toggle__group {
   --v-border-opacity: 0.38;

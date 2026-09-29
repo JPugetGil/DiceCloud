@@ -40,7 +40,7 @@
             v-else-if="error.type === 'warning'"
             border="bottom"
             border-color="warning"
-            elevation="2"
+            elevation="1"
             type="warning"
           >
             {{ error.details.error }}
@@ -50,7 +50,7 @@
             :key="index + 'otherError'"
             border="bottom"
             border-color="error"
-            elevation="2"
+            elevation="1"
             type="error"
           >
             {{ error.type }}

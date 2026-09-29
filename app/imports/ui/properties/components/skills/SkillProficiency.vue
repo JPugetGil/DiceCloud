@@ -19,18 +19,18 @@
       </v-tooltip>
     </div>
     <div
-      class="text-h4 effect-value mr-2"
+      class="text-headline-large effect-value mr-2"
     >
       {{ proficiencyValue }}
     </div>
     <div class="d-flex flex-1-1 flex-column my-2">
-      <div class="text-body-1 mb-1">
+      <div class="text-body-large mb-1">
         {{ model.name || proficiencyText }}
       </div>
       <div v-if="!hideBreadcrumbs">
         <property-breadcrumbs
           :model="model"
-          class="text-caption"
+          class="text-body-small"
           no-links
           no-icons
           style="margin-bottom: 0"
@@ -100,15 +100,8 @@ function click(e) {
 </script>
 
 <style lang="css" scoped>
-  .icon, .effect-icon {
+  .effect-icon {
     min-width: 30px;
-  }
-  .icon {
-    color: inherit !important;
-  }
-  .net-effect {
-    flex-grow: 0;
-    flex-shrink: 0;
   }
   .effect-value {
     min-width: 60px;

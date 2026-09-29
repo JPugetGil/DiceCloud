@@ -1,6 +1,6 @@
 <template>
   <div class="saving-throw-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('check.dc')"
         large

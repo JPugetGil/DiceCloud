@@ -4,7 +4,7 @@
       <h2 style="margin: 48px 28px 16px">
         {{ $t('email.verified') }}
       </h2>
-      <h3>
+      <h3 class="my-0">
         {{ $t('email.verifiedText') }}
       </h3>
     </div>

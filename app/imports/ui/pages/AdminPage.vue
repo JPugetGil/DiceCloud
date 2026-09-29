@@ -4,14 +4,24 @@
       <v-col cols="12">
         <v-card>
           <v-card-text>
-            <h4>{{ $t('admin.currentDbVersion', { version: versions && versions.dbVersion }) }}</h4>
-            <h4 v-if="schemaVersion == versions.dbVersion ">
+            <h4 class="my-0">
+              {{ $t('admin.currentDbVersion', { version: versions && versions.dbVersion }) }}
+            </h4>
+            <h4
+              v-if="schemaVersion == versions.dbVersion "
+              class="my-0"
+            >
               {{ $t('admin.upToDate') }}
             </h4>
-            <h4 v-else>
+            <h4
+              v-else
+              class="my-0"
+            >
               {{ $t('admin.expectedDbVersion', { version: schemaVersion }) }}
             </h4>
-            <h4>{{ $t('admin.gitVersion', { version: versions && versions.gitVersion }) }}</h4>
+            <h4 class="my-0">
+              {{ $t('admin.gitVersion', { version: versions && versions.gitVersion }) }}
+            </h4>
             <v-alert
               v-if="versionError"
               type="error"

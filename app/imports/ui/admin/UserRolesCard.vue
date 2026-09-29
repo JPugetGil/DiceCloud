@@ -4,7 +4,7 @@
       {{ $t('admin.userRoles') }}
     </v-card-title>
     <v-card-text>
-      <p class="mb-4 text-medium-emphasis">
+      <p class="mb-4 text-medium-emphasis mt-0">
         {{ $t('admin.userRolesHint', {
           playerCharacters: ROLE_PERMISSIONS.player.characterLimit,
           playerStorage: prettyBytes(ROLE_PERMISSIONS.player.fileStorageLimit),
@@ -46,7 +46,7 @@
           >
             <td>
               <div>{{ user.username || user._id }}</div>
-              <div class="text-caption text-medium-emphasis">
+              <div class="text-body-small text-medium-emphasis">
                 {{ user.email }}
               </div>
             </td>

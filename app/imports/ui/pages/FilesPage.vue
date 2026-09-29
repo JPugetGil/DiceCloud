@@ -1,8 +1,10 @@
 <template>
   <v-container>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
-        <v-list-subheader> {{ $t('files.storage') }} </v-list-subheader>
+        <v-list-subheader class="ps-4">
+          {{ $t('files.storage') }}
+        </v-list-subheader>
       </v-col>
       <v-col
         cols="12"
@@ -16,7 +18,7 @@
           rounded
           :aria-label="$t('files.storage')"
         />
-        <div class="text-body-2 text-medium-emphasis mt-1">
+        <div class="text-body-medium text-medium-emphasis mt-1">
           {{ $t('files.storageUsed', {
             used: prettyBytes(fileStorageUsed),
             limit: prettyBytes(permissions.fileStorageLimit),
@@ -24,9 +26,11 @@
         </div>
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
-        <v-list-subheader> {{ $t('files.archivedCharacters') }} </v-list-subheader>
+        <v-list-subheader class="ps-4">
+          {{ $t('files.archivedCharacters') }}
+        </v-list-subheader>
       </v-col>
 
       <v-col
@@ -83,9 +87,11 @@
         </v-col>
       </template>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
-        <v-list-subheader> {{ $t('files.images') }} </v-list-subheader>
+        <v-list-subheader class="ps-4">
+          {{ $t('files.images') }}
+        </v-list-subheader>
       </v-col>
       <v-col
         cols="12"
@@ -113,9 +119,9 @@
       </template>
     </v-row>
     <!--
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
-        <v-list-subheader> {{ $t('files.images') }} </v-list-subheader>
+        <v-list-subheader class="ps-4"> {{ $t('files.images') }} </v-list-subheader>
       </v-col>
       <template v-if="userImages && userImages.length">
         <v-col

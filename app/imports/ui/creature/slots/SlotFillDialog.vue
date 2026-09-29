@@ -24,7 +24,7 @@
       text
       :string="model?.description"
     />
-    <p>
+    <p class="my-0">
       {{ $t('slots.withLibraryTags', { type: slotPropertyTypeName }) }}
       <property-tags
         v-for="(tags, index) in tagsSearched.or"
@@ -97,13 +97,13 @@
                       {{ libraryNode._conditionError }}
                     </div>
                   </div>
-                  <div class="text-caption text-no-wrap text-truncate">
+                  <div class="text-body-small text-no-wrap text-truncate">
                     {{ libraryNames?.[libraryNode.root.id ] }}
                   </div>
                 </div>
                 <div
                   v-if="libraryNode.slotQuantityFilled !== undefined && libraryNode.slotQuantityFilled !== 1"
-                  class="text-overline flex-grow-0 text-no-wrap"
+                  class="text-label-medium flex-grow-0 text-no-wrap"
                   :class="{
                     'text-error': isDisabled(libraryNode) &&
                       libraryNode._disabledByQuantityFilled
@@ -159,7 +159,7 @@
         </v-btn>
       </div>
     </template>
-    <div class="d-flex flex-1-1 align-center justify-center text-caption text-disabled mt-8 mb-2">
+    <div class="d-flex flex-1-1 align-center justify-center text-body-small text-disabled mt-8 mb-2">
       {{ $t('slots.cantFind') }}
     </div>
     <div class="d-flex flex-1-1 align-center justify-center flex-wrap mx-4 mb-4">

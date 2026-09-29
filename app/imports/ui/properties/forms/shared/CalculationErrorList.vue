@@ -17,7 +17,7 @@
         density="compact"
         text
       >
-        <pre>{{ error.message }}</pre>
+        <pre class="my-0">{{ error.message }}</pre>
       </v-alert>
     </v-slide-x-transition>
   </div>

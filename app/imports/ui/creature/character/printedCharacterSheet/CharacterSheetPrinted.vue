@@ -17,7 +17,7 @@
           <h2 style="margin: 48px 28px 16px">
             {{ $t('sheet.notFound') }}
           </h2>
-          <h3>
+          <h3 class="my-0">
             {{ $t('sheet.notFoundText') }}
           </h3>
         </div>
@@ -273,8 +273,15 @@ onBeforeUnmount(() => {
 
 .character-sheet-printed .column-layout>div {
   position: relative;
-  display: inline-block;
   margin-top: 4px;
+}
+
+/*
+ * Kept whole within a column. A block given d-flex (and mb-0) keeps them: the
+ * utilities' layer loses to these unlayered rules
+ */
+.character-sheet-printed .column-layout>div:not(.d-flex) {
+  display: inline-block;
   margin-bottom: 4px;
 }
 .character-sheet-printed .column-layout > div > * {
@@ -328,15 +335,6 @@ onBeforeUnmount(() => {
   page-break-inside: avoid;
 }
 
-.character-sheet-printed .span-all {
-  page-break-after: avoid;
-  break-after: avoid;
-}
-.span-all + div {
-  page-break-before: avoid;
-  break-before: avoid;
-}
-
 .character-sheet-printed .stats .label {
   font-size: 10pt;
   font-variant: all-small-caps
@@ -346,11 +344,6 @@ onBeforeUnmount(() => {
   font-size: 14pt;
   font-variant: all-small-caps;
   font-weight: 600;
-}
-
-.character-sheet-printed .span-all {
-  column-span: all;
-  display: block;
 }
 
 .character-sheet-printed .page-break-before {

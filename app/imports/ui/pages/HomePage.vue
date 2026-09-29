@@ -7,18 +7,16 @@
       class="py-12 px-4"
     >
       <v-row
-        align="end"
-        justify="center"
-        class="mb-8"
+        class="mb-8 align-end justify-center"
       >
         <v-col
           class="text-center"
           cols="12"
         >
-          <h1 class="text-h4 mb-4">
+          <h1 class="text-headline-large mb-4 mt-0">
             {{ $t('home.tagline') }}
           </h1>
-          <h4 class="text-subtitle-1">
+          <h4 class="text-body-large my-0">
             {{ $t('home.subtitle') }}
           </h4>
         </v-col>
@@ -76,10 +74,10 @@
           >
             mdi-currency-usd-off
           </v-icon>
-          <h3 class="mb-2">
+          <h3 class="mb-2 mt-0">
             {{ $t('home.freeTitle') }}
           </h3>
-          <p>
+          <p class="my-0">
             {{ $t('home.freeText') }}
           </p>
         </div>
@@ -90,10 +88,10 @@
           >
             mdi-ballot-outline
           </v-icon>
-          <h3 class="mb-2">
+          <h3 class="mb-2 mt-0">
             {{ $t('home.customTitle') }}
           </h3>
-          <p>
+          <p class="my-0">
             {{ $t('home.customText') }}
           </p>
         </div>
@@ -104,10 +102,10 @@
           >
             mdi-file-tree-outline
           </v-icon>
-          <h3 class="mb-2">
+          <h3 class="mb-2 mt-0">
             {{ $t('home.engineTitle') }}
           </h3>
-          <p>
+          <p class="my-0">
             {{ $t('home.engineText') }}
           </p>
         </div>
@@ -140,7 +138,7 @@
       </v-row>
     </section>
     <section class="text-center bg-grey-darken-3 text-white pa-5">
-      <h1>
+      <h1 class="my-0">
         {{ $t('home.community') }}
       </h1>
       <div class="d-flex flex-1-1 flex-wrap align-center justify-space-around pa-4">
@@ -197,8 +195,5 @@ const signedIn = autorun(() => Meteor.userId()).result;
 <style scoped>
 .selling-points>* {
   max-width: 400px;
-}
-.dark-gradient {
-  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 }
 </style>

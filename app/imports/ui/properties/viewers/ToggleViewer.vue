@@ -1,6 +1,6 @@
 <template>
   <div class="toggle-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('viewers.variableName')"
         mono

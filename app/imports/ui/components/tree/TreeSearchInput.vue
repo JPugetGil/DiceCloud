@@ -43,7 +43,7 @@
           >
             <v-text-field
               v-model="fieldFilter.field"
-              class="text--mono"
+              class="text-mono"
               :label="$t('treeSearch.field')"
               variant="outlined"
             />

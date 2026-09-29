@@ -248,7 +248,7 @@ function isDark(kbColor, kbShade){
     cursor: pointer;
     transition: all 0.2s linear;
   }
-  .color-swatch:hover{
+  .color-swatch:hover {
     z-index: 1;
     transform: scale(1.1);
     box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),
@@ -266,13 +266,5 @@ function isDark(kbColor, kbShade){
   }
   .color-swatch .dark.v-icon, .shade-swatch .dark.v-icon {
     color: white;
-  }
-  .layout {
-    max-width: 270px;
-  }
-  .spacer {
-    width: 30px;
-    height: 0;
-    flex-grow: 1;
   }
 </style>

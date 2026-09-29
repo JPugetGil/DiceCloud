@@ -174,7 +174,7 @@ watch(() => props.selectedNode?.parentId, () => {
 }
 
 .found {
-  background: rgba(200, 0, 0, 0.1) !important;
+  background: rgba(var(--v-theme-primary), 0.1) !important;
 }
 
 .ghost {
@@ -187,7 +187,7 @@ watch(() => props.selectedNode?.parentId, () => {
 }
 
 .v-icon {
-  transition: none !important;
+  transition: none;
 }
 
 .v-theme--light .tree-node-title:hover {

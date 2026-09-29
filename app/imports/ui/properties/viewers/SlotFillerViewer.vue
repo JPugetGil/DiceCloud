@@ -1,6 +1,6 @@
 <template>
   <div class="slot-filler-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.description"
         :name="$t('common.description')"

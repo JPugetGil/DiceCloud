@@ -86,7 +86,4 @@ watch(model, (newValue) => {
     opacity: 0;
     transition: none;
   }
-  .hidden {
-    visibility: hidden;
-  }
 </style>

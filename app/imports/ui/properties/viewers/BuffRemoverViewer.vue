@@ -1,6 +1,6 @@
 <template>
   <div class="buff-remover-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.target === 'self'"
         :name="$t('viewers.target')"
@@ -64,18 +64,3 @@ defineProps({
 });
 
 </script>
-
-<style lang="css" scoped>
-  .ability-value {
-    font-weight: 600;
-    font-size: 24px !important;
-    color: rgba(0, 0, 0, 0.54);
-  }
-  .mod, .ability-value {
-    text-align: center;
-    width: 100%;
-  }
-  .attribute-value {
-    text-align: center;
-  }
-</style>

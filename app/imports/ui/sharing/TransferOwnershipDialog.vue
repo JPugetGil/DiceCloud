@@ -10,16 +10,16 @@
       variant="outlined"
     >
       <template v-if="error">
-        <p>
+        <p class="my-0">
           {{ error }}
         </p>
       </template>
       <template v-else>
-        <p>
+        <p class="my-0">
           {{ $t('sharing.transferConfirm', { user: user.username || user._id }) }}
-        </p><p>
+        </p><p class="my-0">
           {{ $t('sharing.transferUndo') }}
-        </p><p>
+        </p><p class="my-0">
           {{ $t('sharing.stillEdit') }}
         </p>
       </template>

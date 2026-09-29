@@ -6,18 +6,14 @@
     v-bind="cols"
     class="mb-3"
   >
-    <fieldset
-      :class="theme.isDark? 'v-theme--dark' :'v-theme--light'"
-      class="rounded v-sheet--outlined pa-2 d-flex flex-1-1 flex-column align-start fill-height"
+    <outlined-input
+      :name="name"
+      class="h-100"
+      hide-details
+      no-hover
+      content-class="px-3 pt-3 pb-2 d-flex flex-column align-start h-100"
       @click="$emit('click', $event)"
     >
-      <legend
-        v-if="name"
-        class="text-caption px-1 name"
-        style="line-height: 0;"
-      >
-        {{ name }}
-      </legend>
       <div
         class="flex-grow-1 d-flex align-center flex-wrap"
         style="width: 100%;"
@@ -25,12 +21,12 @@
         <div
           class="d-flex align-center"
           :class="{
-            'text-body-1': !isLarge,
-            'text-h4': isLarge,
+            'text-body-large': !isLarge,
+            'text-headline-large': isLarge,
             'justify-center': isCenter,
             'justify-end': end,
             'flex-wrap': wrap,
-            'mono': isMono,
+            'text-mono': isMono,
             'flex-grow-0': hasEffectsOrProficiencies,
             'flex-grow-1': !hasEffectsOrProficiencies, 
             'ma-3': hasEffectsOrProficiencies,
@@ -76,7 +72,7 @@
           {{ calculation.value }}
         </div>
       </div>
-    </fieldset>
+    </outlined-input>
   </v-col>
 </template>
 
@@ -85,8 +81,8 @@ import { computed } from 'vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import InlineEffect from '/imports/ui/properties/components/effects/InlineEffect.vue';
 import InlineProficiency from '/imports/ui/properties/components/proficiencies/InlineProficiency.vue';
+import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
-import useThemeState from '/imports/ui/composables/useThemeState';
 
 const props = defineProps({
   name: {
@@ -114,8 +110,6 @@ const props = defineProps({
 });
 
 defineEmits(['click']);
-
-const theme = useThemeState();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -193,14 +187,3 @@ function clickEffect(id) {
 }
 </script>
 
-<style lang="css" scoped>
-.name {
-  color: rgba(0,0,0,.6);
-}
-.v-theme--dark .name {
-  color: rgba(255,255,255,.6);
-}
-.mono {
-  font-family: monospace !important;
-}
-</style>

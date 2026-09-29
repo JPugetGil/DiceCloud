@@ -1,11 +1,11 @@
 <template>
   <div class="reference-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <outlined-input :name="$t('forms.reference.linked')">
           <div
             v-ripple
-            class="reference-link pa-4"
+            class="reference-link pa-4 cursor-pointer rounded"
             data-id="change-ref"
             @click="changeReference"
           >
@@ -30,7 +30,7 @@
                 </div>
                 <div
                   v-if="model.cache.library && model.cache.library.name"
-                  class="text-caption"
+                  class="text-body-small"
                 >
                   {{ model.cache.library && model.cache.library.name }}
                 </div>
@@ -122,11 +122,3 @@ async function updateReferenceNode() {
   }
 }
 </script>
-
-<style lang="css" scoped>
-.reference-link {
-  cursor: pointer;
-  /* The ripple keeps to the outline's rounded corners */
-  border-radius: 4px;
-}
-</style>

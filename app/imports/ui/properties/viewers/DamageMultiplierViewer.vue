@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('viewers.value')"
         :value="operation"

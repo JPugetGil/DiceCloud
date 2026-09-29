@@ -16,6 +16,7 @@
     <v-card-text v-if="doc.description">
       <markdown-text
         v-if="doc"
+        class="text-body-large"
         :markdown="doc.description"
       />
     </v-card-text>

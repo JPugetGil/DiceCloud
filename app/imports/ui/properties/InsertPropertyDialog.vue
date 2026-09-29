@@ -115,7 +115,7 @@
                   />
                   <div class="d-flex flex-1-1 flex-column">
                     <tree-node-view :model="libraryNode" />
-                    <div class="text-caption">
+                    <div class="text-body-small">
                       {{ libraryNames[libraryNode.ancestors[0].id ] }}
                     </div>
                   </div>
@@ -174,7 +174,7 @@
         :disabled="!valid"
         @click="dialogStackStore.popDialogStack(model)"
       >
-        {{ $t('insert.createLower') }}
+        {{ $t('insert.create') }}
       </v-btn>
       <v-btn
         v-else-if="tab === 2"

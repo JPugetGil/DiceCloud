@@ -17,7 +17,7 @@
     </v-icon>
     <div
       class="text-no-wrap text-truncate"
-      :class="model.equipped && 'body-2'"
+      :class="model.equipped && 'font-weight-medium'"
     >
       {{ title }}
     </div>

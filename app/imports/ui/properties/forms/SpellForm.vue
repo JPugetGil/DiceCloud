@@ -1,6 +1,6 @@
 <template>
   <div class="spell-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         sm="6"
@@ -43,7 +43,7 @@
         />
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -153,7 +153,7 @@
         />
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <text-field
           :label="$t('spellComponents.material')"
@@ -163,7 +163,7 @@
         />
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -242,7 +242,7 @@
       </form-section>
 
       <form-section :name="$t('forms.limitUses')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"

@@ -2,7 +2,7 @@
   <div class="resources-form">
     <div
       v-if="model.conditions && model.conditions.length"
-      class="text-subtitle-1"
+      class="text-body-large"
     >
       {{ $t('forms.resources.conditions') }}
     </div>
@@ -14,7 +14,7 @@
     />
     <div
       v-if="model.attributesConsumed && model.attributesConsumed.length"
-      class="text-subtitle-1"
+      class="text-body-large"
     >
       {{ $t('forms.resources.attributes') }}
     </div>
@@ -26,7 +26,7 @@
     />
     <div
       v-if="model.itemsConsumed && model.itemsConsumed.length"
-      class="text-subtitle-1"
+      class="text-body-large"
     >
       {{ $t('forms.resources.ammo') }}
     </div>

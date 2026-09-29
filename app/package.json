@@ -68,7 +68,7 @@
     "vue-meteor-tracker": "3.0.0-beta.7",
     "vue-router": "^4.6.4",
     "vuedraggable": "^4.1.0",
-    "vuetify": "3.13.4"
+    "vuetify": "4.2.2"
   },
   "devDependencies": {
     "@meteorjs/rspack": "^2.2.0",
@@ -86,7 +86,7 @@
     "chai": "^4.5.0",
     "eslint": "8.57.1",
     "eslint-plugin-vue": "^9.33.0",
-    "eslint-plugin-vuetify": "^2.7.2",
+    "eslint-plugin-vuetify": "^2.7.3",
     "typescript": "^5.9.3",
     "vue-loader": "^17.4.2"
   },
@@ -95,6 +95,7 @@
       "eslint:recommended",
       "plugin:vue/vue3-recommended",
       "plugin:vuetify/recommended",
+      "plugin:vuetify/recommended-v4",
       "plugin:@typescript-eslint/eslint-recommended",
       "plugin:@typescript-eslint/recommended"
     ],

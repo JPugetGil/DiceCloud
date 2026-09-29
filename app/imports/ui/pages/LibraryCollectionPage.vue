@@ -2,8 +2,7 @@
   <v-container class="pa-6">
     <v-row
       v-if="collection && collection.description"
-      justify="center"
-      align="stretch"
+      class="justify-center align-stretch"
     >
       <v-col
         cols="12"
@@ -16,7 +15,7 @@
       </v-col>
     </v-row>
     <v-row
-      align="stretch"
+      class="align-stretch"
     >
       <v-col
         v-for="library in libraries"

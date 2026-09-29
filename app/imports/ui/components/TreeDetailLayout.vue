@@ -1,11 +1,10 @@
 <template>
   <div
-    class="d-flex flex-1-1"
-    style="height: 100%;"
+    class="d-flex flex-1-1 h-100"
   >
     <div
       v-if="$slots['left-tree']"
-      class="tree-column d-flex flex-column justify-start"
+      class="tree-column flex-1-1 d-flex flex-column justify-start"
       :style="computedTreeStyle"
     >
       <slot
@@ -17,7 +16,7 @@
       vertical
     />
     <div
-      class="tree-column d-flex flex-column justify-start"
+      class="tree-column flex-1-1 d-flex flex-column justify-start"
       :style="computedTreeStyle"
     >
       <slot name="tree" />
@@ -55,12 +54,10 @@ const computedTreeStyle = computed(() => {
 
 <style lang="css" scoped>
 /*
- * Fills the width on small screens; on wider ones the inline style fixes it.
- * Not Vuetify's flex-1-1 utility: it is !important and would beat the inline
- * width, so every tree column would grow.
+ * A column fills the width on small screens (flex-1-1); on wider ones the
+ * inline style fixes its width, and beats the utility
  */
 .tree-column {
-  flex: 1 1 auto;
   min-width: 0;
 }
 </style>

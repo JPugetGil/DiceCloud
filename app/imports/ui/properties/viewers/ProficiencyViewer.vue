@@ -1,6 +1,6 @@
 <template>
   <div class="proficiency-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.value !== undefined"
         :name="$t('propertyTypes.proficiency.name')"

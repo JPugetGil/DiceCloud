@@ -1,11 +1,11 @@
 <template>
-  <v-row justify="center">
+  <v-row class="justify-center">
     <template v-if="doc">
       <v-col
         cols="12"
         lg="8"
       >
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"

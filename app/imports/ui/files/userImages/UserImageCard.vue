@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="user-image-card d-flex flex-column"
+    class="user-image-card d-flex flex-column h-100"
     @click="previewImage"
   >
     <v-img
@@ -97,15 +97,3 @@ function previewImage() {
   });
 }
 </script>
-
-<style scoped>
-  .no-wrap {
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .user-image-card {
-    height: 100%;
-  }
-</style>

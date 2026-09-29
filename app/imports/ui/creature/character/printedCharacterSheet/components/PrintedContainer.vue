@@ -103,9 +103,3 @@ defineProps({
 
 
 </script>
-
-<style lang="css" scoped>
-.item-avatar {
-  min-width: 32px;
-}
-</style>

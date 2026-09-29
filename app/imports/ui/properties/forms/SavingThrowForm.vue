@@ -1,6 +1,6 @@
 <template>
   <div class="saving-throw-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"

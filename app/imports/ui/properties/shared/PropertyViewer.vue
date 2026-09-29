@@ -3,7 +3,7 @@
     v-if="model && components[model.type]"
     class="property-viewer"
   >
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         v-if="model.inactive"
         :name="$t('viewers.status')"
@@ -56,7 +56,7 @@
       @change="e => $emit('change', e)"
       @remove="$emit('remove')"
     />
-    <v-row dense>
+    <v-row density="compact">
       <template
         v-if="collection == 'libraryNodes'"
       >
@@ -64,7 +64,7 @@
           v-if="model.fillSlots || model.searchable"
           :name="$t('viewers.libraryBehavior')"
         >
-          <ul>
+          <ul class="my-0">
             <li
               v-if="model.fillSlots"
             >
@@ -93,19 +93,16 @@
           :value="model.slotFillerConditionNote"
         />
         <property-field
+          v-if="model.libraryTags && model.libraryTags.length"
           :name="$t('forms.property.libraryTags')"
           :cols="{cols: 12}"
         >
-          <div
-            v-if="model.libraryTags && model.libraryTags.length"
-            class="py-2"
-          >
+          <div class="py-2">
             <v-chip
               v-for="(tag, index) in model.libraryTags"
               :key="tag + index"
               class="mr-1"
               size="small"
-              disabled
             >
               {{ tag }}
             </v-chip>
@@ -113,18 +110,15 @@
         </property-field>
       </template>
       <property-field
+        v-if="model.tags && model.tags.length"
         :name="$t('forms.tags')"
         :cols="{cols: 12}"
       >
-        <div
-          v-if="model.tags && model.tags.length"
-          class="py-1"
-        >
+        <div class="py-1">
           <v-chip
             v-for="(tag, index) in model.tags"
             :key="tag + index"
             class="mr-1"
-            disabled
             size="small"
           >
             {{ tag }}

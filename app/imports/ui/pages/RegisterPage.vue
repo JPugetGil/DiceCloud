@@ -125,7 +125,7 @@ const googleError = ref('');
 const googleConfigured = useLoginServiceConfigured('google');
 
 async function submit() {
-  // Vuetify 3's validate() resolves to { valid, errors }; the Promise itself is
+  // Vuetify's validate() resolves to { valid, errors }; the Promise itself is
   // always truthy, so testing it directly let invalid forms through
   const { valid: formValid } = await form.value.validate();
   if (!formValid) return;

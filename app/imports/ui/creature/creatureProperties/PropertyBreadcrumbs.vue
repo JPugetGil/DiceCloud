@@ -15,6 +15,7 @@
     </span>
     <a
       v-else
+      class="text-primary cursor-pointer"
       data-id="breadcrumb-root"
       @click="clickRootCreature"
     >
@@ -39,6 +40,7 @@
       </span>
       <a
         v-else
+        class="text-primary cursor-pointer"
         :data-id="`breadcrumb-${prop._id}`"
         @click="click(prop._id)"
       >

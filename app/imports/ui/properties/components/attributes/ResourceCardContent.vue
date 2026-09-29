@@ -22,19 +22,19 @@
         <v-icon>mdi-chevron-down</v-icon>
       </smart-btn>
     </div>
-    <div class="d-flex flex-1-1 align-center value pl-2 pr-3">
-      <div class="text-h4">
+    <div class="d-flex flex-1-1 align-center value pl-2 pr-3 flex-shrink-0 flex-grow-0">
+      <div class="text-headline-large">
         {{ optimisticValue }}
       </div>
       <div
         v-if="model.total !== 0"
-        class="text-h6 ml-2 max-value"
+        class="text-title-large ml-2 max-value"
       >
         /{{ model.total }}
       </div>
     </div>
     <div
-      class="content d-flex flex-1-1 align-center pr-3"
+      class="content d-flex flex-1-1 align-center pr-3 cursor-pointer"
       @click="click"
       @mouseover="$emit('mouseover')"
       @mouseleave="$emit('mouseleave')"
@@ -84,15 +84,8 @@ watch(() => props.model.value, () => {
 
 <style lang="css" scoped>
 .buttons,
-.value {
-  flex-shrink: 0;
-  flex-grow: 0;
-}
 .buttons>.v-btn {
   margin: 0;
-}
-.content {
-  cursor: pointer;
 }
 .max-value {
   color: rgba(0, 0, 0, .54);

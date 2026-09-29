@@ -2,7 +2,7 @@ Design system
 =============
 
 DiceCloud follows **Material Design**, the design system its UI library,
-[Vuetify 3](https://vuetifyjs.com), implements:
+[Vuetify 4](https://vuetifyjs.com), implements:
 
 - **Components** are Vuetify's, used with their Material variants (elevated,
   tonal, outlined, text) rather than restyled by hand.
@@ -56,8 +56,8 @@ DiceCloud keeps its own greys:
 | `drawer` (navigation drawer) | `#FFFFFF` | `#363636` | themes.js |
 | `toolbar` (plain toolbars) | `#FFFFFF` | `#272727` | themes.js, the default toolbar colour in vuetify.js |
 | `surface-bright` (a switch's thumb when off) | `#FFFFFF` | `#BDBDBD` | themes.js; Vuetify's dark default is a lavender from none of our palettes |
-| page background | `#F6F6F6` | `#151515` | `.card-background`, styles/cardColors.css |
-| raised panels | `#FAFAFA` | `#1D1D1D` | `.card-raised-background`, styles/cardColors.css |
+| `page` (behind a page's cards) | `#F6F6F6` | `#151515` | themes.js; `bg-page` |
+| `raised` (panels raised from the page) | `#FAFAFA` | `#1D1D1D` | themes.js; `bg-raised` |
 
 Text on neutrals uses Vuetify's emphasis levels, not fixed greys:
 `text-high-emphasis`, `text-medium-emphasis`, `text-disabled`. The light theme
@@ -94,7 +94,7 @@ empty prepend or append slot still reserves 16px beside the field.
 
 - **Focus and selection** take the primary colour: focused fields, checked
   switches, checkboxes and radios, sliders. vuetify.js sets it as their default
-  (Vuetify 3 leaves them grey).
+  (Vuetify leaves them grey).
 - **Content that is not typed into** (icon and colour pickers, images, the
   child property tree, a linked property) sits in `OutlinedInput.vue`, which
   draws Vuetify's own field outline and notched label around it, so that its
@@ -104,8 +104,43 @@ empty prepend or append slot still reserves 16px beside the field.
   option filled with `primary-container` and marked with a check mark. Where
   space is short the options wrap their labels and drop their icons.
 - **An icon inside a field** is an `inner` one (`append-inner-icon`,
-  `prepend-inner-icon`). Vuetify 3's `append-icon` draws outside the field,
-  where Vuetify 2 drew it inside.
+  `prepend-inner-icon`). Vuetify's `append-icon` draws outside the field
+  (Vuetify 2 drew it inside).
+
+Styling with Vuetify 4
+----------------------
+
+Vuetify 4 puts all of its styles in CSS layers (`vuetify-core`,
+`vuetify-components`, `vuetify-overrides`, `vuetify-utilities`,
+`vuetify-final`). The app's own CSS is not in a layer, so it beats every
+Vuetify rule, utilities included, whatever the specificity:
+
+1. **Prefer Vuetify.** A component prop, a theme colour, `v-defaults-provider`
+   for nested components, or a utility class (`text-medium-emphasis`,
+   `text-mono`, `flex-1-1`, `ma-0`, `cursor-pointer`, …) before a CSS rule.
+2. **No `!important`.** An unlayered rule already beats Vuetify; `!important`
+   is only for another app rule or an inline style.
+3. **A scoped rule beats the utility on the same element.** `.foo { flex-grow:
+   0 }` wins over `class="foo flex-1-1"`; do not give an element a utility and
+   a rule for the same property.
+4. **A global look for a component is a Vuetify default** (`defaults` in
+   vuetify.js: avatars are transparent unless coloured, focused fields take
+   the primary colour). An override that utilities must still beat, if one is
+   ever needed, goes in Vuetify's overrides layer (`@layer vuetify-overrides`),
+   so that `bg-*` and friends keep working.
+5. **Native elements keep the browser's margins.** Vuetify 4's reset no longer
+   zeroes every margin: give `<p>`, headings and lists their spacing with
+   utilities (`my-0`, `mb-2`). Rendered markdown gets Vuetify's classes from
+   `MarkdownText.vue`'s renderer (typography, spacing, `v-divider`, `v-table`,
+   `v-code`); `stylesheets/markdown.css` keeps only what classes cannot say.
+6. **Global stylesheets hold only what Vuetify has no equivalent for**
+   (`app/imports/ui/stylesheets`): thin scrollbars and their reserved gutter,
+   the dialog stack's scroll lock, large numeric inputs and a few markdown
+   rules. Scrollbar colours come from the theme: Vuetify sets `color-scheme`.
+
+Typography uses Material 3's type scale (`text-display-*`, `text-headline-*`,
+`text-title-*`, `text-body-*`, `text-label-*`), and buttons keep the case their
+label is written in: write labels in sentence case.
 
 Adding or changing a colour
 ---------------------------
@@ -140,11 +175,10 @@ Known exceptions
 Colours still written as values in components, all neutral greys or white:
 dialog bodies (`DialogBase.vue`, `InsertPropertyDialog.vue`), the transparent
 toolbar card (`ToolbarCard.vue`), health bar tracks (`HealthBar.vue`), the
-increment menu (`IncrementMenu.vue`), the disabled speed-dial button
+printed character sheet (print colours), the disabled speed-dial button
 (`LabeledFab.vue`), the inner hexagon of the roll inputs (`VerticalHex.vue`),
 tree guide lines (`TreeNode.vue`, `BuildTreeNode.vue`), the white highlight of
-`CardHighlight.vue`,
-scrollbars (`styles/body.css`) and the dependency graph's canvas, node text and
+`CardHighlight.vue`, and the dependency graph's canvas, node text and
 edges (6.8:1 and more, measured). The axe audit of the main pages flags none of
 them, but it does not reach every one (the graph is drawn on a canvas); moving
 them into themes.js as roles would give them one source and the palette check.

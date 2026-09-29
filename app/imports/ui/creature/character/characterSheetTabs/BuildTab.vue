@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-row dense>
+    <v-row density="compact">
       <v-col cols="12">
         <character-errors
           class="mt-4"
@@ -8,10 +8,10 @@
         />
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <slot-cards-to-fill :creature-id="creatureId" />
     </v-row>
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         v-for="folder in startFolders"
         :key="folder._id"
@@ -94,7 +94,7 @@
         <v-card class="class-details mb-2">
           <v-card-title
             v-if="variables.level"
-            class="text-h6"
+            class="text-title-large"
           >
             {{ $t('build.level', { level: variables.level.value }) }}
           </v-card-title>

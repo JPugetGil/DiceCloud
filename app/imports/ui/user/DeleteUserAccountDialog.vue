@@ -6,7 +6,9 @@
       </v-toolbar-title>
     </template>
     <div>
-      <h2>{{ $t('deleteAccount.areYouSure') }}</h2>
+      <h2 class="my-0">
+        {{ $t('deleteAccount.areYouSure') }}
+      </h2>
       <v-alert
         :value="true"
         icon="mdi-alert"
@@ -15,13 +17,23 @@
       >
         {{ $t('deleteAccount.cantRecover') }}
       </v-alert>
-      <p>{{ $t('deleteAccount.immediately') }}</p>
-      <p>{{ $t('deleteAccount.usernameAvailable') }}</p>
+      <p class="my-0">
+        {{ $t('deleteAccount.immediately') }}
+      </p>
+      <p class="my-0">
+        {{ $t('deleteAccount.usernameAvailable') }}
+      </p>
       <template v-if="characters?.length">
-        <h3 v-if="characters.length > 1">
+        <h3
+          v-if="characters.length > 1"
+          class="my-0"
+        >
           {{ $t('deleteAccount.charactersDeleted', { count: characters.length }) }}
         </h3>
-        <h3 v-else>
+        <h3
+          v-else
+          class="my-0"
+        >
           {{ $t('deleteAccount.characterDeleted') }}
         </h3>
         <v-list>
@@ -33,10 +45,16 @@
         </v-list>
       </template>
       <template v-if="libraries?.length">
-        <h3 v-if="libraries.length > 1">
+        <h3
+          v-if="libraries.length > 1"
+          class="my-0"
+        >
           {{ $t('deleteAccount.librariesDeleted', { count: libraries.length }) }}
         </h3>
-        <h3 v-else>
+        <h3
+          v-else
+          class="my-0"
+        >
           {{ $t('deleteAccount.libraryDeleted') }}
         </h3>
         <v-list>

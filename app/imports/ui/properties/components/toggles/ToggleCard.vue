@@ -1,13 +1,13 @@
 <template>
   <v-card
-    :class="hover ? 'elevation-8': ''"
+    :class="hover ? 'elevation-3': ''"
     @click="click"
     @mouseover="hover = true"
     @mouseleave="hover = false"
   >
     <div class="d-flex flex-1-1 align-center">
       <div
-        class="value d-flex flex-1-1 justify-center flex-grow-0"
+        class="value d-flex justify-center flex-grow-0"
       >
         <smart-checkbox
           :model-value="toggleValue"
@@ -16,7 +16,7 @@
           @click.stop=""
         />
       </div>
-      <v-card-title class="name text-subtitle-1 text-truncate d-block pl-0">
+      <v-card-title class="name text-body-large text-truncate d-block pl-0">
         {{ model.name }}
       </v-card-title>
     </div>
@@ -71,6 +71,5 @@ async function toggleToggle(value, ack) {
 <style lang="css" scoped>
   .value {
     min-width: 64px;
-    justify-content: center;
   }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="note-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-description
         :name="$t('forms.summary')"
         :model="model.summary"

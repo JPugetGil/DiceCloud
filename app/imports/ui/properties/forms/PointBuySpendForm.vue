@@ -2,7 +2,7 @@
   <div class="point-buy-spend-form">
     <v-row
       v-if="model.values && model.values.length"
-      dense
+      density="compact"
     >
       <v-col
         cols="10"
@@ -19,8 +19,8 @@
     <v-row
       v-for="(row, i) in model.values"
       :key="row._id"
-      dense
-      align="center"
+      class="align-center"
+      density="compact"
     >
       <v-col
         cols="12"
@@ -70,12 +70,12 @@
       </v-col>
     </v-row>
     <v-row
-      dense
+      density="compact"
     >
       <v-col
         v-if="typeof model.spent === 'number'"
         cols="12"
-        class="text-h4 mb-4 pr-8 d-flex justify-end"
+        class="text-headline-large mb-4 pr-8 d-flex justify-end"
         :class="{
           'text-error': model.spent > (model.total && model.total.value),
           'text-warning': model.spent < (model.total && model.total.value),

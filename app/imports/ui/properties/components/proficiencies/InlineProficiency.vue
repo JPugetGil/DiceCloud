@@ -58,15 +58,8 @@ function click(e) {
 </script>
 
 <style lang="css" scoped>
-  .icon, .effect-icon {
+  .effect-icon {
     min-width: 20px;
-  }
-  .icon {
-    color: inherit !important;
-  }
-  .net-effect {
-    flex-grow: 0;
-    flex-shrink: 0;
   }
   .effect-value {
     min-width: 30px;

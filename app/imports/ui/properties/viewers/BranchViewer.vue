@@ -1,6 +1,6 @@
 <template>
   <div class="branch-viewer">
-    <v-row dense>
+    <v-row density="compact">
       <property-field
         :name="$t('viewers.branchType')"
         :value="name"
@@ -48,21 +48,3 @@ const name = computed(() => {
   }
 });
 </script>
-
-<style lang="css" scoped>
-.ability-value {
-  font-weight: 600;
-  font-size: 24px !important;
-  color: rgba(0, 0, 0, 0.54);
-}
-
-.mod,
-.ability-value {
-  text-align: center;
-  width: 100%;
-}
-
-.attribute-value {
-  text-align: center;
-}
-</style>

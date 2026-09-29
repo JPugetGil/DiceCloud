@@ -63,7 +63,9 @@
       />
     </template>
     <template v-if="removedDocs && removedDocs.length">
-      <h3>{{ $t('library.recentlyDeleted') }}</h3>
+      <h3 class="my-0">
+        {{ $t('library.recentlyDeleted') }}
+      </h3>
       <v-list>
         <v-list-item
           v-for="removedModel in removedDocs"

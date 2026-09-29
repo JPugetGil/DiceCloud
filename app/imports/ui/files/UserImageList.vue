@@ -1,11 +1,13 @@
 <template>
   <v-row
-    dense
+    density="compact"
     @drop.prevent="addDropFile"
     @dragover.prevent="imageDragOver"
   >
     <v-col cols="12">
-      <v-list-subheader> {{ $t('files.images') }} </v-list-subheader>
+      <v-list-subheader class="ps-4">
+        {{ $t('files.images') }}
+      </v-list-subheader>
     </v-col>
     <template v-if="userImages && userImages.length">
       <v-col

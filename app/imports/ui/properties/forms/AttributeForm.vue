@@ -1,6 +1,6 @@
 <template>
   <div class="attribute-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -81,7 +81,7 @@
           :name="$t('forms.attribute.healthBar')"
         >
           <div class="d-flex flex-column align-center mb-4">
-            <div class="text-caption mb-4">
+            <div class="text-body-small mb-4">
               {{ $t('forms.attribute.damagedColors') }}
             </div>
             <div
@@ -111,7 +111,7 @@
               </outlined-input>
             </div>
           </div>
-          <v-row dense>
+          <v-row density="compact">
             <v-col
               cols="12"
               md="4"
@@ -192,7 +192,7 @@
         </form-section>
       </v-expand-transition>
       <form-section :name="$t('forms.attribute.damage')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"
@@ -223,7 +223,7 @@
         </v-row>
       </form-section>
       <form-section :name="$t('forms.behavior')"> 
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             sm="6"
@@ -376,17 +376,3 @@ function change(path, value, ack) {
   emit('change', { path, value, ack });
 }
 </script>
-
-<style lang="css" scoped>
-.no-flex {
-  flex: initial;
-}
-
-.layout.row.wrap {
-  margin-right: -8px;
-}
-
-.layout.row.wrap>* {
-  margin-right: 8px;
-}
-</style>

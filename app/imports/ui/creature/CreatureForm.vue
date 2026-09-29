@@ -139,7 +139,7 @@
         />
         <p
           v-if="libraryWriteError"
-          class="text--error"
+          class="text-error my-0"
         >
           {{ libraryWriteError }}
         </p>

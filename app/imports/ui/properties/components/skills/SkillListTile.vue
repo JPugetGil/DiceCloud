@@ -25,12 +25,14 @@
           </div>
           <v-icon
             v-if="model.advantage > 0"
+            class="text-medium-emphasis"
             size="20px"
           >
             mdi-chevron-double-up
           </v-icon>
           <v-icon
             v-if="model.advantage < 0"
+            class="text-medium-emphasis"
             size="20px"
           >
             mdi-chevron-double-down
@@ -131,9 +133,5 @@ async function check() {
 
 .prof-mod {
   min-width: 32px;
-}
-
-.v-icon.v-theme--light {
-  color: rgba(0, 0, 0, 0.54) !important;
 }
 </style>

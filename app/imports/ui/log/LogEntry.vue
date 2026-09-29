@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="ma-2 log-entry"
+    class="ma-2 log-entry flex-shrink-0"
   >
     <v-card-title v-if="showName && model.creatureName">
       {{ model.creatureName }}
@@ -33,7 +33,4 @@ defineProps({
  * once the log filled up every entry would shrink and cut its text off.
  * Entries keep their height and the log scrolls instead.
  */
-.log-entry {
-  flex-shrink: 0;
-}
 </style>

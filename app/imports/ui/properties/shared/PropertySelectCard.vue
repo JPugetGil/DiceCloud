@@ -28,7 +28,7 @@
         <div style="height: 16px;" />
         <div
           v-if="property.examples"
-          class="text-caption"
+          class="text-body-small"
         >
           {{ property.examples }}
           <div style="height: 16px;" />

@@ -38,7 +38,7 @@
         <slot name="children" />
       </form-section>
       <form-section :name="$t('forms.behavior')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             sm="6"

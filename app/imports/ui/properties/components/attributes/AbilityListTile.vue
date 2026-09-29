@@ -18,7 +18,7 @@
           @click.stop="check"
         >
           <div>
-            <div class="text-h4 mod">
+            <div class="text-headline-large text-center w-100 mod">
               <template v-if="swapScoresAndMods">
                 <span :class="{'text-primary': model.total !== model.value}">
                   {{ model.value }}
@@ -28,7 +28,7 @@
                 {{ numberToSignedString(model.modifier) }}
               </template>
             </div>
-            <div class="text-h6 value">
+            <div class="text-headline-small font-weight-semibold text-medium-emphasis text-center w-100 value">
               <template v-if="swapScoresAndMods">
                 {{ numberToSignedString(model.modifier) }}
               </template>
@@ -42,7 +42,6 @@
         </v-btn>
       </div>
     </template>
-
 
     <v-list-item-title>
       {{ model.name }}
@@ -128,16 +127,8 @@ const swapScoresAndMods = autorun(() => {
   min-height: 88px;
 }
 
-.value {
-  font-weight: 600;
-  font-size: 24px !important;
-  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
-}
-
 .mod,
 .value {
-  text-align: center;
-  width: 100%;
   min-width: 42px;
 }
 </style>

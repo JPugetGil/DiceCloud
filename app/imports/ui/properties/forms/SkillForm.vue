@@ -1,6 +1,6 @@
 <template>
   <div class="skill-form">
-    <v-row dense>
+    <v-row density="compact">
       <v-col
         cols="12"
         md="6"
@@ -54,7 +54,7 @@
 
     <form-sections type="skill">
       <form-section :name="$t('forms.skill.baseValues')">
-        <v-row dense>
+        <v-row density="compact">
           <v-col
             cols="12"
             md="6"
