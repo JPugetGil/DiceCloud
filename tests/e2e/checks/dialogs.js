@@ -4,18 +4,31 @@
  * component loads: without `defineAsyncComponent`, Vue 3 rendered them as the
  * text "[object Promise]". The list is read from DialogComponentIndex.js, so new
  * dialogs are covered. Dialogs open without their usual data here, so console
- * messages are reported but do not fail the check.
+ * messages are reported but do not fail the check; the few that cannot render
+ * at all without their required props get sample data from the test account.
  */
 const fs = require('fs');
 const path = require('path');
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
+const { getTestUser } = require('../lib/db');
+const { USERNAME } = require('../lib/config');
 
 const INDEX = path.join(__dirname, '..', '..', '..', 'app', 'imports', 'ui', 'dialogStack', 'DialogComponentIndex.js');
 
 main(async () => {
   const names = [...fs.readFileSync(INDEX, 'utf8').matchAll(/const (\w+) = defineAsyncComponent\(/g)]
     .map(m => m[1].replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase());
+  const { userId, creatureId } = await getTestUser();
+  const DATA = {
+    'creature-form-dialog': { _id: creatureId },
+    'help-dialog': { path: 'property' },
+    // Only opened: the transfer happens on its confirm button
+    'transfer-ownership-dialog': {
+      docRef: { collection: 'creatures', id: creatureId },
+      user: { _id: userId, username: USERNAME },
+    },
+  };
   const { browser, page, messages } = await openPage();
   const { step, finish } = createChecker(`Dialogs: ${names.length} lazily loaded`);
   for (const name of names) {
@@ -23,7 +36,7 @@ main(async () => {
       // A fresh page each time: a dialog opened without its data can jam the stack
       await visit(page, '/character-list', 3000);
       messages.length = 0;
-      await pushDialog(page, name);
+      await pushDialog(page, name, DATA[name]);
       await page.waitForTimeout(2500);
       const r = await page.evaluate(() => {
         const dialogs = document.querySelectorAll('.dialog-stack .dialog-component');

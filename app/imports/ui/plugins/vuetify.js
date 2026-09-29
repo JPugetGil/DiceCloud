@@ -1,12 +1,14 @@
 import { h } from 'vue';
 import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives';
+import * as components from '/imports/ui/plugins/vuetifyComponents';
+import { Ripple } from 'vuetify/directives';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 import { useI18n } from 'vue-i18n';
 import i18n from '/imports/ui/i18n';
 import 'vuetify/styles';
+// VApp renders with the v-layout classes, whose styles only VLayout imports
+import 'vuetify/lib/components/VLayout/VLayout.css';
 import SVG_ICONS from '/imports/constants/SVG_ICONS';
 import SvgIconByName from '/imports/ui/icons/SvgIconByName.vue';
 import themes from '/imports/ui/plugins/themes';
@@ -20,7 +22,8 @@ for (const name in SVG_ICONS) {
 
 const vuetify = createVuetify({
   components,
-  directives,
+  // The only directive templates use; components import their own
+  directives: { Ripple },
   // Built-in texts follow the app's language
   locale: {
     adapter: createVueI18nAdapter({ i18n, useI18n }),

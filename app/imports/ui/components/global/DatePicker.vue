@@ -28,7 +28,8 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { format } from 'date-fns';
+// date-fns 1 has no ES modules: importing from its index bundles every function
+import format from 'date-fns/format';
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({

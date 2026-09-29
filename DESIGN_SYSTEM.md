@@ -137,6 +137,10 @@ Vuetify rule, utilities included, whatever the specificity:
    (`app/imports/ui/stylesheets`): thin scrollbars and their reserved gutter,
    the dialog stack's scroll lock, large numeric inputs and a few markdown
    rules. Scrollbar colours come from the theme: Vuetify sets `color-scheme`.
+7. **Register a Vuetify component before using it.** Only the components
+   listed in `app/imports/ui/plugins/vuetifyComponents.js` are in the bundle,
+   with their styles; a missing one renders as an unknown `<v-...>` element and
+   Vue warns "Failed to resolve component".
 
 Typography uses Material 3's type scale (`text-display-*`, `text-headline-*`,
 `text-title-*`, `text-body-*`, `text-label-*`), and buttons keep the case their

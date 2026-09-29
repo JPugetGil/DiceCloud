@@ -89,7 +89,8 @@
 <script setup lang="js">
 import { ref } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
-import { format } from 'date-fns';
+// date-fns 1 has no ES modules: importing from its index bundles every function
+import format from 'date-fns/format';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import Experiences, { removeExperience as removeExperienceMethod, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';

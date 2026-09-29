@@ -1,26 +1,34 @@
 import { defineAsyncComponent } from 'vue';
-// Load commonly used dialogs immediately
-import ActionDialog from '/imports/ui/creature/actions/ActionDialog.vue';
-import CharacterCreationDialog from '/imports/ui/creature/character/CharacterCreationDialog.vue';
-import CreatureFormDialog from '/imports/ui/creature/CreatureFormDialog.vue';
-import CreaturePropertyDialog from '/imports/ui/creature/creatureProperties/CreaturePropertyDialog.vue';
-import CreaturePropertyFromLibraryDialog from '/imports/ui/creature/creatureProperties/CreaturePropertyFromLibraryDialog.vue';
-import CreatureRootDialog from '/imports/ui/creature/character/CreatureRootDialog.vue';
-import DeleteConfirmationDialog from '/imports/ui/dialogStack/DeleteConfirmationDialog.vue';
-import ExperienceInsertDialog from '/imports/ui/creature/experiences/ExperienceInsertDialog.vue';
-import ExperienceListDialog from '/imports/ui/creature/experiences/ExperienceListDialog.vue';
-import HelpDialog from '/imports/ui/dialogStack/HelpDialog.vue';
-import ImagePreviewDialog from '/imports/ui/files/userImages/ImagePreviewDialog.vue';
-import InsertPropertyDialog from '/imports/ui/properties/InsertPropertyDialog.vue';
-import LevelUpDialog from '/imports/ui/creature/slots/LevelUpDialog.vue';
-import LibraryBrowserDialog from '/imports/ui/library/LibraryBrowserDialog.vue';
-import SelectLibraryNodeDialog from '/imports/ui/library/SelectLibraryNodeDialog.vue';
-import SlotFillDialog from '/imports/ui/creature/slots/SlotFillDialog.vue';
-import TransferOwnershipDialog from '/imports/ui/sharing/TransferOwnershipDialog.vue';
 
-// Lazily load less common dialogs. They need defineAsyncComponent: a bare
+// Every dialog loads on demand. They need defineAsyncComponent: a bare
 // `() => import()` is taken for a functional component, and the dialog would
 // render as the text "[object Promise]".
+//
+// The commonly used ones share one chunk, which the browser prefetches once the
+// app has started, so they still open at once. Imported statically, they put
+// the property forms and the computation engine in the bundle every page waits
+// for.
+const commonDialogs = () => import(/* webpackPrefetch: true */ '/imports/ui/dialogStack/commonDialogs');
+
+const ActionDialog = defineAsyncComponent(() => commonDialogs().then(m => m.ActionDialog));
+const CharacterCreationDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CharacterCreationDialog));
+const CreatureFormDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreatureFormDialog));
+const CreaturePropertyDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreaturePropertyDialog));
+const CreaturePropertyFromLibraryDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreaturePropertyFromLibraryDialog));
+const CreatureRootDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreatureRootDialog));
+const DeleteConfirmationDialog = defineAsyncComponent(() => commonDialogs().then(m => m.DeleteConfirmationDialog));
+const ExperienceInsertDialog = defineAsyncComponent(() => commonDialogs().then(m => m.ExperienceInsertDialog));
+const ExperienceListDialog = defineAsyncComponent(() => commonDialogs().then(m => m.ExperienceListDialog));
+const HelpDialog = defineAsyncComponent(() => commonDialogs().then(m => m.HelpDialog));
+const ImagePreviewDialog = defineAsyncComponent(() => commonDialogs().then(m => m.ImagePreviewDialog));
+const InsertPropertyDialog = defineAsyncComponent(() => commonDialogs().then(m => m.InsertPropertyDialog));
+const LevelUpDialog = defineAsyncComponent(() => commonDialogs().then(m => m.LevelUpDialog));
+const LibraryBrowserDialog = defineAsyncComponent(() => commonDialogs().then(m => m.LibraryBrowserDialog));
+const SelectLibraryNodeDialog = defineAsyncComponent(() => commonDialogs().then(m => m.SelectLibraryNodeDialog));
+const SlotFillDialog = defineAsyncComponent(() => commonDialogs().then(m => m.SlotFillDialog));
+const TransferOwnershipDialog = defineAsyncComponent(() => commonDialogs().then(m => m.TransferOwnershipDialog));
+
+// Less common dialogs
 const ArchiveDialog = defineAsyncComponent(() => import('/imports/ui/creature/archive/ArchiveDialog.vue'));
 const CastSpellWithSlotDialog = defineAsyncComponent(() => import('/imports/ui/properties/components/spells/CastSpellWithSlotDialog.vue'));
 const CharacterImportDialog = defineAsyncComponent(() => import('/imports/ui/creature/character/CharacterImportDialog.vue'));

@@ -1,7 +1,23 @@
 const { defineConfig } = require('@meteorjs/rspack');
 const { VueLoaderPlugin } = require('vue-loader');
-const { DefinePlugin } = require('@rspack/core');
+const {
+  DefinePlugin,
+  LightningCssMinimizerRspackPlugin,
+  SwcJsMinimizerRspackPlugin,
+} = require('@rspack/core');
 const path = require('node:path');
+
+// The oldest browsers Vuetify 4 renders in: its styles need CSS cascade layers
+// and color-mix(). Without targets the CSS minifier assumed ES6-era browsers
+// and rewrote every logical property into per-direction copies with long
+// :lang() lists, which tripled the stylesheet.
+const BROWSER_TARGETS = [
+  'chrome >= 111',
+  'edge >= 111',
+  'firefox >= 113',
+  'safari >= 16.2',
+  'ios_saf >= 16.2',
+];
 
 // Resolved through package.json, which the package does export, because the
 // build file itself is not reachable as a subpath.
@@ -22,6 +38,10 @@ module.exports = defineConfig(Meteor => {
     resolve: {
       alias: {
         'ngraph.events$': ngraphEventsCjs,
+        // One Vue in the browser: vuedraggable's build require()s vue, which
+        // resolved to Vue's CommonJS build, a second copy that also carries the
+        // template compiler. Templates are compiled at build time.
+        ...Meteor.isClient && { vue$: 'vue/dist/vue.runtime.esm-bundler.js' },
       },
     },
     ...Meteor.isClient && {
@@ -29,6 +49,23 @@ module.exports = defineConfig(Meteor => {
         client: {
           webSocketURL: 'auto://0.0.0.0:0/ws',
         },
+      },
+      optimization: {
+        minimizer: [
+          new SwcJsMinimizerRspackPlugin(),
+          new LightningCssMinimizerRspackPlugin({
+            minimizerOptions: { targets: BROWSER_TARGETS },
+          }),
+        ],
+      },
+      // Rspack's default budget, 244 KiB per file before compression, is below
+      // the two largest files this app needs: the vendor chunk every page loads
+      // (Vue, Vuetify's components, vue-i18n...), about 800 KiB, and cytoscape
+      // with its klay layout, about 865 KiB, loaded when the dependency graph
+      // dialog opens. The budget sits just above them, so that growth such as
+      // registering all of Vuetify again shows up as a warning.
+      performance: {
+        maxAssetSize: 900 * 1024,
       },
       plugins: [
         new VueLoaderPlugin(),
