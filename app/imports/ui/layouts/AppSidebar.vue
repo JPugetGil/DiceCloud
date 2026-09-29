@@ -111,6 +111,8 @@ const links = computed(() => {
     { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
     { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
     { title: t('nav.about'), icon: 'mdi-sign-text', to: '/about' },
+    { title: t('nav.privacy'), icon: 'mdi-shield-lock-outline', to: '/privacy' },
+    { title: t('nav.terms'), icon: 'mdi-file-document-outline', to: '/terms' },
     { title: t('nav.github'), icon: 'mdi-github', href: 'https://github.com/JPugetGil/DiceCloud' },
   ];
   return links.filter(link =>

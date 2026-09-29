@@ -62,6 +62,29 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
       multi: true,
     });
 
+    // Delete the user's library collections, character folders, uploaded
+    // images and character archives (from S3 too). Server only: the client's
+    // simulation cannot remove files. Imported here, not at the top: Users.js
+    // loads this module, and UserImages loading that early is an import cycle
+    // (UserImages -> updateFileStorageUsed -> UserImages) that crashes startup.
+    if (Meteor.isServer) {
+      const [
+        { default: LibraryCollections },
+        { default: CreatureFolders },
+        { default: UserImages },
+        { default: ArchiveCreatureFiles },
+      ] = await Promise.all([
+        import('/imports/api/library/LibraryCollections'),
+        import('/imports/api/creature/creatureFolders/CreatureFolders'),
+        import('/imports/api/files/userImages/UserImages'),
+        import('/imports/api/creature/archive/ArchiveCreatureFiles'),
+      ]);
+      await LibraryCollections.removeAsync({ owner: userId });
+      await CreatureFolders.removeAsync({ owner: userId });
+      await UserImages.removeAsync({ userId });
+      await ArchiveCreatureFiles.removeAsync({ userId });
+    }
+
     // delete the account
     await Meteor.users.removeAsync(userId);
   }

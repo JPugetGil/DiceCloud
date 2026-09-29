@@ -21,7 +21,9 @@
     "emailVerificationSuccess": "Adresse e-mail vérifiée",
     "resetPassword": "Réinitialiser le mot de passe",
     "docNotFound": "Document introuvable",
-    "docs": "Documentation DiceCloud"
+    "docs": "Documentation DiceCloud",
+    "privacy": "Règles de confidentialité",
+    "terms": "Conditions d'utilisation"
   },
   "nav": {
     "signIn": "Se connecter",
@@ -34,7 +36,9 @@
     "documentation": "Documentation",
     "discord": "Discord",
     "about": "À propos",
-    "github": "GitHub"
+    "github": "GitHub",
+    "privacy": "Règles de confidentialité",
+    "terms": "Conditions d'utilisation"
   },
   "roles": {
     "player": "Joueur",
@@ -73,6 +77,11 @@
     "heroes": "Les « Héros » d'Asaea",
     "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
     "supporters": "Soutiens"
+  },
+  "legal": {
+    "termsLink": "conditions d'utilisation",
+    "privacyLink": "règles de confidentialité",
+    "notConfigured": "L'éditeur de cette instance et l'adresse de contact manquent : renseignez public.legal.operator et public.legal.contactEmail dans les paramètres."
   },
   "admin": {
     "currentDbVersion": "Version actuelle de la base de données : {version}",
@@ -225,7 +234,8 @@
     "emailInvalid": "L'adresse e-mail n'est pas valide",
     "passwordRequired": "Le mot de passe est obligatoire",
     "passwordsDontMatch": "Les mots de passe ne correspondent pas",
-    "resetLinkSent": "Lien de réinitialisation envoyé à {email}"
+    "resetLinkSent": "Lien de réinitialisation envoyé à {email}",
+    "acceptTerms": "En créant un compte, vous acceptez les {terms} et les {privacy}."
   },
   "common": {
     "cancel": "Annuler",

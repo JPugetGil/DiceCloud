@@ -161,6 +161,24 @@
           </v-icon>
         </v-btn>
       </div>
+      <p
+        class="text-body-medium my-0"
+        data-id="legal-links"
+      >
+        <router-link
+          to="/privacy"
+          class="text-white"
+        >
+          {{ $t('nav.privacy') }}
+        </router-link>
+        ·
+        <router-link
+          to="/terms"
+          class="text-white"
+        >
+          {{ $t('nav.terms') }}
+        </router-link>
+      </p>
     </section>
   </div>
 </template>

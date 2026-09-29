@@ -82,6 +82,7 @@ NPM_CONFIG_PRODUCTION=true
 PROJECT_DIR=app
 ROOT_URL=https://<url of your DiceCloud instance>
 DEFAULT_LIBRARIES=<comma separated list of library ids that will be subscribed by default: "abc123,def456">
+DEFAULT_LIBRARY_COLLECTIONS=<comma separated list of library collection ids that new users are subscribed to>
 ```
 
 Run `meteor run --settings exampleMeteorSettings.json` to start the app with the example settings.
@@ -192,7 +193,10 @@ server. Until then, accounts use a username or email and a password.
    `ROOT_URL` followed by `/_oauth/google` as an **authorized redirect URI**. For a
    local instance, that is `http://localhost:3000` and
    `http://localhost:3000/_oauth/google`. Each environment (local, staging,
-   production) needs its own pair.
+   production) needs its own pair. Google's `redirect_uri_mismatch` error means
+   the URI it received is not in that list: it must match `ROOT_URL` exactly,
+   scheme (`https`), `www.` and all. Google's error page shows the URI it
+   received under "error details".
 3. Put the client ID and secret in the settings the server starts with. Meteor's
    `service-configuration` package reads them at startup:
 
@@ -221,3 +225,50 @@ server. Until then, accounts use a username or email and a password.
 Removing the configuration from the settings later does not switch Google off:
 Meteor keeps it in the `meteor_accounts_loginServiceConfiguration` collection.
 Delete the document whose `service` is `google` from that collection as well.
+
+File storage (AWS S3)
+---------------------
+
+Uploaded images and character archives go to an S3 bucket when the settings
+hold its credentials; otherwise they stay on the server's disk, which a
+container platform such as Galaxy wipes on every deploy. The bucket is private:
+the app reads the files itself and serves them to the browser.
+
+```json
+{
+  "s3": {
+    "key": "<access key id>",
+    "secret": "<secret access key>",
+    "bucket": "<bucket name>",
+    "region": "eu-west-3"
+  }
+}
+```
+
+`region` defaults to `eu-west-3` (Paris). `endpoint` is only needed for an
+S3-compatible service other than AWS. The access key needs `s3:PutObject`,
+`s3:GetObject` and `s3:DeleteObject` on `arn:aws:s3:::<bucket name>/files/*`,
+and nothing else.
+
+Privacy policy and terms of use
+-------------------------------
+
+`/privacy` and `/terms` show the privacy policy and the terms of use, in
+English and French (`app/imports/ui/legal/`). They name whoever runs the
+instance and how to reach them, from the public settings; until both are set,
+the pages show a warning.
+
+```json
+{
+  "public": {
+    "legal": {
+      "operator": "<your name or organisation>",
+      "contactEmail": "<contact address>"
+    }
+  }
+}
+```
+
+The texts describe this code base and its hosting (Galaxy, MongoDB Atlas, AWS
+S3 in Paris, Google sign-in). Review them, and update `LAST_UPDATED` in both
+files, whenever that changes.

@@ -84,6 +84,25 @@
         </v-btn>
       </div>
     </template>
+    <!-- Applies to both ways of registering -->
+    <i18n-t
+      keypath="auth.acceptTerms"
+      scope="global"
+      tag="p"
+      class="text-body-small text-medium-emphasis text-center ma-4"
+      data-id="accept-terms"
+    >
+      <template #terms>
+        <router-link to="/terms">
+          {{ $t('legal.termsLink') }}
+        </router-link>
+      </template>
+      <template #privacy>
+        <router-link to="/privacy">
+          {{ $t('legal.privacyLink') }}
+        </router-link>
+      </template>
+    </i18n-t>
   </div>
 </template>
 

@@ -57,6 +57,15 @@ module.exports = defineConfig(Meteor => {
             minimizerOptions: { targets: BROWSER_TARGETS },
           }),
         ],
+        // Rspack's production values, in development too. With the smaller
+        // development chunks, the property forms and viewers that dialogs and
+        // pages share were split into a chunk whose stylesheets Rspack could
+        // not order ("Conflicting order" warnings on every start).
+        splitChunks: {
+          minSize: 20000,
+          maxAsyncRequests: 30,
+          maxInitialRequests: 30,
+        },
       },
       // Rspack's default budget, 244 KiB per file before compression, is below
       // the two largest files this app needs: the vendor chunk every page loads

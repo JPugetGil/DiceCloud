@@ -33,6 +33,7 @@ const nativeScrollBehavior = (to, from, savedPosition) => {
 // Components
 const HomePage = () => import('/imports/ui/pages/HomePage.vue');
 const AboutPage = () => import('/imports/ui/pages/AboutPage.vue');
+const LegalPage = () => import('/imports/ui/pages/LegalPage.vue');
 const CharacterListPage = () => import('/imports/ui/pages/CharacterListPage.vue');
 const CharacterListToolbarItems = () => import('/imports/ui/creature/creatureList/CharacterListToolbarItems.vue');
 const LibraryPage = () => import('/imports/ui/pages/LibraryPage.vue');
@@ -261,6 +262,28 @@ const routes = [{
     },
     meta: {
       title: 'pageTitle.about',
+    },
+  }, {
+    path: '/privacy',
+    components: {
+      default: LegalPage,
+    },
+    props: {
+      default: { document: 'privacy' },
+    },
+    meta: {
+      title: 'pageTitle.privacy',
+    },
+  }, {
+    path: '/terms',
+    components: {
+      default: LegalPage,
+    },
+    props: {
+      default: { document: 'terms' },
+    },
+    meta: {
+      title: 'pageTitle.terms',
     },
   }, {
     path: '/verify-email/:token',

@@ -10,9 +10,9 @@ const { withDb, getTestUser } = require('../lib/db');
 const { createChecker, main } = require('../lib/check');
 
 const SIGNED_IN = ['/', '/character-list', '/library', '/community-libraries', '/account', '/my-files',
-  '/docs', '/docs/property', '/about'];
+  '/docs', '/docs/property', '/about', '/privacy', '/terms'];
 const SIGNED_OUT = ['/', '/sign-in', '/register', '/reset-password', '/docs', '/docs/api/login', '/about',
-  '/community-libraries'];
+  '/community-libraries', '/privacy', '/terms'];
 
 async function checkRoutes(label, routes, signedIn) {
   const { browser, page, messages } = await openPage({ signedIn });

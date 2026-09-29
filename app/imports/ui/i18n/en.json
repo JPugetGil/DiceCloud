@@ -21,7 +21,9 @@
     "emailVerificationSuccess": "Email Verification Success",
     "resetPassword": "Reset Password",
     "docNotFound": "Doc not found",
-    "docs": "DiceCloud Docs"
+    "docs": "DiceCloud Docs",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
   },
   "nav": {
     "signIn": "Sign in",
@@ -34,7 +36,9 @@
     "documentation": "Documentation",
     "discord": "Discord",
     "about": "About",
-    "github": "Github"
+    "github": "Github",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
   },
   "roles": {
     "player": "Player",
@@ -73,6 +77,11 @@
     "heroes": "The \"Heroes\" of Asaea",
     "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
     "supporters": "Supporters"
+  },
+  "legal": {
+    "termsLink": "terms of use",
+    "privacyLink": "privacy policy",
+    "notConfigured": "Who runs this instance and how to reach them are missing: set public.legal.operator and public.legal.contactEmail in the settings."
   },
   "admin": {
     "currentDbVersion": "Current database version: {version}",
@@ -225,7 +234,8 @@
     "emailInvalid": "E-mail must be valid",
     "passwordRequired": "Password is required",
     "passwordsDontMatch": "Passwords don't match",
-    "resetLinkSent": "Password reset link sent to {email}"
+    "resetLinkSent": "Password reset link sent to {email}",
+    "acceptTerms": "By creating an account, you accept the {terms} and the {privacy}."
   },
   "common": {
     "cancel": "Cancel",
