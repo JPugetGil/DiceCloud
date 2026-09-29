@@ -16,10 +16,7 @@ await import('./publicationRateLimit');
 // REST routes, publications, cron jobs and methods
 await import('./register-api');
 
-// Database migrations, then the check that compares the database's version
-// with the app's
-await import('/imports/migrations/server/index');
+// Admin diagnostics
 await import('/imports/migrations/methods/index');
-await import('./maintenanceModeCheck');
 
 await import('./publicationStrategies');

@@ -27,7 +27,6 @@ static-html@1.5.0
 aldeed:collection2@4.2.2
 aldeed:schema-index@4.0.0
 bozhao:link-accounts@3.1.0
-percolate:migrations
 ostrio:files
 zodern:types
 typescript@5.11.1

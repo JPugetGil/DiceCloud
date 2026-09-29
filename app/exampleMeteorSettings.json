@@ -1,6 +1,30 @@
 {
   "public": {
     "environment": "production",
-    "disallowCreatureApiImport": false
+    "disallowCreatureApiImport": false,
+    "legal": {
+      "operator": "<name or organization>",
+      "contactEmail": "<contact email>"
+    }
+  },
+  "s3": {
+    "key": "<AWS access key>",
+    "secret": "<AWS secret key>",
+    "bucket": "<AWS bucket name>",
+    "region": "<AWS region>"
+  },
+  "galaxy.meteor.com": {
+    "env": {
+      "MONGO_URL": "<MongoDB connection URL>"
+    }
+  },
+  "packages": {
+    "service-configuration": {
+      "google": {
+        "loginStyle": "popup",
+        "clientId": "<Google client ID>",
+        "secret": "<Google client secret>"
+      }
+    }
   }
 }

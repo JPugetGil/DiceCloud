@@ -106,7 +106,7 @@ the entry points only import the startup code, and everything else lives in
 | `app/imports/startup/` | Startup, run in order: `both/` loads collection2 and the schema options, then `client/` or `server/` (package configuration, then `register-api.js`) |
 | `app/imports/api/<domain>/` | Each domain's collections, schemas and methods (creatures, library, users...), with its server-only code (publications, REST routes, cron jobs) in a `server/` folder |
 | `app/imports/ui/` | The Vue app: `main.js` creates it, `App.vue` is its root and `router.js` its routes; `pages/` holds one component per route, next to `layouts/`, `components/` and a folder per feature; `plugins/` (Vuetify and its themes), `stores/` (Pinia), `composables/` (shared `use...` functions), `i18n/` and `stylesheets/` |
-| `app/imports/parser/`, `app/imports/constants/`, `app/imports/migrations/` | The calculation parser, shared constants, database migrations |
+| `app/imports/parser/`, `app/imports/constants/`, `app/imports/migrations/` | The calculation parser, shared constants, and the migrations that bring older character archives and imported creatures up to the current schema |
 | `app/public/`, `app/private/` | Files served as they are; files only the server reads (the default docs) |
 
 Conventions:

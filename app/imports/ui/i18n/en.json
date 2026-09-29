@@ -84,12 +84,6 @@
     "notConfigured": "Who runs this instance and how to reach them are missing: set public.legal.operator and public.legal.contactEmail in the settings."
   },
   "admin": {
-    "currentDbVersion": "Current database version: {version}",
-    "upToDate": "Database is up to date with latest version. Restart to enable navigation.",
-    "expectedDbVersion": "Expected database version: {version}",
-    "gitVersion": "Git version: {version}",
-    "backupWarning": "Back up the database before attempting any migration. A failed migration can result in profound data loss.",
-    "migrate": "Migrate to database version {version}",
     "userRoles": "User roles",
     "userRolesHint": "Players can own up to {playerCharacters} characters and store {playerStorage} of files. Active players can own up to {activePlayerCharacters} characters and store {activePlayerStorage} of files. Admins own any number of characters, store {adminStorage} of files, and are the only ones who can create libraries and change user roles. Everyone can subscribe to libraries.",
     "searchUsers": "Search by username, email or user ID",

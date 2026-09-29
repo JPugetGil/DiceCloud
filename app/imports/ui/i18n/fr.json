@@ -84,12 +84,6 @@
     "notConfigured": "L'éditeur de cette instance et l'adresse de contact manquent : renseignez public.legal.operator et public.legal.contactEmail dans les paramètres."
   },
   "admin": {
-    "currentDbVersion": "Version actuelle de la base de données : {version}",
-    "upToDate": "La base de données est à jour. Redémarrez pour réactiver la navigation.",
-    "expectedDbVersion": "Version de base de données attendue : {version}",
-    "gitVersion": "Version Git : {version}",
-    "backupWarning": "Sauvegardez la base de données avant toute migration. Une migration ratée peut entraîner d'importantes pertes de données.",
-    "migrate": "Migrer vers la version {version} de la base de données",
     "userRoles": "Rôles des utilisateurs",
     "userRolesHint": "Les joueurs peuvent posséder jusqu'à {playerCharacters} personnages et stocker {playerStorage} de fichiers. Les joueurs actifs peuvent posséder jusqu'à {activePlayerCharacters} personnages et stocker {activePlayerStorage} de fichiers. Les administrateurs possèdent autant de personnages qu'ils le souhaitent, stockent {adminStorage} de fichiers, et sont les seuls à pouvoir créer des bibliothèques et changer les rôles des utilisateurs. Tout le monde peut s'abonner aux bibliothèques.",
     "searchUsers": "Rechercher par nom d'utilisateur, e-mail ou identifiant",
