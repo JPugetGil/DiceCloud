@@ -32,18 +32,21 @@ export type RolePermissions = {
 
 export const ROLE_PERMISSIONS: Readonly<Record<Role, Readonly<RolePermissions>>> = {
   player: {
-    characterLimit: 3,
+    characterLimit: 2,
     canCreateLibraries: false,
     fileStorageLimit: 25 * MB,
     canManageRoles: false,
   },
   activePlayer: {
-    characterLimit: Infinity,
-    canCreateLibraries: true,
+    characterLimit: 10,
+    canCreateLibraries: false,
     fileStorageLimit: 100 * MB,
     canManageRoles: false,
   },
-  // Admins have the active player's permissions, and can manage roles
+  // Admins alone create libraries and manage roles, and own any number of
+  // characters. The other roles' limits keep the database within a small
+  // hosting plan's storage: an imported library can take tens of MB, a
+  // high-level character up to 2 MB.
   admin: {
     characterLimit: Infinity,
     canCreateLibraries: true,
@@ -91,15 +94,15 @@ export function getCharacterLimitError(
 ): string | undefined {
   const { characterLimit } = getUserPermissions(user);
   if (ownedCharacterCount < characterLimit) return;
-  return `You can own up to ${characterLimit} characters. Archive or delete one,` +
-    ' or ask an admin to make you an active player.';
+  const message = `You can own up to ${characterLimit} characters. Archive or delete one`;
+  if (getUserRole(user) !== ROLES.player) return `${message}.`;
+  return `${message}, or ask an admin to make you an active player.`;
 }
 
 /** Why the user can't create a library or library collection, undefined if they can */
 export function getLibraryCreationError(user: UserWithRoles): string | undefined {
   if (getUserPermissions(user).canCreateLibraries) return;
-  return 'Players can subscribe to libraries but not create them.' +
-    ' Ask an admin to make you an active player.';
+  return 'Only admins can create libraries. Everyone can subscribe to them.';
 }
 
 /**

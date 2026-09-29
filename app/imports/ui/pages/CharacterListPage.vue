@@ -72,11 +72,12 @@ import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlNa
 import { uniq, flatten } from 'lodash';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import useUserRole from '/imports/ui/composables/useUserRole';
+import { ROLES } from '/imports/api/users/roles';
 import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
 const { t } = useI18n();
-const { permissions } = useUserRole();
+const { role, permissions } = useUserRole();
 
 
 const characterTransform = function (char) {
@@ -135,8 +136,12 @@ const { result: ownedCharacterCount } = autorun(() => {
 
 function checkCharacterLimit() {
   if (ownedCharacterCount.value < characterLimit.value) return true;
+  // An active player is not offered the role they already have
+  const message = role.value === ROLES.activePlayer
+    ? 'characterList.limitReachedActivePlayer'
+    : 'characterList.limitReached';
   snackbar({
-    text: t('characterList.limitReached', { limit: characterLimit.value }),
+    text: t(message, { limit: characterLimit.value }),
   });
   return false;
 }

@@ -1,4 +1,5 @@
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
@@ -42,8 +43,24 @@ export async function archiveCreature(creatureId) {
   // server skips the collection's onBeforeUpload, so check it here.
   const storageError = await getUserFileStorageError(archive.creature.owner, buffer.length);
   if (storageError) throw new Meteor.Error('Storage limit reached', storageError);
-  return await new Promise((resolve, reject) => {
-    ArchiveCreatureFiles.write(buffer, {
+  // With S3, the character is only removed once its archive is stored there:
+  // onAfterUpload starts the upload and emits 's3Result' when it is done. The
+  // listener goes in before the write, keyed by an id chosen here, so an
+  // early result cannot be missed.
+  const fileId = Random.id();
+  let onS3Result;
+  const s3Upload = Meteor.settings.useS3 && new Promise((resolve, reject) => {
+    onS3Result = (s3Error, resultRef) => {
+      if (resultRef?._id !== fileId) return;
+      if (s3Error) reject(s3Error);
+      else resolve(resultRef);
+    };
+    ArchiveCreatureFiles.on('s3Result', onS3Result);
+  });
+  try {
+    // writeAsync: ostrio:files 3 has no write()
+    const fileRef = await ArchiveCreatureFiles.writeAsync(buffer, {
+      fileId,
       fileName: `${archive.creature.name || archive.creature._id}.json`,
       type: 'application/json',
       userId: archive.creature.owner,
@@ -52,27 +69,13 @@ export async function archiveCreature(creatureId) {
         creatureId: archive.creature._id,
         creatureName: archive.creature.name,
       },
-    }, (error, fileRef) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      if (!Meteor.settings.useS3) {
-        removeCreatureWork(creatureId).then(() => resolve(fileRef), reject);
-        return;
-      }
-      const resultHandler = (s3Error, resultRef) => {
-        if (resultRef._id !== fileRef._id) return;
-        ArchiveCreatureFiles.off('s3Result', resultHandler);
-        if (s3Error) {
-          reject(s3Error);
-          return;
-        }
-        removeCreatureWork(creatureId).then(() => resolve(resultRef), reject);
-      };
-      ArchiveCreatureFiles.on('s3Result', resultHandler);
     }, true);
-  });
+    const archivedRef = s3Upload ? await s3Upload : fileRef;
+    await removeCreatureWork(creatureId);
+    return archivedRef;
+  } finally {
+    if (onS3Result) ArchiveCreatureFiles.off('s3Result', onS3Result);
+  }
 }
 
 const archiveCreatureToFile = new ValidatedMethod({

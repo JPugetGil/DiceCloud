@@ -34,26 +34,27 @@ describe('User roles', function () {
   describe('permissions', function () {
     it('limits players', function () {
       const permissions = getUserPermissions({});
-      assert.equal(permissions.characterLimit, 3);
+      assert.equal(permissions.characterLimit, 2);
       assert.isFalse(permissions.canCreateLibraries);
       assert.equal(permissions.fileStorageLimit, 25_000_000);
       assert.isFalse(permissions.canManageRoles);
     });
 
-    it('lifts the character and library limits for active players', function () {
+    it('raises the character and storage limits for active players', function () {
       const permissions = getUserPermissions({ roles: ['activePlayer'] });
-      assert.equal(permissions.characterLimit, Infinity);
-      assert.isTrue(permissions.canCreateLibraries);
+      assert.equal(permissions.characterLimit, 10);
+      assert.isFalse(permissions.canCreateLibraries);
       assert.equal(permissions.fileStorageLimit, 100_000_000);
       assert.isFalse(permissions.canManageRoles);
     });
 
-    it('gives admins the active player permissions and role management', function () {
-      const { canManageRoles, ...admin } = getUserPermissions({ roles: ['admin'] });
-      const { canManageRoles: activeCanManage, ...active } = ROLE_PERMISSIONS.activePlayer;
-      assert.isTrue(canManageRoles);
-      assert.isFalse(activeCanManage);
-      assert.deepEqual(admin, active);
+    it('lets admins alone create libraries and manage roles, with no character limit', function () {
+      assert.deepEqual(ROLE_PERMISSIONS.admin, {
+        characterLimit: Infinity,
+        canCreateLibraries: true,
+        fileStorageLimit: 100_000_000,
+        canManageRoles: true,
+      });
     });
   });
 
@@ -74,21 +75,27 @@ describe('User roles', function () {
   });
 
   describe('limit errors', function () {
-    it('lets players own up to 3 characters', function () {
+    it('lets players own up to 2 characters', function () {
       assert.isUndefined(getCharacterLimitError({}, 0));
-      assert.isUndefined(getCharacterLimitError({}, 2));
-      assert.isString(getCharacterLimitError({}, 3));
+      assert.isUndefined(getCharacterLimitError({}, 1));
+      assert.include(getCharacterLimitError({}, 2), 'active player');
       assert.isString(getCharacterLimitError({ roles: ['player'] }, 10));
     });
 
-    it('lets active players and admins own any number of characters', function () {
-      assert.isUndefined(getCharacterLimitError({ roles: ['activePlayer'] }, 1000));
+    it('lets active players own up to 10 characters', function () {
+      const activePlayer = { roles: ['activePlayer'] };
+      assert.isUndefined(getCharacterLimitError(activePlayer, 9));
+      // Already an active player: the message does not suggest becoming one
+      assert.notInclude(getCharacterLimitError(activePlayer, 10), 'active player');
+    });
+
+    it('lets admins own any number of characters', function () {
       assert.isUndefined(getCharacterLimitError({ roles: ['admin'] }, 1000));
     });
 
-    it('only lets active players and admins create libraries', function () {
+    it('only lets admins create libraries', function () {
       assert.isString(getLibraryCreationError({}));
-      assert.isUndefined(getLibraryCreationError({ roles: ['activePlayer'] }));
+      assert.isString(getLibraryCreationError({ roles: ['activePlayer'] }));
       assert.isUndefined(getLibraryCreationError({ roles: ['admin'] }));
     });
 
@@ -152,29 +159,34 @@ describe('Role permission assertions', function () {
     assert.exists(error, message);
   }
 
-  it('stops a player at 3 owned characters', async function () {
-    await addCharacters(playerId, 2);
+  it('stops a player at 2 owned characters', async function () {
+    await addCharacters(playerId, 1);
     await assertCanCreateCharacter(playerId);
     await addCharacters(playerId, 1);
-    await assertRejects(assertCanCreateCharacter(playerId), 'a fourth character is refused');
+    await assertRejects(assertCanCreateCharacter(playerId), 'a third character is refused');
   });
 
   it('only counts the characters the player owns', async function () {
-    await addCharacters(playerId, 2);
+    await addCharacters(playerId, 1);
     await addCharacters(activePlayerId, 5);
     await assertCanCreateCharacter(playerId);
   });
 
-  it('lets active players and admins create more characters', async function () {
-    await addCharacters(activePlayerId, 5);
-    await addCharacters(adminId, 5);
+  it('stops an active player at 10 owned characters', async function () {
+    await addCharacters(activePlayerId, 9);
     await assertCanCreateCharacter(activePlayerId);
+    await addCharacters(activePlayerId, 1);
+    await assertRejects(assertCanCreateCharacter(activePlayerId), 'an eleventh character is refused');
+  });
+
+  it('lets admins create any number of characters', async function () {
+    await addCharacters(adminId, 20);
     await assertCanCreateCharacter(adminId);
   });
 
-  it('only lets active players and admins create libraries', async function () {
+  it('only lets admins create libraries', async function () {
     await assertRejects(assertCanCreateLibrary(playerId), 'players can\'t create libraries');
-    await assertCanCreateLibrary(activePlayerId);
+    await assertRejects(assertCanCreateLibrary(activePlayerId), 'active players can\'t create libraries');
     await assertCanCreateLibrary(adminId);
   });
 

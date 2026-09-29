@@ -8,7 +8,9 @@
         {{ $t('admin.userRolesHint', {
           playerCharacters: ROLE_PERMISSIONS.player.characterLimit,
           playerStorage: prettyBytes(ROLE_PERMISSIONS.player.fileStorageLimit),
+          activePlayerCharacters: ROLE_PERMISSIONS.activePlayer.characterLimit,
           activePlayerStorage: prettyBytes(ROLE_PERMISSIONS.activePlayer.fileStorageLimit),
+          adminStorage: prettyBytes(ROLE_PERMISSIONS.admin.fileStorageLimit),
         }) }}
       </p>
       <v-text-field

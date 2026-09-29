@@ -64,7 +64,7 @@
     "cantCreateLibraries": "Can subscribe to libraries, but not create them",
     "fileStorage": "{used} of {limit} file storage used",
     "canManageRoles": "Can change user roles",
-    "askAdmin": "Ask an admin to make you an active player to lift these limits."
+    "askAdmin": "Ask an admin to make you an active player for more characters and file storage."
   },
   "about": {
     "intro": "DiceCloud is a single-developer project started in 2014 with the aim of being a character sheet that stayed in sync between the DM and their players, and made it clear where every value in the sheet came from, and how it was calculated.",
@@ -82,7 +82,7 @@
     "backupWarning": "Back up the database before attempting any migration. A failed migration can result in profound data loss.",
     "migrate": "Migrate to database version {version}",
     "userRoles": "User roles",
-    "userRolesHint": "Players can own up to {playerCharacters} characters, subscribe to libraries without creating them, and store {playerStorage} of files. Active players have no character limit, can create libraries, and store {activePlayerStorage} of files. Admins have the permissions of active players, and can change user roles.",
+    "userRolesHint": "Players can own up to {playerCharacters} characters and store {playerStorage} of files. Active players can own up to {activePlayerCharacters} characters and store {activePlayerStorage} of files. Admins own any number of characters, store {adminStorage} of files, and are the only ones who can create libraries and change user roles. Everyone can subscribe to libraries.",
     "searchUsers": "Search by username, email or user ID",
     "user": "User",
     "characters": "Characters",
@@ -101,7 +101,8 @@
     "item": "item",
     "anotherCharacter": "another character",
     "characterCount": "{count} / {limit} characters",
-    "limitReached": "You can own up to {limit} characters. Archive or delete one, or ask an admin to make you an active player."
+    "limitReached": "You can own up to {limit} characters. Archive or delete one, or ask an admin to make you an active player.",
+    "limitReachedActivePlayer": "You can own up to {limit} characters. Archive or delete one."
   },
   "docs": {
     "notFound": "Documentation not found",
@@ -194,7 +195,7 @@
     "selectLibraryProperty": "Select Library Property",
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
-    "playersCantCreate": "Players can subscribe to libraries. Ask an admin to make you an active player to create your own."
+    "playersCantCreate": "Everyone can subscribe to libraries. Only admins can create them."
   },
   "maintenance": {
     "underMaintenance": "DiceCloud is currently under maintenance",

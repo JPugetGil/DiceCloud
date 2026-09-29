@@ -11,14 +11,19 @@ import { S3 } from '@aws-sdk/client-s3';
 import fs from 'fs';
 import { promises as fsp } from 'fs';
 
-/* Example: S3='{"s3":{"key": "xxx", "secret": "xxx", "bucket": "xxx", "endpoint": "xxx""}}' meteor */
+/*
+ * Files go to AWS S3 when the settings hold an access key, its secret and a
+ * bucket, in Paris (eu-west-3) unless `region` names another AWS region.
+ * `endpoint` is only for an S3-compatible service other than AWS.
+ * Example: S3='{"s3":{"key": "xxx", "secret": "xxx", "bucket": "xxx"}}' meteor
+ */
 if (process.env.S3) {
   Meteor.settings.s3 = JSON.parse(process.env.S3).s3;
 }
 
 const s3Conf = Meteor.settings.s3 || {};
 Meteor.settings.useS3 = !!(
-  s3Conf && s3Conf.key && s3Conf.secret && s3Conf.bucket && s3Conf.endpoint
+  s3Conf && s3Conf.key && s3Conf.secret && s3Conf.bucket
 );
 
 const bound = Meteor.bindEnvironment((callback: () => any) => {
@@ -44,8 +49,8 @@ if (Meteor.settings.useS3) {
       accessKeyId: s3Conf.key,
       secretAccessKey: s3Conf.secret,
     },
-    region: 'ENAM',
-    endpoint: s3Conf.endpoint,
+    region: s3Conf.region || 'eu-west-3',
+    ...(s3Conf.endpoint && { endpoint: s3Conf.endpoint, forcePathStyle: true }),
     tls: true,
     maxAttempts: 10,
   });
@@ -109,18 +114,18 @@ if (Meteor.settings.useS3) {
                 }
               };
 
-              await filesCollection.collection.updateAsync({
-                _id: fileRef._id
-              }, upd, undefined, async (updError: any) => {
-                if (updError) {
-                  this.emit('s3Result', updError, fileRef);
-                  console.error(updError);
-                } else {
-                  // Unlink original files from FS after successful upload to AWS:S3
-                  filesCollection.unlink(await filesCollection.findOneAsync(fileRef._id), version);
-                  this.emit('s3Result', undefined, fileRef)
-                }
-              });
+              // Awaited: Meteor 3's updateAsync ignores a callback, which
+              // left every uploaded file on the server's disk and never
+              // announced the result (archiving waited for it forever)
+              try {
+                await filesCollection.collection.updateAsync({ _id: fileRef._id }, upd);
+              } catch (updError) {
+                this.emit('s3Result', updError, fileRef);
+                return console.error(updError);
+              }
+              // Unlink original files from FS after successful upload to AWS:S3
+              filesCollection.unlink(await filesCollection.findOneAsync(fileRef._id), version);
+              this.emit('s3Result', undefined, fileRef);
             });
           });
         });
@@ -165,22 +170,23 @@ if (Meteor.settings.useS3) {
             http.request.headers.range = `bytes=${start}-${end}`;
           }
 
-          const fileColl = this;
-          s3.getObject(opts, function (error) {
-            if (error) {
-              console.error('Error getting s3 object', opts, error);
-              if (!http.response.finished) {
-                http.response.end();
-              }
-            } else {
-              if (http.request.headers.range && this.httpResponse.headers['content-range']) {
-                // Set proper range header in according to what is returned from AWS:S3
-                http.request.headers.range = this.httpResponse.headers['content-range'].split('/')[0].replace('bytes ', 'bytes=');
-              }
-
-              const dataStream = new stream.PassThrough();
-              fileColl.serve(http, fileRef, fileRef.versions[version], version, dataStream);
-              dataStream.end(this.data.Body);
+          // The promise form: the callback form came from AWS SDK v2, whose
+          // response was `this` in the callback. Under v3 `this` is
+          // undefined, the SDK swallowed the resulting error, and every
+          // download hung.
+          s3.getObject(opts).then(({ Body, ContentRange }) => {
+            if (http.request.headers.range && ContentRange) {
+              // Set proper range header in according to what is returned from AWS:S3
+              http.request.headers.range = ContentRange.split('/')[0].replace('bytes ', 'bytes=');
+            }
+            const body = Body as stream.Readable;
+            // Release S3's connection when the browser leaves before the end
+            http.response.on('close', () => body.destroy());
+            this.serve(http, fileRef, fileRef.versions[version], version, body);
+          }).catch((error) => {
+            console.error('Error getting s3 object', opts, error);
+            if (!http.response.finished) {
+              http.response.end();
             }
           });
 

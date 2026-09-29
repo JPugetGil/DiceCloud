@@ -6,6 +6,7 @@
 .DS_Store
 fileStorage
 settings.json
+settings.production.json
 nohup.out
 node_modules
 dump
