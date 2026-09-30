@@ -60,43 +60,44 @@
     />
     <v-bottom-navigation
       v-if="!embedded && xs && creature && creature.settings"
-      shift
+      mode="shift"
+      grow
       mandatory
       class="bottom-nav-btns"
       :model-value="appStore.tabById(creatureId)"
       @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
     >
       <v-btn>
-        <span>{{ $t('tabs.stats') }}</span>
         <v-icon>mdi-chart-box</v-icon>
+        <span>{{ $t('tabs.stats') }}</span>
       </v-btn>
       <v-btn>
-        <span>{{ $t('tabs.actions') }}</span>
         <v-icon>mdi-lightning-bolt</v-icon>
+        <span>{{ $t('tabs.actions') }}</span>
       </v-btn>
       <v-btn v-if="!creature.settings.hideSpellsTab">
-        <span>{{ $t('tabs.spells') }}</span>
         <v-icon>mdi-fire</v-icon>
+        <span>{{ $t('tabs.spells') }}</span>
       </v-btn>
       <v-btn>
-        <span>{{ $t('tabs.inventory') }}</span>
         <v-icon>mdi-cube</v-icon>
+        <span>{{ $t('tabs.inventory') }}</span>
       </v-btn>
       <v-btn>
-        <span>{{ $t('tabs.features') }}</span>
         <v-icon>mdi-text</v-icon>
+        <span>{{ $t('tabs.features') }}</span>
       </v-btn>
       <v-btn>
-        <span>{{ $t('tabs.journal') }}</span>
         <v-icon>mdi-book-open-variant</v-icon>
+        <span>{{ $t('tabs.journal') }}</span>
       </v-btn>
       <v-btn>
-        <span>{{ $t('tabs.build') }}</span>
         <v-icon>mdi-wrench</v-icon>
+        <span>{{ $t('tabs.build') }}</span>
       </v-btn>
       <v-btn v-if="creature.settings.showTreeTab">
-        <span>{{ $t('tabs.tree') }}</span>
         <v-icon>mdi-file-tree</v-icon>
+        <span>{{ $t('tabs.tree') }}</span>
       </v-btn>
     </v-bottom-navigation>
   </div>
@@ -177,15 +178,21 @@ onMounted(() => {
   });
 
   if (route.name === 'characterSheet') {
+    // The sheet mounts once the subscription is ready, and observe() calls
+    // added for every log already loaded before it returns: skip those, or
+    // the last 20 logs queue up as snackbars on every visit
+    let initializing = true;
     logObserver = CreatureLogs.find({
       creatureId: props.creatureId,
     }).observe({
       added({ content }) {
+        if (initializing) return;
         if (appStore.rightDrawer) return;
         if (dialogStackStore.dialogs.length) return;
         snackbar({ content });
       },
     });
+    initializing = false;
   }
 });
 
@@ -196,11 +203,15 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.bottom-nav-btns > .v-btn {
+/* Vuetify's 80px minimum pushed 7 tabs past a phone's width, clipping both ends */
+.bottom-nav-btns .v-btn {
   min-width: 0;
   padding: 0;
-  flex: 1 1 auto;
-  font-size: 0.6rem;
+  /* The selected tab's label may run into its neighbours, which show none */
+  overflow: visible;
+}
+.bottom-nav-btns .v-btn__content > span {
+  font-size: 0.625rem;
 }
 .character-sheet-bottom-fab {
   z-index: 5;

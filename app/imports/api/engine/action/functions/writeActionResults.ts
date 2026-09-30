@@ -8,9 +8,14 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import computeCreature from '/imports/api/engine/computeCreature';
 import { reloadCachedProperties } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
+import { DDP } from 'meteor/ddp';
 
 export default async function writeActionResults(action: EngineAction) {
   if (!action._id) throw new Meteor.Error('type-error', 'Action does not have an _id');
+  // Take the log's id before any write starts: in the client's simulation, a
+  // write still in flight is the current method invocation, and an id drawn
+  // from it differs from the server's, so the log reached the client twice
+  const logId = DDP.randomStream('/collection/creatureLogs').id();
   const engineActionPromise = EngineActions.removeAsync(action._id);
   const creaturePropUpdates: any[] = [];
   const logContents: any[] = [];
@@ -26,6 +31,7 @@ export default async function writeActionResults(action: EngineAction) {
 
   // Write the log
   const logPromise = CreatureLogs.insertAsync({
+    _id: logId,
     content: logContents,
     creatureId: action.creatureId,
     actionId: action._id,
