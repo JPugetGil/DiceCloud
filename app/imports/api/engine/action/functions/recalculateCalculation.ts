@@ -18,9 +18,11 @@ export default async function recalculateCalculation(
   action: EngineAction,
   parseLevel: ResolveLevel = 'reduce',
   userInput: InputProvider,
+  // Variables to add to the action's scope, like a buff's `~target`
+  extraScope?: Record<string, any>,
 ) {
   if (!calcObj?.parseNode) return;
-  const scope = await getEffectiveActionScope(action);
+  const scope = { ...await getEffectiveActionScope(action), ...extraScope };
   // Re-resolve the parse node before effects and proficiencies
   const {
     result: unaffectedResult,

@@ -10,7 +10,10 @@
           v-for="(content, contentIndex) in contentGroup.content"
           :key="contentIndex"
           class="mx-2 my-1"
-          :class="{'full-width': !content.inline}"
+          :class="{
+            'full-width': !content.inline,
+            'text-medium-emphasis': content.silenced,
+          }"
         >
           <div
             class="content-name text-body"

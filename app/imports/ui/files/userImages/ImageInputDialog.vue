@@ -25,6 +25,7 @@
             <image-upload-input
               class="ma-1"
               style="height: 250px;"
+              :initial-file="droppedFile"
               @uploaded="link => selectUserImage(link)"
             />
             <v-img
@@ -119,6 +120,11 @@ const dialogStackStore = useDialogStackStore();
 const props = defineProps({
   href: {
     type: String,
+    default: undefined,
+  },
+  // A file dropped on the image input, uploaded as the dialog opens
+  droppedFile: {
+    type: File,
     default: undefined,
   },
 });

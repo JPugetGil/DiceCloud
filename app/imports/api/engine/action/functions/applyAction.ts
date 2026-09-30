@@ -3,9 +3,6 @@ import applyTask from '/imports/api/engine/action/tasks/applyTask'
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import saveInputChoices from './userInput/saveInputChoices';
 
-// TODO create a function to get the effective value of a property,
-// simulating all the result updates in the action so far
-
 /**
  * Apply an action
  * This is run once as a simulation on the client awaiting all the various inputs or step through

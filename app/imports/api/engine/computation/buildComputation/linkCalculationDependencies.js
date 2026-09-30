@@ -27,10 +27,17 @@ export default function linkCalculationDependencies(dependencyGraph, prop, { pro
           node.name.slice(1), memo, prop, propsById
         );
         if (!ancestorProp) return;
-        // Link the ancestor prop as a direct dependency
-        // TODO: we might be referencing a calculation sub-field, depend on that instead
+        // Depend on the ancestor's calculation when one is referenced
+        // (`#spellList.dc`), otherwise on the whole ancestor, whose other
+        // fields are computed with it. Depending on the whole ancestor for a
+        // calculation made a loop whenever the ancestor depends on this prop.
+        const field = node.path?.[0];
+        const referencesCalculation = field !== undefined && ancestorProp
+          ._computationDetails?.calculations?.some(calc => calc._key === field);
         dependencyGraph.addLink(
-          calcNodeId, ancestorProp._id, 'ancestorReference'
+          calcNodeId,
+          referencesCalculation ? `${ancestorProp._id}.${field}` : ancestorProp._id,
+          'ancestorReference'
         );
       } else {
         // Link variable name references as variable dependencies

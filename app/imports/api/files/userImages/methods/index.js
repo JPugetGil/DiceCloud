@@ -1,1 +1,2 @@
 import './removeUserImage';
+import './renameUserImage';

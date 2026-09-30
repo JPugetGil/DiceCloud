@@ -118,37 +118,6 @@
         </v-col>
       </template>
     </v-row>
-    <!--
-    <v-row density="compact">
-      <v-col cols="12">
-        <v-list-subheader class="ps-4"> {{ $t('files.images') }} </v-list-subheader>
-      </v-col>
-      <template v-if="userImages && userImages.length">
-        <v-col
-          v-for="file in userImages"
-          :key="file._id"
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-          xl="2"
-        >
-          <user-image-card :model="file" />
-        </v-col>
-      </template>
-      <v-col
-        key="image-upload"
-        cols="12"
-        sm="6"
-        md="4"
-        lg="3"
-        xl="2"
-        class="d-flex flex-1-1 flex-column justify-center"
-      >
-        <image-upload-input />
-      </v-col>
-    </v-row>
-    -->
   </v-container>
 </template>
 
@@ -176,10 +145,6 @@ const fileStorageUsed = autorun(() => Meteor.user()?.fileStorageUsed || 0).resul
 const storagePercent = computed(() => Math.min(
   100, fileStorageUsed.value / permissions.value.fileStorageLimit * 100
 ));
-
-// TODO Mark files that don't have versions.${version}.meta.pipePath set as broken links
-// TODO show user images
-// TODO delete, rename, etc. user images
 
 const archiveFileInput = ref(null);
 

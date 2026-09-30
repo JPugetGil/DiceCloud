@@ -30,7 +30,7 @@ type Doc = {
 } & TreeDoc;
 
 const Docs: Mongo.Collection<Doc> & {
-  getJsonDocs?: () => string
+  getJsonDocs?: () => Promise<string>
 } = new Mongo.Collection<Doc>('docs');
 
 const DocSchema = new SimpleSchema({
@@ -91,6 +91,41 @@ async function getDocLink(doc: Doc, urlName?: string) {
   return address.join('/');
 }
 
+// Changes made to defaultDocs.json after servers were seeded from it. Each one
+// gives the fields to set on a doc that still reads as before the change, and
+// nothing otherwise: applied at every startup, it runs once, and leaves alone a
+// doc an admin has rewritten.
+const CHECK_ROLL_LINE = '- `~checkRoll` - The total check result after modifiers.\n';
+const seededDocUpdates: Record<string, (doc: Doc, defaults: Doc) => Partial<Doc> | undefined> = {
+  // The Character Tree page was an unpublished placeholder
+  AQGjqq6grmKXZN6dB(doc, defaults) {
+    if (doc.description !== 'TODO') return;
+    return { description: defaults.description, published: defaults.published };
+  },
+  // Checks set two more variables (Computed fields): list them after `~checkRoll`
+  bTLn3sMpzxr7SAfD7(doc, defaults) {
+    const description = doc.description || '';
+    const defaultDescription = defaults.description || '';
+    if (!description.includes(CHECK_ROLL_LINE) || description.includes('~checkModifier')) return;
+    if (!defaultDescription.includes(CHECK_ROLL_LINE)) return;
+    const start = defaultDescription.indexOf(CHECK_ROLL_LINE) + CHECK_ROLL_LINE.length;
+    const end = defaultDescription.indexOf('\n\n', start);
+    if (end === -1) return;
+    const added = defaultDescription.slice(start, end + 1);
+    return { description: description.replace(CHECK_ROLL_LINE, CHECK_ROLL_LINE + added) };
+  },
+};
+
+async function updateSeededDocs() {
+  const defaults: Doc[] = JSON.parse(await Assets.getTextAsync('docs/defaultDocs.json'));
+  for (const [_id, update] of Object.entries(seededDocUpdates)) {
+    const doc = await Docs.findOneAsync(_id);
+    const defaultDoc = defaults.find(d => d._id === _id);
+    const fields = doc && defaultDoc && update(doc, defaultDoc);
+    if (fields) await Docs.updateAsync(_id, { $set: fields });
+  }
+}
+
 // Add a means of seeding new servers with documentation
 if (Meteor.isClient) {
   Docs.getJsonDocs = async function () {
@@ -119,6 +154,11 @@ if (Meteor.isClient) {
       const legacyDocs = await Docs.find({ description: { $regex: 'https://dicecloud\\.com' } }).fetchAsync();
       for (const doc of legacyDocs) {
         await Docs.updateAsync(doc._id, { $set: { description: withoutLegacyOrigin(doc.description) } });
+      }
+      try {
+        await updateSeededDocs();
+      } catch (error) {
+        console.error('Error updating the default docs:', error);
       }
     }
   });

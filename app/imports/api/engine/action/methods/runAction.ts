@@ -7,10 +7,16 @@ import writeActionResults from '../functions/writeActionResults';
 import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/userInput/getReplayChoicesInputProvider';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
+import { check, Match } from 'meteor/check';
 
 export const runAction = new ValidatedMethod({
   name: 'actions.runAction',
-  validate: null, //TODO
+  // The decisions replay the user's inputs in order: dice results, choices,
+  // advantage and check parameters, so only their container is checked here
+  validate({ actionId, decisions }: { actionId: string, decisions?: any[] }) {
+    check(actionId, String);
+    check(decisions, Match.Maybe([Match.Any]));
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 10,

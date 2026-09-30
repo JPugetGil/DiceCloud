@@ -105,6 +105,15 @@ export default async function applyCheckTask(
 
     const totalValue = rolledValue + totalModifier;
 
+    // The roll, for the after check triggers (documented under Skills)
+    result.pushScope = {
+      ...result.pushScope,
+      '~checkAdvantage': { value: advantage || 0 },
+      '~checkDiceRoll': { value: rolledValue },
+      '~checkModifier': { value: totalModifier },
+      '~checkRoll': { value: totalValue },
+    };
+
     result.appendLog({
       name: rollName,
       value: `${resultPrefix}\n**${totalValue}**`,
@@ -121,12 +130,3 @@ export default async function applyCheckTask(
     if (ability) await applyTriggers(action, ability, [targetId], 'checkTriggerIds.afterChildren', userInput);
   }
 }
-
-// TODO set these and potentially read them again if triggers can change them
-/*
-'~checkAdvantage'
-'~checkAdvantage'
-'~checkDiceRoll'
-'~checkRoll'
-'~checkModifier'
-*/

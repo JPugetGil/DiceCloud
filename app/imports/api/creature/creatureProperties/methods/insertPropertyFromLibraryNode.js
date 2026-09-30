@@ -5,7 +5,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { assertDocViewPermission, assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import {
   renewDocIds,
   fetchDocByRef,
@@ -62,7 +62,7 @@ const insertPropertyFromLibraryNode = new ValidatedMethod({
     // awaited, so `node` was still unset and the inserts had not landed before
     // rebuildNestedSets ran below.
     for (const nodeId of nodeIds) {
-      node = await insertPropertyFromNode(nodeId, root, parentId);
+      node = await insertPropertyFromNode(nodeId, root, parentId, this.userId);
     }
 
     // Tree structure changed by inserts, reorder the tree
@@ -74,7 +74,7 @@ const insertPropertyFromLibraryNode = new ValidatedMethod({
   },
 });
 
-async function insertPropertyFromNode(nodeId, root, parentId) {
+async function insertPropertyFromNode(nodeId, root, parentId, userId) {
   // Fetch the library node and its descendants, provided they have not been
   // removed
   let node = await LibraryNodes.findOneAsync({
@@ -90,6 +90,9 @@ async function insertPropertyFromNode(nodeId, root, parentId) {
       );
     }
   }
+  // The user must be able to view the library it comes from. Server only: the
+  // client only holds nodes its publications let it see, and may lack the library
+  if (Meteor.isServer) await assertDocViewPermission(node, userId);
 
   let nodes = await LibraryNodes.find({
     ...getFilter.descendants(node),
@@ -101,7 +104,7 @@ async function insertPropertyFromNode(nodeId, root, parentId) {
   nodes = [node, ...nodes];
 
   // Convert all references into actual nodes
-  nodes = await reifyNodeReferences(nodes);
+  nodes = await reifyNodeReferences(nodes, userId);
   // Refetch the root node, it might have been reified
   node = nodes[0] || node;
 
@@ -147,9 +150,9 @@ export function storeLibraryNodeReferences(nodes) {
   });
 }
 
-// Covert node references into actual nodes
-// TODO: check permissions for each library a reference node references
-export async function reifyNodeReferences(nodes, visitedRefs = new Set(), depth = 0) {
+// Covert node references into actual nodes. A reference into a library the
+// user cannot view stays a reference node, carrying the error.
+export async function reifyNodeReferences(nodes, userId, visitedRefs = new Set(), depth = 0) {
   depth += 1;
   const resultingNodes = [];
   const newNodes = [];
@@ -172,6 +175,7 @@ export async function reifyNodeReferences(nodes, visitedRefs = new Set(), depth 
     let referencedNode
     try {
       referencedNode = await fetchDocByRef(node.ref);
+      if (Meteor.isServer) await assertDocViewPermission(referencedNode, userId);
       referencedNode.tags = union(node.tags, referencedNode.tags);
       // We are definitely replacing this node, so add it to the list
       visitedRefs.add(node._id);
@@ -229,7 +233,7 @@ export async function reifyNodeReferences(nodes, visitedRefs = new Set(), depth 
     });
 
     // Reify the subtree as well with recursion
-    addedNodes = await reifyNodeReferences(addedNodes, visitedRefs, depth);
+    addedNodes = await reifyNodeReferences(addedNodes, userId, visitedRefs, depth);
 
     // Store the new nodes from this inner loop without altering the array
     // we are looping over

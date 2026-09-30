@@ -112,7 +112,7 @@ const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
 const variables = autorun(() => CreatureVariables.findOne({ _creatureId: creatureId.value }) || {}).result;
 
 const race = autorun(() => {
-  if (variables.value?.race?.value?.valueType === 'string') return variables.value.race.value.value;
+  if (typeof variables.value?.race?.value?.value === 'string') return variables.value.race.value.value;
   const prop = CreatureProperties.findOne({
     ...getFilter.descendantsOfRoot(creatureId.value),
     tags: 'race',
@@ -125,7 +125,7 @@ const race = autorun(() => {
 }).result;
 
 const background = autorun(() => {
-  if (variables.value?.background?.value?.valueType === 'string') return variables.value.background.value.value;
+  if (typeof variables.value?.background?.value?.value === 'string') return variables.value.background.value.value;
   const prop = CreatureProperties.findOne({
     ...getFilter.descendantsOfRoot(creatureId.value),
     tags: 'background',

@@ -138,6 +138,8 @@
     "fromUrl": "Depuis une URL",
     "directLink": "Lien direct vers l'image",
     "deleteFile": "Supprimer le fichier",
+    "renameFile": "Renommer le fichier",
+    "notInStorage": "Absent du stockage de fichiers : ce fichier sera perdu au redémarrage du serveur. Supprimez-le puis envoyez-le à nouveau.",
     "storage": "Stockage",
     "storageUsed": "{used} utilisés sur {limit}"
   },
@@ -668,7 +670,9 @@
     "permanently": "Supprimer définitivement le compte"
   },
   "log": {
-    "compilationError": "Erreur de compilation"
+    "compilationError": "Erreur de compilation",
+    "showSilenced": "Afficher {count} ligne absente du journal | Afficher {count} lignes absentes du journal",
+    "hideSilenced": "Masquer les lignes absentes du journal"
   },
   "icons": {
     "metadataJson": "JSON des métadonnées",

@@ -15,6 +15,21 @@
         {{ $t('common.restore') }}
       </v-btn>
       <div class="flex-1-1" />
+      <v-tooltip
+        v-if="missingFromStorage"
+        :text="$t('files.notInStorage')"
+        location="top"
+      >
+        <template #activator="{ props: tooltipProps }">
+          <v-icon
+            v-bind="tooltipProps"
+            class="mr-2"
+            color="error"
+            :aria-label="$t('files.notInStorage')"
+            icon="mdi-cloud-alert"
+          />
+        </template>
+      </v-tooltip>
       <v-btn
         variant="text"
         icon
@@ -34,11 +49,12 @@
 </template>
 
 <script setup>
-import { ref} from 'vue';
+import { ref, computed } from 'vue';
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import removeArchiveCreature from '/imports/api/creature/archive/methods/removeArchiveCreature';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import isMissingFromStorage from '/imports/api/files/isMissingFromStorage';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -51,6 +67,8 @@ const props = defineProps({
 });
 
 const restoreLoading = ref(false);
+
+const missingFromStorage = computed(() => isMissingFromStorage(props.model));
 
 
 const dialogStackStore = useDialogStackStore();
@@ -68,10 +86,9 @@ async function restore() {
 }
 
 function removeArchiveCharacter() {
-  let that = this;
   dialogStackStore.pushDialogStack({
     component: 'delete-confirmation-dialog',
-    elementId: `${that.model._id}-archive-card`,
+    elementId: `${props.model._id}-archive-card`,
     data: {
       name: props.model.meta.creatureName,
       typeName: t('files.characterArchive')
@@ -79,7 +96,7 @@ function removeArchiveCharacter() {
     async callback(confirmation) {
       if (!confirmation) return;
       try {
-        await removeArchiveCreature.callAsync({ fileId: that.model._id });
+        await removeArchiveCreature.callAsync({ fileId: props.model._id });
       } catch (error) {
         console.error(error);
       }

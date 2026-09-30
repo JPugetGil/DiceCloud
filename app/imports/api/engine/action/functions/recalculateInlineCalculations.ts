@@ -7,13 +7,13 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 
 export default async function recalculateInlineCalculations(
   inlineCalcObj: InlineCalculation, action: EngineAction,
-  parseLevel: ResolveLevel, userInput: InputProvider
+  parseLevel: ResolveLevel, userInput: InputProvider, extraScope?: Record<string, any>
 ) {
   // Skip if there are no calculations
   if (!inlineCalcObj?.inlineCalculations?.length) return;
   // Recalculate each calculation with the current scope
   for (const calc of inlineCalcObj.inlineCalculations) {
-    await recalculateCalculation(calc, action, parseLevel, userInput);
+    await recalculateCalculation(calc, action, parseLevel, userInput, extraScope);
   }
   // Embed the new calculated values
   embedInlineCalculations(inlineCalcObj);

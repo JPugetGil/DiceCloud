@@ -2,13 +2,15 @@ import { get } from 'lodash';
 
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import { getPropertyDescendants } from '/imports/api/engine/loadCreatures';
+import { getPropertyDescendants, getVariables } from '/imports/api/engine/loadCreatures';
 import resolve from '/imports/parser/resolve';
 import map from '/imports/parser/map';
 import toString from '/imports/parser/toString';
 import computedSchemas from '/imports/api/properties/computedOnlyPropertySchemasIndex.js';
 import applyFnToKey, { applyFnToKeyAsync } from '/imports/api/engine/computation/utility/applyFnToKey';
 import accessor from '/imports/parser/parseTree/accessor';
+import traverse from '/imports/parser/traverse';
+import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
 import TaskResult, { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import cyrb53 from '/imports/api/engine/computation/utility/cyrb53';
@@ -69,7 +71,7 @@ export default async function applyBuffProperty(
     });
 
     //Log the buff
-    await logBuff(prop, targetIds, action, userInput, result);
+    await logBuff(prop, [target], action, userInput, result);
 
     // remove all the computed fields
     targetPropList = cleanProps(targetPropList);
@@ -83,11 +85,15 @@ export default async function applyBuffProperty(
   await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
 }
 
+// Logged once per target, where `~target` reads that target's variables
 async function logBuff(prop, targetIds, action, userInput, result) {
   //Log the buff
   let logValue = prop.description?.value
   if (prop.description?.text) {
-    await recalculateInlineCalculations(prop.description, action, 'reduce', userInput);
+    const extraScope = targetIds.length === 1
+      ? await getTargetScope(prop, targetIds[0])
+      : undefined;
+    await recalculateInlineCalculations(prop.description, action, 'reduce', userInput, extraScope);
     logValue = prop.description?.value;
   }
   result.appendLog({
@@ -95,6 +101,28 @@ async function logBuff(prop, targetIds, action, userInput, result) {
     ...logValue && { value: logValue },
     silenced: prop.silent,
   }, targetIds);
+}
+
+/**
+ * `~target.name` in a buff's description reads the target's variables. The
+ * ones that are properties are stored as links (`_propId`), which an accessor's
+ * path can't follow, so each referenced one is fetched first.
+ */
+async function getTargetScope(prop, targetId: string) {
+  const variables = await getVariables(targetId);
+  const names = new Set<string>();
+  for (const calc of prop.description?.inlineCalculations || []) {
+    traverse(calc.parseNode, node => {
+      if (node.parseType === 'accessor' && node.name === '~target' && node.path?.length) {
+        names.add(node.path[0]);
+      }
+    });
+  }
+  const target = {};
+  for (const name of names) {
+    target[name] = await getFromScope(name, variables);
+  }
+  return { '~target': target };
 }
 
 /**

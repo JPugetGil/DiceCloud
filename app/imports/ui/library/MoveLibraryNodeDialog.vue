@@ -18,7 +18,7 @@
       <v-btn
         variant="text"
         color="primary"
-        @click="dialogStackStore.popDialogStack(node._id)"
+        @click="dialogStackStore.popDialogStack(node?._id)"
       >
         {{ action || $t('toolbar.moveTitle') }}
       </v-btn>

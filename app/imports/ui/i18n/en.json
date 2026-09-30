@@ -138,6 +138,8 @@
     "fromUrl": "From URL",
     "directLink": "Direct link to image",
     "deleteFile": "Delete file",
+    "renameFile": "Rename file",
+    "notInStorage": "Not in file storage: this file will be lost when the server restarts. Delete it and upload it again.",
     "storage": "Storage",
     "storageUsed": "{used} of {limit} used"
   },
@@ -668,7 +670,9 @@
     "permanently": "Permanently delete account"
   },
   "log": {
-    "compilationError": "Compilation error"
+    "compilationError": "Compilation error",
+    "showSilenced": "Show {count} line left out of the log | Show {count} lines left out of the log",
+    "hideSilenced": "Hide the lines left out of the log"
   },
   "icons": {
     "metadataJson": "Metadata JSON",

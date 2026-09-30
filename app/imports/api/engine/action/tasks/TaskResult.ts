@@ -1,4 +1,5 @@
 import Context from '../../../../parser/types/Context';
+import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 /**
  * The result of running a task containing all the changes that need to be made to the listed
@@ -66,9 +67,9 @@ export type Mutation = {
   targetIds: string[];
   // What changes in the database
   updates?: Update[];
-  // What properties get added
-  // TODO make these properties a LibraryNode type
-  inserts?: any[];
+  // What properties get added: copies of creature properties, such as a buff
+  // and its children placed on a target
+  inserts?: CreatureProperty[];
   // What properties get deleted
   removals?: Removal[];
   // Logged when this is applied

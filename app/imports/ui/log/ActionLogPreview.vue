@@ -37,17 +37,24 @@
       :show-silenced="showSilenced"
       class="pl-10"
     />
+    <v-btn
+      v-if="silencedCount"
+      variant="text"
+      size="small"
+      class="ml-8"
+      data-id="toggle-silenced"
+      @click="showSilenced = !showSilenced"
+    >
+      {{ showSilenced ? $t('log.hideSilenced') : $t('log.showSilenced', { count: silencedCount }, silencedCount) }}
+    </v-btn>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import ActionLogPreviewContent from '/imports/ui/log/ActionLogPreviewContent.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
-
-// TODO move content filtering to this component so we can determine if any content was hidden
-// then show a button to reveal silenced content at a lower opacity
 
 const props = defineProps({
   model: {
@@ -57,7 +64,9 @@ const props = defineProps({
   showName: Boolean,
 });
 
+// Silenced lines are hidden, but can be shown, dimmed
 const showSilenced = ref(false);
+const silencedCount = computed(() => props.model.content?.filter(c => c.silenced).length || 0);
 
 const creature = autorun(() => Creatures.findOne(props.model.creatureId)).result;
 </script>

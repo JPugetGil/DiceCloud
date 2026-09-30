@@ -74,8 +74,7 @@ describe('Apply Buff Properties', function () {
     assert.deepEqual(mutations, [{
       contents: [{
         name: 'Buff',
-        // TODO Make target strength available in action scope to fix: 'target 0' -> 'target 12'
-        value: 'This buff reduces AC of target by difference between the strength of caster 18 and the target 0',
+        value: 'This buff reduces AC of target by difference between the strength of caster 18 and the target 12',
       }],
       targetIds: [targetCreatureId],
     }, {

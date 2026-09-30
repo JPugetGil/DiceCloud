@@ -44,7 +44,7 @@ describe('Accessor Node', function () {
     );
     assert.isEmpty(compileContext.errors, 'compiling unknown variables should not have errors');
     assert.deepEqual(
-      compileResult, { parseType: 'constant', value: 0, valueType: 'number', isUndefined: true },
+      compileResult, { parseType: 'constant', value: 0, isUndefined: true },
       'Unknown variables should be zero and marked as inUndefined in compile step'
     );
 
@@ -54,7 +54,7 @@ describe('Accessor Node', function () {
     );
     assert.isEmpty(reduceContext.errors, 'reducing unknown variables should not have errors');
     assert.deepEqual(
-      reduceResult, { parseType: 'constant', value: 0, valueType: 'number', isUndefined: true },
+      reduceResult, { parseType: 'constant', value: 0, isUndefined: true },
       'Unknown variables should be marked as inUndefined in compile step'
     );
   });
@@ -70,7 +70,7 @@ describe('Accessor Node', function () {
     );
     assert.isEmpty(compileContext.errors, 'compiling known variables should not have errors');
     assert.deepEqual(
-      compileResult, { parseType: 'constant', value: 0, valueType: 'number' },
+      compileResult, { parseType: 'constant', value: 0 },
       'Known variables should not be marked as inUndefined in compile step'
     );
 
@@ -80,7 +80,7 @@ describe('Accessor Node', function () {
     );
     assert.isEmpty(reduceContext.errors, 'reducing known variables should not have errors');
     assert.deepEqual(
-      reduceResult, { parseType: 'constant', value: 0, valueType: 'number' },
+      reduceResult, { parseType: 'constant', value: 0 },
       'Known variables should not be marked as inUndefined in compile step'
     );
   });

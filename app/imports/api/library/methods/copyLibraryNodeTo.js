@@ -79,6 +79,21 @@ const copyLibraryNodeTo = new ValidatedMethod({
     // Give the docs new IDs without breaking internal references
     renewDocIds({ docArray: nodes });
 
+    // Put the copies in the destination. renewDocIds only remaps ids inside the
+    // copied set, so they still named the source library as root and the copied
+    // node kept its old parent: the copy landed in the source library.
+    const root = parent.collection === 'libraries'
+      ? { collection: 'libraries', id: parentDoc._id }
+      : { ...parentDoc.root };
+    for (const node of nodes) {
+      node.root = { ...root };
+    }
+    if (parent.collection === 'libraryNodes') {
+      libraryNode.parentId = parentDoc._id;
+    } else {
+      delete libraryNode.parentId;
+    }
+
     // Order the root node
     libraryNode.left = Number.MAX_SAFE_INTEGER - 1;
     libraryNode.right = Number.MAX_SAFE_INTEGER;
@@ -86,7 +101,7 @@ const copyLibraryNodeTo = new ValidatedMethod({
     await batchInsertAsync(LibraryNodes, nodes);
 
     // Tree structure changed by inserts, reorder the tree
-    await rebuildNestedSets(LibraryNodes, parentDoc.root.id);
+    await rebuildNestedSets(LibraryNodes, root.id);
   },
 });
 

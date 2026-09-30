@@ -3,19 +3,17 @@ import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
 
 export type ConstantValueType = number | string | boolean
 
+// Read a constant's type with `typeof node.value`. Nodes used to carry it in a
+// `valueType` field too: the ones stored before still do, and nothing reads it.
 export type ConstantNode = {
   parseType: 'constant';
   value: ConstantValueType;
-  // TODO replace all `constantNode.valueType` with `typeof constantNode.value`
-  valueType: 'number' | 'string' | 'boolean';
   isUndefined?: true;
 }
 
 export type FiniteNumberConstantNode = {
   parseType: 'constant';
   value: number;
-  // TODO replace all `constantNode.valueType` with `typeof constantNode.value`
-  valueType: 'number';
 }
 
 type ConstantFactory = {
@@ -28,7 +26,6 @@ const constant: ConstantFactory = {
   create({ value, isUndefined }): ConstantNode {
     return {
       parseType: 'constant',
-      valueType: typeof value as 'number' | 'string' | 'boolean',
       value,
       ...isUndefined && { isUndefined: true }
     }
@@ -44,7 +41,6 @@ const constant: ConstantFactory = {
 export function isFiniteNode(node: ParseNode | undefined): node is FiniteNumberConstantNode {
   return node
     && node.parseType === 'constant'
-    && node.valueType === 'number'
     && typeof node.value === 'number'
     && isFinite(node.value)
     || false;

@@ -5,6 +5,7 @@ import { applyTriggers } from '/imports/api/engine/action/functions/applyTaskGro
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
+import getEffectiveProperty from '/imports/api/engine/action/functions/getEffectiveProperty';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { lowerCase, upperFirst } from 'lodash';
 import { EJSON } from 'meteor/ejson';
@@ -84,6 +85,8 @@ export default async function applyDamagePropTask(
   targetProp = await getSingleProperty(targetId, targetPropId);
 
   if (!targetProp) return value;
+  // Include the damage and healing this action has already dealt it
+  targetProp = getEffectiveProperty(action, targetProp);
 
   if (operation === 'set') {
     const total = targetProp.total || 0;
@@ -147,10 +150,9 @@ export default async function applyDamagePropTask(
   return increment;
 }
 
-// Update the scope with the attribute, but updated to the new value
-// TODO ideally we re-write the getEffectiveActionScope code to be more
-// getSomethingFromScope which does the same work, but for a single key, and includes all
-// updates to the doc returned that are already applied in the result array
+// Update the scope with the attribute, but updated to the new value, so later
+// calculations in the action read it. The property itself is read through
+// getEffectiveProperty, which applies the updates already in the results.
 function setScope(result, targetProp, newValue, damage) {
   // This isn't the defining property, don't bother
   if (targetProp.overridden) return;

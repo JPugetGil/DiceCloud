@@ -110,8 +110,6 @@ import { useDisplay } from 'vuetify';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 
-//TODO add a "no character found" screen if shown on a false address
-// or on a character the user does not have permission to view
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import StatsTab from '/imports/ui/creature/character/characterSheetTabs/StatsTab.vue';
 import FeaturesTab from '/imports/ui/creature/character/characterSheetTabs/FeaturesTab.vue';

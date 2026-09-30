@@ -44,9 +44,17 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import UserImages from '/imports/api/files/userImages/UserImages';
 import getThumbHash from '/imports/ui/utility/getThumbHash.js';
+
+const props = defineProps({
+  // Uploaded as soon as the input mounts
+  initialFile: {
+    type: File,
+    default: undefined,
+  },
+});
 
 const emit = defineEmits(['uploaded']);
 
@@ -95,6 +103,8 @@ watch(file, async (newFile) => {
 
   uploadInstance.on('end', function (error, fileObj) {
     resetState();
+    // A failed upload also ends, without a file: the error handler reports it
+    if (error || !fileObj) return;
     emit('uploaded', UserImages.link(fileObj));
   });
 
@@ -118,6 +128,10 @@ watch(file, async (newFile) => {
     fileUploadError.value = error.reason || error.message || error.toString();
     resetState();
   }
+});
+
+onMounted(() => {
+  if (props.initialFile) file.value = props.initialFile;
 });
 
 function inputChange(e) {

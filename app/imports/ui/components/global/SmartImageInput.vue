@@ -43,41 +43,7 @@
 </template>
 
 <script setup>
-/*
-  <v-file-input
-      v-cloak
-      ref="input"
-      v-bind="$attrs"
-      v-model="file"
-      class="dc-file-field"
-      :loading="loading"
-      :error-messages="errors"
-      :disabled="isDisabled"
-      :outlined="!regular"
-      @drop.prevent="addDropFile"
-      @dragover.prevent
-      @focus="focused = true"
-      @blur="focused = false"
-      @keyup="e => $emit('keyup', e)"
-    />
-  States to handle:
-  - Empty
-  - Image from URL
-  - Image from file
-  - Image from file being uploaded
-  - Upload fail
-  - File invalid as image (size, extension)
-  Actions to handle
-  - Changing an image
-    - Do we delete the old one, or leave it in the user's account?
-  - Select image from user's files
-  - URL image
-
-  TODO
-  Clicking opens image input dialog
-  Drag-drop opens image input dialog with a file ready to upload
-*/
-import { ref } from 'vue';
+import { ref, markRaw } from 'vue';
 import { Random } from 'meteor/random';
 
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
@@ -107,13 +73,16 @@ const { change, errors, isDisabled } = useSmartInput(props, model, emit);
 const id = ref(Random.id());
 const dragging = ref(false);
 
-function openImageInputDialog() {
+// A dropped file opens the dialog with that file already uploading
+function openImageInputDialog(file) {
   if (isDisabled.value) return;
   dialogStackStore.pushDialogStack({
     component: 'image-input-dialog',
     elementId: id.value,
     data: {
       href: model.value,
+      // Raw: the store's reactive proxy of a File breaks reading it
+      droppedFile: file instanceof File ? markRaw(file) : undefined,
     },
     callback: (href) => {
       if (href) {
@@ -124,24 +93,23 @@ function openImageInputDialog() {
 }
 
 
-function handleDragOver() {
-  // TODO
-  // event.preventDefault();
-  // dragging.value = true;
+function handleDragOver(event) {
+  if (isDisabled.value || !event.dataTransfer?.types.includes('Files')) return;
+  // Accept the drop instead of letting the browser open the file
+  event.preventDefault();
+  dragging.value = true;
 }
 
 function handleDragLeave() {
-  // TODO
-  // dragging.value = false;
+  dragging.value = false;
 }
 
-function handleDrop() {
-  // TODO
-  // console.log(event);
-  // event.preventDefault();
-  // const file = event.dataTransfer.files[0];
-  // dragging.value = false;
-  // uploadFile(file);
+function handleDrop(event) {
+  dragging.value = false;
+  const file = event.dataTransfer?.files?.[0];
+  if (isDisabled.value || !file) return;
+  event.preventDefault();
+  openImageInputDialog(file);
 }
 </script>
 

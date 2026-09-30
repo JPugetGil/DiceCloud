@@ -25,6 +25,8 @@ const s3Conf = Meteor.settings.s3 || {};
 Meteor.settings.useS3 = !!(
   s3Conf && s3Conf.key && s3Conf.secret && s3Conf.bucket
 );
+// The client marks files that never reached S3 (isMissingFromStorage)
+Meteor.settings.public.useS3 = Meteor.settings.useS3;
 
 const bound = Meteor.bindEnvironment((callback: () => any) => {
   return callback();

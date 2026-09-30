@@ -121,7 +121,7 @@ import PropertyToolbar from '/imports/ui/components/PropertyToolbar.vue';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import { get } from 'lodash';
 
-import { organizeDoc } from '/imports/api/parenting/organizeMethods';
+import { moveBetweenRoots, moveWithinRoot } from '/imports/api/parenting/organizeMethods';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
 import copyLibraryNodeTo from '/imports/api/library/methods/copyLibraryNodeTo';
@@ -233,20 +233,21 @@ function move() {
     component: 'move-library-node-dialog',
     elementId: 'property-toolbar-menu-button',
     async callback(parentId) {
-      if (!parentId) return;
+      const parent = parentId && LibraryNodes.findOne(parentId);
+      const doc = LibraryNodes.findOne(id);
+      if (!parent || !doc) return;
+      const docRef = { collection: 'libraryNodes', id };
+      // The last position inside the new parent
+      const newPosition = parent.right - 0.5;
       try {
-        await organizeDoc.callAsync({
-          docRef: {
-            collection: 'libraryNodes',
-            id,
-          },
-          parentRef: {
-            collection: 'libraryNodes',
-            id: parentId
-          },
-        });
+        if (parent.root.id === doc.root.id) {
+          await moveWithinRoot.callAsync({ docRef, newPosition });
+        } else {
+          await moveBetweenRoots.callAsync({ docRef, newPosition, newRootRef: parent.root });
+        }
       } catch (error) {
         console.error(error);
+        snackbar({ text: error.reason || error.message || error.toString() });
       }
     }
   });
