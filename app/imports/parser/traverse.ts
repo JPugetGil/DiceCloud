@@ -1,4 +1,3 @@
-/* eslint-disable no-fallthrough */
 import factories from './parseTree';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
 

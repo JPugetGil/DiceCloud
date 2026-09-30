@@ -319,7 +319,6 @@ watch(() => props.prop, (newProp) => {
 
 // Meteor Subscriptions
 const { ready: searchLibraryNodesReady, sub: searchLibraryNodesHandle } = subscribe(() => ['searchLibraryNodes', props.creatureId]);
-// eslint-disable-next-line no-unused-vars
 subscribe(() => ['selectedLibraryNodes', selectedNodeIds.value]);
 
 // Meteor Autoruns

@@ -7,7 +7,6 @@
 import '/imports/startup/both';
 
 await import('./connectionConfig');
-await import('./markedConfig');
 await import('./serviceWorker');
 
 // The Vue app, mounted once Meteor has started

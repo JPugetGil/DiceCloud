@@ -89,8 +89,7 @@
 <script setup lang="js">
 import { ref } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
-// date-fns 1 has no ES modules: importing from its index bundles every function
-import format from 'date-fns/format';
+import { format } from 'date-fns';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import Experiences, { removeExperience as removeExperienceMethod, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -134,8 +133,9 @@ function xpText(experience){
   return xpText.join(', ');
 }
 
+// date-fns 4 throws on a missing date
 function formatDate(date){
-  return format(date, 'YYYY-MM-DD');
+  return date ? format(date, 'yyyy-MM-dd') : '';
 }
 
 async function removeExperience(experienceId){

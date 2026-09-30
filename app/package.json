@@ -29,130 +29,60 @@
     "modern": true
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1139.0",
+    "@aws-sdk/client-s3": "3.1143.0",
     "@babel/runtime": "^7.29.7",
     "@swc/helpers": "^0.5.17",
     "alea": "^1.0.1",
-    "chroma-js": "^2.6.0",
+    "chroma-js": "^3.2.0",
     "css-box-shadow": "^1.0.0-3",
     "cytoscape": "^3.34.3",
     "cytoscape-klay": "^3.1.4",
-    "date-fns": "^1.30.1",
+    "date-fns": "^4.4.0",
     "ddp-rate-limiter-mixin": "^1.1.10",
-    "dompurify": "^3.4.15",
+    "dompurify": "^3.4.16",
     "lodash": "^4.18.1",
-    "marked": "^4.3.0",
+    "marked": "^18.0.14",
+    "marked-gfm-heading-id": "^4.1.4",
     "meteor-node-stubs": "^1.2.30",
     "moo": "^0.5.3",
     "nearley": "^2.19.1",
-    "ngraph.graph": "^19.1.0",
+    "ngraph.graph": "^20.1.2",
     "ngraph.path": "^1.6.1",
     "pinia": "^4.0.3",
-    "pretty-bytes": "^6.1.1",
+    "pretty-bytes": "^7.2.0",
     "qrcode.vue": "^3.11.0",
     "simpl-schema": "^1.13.1",
     "speakingurl": "^14.0.1",
     "thumbhash": "^0.1.1",
-    "type-fest": "^4.41.0",
+    "type-fest": "^5.10.0",
     "vue": "^3.5.43",
     "vue-i18n": "^11.4.12",
     "vue-meteor-tracker": "3.0.0-beta.7",
-    "vue-router": "^4.6.4",
+    "vue-router": "^5.3.1",
     "vuedraggable": "^4.1.0",
     "vuetify": "4.2.2"
   },
   "devDependencies": {
-    "@meteorjs/rspack": "^2.2.0",
-    "@rsdoctor/rspack-plugin": "^1.5.7",
-    "@rspack/cli": "^1.7.1",
-    "@rspack/core": "^1.7.1",
-    "@types/chai": "^4.3.20",
+    "@eslint/js": "^10.0.1",
+    "@meteorjs/rspack": "3.0.0-beta.3",
+    "@rsdoctor/rspack-plugin": "^1.6.4",
+    "@rspack/cli": "^2.2.8",
+    "@rspack/core": "^2.2.8",
+    "@rspack/dev-server": "^2.2.1",
+    "@types/chai": "^5.2.3",
     "@types/lodash": "^4.17.25",
     "@types/meteor-mdg-validated-method": "^1.2.12",
     "@types/mocha": "^10.0.10",
     "@types/simpl-schema": "^1.12.9",
-    "@typescript-eslint/eslint-plugin": "^8.70.1",
-    "@typescript-eslint/parser": "^8.70.1",
+    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/parser": "^8.71.0",
     "@vue/compiler-sfc": "^3.5.43",
-    "chai": "^4.5.0",
-    "eslint": "8.57.1",
-    "eslint-plugin-vue": "^9.33.0",
+    "chai": "^6.2.2",
+    "eslint": "^10.11.0",
+    "eslint-plugin-vue": "^10.11.1",
     "eslint-plugin-vuetify": "^2.7.3",
-    "typescript": "^5.9.3",
-    "vue-loader": "^17.4.2"
-  },
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "plugin:vue/vue3-recommended",
-      "plugin:vuetify/recommended",
-      "plugin:vuetify/recommended-v4",
-      "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended"
-    ],
-    "plugins": [
-      "vue",
-      "vuetify",
-      "@typescript-eslint"
-    ],
-    "overrides": [
-      {
-        "files": [
-          "*.vue"
-        ],
-        "parser": "vue-eslint-parser",
-        "rules": {
-          "vue/component-tags-order": [
-            "error",
-            {
-              "order": [
-                "template",
-                "script",
-                "style"
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "files": [
-          "rspack.config.js"
-        ],
-        "rules": {
-          "@typescript-eslint/no-require-imports": "off"
-        }
-      }
-    ],
-    "parserOptions": {
-      "ecmaVersion": 2022,
-      "sourceType": "module"
-    },
-    "globals": {
-      "Assets": "readonly"
-    },
-    "env": {
-      "es2021": true,
-      "es2020": true,
-      "browser": true,
-      "node": true,
-      "mocha": true
-    },
-    "rules": {
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "vue/prop-name-casing": [
-        "warn",
-        "camelCase",
-        {
-          "ignoreProps": [
-            "_id"
-          ]
-        }
-      ],
-      "@typescript-eslint/no-this-alias": "off",
-      "@typescript-eslint/no-explicit-any": "off"
-    }
+    "globals": "^17.12.0",
+    "rspack-vue-loader": "^17.7.0",
+    "typescript": "^6.0.3"
   }
 }

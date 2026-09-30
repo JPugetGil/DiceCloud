@@ -92,7 +92,7 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
     let searchTerm = (await self.data('searchTerm')) || '';
     check(searchTerm, String);
 
-    let options = undefined;
+    let options;
     if (searchTerm) {
       // Regex search instead of text index
       filter.$and = [{

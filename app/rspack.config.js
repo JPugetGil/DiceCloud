@@ -1,11 +1,12 @@
 const { defineConfig } = require('@meteorjs/rspack');
-const { VueLoaderPlugin } = require('vue-loader');
+// Rspack's fork of vue-loader: vue-loader 17 only emits <style> blocks as CSS
+// when `experiments.css` is set, an option Rspack 2 removed
+const { VueLoaderPlugin } = require('rspack-vue-loader');
 const {
   DefinePlugin,
   LightningCssMinimizerRspackPlugin,
   SwcJsMinimizerRspackPlugin,
 } = require('@rspack/core');
-const path = require('node:path');
 
 // The oldest browsers Vuetify 4 renders in: its styles need CSS cascade layers
 // and color-mix(). Without targets the CSS minifier assumed ES6-era browsers
@@ -19,29 +20,18 @@ const BROWSER_TARGETS = [
   'ios_saf >= 16.2',
 ];
 
-// ngraph.graph require()s ngraph.events, which resolves to the package's ES
-// module, whose default export require() does not unwrap ("eventify is not a
-// function"). The CommonJS build is resolved through package.json, because the
-// package does not export it as a subpath.
-const ngraphEventsCjs = path.join(
-  path.dirname(require.resolve('ngraph.events/package.json')),
-  'dist/ngraph.events.cjs'
-);
-
 /**
  * Rspack bundles the app's own client and server code; Meteor's bundler still
  * produces the final output and keeps Atmosphere packages working.
  *
- * Beyond an alias both sides share, only the client needs configuration: it is
- * the side that compiles single-file components and stylesheets.
+ * Only the client side needs configuration here: it is the side that compiles
+ * single-file components and stylesheets.
  */
 module.exports = defineConfig(Meteor => {
-  const resolve = { alias: { 'ngraph.events$': ngraphEventsCjs } };
-  if (!Meteor.isClient) return { resolve };
+  if (!Meteor.isClient) return {};
   return {
     resolve: {
       alias: {
-        ...resolve.alias,
         // One Vue in the browser: vuedraggable's build require()s vue, which
         // resolved to Vue's CommonJS build, a second copy that also carries
         // the template compiler. Templates are compiled at build time.
@@ -99,9 +89,9 @@ module.exports = defineConfig(Meteor => {
       rules: [
         {
           test: /\.vue$/,
-          loader: 'vue-loader',
+          loader: 'rspack-vue-loader',
           options: {
-            // Required for most vue-loader features under Rspack
+            // Required for <style> blocks to reach Rspack's native CSS
             experimentalInlineMatchResource: true,
             // Vue keeps template comments in development builds, and a comment
             // before the root element makes the component a fragment, which

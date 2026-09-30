@@ -28,6 +28,9 @@
     },
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    // TypeScript 6 loads no @types package unless listed: these declare
+    // globals (Node, mocha) and the meteor/mdg:validated-method module
+    "types": ["node", "mocha", "meteor-mdg-validated-method"],
   },
   "vueCompilerOptions": {
     "target": 3

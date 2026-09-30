@@ -28,8 +28,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-// date-fns 1 has no ES modules: importing from its index bundles every function
-import format from 'date-fns/format';
+import { format } from 'date-fns';
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({
@@ -64,7 +63,7 @@ const pickerValue = computed(() => {
 });
 
 const formattedSafeValue = computed(() => {
-  return pickerValue.value ? format(pickerValue.value, 'YYYY-MM-DD') : '';
+  return pickerValue.value ? format(pickerValue.value, 'yyyy-MM-dd') : '';
 });
 
 function dateInput(e) {

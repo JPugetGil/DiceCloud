@@ -21,7 +21,7 @@ export default async function applySpellProperty(
     return;
   }
   let slotLevel = prop.level || 0;
-  let message = '';
+  let message: string;
 
   if (task.params.withoutSpellSlot) {
     message = `Casting at level ${slotLevel}`

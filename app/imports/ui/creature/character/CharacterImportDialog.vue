@@ -67,7 +67,7 @@ async function setUrl(val, ack) {
     return;
   }
   const newUrl = val.replace(regex, '$1$2/api/creature/$3');
-  let fetchedCharacterData = undefined;
+  let fetchedCharacterData;
   importError.value = undefined;
   try {
     const res = await fetch(newUrl);

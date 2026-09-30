@@ -103,7 +103,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
     var limit = (await self.data('limit')) || 50;
     check(limit, Number);
 
-    let options = undefined;
+    let options;
     if (searchTerm) {
       if (!filter.$and) filter.$and = [];
       filter.$and.push({

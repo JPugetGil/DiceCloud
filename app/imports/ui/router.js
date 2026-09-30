@@ -4,24 +4,45 @@ import { Meteor } from 'meteor/meteor';
 import { Tracker } from 'meteor/tracker';
 import MAINTENANCE_MODE from '/imports/constants/MAINTENANCE_MODE';
 
+// The element an anchor (`#section`) names. Pages render their content after
+// the navigation (a doc arrives from its subscription), so the element is
+// waited for rather than looked up once, which found nothing.
+function waitForAnchor(hash, timeout = 5000) {
+  const id = decodeURIComponent(hash.slice(1));
+  const find = () => document.getElementById(id);
+  return new Promise(resolve => {
+    if (find()) return resolve(find());
+    const observer = new MutationObserver(() => {
+      if (!find()) return;
+      observer.disconnect();
+      clearTimeout(timer);
+      resolve(find());
+    });
+    const timer = setTimeout(() => {
+      observer.disconnect();
+      resolve(null);
+    }, timeout);
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
 // Scroll behaviour:
 // - only available in html5 history mode
 // - defaults to no scroll behavior
 // - return false to prevent scroll
-const nativeScrollBehavior = (to, from, savedPosition) => {
+const nativeScrollBehavior = async (to, from, savedPosition) => {
   if (savedPosition) {
     // savedPosition is only available for popstate navigations.
     return savedPosition;
   }
-  const position = {};
-  // scroll to anchor by returning the element selector
+  // Scroll to the anchor, clear of the app bar that stays over the page
   if (to.hash) {
-    position.el = to.hash;
+    const el = await waitForAnchor(to.hash);
+    if (el) return { el, top: (document.querySelector('.v-app-bar')?.offsetHeight ?? 0) + 16 };
   }
+  const position = {};
   // check if any matched route config has meta that requires scrolling to top
   if (to.matched.some(m => m.meta.scrollToTop)) {
-    // cords will be used if no selector is provided,
-    // or if the selector didn't match any element.
     position.left = 0;
     position.top = 0;
   }
