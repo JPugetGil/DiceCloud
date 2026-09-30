@@ -16,7 +16,4 @@ await import('./publicationRateLimit');
 // REST routes, publications, cron jobs and methods
 await import('./register-api');
 
-// Admin diagnostics
-await import('/imports/migrations/methods/index');
-
 await import('./publicationStrategies');

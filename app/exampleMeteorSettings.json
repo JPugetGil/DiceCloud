@@ -1,6 +1,5 @@
 {
   "public": {
-    "environment": "production",
     "disallowCreatureApiImport": false,
     "legal": {
       "operator": "<name or organization>",
@@ -11,7 +10,7 @@
     "key": "<AWS access key>",
     "secret": "<AWS secret key>",
     "bucket": "<AWS bucket name>",
-    "region": "<AWS region>"
+    "region": "eu-west-3"
   },
   "galaxy.meteor.com": {
     "env": {

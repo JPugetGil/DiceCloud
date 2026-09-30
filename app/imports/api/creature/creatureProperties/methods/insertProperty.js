@@ -5,7 +5,6 @@ import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/ge
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { fetchDocByRef, rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
-import getParentRefByTag from './getParentByTag';
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 
 const insertProperty = new ValidatedMethod({
@@ -43,76 +42,6 @@ const insertProperty = new ValidatedMethod({
   },
 });
 
-const insertPropertyAsChildOfTag = new ValidatedMethod({
-  name: 'creatureProperties.insertAsChildOfTag',
-  validate: new SimpleSchema({
-    creatureProperty: {
-      type: Object,
-      blackbox: true,
-    },
-    creatureId: {
-      type: String,
-      max: 32,
-    },
-    tag: {
-      type: String,
-      max: 20,
-    },
-    tagDefaultName: {
-      type: String,
-      max: 20,
-      optional: true,
-    },
-  }).validator(),
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run({ creatureProperty, creatureId, tag, tagDefaultName }) {
-    let parentRef = await getParentRefByTag(creatureId, tag);
-    let insertFolderFirst = false;
-
-    if (!parentRef) {
-      // Use the creature as the parent and mark that we need to insert the folder first later
-      insertFolderFirst = true;
-      parentRef = { id: creatureId, collection: 'creatures' };
-    }
-
-    // Check permission to edit
-    let rootCreature;
-    const parentDoc = await fetchDocByRef(parentRef);
-    if (parentRef.collection === 'creatures') {
-      rootCreature = parentDoc;
-    } else if (parentRef.collection === 'creatureProperties') {
-      rootCreature = await getRootCreatureAncestor(parentDoc);
-    } else {
-      throw `${parentRef.collection} is not a valid parent collection`
-    }
-    await assertEditPermission(rootCreature, this.userId);
-
-    const root = { collection: 'creatures', id: rootCreature._id };
-
-    // Add the folder first if we need to
-    if (insertFolderFirst) {
-      let id = await CreatureProperties.insertAsync({
-        type: 'folder',
-        name: tagDefaultName || (tag.charAt(0).toUpperCase() + tag.slice(1)),
-        tags: [tag],
-        // parentId: undefined,
-        root,
-      });
-      // Make the folder our new parent
-      parentRef = { id, collection: 'creatureProperties' };
-    }
-
-    creatureProperty.root = root;
-    creatureProperty.parentId = parentRef.id;
-
-    return await insertPropertyWork(creatureProperty);
-  },
-});
-
 export async function insertPropertyWork(property) {
   delete property._id;
   property.dirty = true;
@@ -123,4 +52,3 @@ export async function insertPropertyWork(property) {
 }
 
 export default insertProperty;
-export { insertPropertyAsChildOfTag };

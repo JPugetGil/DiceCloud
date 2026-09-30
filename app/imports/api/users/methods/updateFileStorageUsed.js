@@ -1,34 +1,9 @@
-import { ValidatedMethod } from 'meteor/mdg:validated-method';
-import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import UserImages from '/imports/api/files/userImages/UserImages';
 import { getFileStorageError } from '/imports/api/users/roles';
 import { Meteor } from 'meteor/meteor';
-const fileCollections = [ArchiveCreatureFiles, UserImages];
 
-const updateFileStorageUsed = new ValidatedMethod({
-  name: 'users.recalculateFileStorageUsed',
-  validate: null,
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run() {
-    const userId = Meteor.userId();
-    if (!userId) throw new Meteor.Error('No user',
-      'You must be logged in to recalculate your file use');
-    const user = await Meteor.users.findOneAsync(userId);
-    if (!user) {
-      throw new Meteor.Error('noUser', 'User not found');
-    }
-    await updateFileStorageUsedWork(userId);
-  }
-});
-
-export default updateFileStorageUsed;
-
-export async function updateFileStorageUsedWork(userId) {
+async function updateFileStorageUsedWork(userId) {
   if (!userId) {
     throw new Meteor.Error('idRequired',
       'No user ID was provided to update file storage used')
@@ -37,7 +12,9 @@ export async function updateFileStorageUsedWork(userId) {
   let sum = 0;
   // for...of rather than forEach: an async callback handed to forEach is never
   // awaited, so `sum` was still 0 when it was written to the user below.
-  for (const collection of fileCollections) {
+  // Listed here, not when the module loads: both collections import this
+  // module, so either may not exist yet at that point
+  for (const collection of [ArchiveCreatureFiles, UserImages]) {
     await collection.find({ userId }, { fields: { size: 1 } }).forEachAsync(file => {
       sum += file.size;
     });

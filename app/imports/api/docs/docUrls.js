@@ -7,16 +7,7 @@ import { Meteor } from 'meteor/meteor';
  */
 export const ROOT_URL_PLACEHOLDER = '{{ROOT_URL}}';
 
-const LEGACY_ORIGIN = 'https://dicecloud.com';
-
 export function expandRootUrl(text) {
   if (!text?.includes(ROOT_URL_PLACEHOLDER)) return text;
   return text.replaceAll(ROOT_URL_PLACEHOLDER, Meteor.absoluteUrl().replace(/\/$/, ''));
-}
-
-// For docs seeded before the defaults stopped naming dicecloud.com
-export function withoutLegacyOrigin(text) {
-  return text
-    .replaceAll(`](${LEGACY_ORIGIN}/`, '](/')
-    .replaceAll(LEGACY_ORIGIN, ROOT_URL_PLACEHOLDER);
 }

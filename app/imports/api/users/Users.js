@@ -6,7 +6,6 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
 import '/imports/api/users/methods/deleteMyAccount';
 import '/imports/api/users/methods/addEmail';
 import '/imports/api/users/methods/removeEmail';
-import '/imports/api/users/methods/updateFileStorageUsed';
 import '/imports/api/users/methods/searchUsers';
 import '/imports/api/users/methods/setUserRole';
 import { some } from 'lodash';

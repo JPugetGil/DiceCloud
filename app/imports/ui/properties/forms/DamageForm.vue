@@ -6,7 +6,6 @@
         md="6"
       >
         <computed-field
-          ref="focusFirst"
           :label="$t('forms.attribute.damage')"
           :hint="$t('forms.damage.damageHint')"
           :model="model.amount"
@@ -168,8 +167,6 @@ const damageTypeRules = [
     }
   }
 ];
-
-
 
 </script>
 

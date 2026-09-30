@@ -8,7 +8,6 @@
     "characterSheet": "Character Sheet",
     "printCharacterSheet": "Print Character Sheet",
     "printCharacter": "Print {name}",
-    "friends": "Friends",
     "signIn": "Sign In",
     "register": "Register",
     "account": "Account",
@@ -21,7 +20,6 @@
     "emailVerificationSuccess": "Email Verification Success",
     "resetPassword": "Reset Password",
     "docNotFound": "Doc not found",
-    "docs": "DiceCloud Docs",
     "privacy": "Privacy policy",
     "terms": "Terms of use"
   },
@@ -143,9 +141,6 @@
     "storage": "Storage",
     "storageUsed": "{used} of {limit} used"
   },
-  "friends": {
-    "title": "Friends"
-  },
   "functions": {
     "title": "Functions"
   },
@@ -209,9 +204,6 @@
   },
   "notFound": {
     "text": "No page was found for this address"
-  },
-  "notImplemented": {
-    "text": "This page is not available in this version of DiceCloud."
   },
   "auth": {
     "email": "Email",
@@ -465,9 +457,6 @@
     "hitDiceMultiplierHint": "What fraction of your hit dice are reset every long rest",
     "discordWebhook": "Discord Webhook URL",
     "discordWebhookHint": "This creature's logs will be posted to the discord channel",
-    "variantEncumbrance": "Use variant encumbrance",
-    "hideSpellsTab": "Hide spells tab",
-    "swapAbilityScores": "Swap ability scores and modifiers",
     "libraries": "Libraries",
     "allUserLibraries": "All user libraries",
     "debug": "Debug",
@@ -493,8 +482,6 @@
     "nameRequired": "Name required"
   },
   "deleteCharacter": {
-    "title": "Delete Character",
-    "typeName": "Type \"{name}\" to permanently delete the character",
     "deleteForever": "Delete forever"
   },
   "importCharacter": {
@@ -510,8 +497,7 @@
     "buffOrCondition": "Buff or Condition",
     "owner": "Sheet owner",
     "unshareWithMe": "Unshare with me",
-    "editDetails": "Edit details",
-    "miniSheet": "Character sheet"
+    "editDetails": "Edit details"
   },
   "build": {
     "slots": "Slots",
@@ -818,8 +804,6 @@
       "choice": "Pause the action and let the user choose which child to apply"
     },
     "buff": {
-      "duration": "Duration",
-      "durationHint": "How many rounds the buff lasts",
       "hideRemoveButton": "Hide remove button",
       "dontFreeze": "Don't freeze variables"
     },
@@ -1004,7 +988,6 @@
       "allowDuplicates": "Allow duplicate values",
       "test": "Test",
       "testSlot": "Test Slot",
-      "hideWhenFull": "Hide when full",
       "ignored": "Ignored",
       "uniqueInSlot": "Each property inside this slot should be unique",
       "uniqueInCreature": "Properties in this slot should be unique across the whole character",
@@ -1303,7 +1286,6 @@
     "cast": "Cast",
     "spellsPrepared": "{prepared}/{max} spells prepared",
     "changePrepared": "Change prepared spells",
-    "undefinedCard": "A property card for the {type} isn't defined. You should report this error.",
     "noCondition": "No condition specified",
     "pointBuy": "Point Buy"
   },

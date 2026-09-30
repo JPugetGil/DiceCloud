@@ -81,14 +81,12 @@ const props = defineProps({
 
 const emit = defineEmits(['click', 'change']);
 
-
 const vuetifyTheme = useTheme();
 
 const editing = ref(false);
 const hover = ref(false);
 const x = ref(0);
 const y = ref(0);
-
 
 const color = computed(() => {
   return props.model.color || vuetifyTheme.current.value.colors.primary;
@@ -116,14 +114,6 @@ const barBackgroundColor = computed(() => {
 
 const isTextLight = computed(() => {
   return isDarkColor(barBackgroundColor.value);
-  /* Change color at the halfway mark
-  const fraction = this.model.value / this.model.total;
-  if (fraction >= 0.5){
-    return isDarkColor(this.barColor);
-  } else {
-    return isDarkColor(this.barBackgroundColor);
-  }
-  */
 });
 
 function edit(e) {

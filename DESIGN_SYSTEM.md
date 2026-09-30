@@ -186,4 +186,3 @@ tree guide lines (`TreeNode.vue`, `BuildTreeNode.vue`), the white highlight of
 edges (6.8:1 and more, measured). The axe audit of the main pages flags none of
 them, but it does not reach every one (the graph is drawn on a canvas); moving
 them into themes.js as roles would give them one source and the palette check.
-`HorizontalHex.vue` is unused.

@@ -95,26 +95,6 @@
           :model-value="model.settings.discordWebhook"
           @change="(value, ack) => emit('change', {path: ['settings','discordWebhook'], value, ack})"
         />
-        <!--
-        <v-switch
-          :label="$t('creatureForm.variantEncumbrance')"
-          :input-value="model.settings.useVariantEncumbrance"
-          :error-messages="errors.useVariantEncumbrance"
-          @change="value => emit('change', {path: ['settings','useVariantEncumbrance'], value})"
-        />
-        <v-switch
-          :label="$t('creatureForm.hideSpellsTab')"
-          :input-value="model.settings.hideSpellcasting"
-          :error-messages="errors.hideSpellcasting"
-          @change="value => emit('change', {path: ['settings','hideSpellcasting'], value})"
-        />
-        <v-switch
-          :label="$t('creatureForm.swapAbilityScores')"
-          :input-value="model.settings.swapStatAndModifier"
-          :error-messages="errors.swapStatAndModifier"
-          @change="value => emit('change', {path: ['settings','swapStatAndModifier'], value})"
-        />
-        -->
       </form-section>
       <form-section :name="$t('creatureForm.libraries')">
         <smart-switch
@@ -198,7 +178,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['change']);
-
 
 const libraryCollections = ref(props.model.allowedLibraryCollections);
 const libraries = ref(props.model.allowedLibraries);

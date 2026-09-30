@@ -52,12 +52,6 @@ export default async function writeScope(creatureId, computation) {
     // Only update changed fields
     if (!EJSON.equals(variables[key], scope[key])) {
       if (!$set) $set = {};
-      /* Log detailed diffs
-      const diff = omitBy(variables[key], (v, k) => EJSON.equals(scope[key][k], v));
-      for (let subkey in diff) {
-        console.log(`${key}.${subkey}: ${variables[key][subkey]} => ${scope[key][subkey]}`)
-      }
-      */
       // Set the changed key in the creature variables
       $set[key] = scope[key];
     }
@@ -81,13 +75,3 @@ export default async function writeScope(creatureId, computation) {
     await Creatures.updateAsync({ _id: creatureId }, { $unset: { dirty: 1 } });
   }
 }
-/*
-function calculateSize(computation) {
-  const sizeEstimator = {
-    creature: computation.creature,
-    variables: computation.variables,
-    props: computation.originalPropsById,
-  };
-  return MongoInternals.NpmModule.BSON.calculateObjectSize(sizeEstimator, { checkKeys: false })
-}
-*/

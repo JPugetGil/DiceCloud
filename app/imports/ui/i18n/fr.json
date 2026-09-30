@@ -8,7 +8,6 @@
     "characterSheet": "Fiche de personnage",
     "printCharacterSheet": "Imprimer la fiche de personnage",
     "printCharacter": "Imprimer {name}",
-    "friends": "Amis",
     "signIn": "Connexion",
     "register": "Inscription",
     "account": "Compte",
@@ -21,7 +20,6 @@
     "emailVerificationSuccess": "Adresse e-mail vérifiée",
     "resetPassword": "Réinitialiser le mot de passe",
     "docNotFound": "Document introuvable",
-    "docs": "Documentation DiceCloud",
     "privacy": "Règles de confidentialité",
     "terms": "Conditions d'utilisation"
   },
@@ -143,9 +141,6 @@
     "storage": "Stockage",
     "storageUsed": "{used} utilisés sur {limit}"
   },
-  "friends": {
-    "title": "Amis"
-  },
   "functions": {
     "title": "Fonctions"
   },
@@ -209,9 +204,6 @@
   },
   "notFound": {
     "text": "Aucune page n'existe à cette adresse"
-  },
-  "notImplemented": {
-    "text": "Cette page n'est pas disponible dans cette version de DiceCloud."
   },
   "auth": {
     "email": "E-mail",
@@ -465,9 +457,6 @@
     "hitDiceMultiplierHint": "Fraction de vos dés de vie récupérée à chaque repos long",
     "discordWebhook": "URL du webhook Discord",
     "discordWebhookHint": "Le journal de cette créature sera publié sur le salon Discord",
-    "variantEncumbrance": "Utiliser la règle d'encombrement variante",
-    "hideSpellsTab": "Masquer l'onglet Sorts",
-    "swapAbilityScores": "Inverser valeurs de caractéristique et modificateurs",
     "libraries": "Bibliothèques",
     "allUserLibraries": "Toutes les bibliothèques de l'utilisateur",
     "debug": "Débogage",
@@ -493,8 +482,6 @@
     "nameRequired": "Nom obligatoire"
   },
   "deleteCharacter": {
-    "title": "Supprimer le personnage",
-    "typeName": "Saisissez « {name} » pour supprimer définitivement le personnage",
     "deleteForever": "Supprimer définitivement"
   },
   "importCharacter": {
@@ -510,8 +497,7 @@
     "buffOrCondition": "Buff ou état",
     "owner": "Propriétaire de la fiche",
     "unshareWithMe": "Ne plus partager avec moi",
-    "editDetails": "Modifier les détails",
-    "miniSheet": "Fiche de personnage"
+    "editDetails": "Modifier les détails"
   },
   "build": {
     "slots": "Emplacements",
@@ -818,8 +804,6 @@
       "choice": "Met l'action en pause et laisse l'utilisateur choisir l'enfant à appliquer"
     },
     "buff": {
-      "duration": "Durée",
-      "durationHint": "Nombre de rounds que dure le buff",
       "hideRemoveButton": "Masquer le bouton de retrait",
       "dontFreeze": "Ne pas figer les variables"
     },
@@ -1004,7 +988,6 @@
       "allowDuplicates": "Autoriser les doublons",
       "test": "Test",
       "testSlot": "Tester l'emplacement",
-      "hideWhenFull": "Masquer quand il est plein",
       "ignored": "Ignoré",
       "uniqueInSlot": "Chaque propriété de cet emplacement doit être unique",
       "uniqueInCreature": "Les propriétés de cet emplacement doivent être uniques sur tout le personnage",
@@ -1303,7 +1286,6 @@
     "cast": "Lancer",
     "spellsPrepared": "{prepared}/{max} sorts préparés",
     "changePrepared": "Changer les sorts préparés",
-    "undefinedCard": "Aucune carte n'est définie pour le type {type}. Merci de signaler cette erreur.",
     "noCondition": "Aucune condition indiquée",
     "pointBuy": "Achat de points"
   },

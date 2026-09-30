@@ -7,7 +7,7 @@ app/public/build-assets
 app/public/build-chunks
 app/private/build-assets
 
-# Settings files can hold secrets (Google OAuth, mail); pass settings to the
+# Settings files can hold secrets (Google OAuth, S3); pass settings to the
 # container with METEOR_SETTINGS instead
 app/*settings*.json
 

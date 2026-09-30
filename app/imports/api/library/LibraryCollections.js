@@ -131,15 +131,9 @@ const removeLibraryCollection = new ValidatedMethod({
   }
 });
 
-async function getLibraryIdsByCollectionId(libraryCollectionId) {
-  const libraryCollection = await LibraryCollections.findOneAsync(libraryCollectionId)
-  return libraryCollection?.libraries || [];
-}
-
 export {
   LibraryCollectionSchema,
   insertLibraryCollection,
   updateLibraryCollection,
   removeLibraryCollection,
-  getLibraryIdsByCollectionId,
 };

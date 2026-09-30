@@ -1,9 +1,12 @@
 DiceCloud
 ========
 
-This is the repo for [DiceCloud](https://dicecloud.com).
-
 DiceCloud is a free, auditable, real-time character sheet for D&D 5e.
+
+This repository, [JPugetGil/DiceCloud](https://github.com/JPugetGil/DiceCloud),
+runs the instance at [dd-dc.hemoreg.me](https://dd-dc.hemoreg.me/). It is a
+fork of [ThaumRystra/DiceCloud](https://github.com/ThaumRystra/DiceCloud),
+moved to Meteor 3 and Vue 3, with an English and a French interface.
 
 Philosophy
 ----------
@@ -53,7 +56,7 @@ installed with the same versions.
 Then, it's just a matter of cloning this repository into a folder, and running
 `meteor` in the app directory.
 
-`git clone https://github.com/ThaumRystra/DiceCloud dicecloud`  
+`git clone https://github.com/JPugetGil/DiceCloud dicecloud`  
 `cd dicecloud`  
 `cd app`  
 `meteor npm install`  
@@ -70,25 +73,36 @@ You should see this:
 => App running at http://localhost:3000/
 ```
 
-Environmental Variables
------------------------
+[http://localhost:3000/](http://localhost:3000/) then shows an empty instance of
+DiceCloud.
 
-```
-MAIL_URL=smtp://<your smtp mail url>
-METEOR_SETTINGS={ "public": { "environment": "production" } }
-MONGO_OPLOG_URL=mongodb+srv://<your url for the oplog account of your mongo database>
-MONGO_URL=mongodb+srv://<your url for the read/write account of your mongo database>
-NPM_CONFIG_PRODUCTION=true
-PROJECT_DIR=app
-ROOT_URL=https://<url of your DiceCloud instance>
-DEFAULT_LIBRARIES=<comma separated list of library ids that will be subscribed by default: "abc123,def456">
-DEFAULT_LIBRARY_COLLECTIONS=<comma separated list of library collection ids that new users are subscribed to>
-```
+Configuration
+-------------
 
-Run `meteor run --settings exampleMeteorSettings.json` to start the app with the example settings.
+A server reads its configuration from environment variables and from its
+settings, a JSON document. Locally, copy `app/exampleMeteorSettings.json` to
+`app/settings.json` (which git ignores), keep the sections you need, and run
+`meteor npm run serve` from `app/`. In production, pass the same JSON in
+`METEOR_SETTINGS`. Every section is optional.
 
-Now, visiting [http://localhost:3000/](http://localhost:3000/) should show you an
-empty instance of DiceCloud running.
+| Environment variable | |
+|----------------------|---|
+| `ROOT_URL` | The instance's public address, such as `https://dd-dc.hemoreg.me`: links in emails and Google sign-in use it |
+| `MONGO_URL` | The MongoDB database. Meteor 3.5 follows changes through change streams, so no oplog URL is needed |
+| `PORT` | The port the server listens on |
+| `METEOR_SETTINGS` | The settings, as JSON |
+| `MAIL_URL` | The SMTP server that sends password reset and email verification messages, such as `smtps://<user>:<password>@<server>:465`. Without it, the server prints those emails in its log |
+| `DEFAULT_LIBRARIES` | Comma-separated ids of the libraries new users are subscribed to |
+| `DEFAULT_LIBRARY_COLLECTIONS` | Comma-separated ids of the library collections new users are subscribed to |
+
+| Setting | |
+|---------|---|
+| `packages.service-configuration.google` | Google sign-in, see [Sign in with Google](#sign-in-with-google) |
+| `s3` | File storage, see [File storage (AWS S3)](#file-storage-aws-s3) |
+| `public.legal` | Who runs the instance, see [Privacy policy and terms of use](#privacy-policy-and-terms-of-use) |
+| `public.disallowCreatureApiImport` | `true` to turn off importing characters from another DiceCloud instance |
+| `public.maintenanceMode` | `{ "reason": "<text>" }` sends everyone but admins to a maintenance page showing the reason |
+| `galaxy.meteor.com.env` | Environment variables for a deployment to Galaxy (`meteor deploy --settings`) |
 
 Project layout
 --------------
@@ -130,8 +144,8 @@ Every account has one of three roles, which the server enforces:
 
 | Role | Characters | Libraries | File storage | Change roles |
 |------|------------|-----------|--------------|--------------|
-| Player | Up to 3 | Can subscribe, can't create libraries or collections | 25 MB | No |
-| Active player | Unlimited | Can subscribe and create | 100 MB | No |
+| Player | Up to 2 | Can subscribe, can't create libraries or collections | 25 MB | No |
+| Active player | Up to 10 | Can subscribe, can't create libraries or collections | 100 MB | No |
 | Admin | Unlimited | Can subscribe and create | 100 MB | Yes |
 
 - New accounts, and accounts created before roles existed, are players.
@@ -155,8 +169,11 @@ db.users.updateOne({ username: '<username>' }, { $addToSet: { roles: 'admin' } }
 
 The roles and their limits are defined in `app/imports/api/users/roles.ts`.
 
-Browser checks
---------------
+Tests
+-----
+
+`meteor npm test` in `app/` runs the unit tests (`*.test.js` and `*.test.ts`
+files in `app/imports/`), next to a running development server if need be.
 
 `tests/e2e/` holds Playwright checks that drive a running development server:
 pages, the character sheet, action targets, docs navigation, every property
@@ -174,9 +191,9 @@ Running with Docker
 
 The `Dockerfile` builds the app in this repository with Meteor and runs it on
 Node 24.15.0, the version Meteor 3.5.2 builds with. `docker-compose.yml` starts
-it next to a MongoDB container: set `ROOT_URL` and `MAIL_URL` in it, then run
-`docker compose up --build`. Pass settings, including the Google sign-in
-configuration below, in `METEOR_SETTINGS`. To record which commit is running,
+it next to a MongoDB container: set `ROOT_URL` in it, and `MAIL_URL` to send
+emails, then run `docker compose up --build`. Pass the settings in
+`METEOR_SETTINGS`. To record which commit is running,
 build with `--build-arg CONTAINER_VERSION=$(git rev-parse --short HEAD)`.
 
 Sign in with Google
@@ -202,7 +219,6 @@ server. Until then, accounts use a username or email and a password.
 
    ```json
    {
-     "public": { "environment": "production" },
      "packages": {
        "service-configuration": {
          "google": {
@@ -245,10 +261,11 @@ the app reads the files itself and serves them to the browser.
 }
 ```
 
-`region` defaults to `eu-west-3` (Paris). `endpoint` is only needed for an
-S3-compatible service other than AWS. The access key needs `s3:PutObject`,
-`s3:GetObject` and `s3:DeleteObject` on `arn:aws:s3:::<bucket name>/files/*`,
-and nothing else.
+The server also takes this JSON, as `{ "s3": { ... } }`, from an `S3`
+environment variable. `region` defaults to `eu-west-3` (Paris). `endpoint` is
+only needed for an S3-compatible service other than AWS. The access key needs
+`s3:PutObject`, `s3:GetObject` and `s3:DeleteObject` on
+`arn:aws:s3:::<bucket name>/files/*`, and nothing else.
 
 Privacy policy and terms of use
 -------------------------------

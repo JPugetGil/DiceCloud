@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   dicecloud-db:
     container_name: dicecloud-db
@@ -15,12 +14,15 @@ services:
     build:
       context: ./
     environment:
-    #update ROOT_URL, PORT, and MAIL_URL for your environment
+      # Update ROOT_URL and PORT for your environment
       - ROOT_URL=http://localhost:3000
       - MONGO_URL=mongodb://meteor:meteor@dicecloud-db:27017
       - PORT=3000
       - NODE_ENV=production
-      - METEOR_SETTINGS={"public":{"environment":"production"}}
-      - MAIL_URL=smtp://EMAIL:PASSWORD@SERVER:PORT
+      # Settings as JSON (Google sign-in, S3, legal notices): see the README
+      - METEOR_SETTINGS={}
+      # SMTP server for password reset and email verification messages. Without
+      # it, Meteor prints those emails in the server log instead of sending them
+      # - MAIL_URL=smtps://<user>:<password>@<smtp server>:465
     ports:
       - '3000:3000' #The internal port should match the port set in the environmental variables

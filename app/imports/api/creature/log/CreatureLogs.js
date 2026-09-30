@@ -112,35 +112,6 @@ function logWebhook({ log, creature }) {
   }
 }
 
-const insertCreatureLog = new ValidatedMethod({
-  name: 'creatureLogs.methods.insert',
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  validate: new SimpleSchema({
-    log: CreatureLogSchema.omit('date'),
-  }).validator(),
-  async run({ log }) {
-    const creatureId = log.creatureId;
-    const creature = await Creatures.findOneAsync(creatureId, {
-      fields: {
-        readers: 1,
-        writers: 1,
-        owner: 1,
-        'settings.discordWebhook': 1,
-        name: 1,
-        avatarPicture: 1,
-      }
-    });
-    await assertEditPermission(creature, this.userId);
-    // Build the new log
-    let id = await insertCreatureLogWork({ log, creature, method: this })
-    return id;
-  },
-});
-
 export async function insertCreatureLogWork({ log, creature, method }) {
   // Build the new log
   if (typeof log === 'string') {
@@ -166,7 +137,6 @@ export async function insertCreatureLogWork({ log, creature, method }) {
   }
   return id;
 }
-
 
 function equalIgnoringWhitespace(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return a === b;
@@ -256,4 +226,4 @@ const logRoll = new ValidatedMethod({
 });
 
 export default CreatureLogs;
-export { CreatureLogSchema, insertCreatureLog, logRoll, PER_CREATURE_LOG_LIMIT };
+export { CreatureLogSchema, logRoll, PER_CREATURE_LOG_LIMIT };

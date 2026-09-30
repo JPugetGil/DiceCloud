@@ -13,14 +13,6 @@ import { Tracker } from 'meteor/tracker';
 const COMPUTE_DEBOUNCE_TIME = 100; // ms
 export const loadedCreatures: Map<string, LoadedCreature> = new Map(); // creatureId => {creature, properties, etc.}
 
-// function logLoadedCreatures() {
-//   let creatureLoadString = '';
-//   for (const [key, value] of loadedCreatures.entries()) {
-//     creatureLoadString += `${key}: ${value.subs.size}\n`;
-//   }
-//   console.log(creatureLoadString);
-// }
-
 export function loadCreature(creatureId: string, subscription: Tracker.Computation) {
   if (!creatureId) throw 'creatureId is required';
   let creature = loadedCreatures.get(creatureId);
@@ -195,14 +187,6 @@ export async function getVariables(creatureId: string) {
   const variables = await CreatureVariables.findOneAsync({ _creatureId: creatureId });
   // console.timeEnd(`Cache miss on variables: ${creatureId}`);
   return variables;
-}
-
-export async function replaceLinkedVariablesWithProps(variables: any) {
-  for (const key in variables) {
-    const propId = variables[key]?._propId;
-    if (!propId) continue;
-    variables[key] = await getSingleProperty(variables._creatureId, propId);
-  }
 }
 
 export async function getPropertyAncestors(creatureId: string, propertyId: string) {

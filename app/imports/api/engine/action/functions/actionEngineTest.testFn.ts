@@ -7,7 +7,7 @@ import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature, loadedCreatures, unloadAllCreatures } from '/imports/api/engine/loadCreatures';
 import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
-import { LogContent, Mutation, Removal, Update } from '/imports/api/engine/action/tasks/TaskResult';
+import { LogContent, Mutation, Update } from '/imports/api/engine/action/tasks/TaskResult';
 import inputProvider from './userInput/inputProviderForTests.testFn';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
@@ -126,32 +126,6 @@ export function allUpdates(action: EngineAction) {
   });
   return updates;
 }
-/**
- * Get all the inserts in all mutations in the result of an Engine Action
- */
-export function allInserts(action: EngineAction) {
-  const inserts: any[] = [];
-  allMutations(action).forEach(mutation => {
-    mutation.inserts?.forEach(update => {
-      inserts.push(update);
-    });
-  });
-  return inserts;
-}
-
-/**
- * Get all the removals in all mutations in the result of an Engine Action
- */
-export function allRemovals(action: EngineAction) {
-  const removals: Removal[] = [];
-  allMutations(action).forEach(mutation => {
-    mutation.removals?.forEach(update => {
-      removals.push(update);
-    });
-  });
-  return removals
-}
-
 /**
  * Get all the log content in all mutations in the result of an Engine Action
  */

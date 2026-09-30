@@ -174,13 +174,6 @@ defineEmits(['selected']);
 const context = inject('context', {});
 
 const expanded = ref(props.depth <= 2);
-/* expand if there's a slot needing attention:
-  this.doc._descendantCanFill || (
-    this.doc.type === 'propertySlot' &&
-    this. node.quantityExpected?.value === 0 ||
-    (this.doc.quantityExpected?.value > 1 && this.doc.spaceLeft > 0)
-  )
-*/
 
 const isSlot = computed(() => {
   return props.doc.type === 'propertySlot';
@@ -287,21 +280,8 @@ async function remove(model) {
     box-shadow: -2px 0px 0px 0px #808080;
     margin-left: 0;
   }
-  .handle {
-    cursor: move;
-  }
-  .empty .drag-area {
-    box-shadow: -2px 0px 0px 0px rgb(128, 128, 128, 0.4);
-  }
   .empty .expand-button {
     opacity: 0.4;
-  }
-  .found {
-    background: rgba(var(--v-theme-primary), 0.1) !important;
-  }
-  .ghost {
-    opacity: 0.5;
-    background: rgba(251, 0, 0, 0.3);
   }
   .v-icon.v-icon--disabled {
     opacity: 0;

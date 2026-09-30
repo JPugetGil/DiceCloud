@@ -1,9 +1,5 @@
 <template>
   <div class="buff-viewer">
-    <!--<property-field
-      :name="$t('viewers.duration')"
-      :value="model.duration"
-    />-->
     <v-row density="compact">
       <property-field
         v-if="model.target === 'self'"

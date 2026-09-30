@@ -145,7 +145,7 @@
         <v-btn
           v-for="btn in [
             {link: 'https://discord.gg/qEvdfeB', name: 'Discord'},
-            {link: 'https://github.com/ThaumRystra/DiceCloud', name: 'Github'},
+            {link: 'https://github.com/JPugetGil/DiceCloud', name: 'Github'},
           ]"
           :key="btn.name"
           :href="btn.link"

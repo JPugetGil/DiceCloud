@@ -87,7 +87,6 @@
                   md="6"
                 >
                   <text-field
-                    ref="focusFirst"
                     :label="$t('forms.pointBuy.rowName')"
                     :model-value="row.name"
                     :error-messages="errors.values && errors.values[i] && errors.values[i].name"
@@ -194,7 +193,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['change', 'push', 'pull']);
-
 
 const context = inject('context', {});
 

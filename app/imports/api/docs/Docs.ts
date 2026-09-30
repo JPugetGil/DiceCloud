@@ -10,7 +10,6 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { restore } from '/imports/api/parenting/softRemove';
 import { getFilter, rebuildNestedSets, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
 import ChildSchema, { TreeDoc } from '/imports/api/parenting/ChildSchema';
-import { withoutLegacyOrigin } from '/imports/api/docs/docUrls';
 import { Mongo } from 'meteor/mongo';
 
 // Give the docs a common root, so they can share parenting logic
@@ -149,12 +148,6 @@ if (Meteor.isClient) {
         console.error('Error loading default docs:', error);
       }
     } else {
-      // Docs seeded from older defaults link to dicecloud.com: point them at
-      // this server
-      const legacyDocs = await Docs.find({ description: { $regex: 'https://dicecloud\\.com' } }).fetchAsync();
-      for (const doc of legacyDocs) {
-        await Docs.updateAsync(doc._id, { $set: { description: withoutLegacyOrigin(doc.description) } });
-      }
       try {
         await updateSeededDocs();
       } catch (error) {
@@ -236,38 +229,6 @@ const updateDoc = new ValidatedMethod({
   },
 });
 
-const pushToDoc = new ValidatedMethod({
-  name: 'docs.push',
-  validate: null,
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run({ _id, path, value }) {
-    await assertDocsEditPermission(this.userId);
-    return await Docs.updateAsync(_id, {
-      $push: { [path.join('.')]: value },
-    });
-  }
-});
-
-const pullFromDoc = new ValidatedMethod({
-  name: 'docs.pull',
-  validate: null,
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run({ _id, path, itemId }) {
-    await assertDocsEditPermission(this.userId);
-    return await Docs.updateAsync(_id, {
-      $pull: { [path.join('.')]: { _id: itemId } },
-    });
-  }
-});
-
 const softRemoveDoc = new ValidatedMethod({
   name: 'docs.softRemove',
   validate: new SimpleSchema({
@@ -334,8 +295,6 @@ export {
   DocSchema,
   insertDoc,
   updateDoc,
-  pushToDoc,
-  pullFromDoc,
   softRemoveDoc,
   restoreDoc,
   organizeDoc,

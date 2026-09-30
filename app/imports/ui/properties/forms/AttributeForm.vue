@@ -18,7 +18,6 @@
         md="6"
       >
         <computed-field
-          ref="focusFirst"
           :label="$t('forms.attribute.baseValue')"
           class="base-value-field"
           :hint="$t('forms.attribute.baseValueHint')"

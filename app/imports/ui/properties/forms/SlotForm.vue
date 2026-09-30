@@ -108,21 +108,6 @@
     <form-sections type="slot">
       <form-section :name="$t('forms.behavior')">
         <v-row density="compact">
-          <!--
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <smart-switch
-              :label="$t('forms.slot.hideWhenFull')"
-              style="width: 200px; flex-grow: 0;"
-              class="mx-2"
-              :model-value="model.hideWhenFull"
-              :error-messages="errors.hideWhenFull"
-              @change="(value, ack) => change('hideWhenFull', value, ack)"
-            />
-          </v-col>
-          -->
           <v-col
             cols="12"
             md="6"

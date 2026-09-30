@@ -582,55 +582,6 @@ export async function moveDocBetweenRoots(doc: TreeDoc, collection: Mongo.Collec
   return writeBulkOperations(collection, bulkOps);
 }
 
-/**
- * Changes the doc to be a child of the parent, and then rebuilds the nested sets of the roots
- * of both doc and parent
- * @deprecated Use moveDocWithinRoot or moveDocBetweenRoots instead
- * @param doc The doc to move
- * @param parent The new parent of the doc, null to move the doc to the root of the tree
- * @param collection 
- * @returns 
- */
-export async function changeParent(doc: TreeDoc, parent: TreeDoc | null, collection: Mongo.Collection<TreeDoc>, order?: number) {
-  // Skip if we aren't changing the parent id
-  if (doc.parentId === parent?._id) return;
-
-  // Store the original roots
-  const rootChange = parent && doc.root.id !== parent.root?.id;
-
-  // Check that the doc isn't becoming its own ancestor
-  if (parent && parent.left > doc.left && parent.right < doc.right) {
-    throw new Meteor.Error('invalid parenting', 'A doc can\'t be its own ancestor');
-  }
-
-  // update the document's parenting and root if necessary
-  let update: Mongo.Modifier<TreeDoc>;
-  if (!parent) {
-    update = {
-      $unset: { parentId: 1 }
-    };
-  } else {
-    update = {
-      $set: { parentId: parent?._id }
-    };
-  }
-  if (rootChange && update.$set) {
-    update.$set.root = parent.root;
-  }
-  if (order) {
-    if (!update.$set) update.$set = {};
-    update.$set.left = order;
-  }
-
-  await collection.updateAsync(doc._id, update);
-
-  // Rebuild the nested sets of everything on the root document(s)
-  await rebuildNestedSets(collection, doc.root.id);
-  if (rootChange) {
-    await rebuildNestedSets(collection, parent.root.id);
-  }
-}
-
 export function compareOrder(docA, docB) {
   // < 0 if A comes before B
   // = 0 if A and B are the same order
@@ -667,13 +618,6 @@ export function hasAncestorRelationship(propA: TreeDoc, propB: TreeDoc): boolean
 export function isAncestor(propA?: TreeDoc, propB?: TreeDoc): boolean {
   if (!propA || !propB) return false;
   return propA.left < propB.left && propA.right > propB.right;
-}
-
-/**
- * @deprecated Just set left to Number.MAX_SAFE_INTEGER instead
- */
-export function setDocToLastOrder(collection: Mongo.Collection<TreeDoc>, doc: TreeDoc) {
-  doc.left = Number.MAX_SAFE_INTEGER;
 }
 
 export async function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, rootId: string) {

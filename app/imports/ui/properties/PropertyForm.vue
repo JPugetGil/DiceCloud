@@ -8,7 +8,6 @@
       >
         <text-field
           v-if="schemaHasName"
-          ref="focusFirst"
           :label="$t('common.name')"
           style="flex-basis: 320px;"
           :model-value="model.name"
@@ -222,7 +221,7 @@
   All of the shared fields common to all properties go in this form,
   property-specific forms are included as dynamic components
 */
-import { ref, computed, inject } from 'vue';
+import { computed, inject } from 'vue';
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
 import propertyFormIndex from '/imports/ui/properties/forms/shared/propertyFormIndex';
 import IconColorMenu from '/imports/ui/properties/forms/shared/IconColorMenu.vue';
@@ -272,19 +271,6 @@ const schemaHasName = computed(() => {
   const schema = propertySchemasIndex[props.model.type];
   return schema ? schema.allowsKey('name') : true;
 });
-
-const focusFirst = ref(null);
-
-/** Disable auto-focus, it gets in the way more than it helps
-// Don't autofocus on mobile, it brings up the on-screen keyboard
-if (this.$vuetify.display.smAndDown) return;
-
-setTimeout(() => {
-  if (this.$refs.focusFirst && this.$refs.focusFirst.focus) {
-    this.$refs.focusFirst.focus()
-  }
-}, 300);
-*/
 
 function selectSubProperty(_id) {
   dialogStackStore.pushDialogStack({

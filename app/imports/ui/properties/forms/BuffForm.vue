@@ -8,16 +8,6 @@
         $emit('change', {path: ['description', ...path], value, ack})"
     />
 
-    <!-- Duration not implemented yet
-    <computed-field
-      :label="$t('forms.buff.duration')"
-      :hint="$t('forms.buff.durationHint')"
-      :model="model.duration"
-      :error-messages="errors.duration"
-      @change="({path, value, ack}) =>
-        $emit('change', {path: ['duration', ...path], value, ack})"
-    />
-    -->
     <smart-toggle
       v-if="!model.applied"
       :label="$t('forms.targetCreature')"

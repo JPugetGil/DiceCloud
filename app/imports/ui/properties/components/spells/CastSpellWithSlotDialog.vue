@@ -6,7 +6,6 @@
       </v-toolbar-title>
       <v-spacer />
       <text-field
-        ref="focusFirst"
         :label="$t('common.name')"
         prepend-inner-icon="mdi-magnify"
         regular
@@ -231,8 +230,6 @@ const booleanFilters = ref({
   concentration: { name: 'spellComponents.concentration', enabled: false, value: true },
   ritual: { name: 'spellComponents.ritual', enabled: false, value: true },
 });
-
-const focusFirst = ref(null);
 
 const editPermission = autorun(() => hasEditPermission(Creatures.findOne(props.creatureId), Meteor.user())).result;
 
