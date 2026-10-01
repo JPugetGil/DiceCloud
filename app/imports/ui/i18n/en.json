@@ -210,7 +210,14 @@
     "selectLibraryProperty": "Select Library Property",
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
-    "playersCantCreate": "Everyone can subscribe to libraries. Only admins can create them."
+    "playersCantCreate": "Everyone can subscribe to libraries. Only admins can create them.",
+    "searchCommunity": "Search libraries",
+    "sortPopular": "Popular",
+    "sortName": "Name",
+    "singleLibrary": "Library",
+    "subscribed": "Subscribed",
+    "open": "Open",
+    "noCommunityMatch": "No library matches this search"
   },
   "maintenance": {
     "underMaintenance": "DiceCloud is currently under maintenance",
@@ -457,6 +464,20 @@
     "build": "Build",
     "tree": "Tree"
   },
+  "emptyTabs": {
+    "actionsTitle": "No actions yet",
+    "actionsText": "Attacks and abilities you can use show here. Your class, race and items give them, or add your own.",
+    "actionsAdd": "Add an action",
+    "spellsTitle": "No spells yet",
+    "spellsText": "Your class gives you spell lists: pick spells with the + under each list. You can also add a spell list yourself.",
+    "spellsAdd": "Add a spell list",
+    "featuresTitle": "No features yet",
+    "featuresText": "The features of your race, class and background show here as you build the character.",
+    "featuresAdd": "Add a feature",
+    "inventoryTitle": "The inventory is empty",
+    "inventoryText": "Your class and background give your starting equipment. Add items or containers yourself with the + button.",
+    "inventoryAdd": "Add an item"
+  },
   "creatureForm": {
     "alignment": "Alignment",
     "gender": "Gender",
@@ -488,14 +509,20 @@
   "check": {
     "ability": "Ability",
     "skill": "Skill",
-    "dc": "DC"
+    "dc": "DC",
+    "normal": "Normal",
+    "enterToRoll": "Press Enter to roll",
+    "dcValue": "DC {dc}",
+    "check": "Check"
   },
   "newCharacter": {
     "title": "New Character",
     "biography": "Biography",
     "level": "Level",
     "defaultName": "New Character",
-    "nameRequired": "Name required"
+    "nameRequired": "Name required",
+    "color": "Colour",
+    "chooseLibraries": "Choose libraries"
   },
   "deleteCharacter": {
     "deleteForever": "Delete forever"
@@ -522,7 +549,15 @@
     "milestoneLevels": "{count} Milestone levels",
     "xp": "{xp} XP",
     "getMissingLevels": "Get Missing Levels",
-    "levelUp": "Level Up"
+    "levelUp": "Level Up",
+    "choose": "Choose…",
+    "chooseCount": "Choose {count}",
+    "assignScores": "Assign scores",
+    "hideCard": "Hide this card",
+    "hideCardHint": "Hide this card: it stays in the hidden cards menu of the Slots card",
+    "progress": "{done} of {total} choices made",
+    "incomplete": "This character isn't finished: {count} choice left on the Build tab. | This character isn't finished: {count} choices left on the Build tab.",
+    "continueBuilding": "Continue building"
   },
   "inventory": {
     "weightCarried": "Weight Carried",
@@ -596,7 +631,7 @@
   },
   "slots": {
     "slotCount": "{count} slots",
-    "requirementsNotMet": "Requirements of {count} properties were not met",
+    "requirementsNotMet": "{count} option hidden: its requirements aren't met | {count} options hidden: their requirements aren't met",
     "closeTest": "Close Test",
     "withLibraryTags": "{type} with library tags:",
     "cantFind": "Can't find what you're looking for?",

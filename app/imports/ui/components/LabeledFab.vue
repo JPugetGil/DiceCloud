@@ -1,26 +1,40 @@
 <template>
-  <!-- elevated: speed dials sit in toolbars, which default buttons to `text` -->
-  <v-btn
-    class="rounded-circle"
-    size="small"
-    variant="elevated"
-    v-bind="$attrs"
-    :disabled="disabled"
-    :style="disabled ? 'background-color: #616161 !important;' : ''"
-    @click="$emit('click')"
-  >
-    <v-icon>{{ icon }}</v-icon>
-    <span id="label">
+  <div class="labeled-fab">
+    <!-- elevated: speed dials sit in toolbars, which default buttons to `text` -->
+    <v-btn
+      class="rounded-circle"
+      size="small"
+      variant="elevated"
+      v-bind="$attrs"
+      :aria-label="label"
+      :disabled="disabled"
+      :style="disabled ? 'background-color: #616161 !important;' : ''"
+      @click="$emit('click')"
+    >
+      <v-icon>{{ icon }}</v-icon>
+    </v-btn>
+    <!--
+      Beside the button, not in it: Vuetify buttons hide their overflow, which
+      clipped a label placed inside away entirely
+    -->
+    <span
+      v-if="label"
+      class="labeled-fab__label bg-surface-variant text-label-medium rounded elevation-2 px-2 py-1"
+      :class="{ 'cursor-pointer': !disabled }"
+      @click="!disabled && $emit('click')"
+    >
       {{ label }}
     </span>
-  </v-btn>
+  </div>
 </template>
 
 <script setup>
 /*
- * Because speed dials only work well with v-btn's as children, this hacky
- * component creates a v-btn with a label.
+ * A small speed dial button with its label to its left, as Material's speed
+ * dials show them.
  */
+defineOptions({ inheritAttrs: false });
+
 defineProps({
   icon: {
     type: String,
@@ -37,28 +51,16 @@ defineEmits(['click']);
 </script>
 
 <style scoped>
-  /*
-   *  Remove all button formatting and replace it with label formatting
-   */
-  #label {
-    left: initial;
-    top: initial;
-    bottom: initial;
-    transform: initial;
-    position: absolute;
-    font-weight: initial;
-    text-transform: initial;
-    cursor: initial;
-    opacity: initial;
-    pointer-events: none;
-    right: 56px;
-    background-color: #616161;
-    border-radius: 2px;
-    padding: 5px 8px;
-    color: white;
-    overflow: hidden;
-    white-space: nowrap;
-    font-size: 12px;
-    content: "meep";
-  }
+.labeled-fab {
+  position: relative;
+  display: inline-flex;
+}
+
+.labeled-fab__label {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
 </style>

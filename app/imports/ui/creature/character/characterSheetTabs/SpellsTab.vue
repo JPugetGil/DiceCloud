@@ -1,5 +1,14 @@
 <template>
   <div class="spells">
+    <empty-tab-state
+      v-if="isEmpty"
+      :creature-id="creatureId"
+      icon="mdi-book-open-page-variant-outline"
+      :title="$t('emptyTabs.spellsTitle')"
+      :text="$t('emptyTabs.spellsText')"
+      type="spellList"
+      :add-label="$t('emptyTabs.spellsAdd')"
+    />
     <column-layout wide-columns>
       <folder-group-card
         v-for="folder in startFolders"
@@ -52,6 +61,7 @@
 import { ref, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import ColumnLayout from '/imports/ui/components/ColumnLayout.vue';
+import EmptyTabState from '/imports/ui/creature/character/characterSheetTabs/EmptyTabState.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import SpellListCard from '/imports/ui/properties/components/spells/SpellListCard.vue';
 import SpellList from '/imports/ui/properties/components/spells/SpellList.vue';
@@ -165,6 +175,10 @@ const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.fin
 })).result;
 
 
+
+// Nothing to show yet: say what goes here and where it comes from
+// Spell slot attributes alone (all at 0 before a caster class) are no content
+const isEmpty = computed(() => !hasSpells.value && !spellLists.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
 
 <style lang="css" scoped>

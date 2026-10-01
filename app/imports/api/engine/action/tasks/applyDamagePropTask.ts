@@ -110,7 +110,7 @@ export default async function applyDamagePropTask(
         name: title,
         value: `${getPropertyTitle(targetProp)} set from ${targetProp.value} to ${value}`,
         inline: true,
-        ...task.silent && { silenced: true },
+        ...(task.silent || isHidden(targetProp)) && { silenced: true },
       }]
     });
     if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
@@ -139,7 +139,7 @@ export default async function applyDamagePropTask(
           name: increment >= 0 ? `${attributeTypeName} damaged` : `${attributeTypeName} restored`,
           value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
           inline: true,
-          ...task.silent && { silenced: true },
+          ...(task.silent || isHidden(targetProp)) && { silenced: true },
         }]
       });
       if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
@@ -148,6 +148,12 @@ export default async function applyDamagePropTask(
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.after', userInput);
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.afterChildren', userInput);
   return increment;
+}
+
+// A utility attribute is never displayed (a tutorial's progress, a counter):
+// its changes are logged silenced, hidden unless the reader asks for them
+function isHidden(targetProp) {
+  return targetProp.attributeType === 'utility';
 }
 
 // Update the scope with the attribute, but updated to the new value, so later

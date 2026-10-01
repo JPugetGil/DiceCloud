@@ -1,5 +1,14 @@
 <template>
   <div class="inventory">
+    <empty-tab-state
+      v-if="isEmpty"
+      :creature-id="creatureId"
+      icon="mdi-bag-personal-outline"
+      :title="$t('emptyTabs.inventoryTitle')"
+      :text="$t('emptyTabs.inventoryText')"
+      type="item"
+      :add-label="$t('emptyTabs.inventoryAdd')"
+    />
     <column-layout wide-columns>
       <folder-group-card
         v-for="folder in startFolders"
@@ -121,6 +130,7 @@ import { autorun } from 'vue-meteor-tracker';
 import { getParentByTagSync } from '/imports/api/creature/creatureProperties/methods/getParentByTag';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import ColumnLayout from '/imports/ui/components/ColumnLayout.vue';
+import EmptyTabState from '/imports/ui/creature/character/characterSheetTabs/EmptyTabState.vue';
 import ContainerCard from '/imports/ui/properties/components/inventory/ContainerCard.vue';
 import ToolbarCard from '/imports/ui/components/ToolbarCard.vue';
 import ItemList from '/imports/ui/properties/components/inventory/ItemList.vue';
@@ -244,6 +254,9 @@ const weightCarried = computed(() => {
     variables.value.weightCarried.value || 0
   );
 });
+
+// Nothing to show yet: say what goes here and where it comes from
+const isEmpty = computed(() => !containers.value?.length && !carriedItemIds.value?.length && !equippedItemIds.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
 
 <style lang="css" scoped>

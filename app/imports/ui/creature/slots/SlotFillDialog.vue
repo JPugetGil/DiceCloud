@@ -11,34 +11,33 @@
       <v-text-field
         v-model="searchInput"
         prepend-inner-icon="mdi-magnify"
+        :placeholder="$t('common.search')"
         clearable
         hide-details
         class="flex-grow-0"
         style="flex-basis: 300px;"
         :loading="searchLoading"
-        @change="searchValue = (searchInput && searchInput.trim()) || undefined"
+        @keyup.enter="applySearch.flush()"
         @click:clear="searchValue = undefined"
       />
+      <!-- What the slot accepts, for library authors: kept out of the way -->
+      <v-btn
+        variant="text"
+        icon
+        :aria-label="slotFilterText"
+      >
+        <v-icon>mdi-information-outline</v-icon>
+        <v-tooltip
+          activator="parent"
+          location="bottom"
+          :text="slotFilterText"
+        />
+      </v-btn>
     </template>
     <property-description
       text
       :string="model?.description"
     />
-    <p class="my-0">
-      {{ $t('slots.withLibraryTags', { type: slotPropertyTypeName }) }}
-      <property-tags
-        v-for="(tags, index) in tagsSearched.or"
-        :key="index + 'tags'"
-        :tags="tags"
-        :prefix="index ? $t('common.or') : undefined"
-      />
-      <property-tags
-        v-for="(tags, index) in tagsSearched.not"
-        :key="index + 'not'"
-        :tags="tags"
-        :prefix="$t('common.not')"
-      />
-    </p>
     <v-fade-transition>
       <div
         v-if="!slotFillersReady"
@@ -55,6 +54,7 @@
         variant="accordion"
         tile
         multiple
+        class="filler-list"
       >
         <template
           v-for="libraryNode in [...(selectedExcludedNodes || []), ...(libraryNodes || [])]"
@@ -87,18 +87,28 @@
                     @click.stop
                   />
                 </div>
-                <div class="d-flex flex-1-1 flex-column">
-                  <div class="d-flex flex-1-1 align-center">
-                    <tree-node-view :model="libraryNode" />
+                <div class="d-flex flex-1-1 flex-column filler-text">
+                  <div class="d-flex flex-1-1 align-center ga-2 filler-text">
+                    <tree-node-view
+                      :model="libraryNode"
+                      class="flex-grow-0"
+                    />
                     <div
                       v-if="libraryNode._disabledBySlotFillerCondition"
-                      class="text-error text-no-wrap text-truncate"
+                      class="text-error text-body-small text-no-wrap text-truncate"
                     >
                       {{ libraryNode._conditionError }}
                     </div>
+                    <v-spacer />
+                    <div class="text-label-small text-medium-emphasis text-no-wrap text-truncate flex-shrink-1">
+                      {{ libraryNames?.[libraryNode.root.id ] }}
+                    </div>
                   </div>
-                  <div class="text-body-small text-no-wrap text-truncate">
-                    {{ libraryNames?.[libraryNode.root.id ] }}
+                  <div
+                    v-if="preview(libraryNode)"
+                    class="text-body-small text-medium-emphasis text-truncate"
+                  >
+                    {{ preview(libraryNode) }}
                   </div>
                 </div>
                 <div
@@ -146,7 +156,7 @@
     <template v-if="!showDisabled && disabledNodeCount">
       <div class="d-flex flex-1-1 flex-column align-center justify-center ma-3 mt-8">
         <div>
-          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }) }}
+          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }, disabledNodeCount) }}
         </div>
         <v-btn
           class="mt-2"
@@ -199,9 +209,12 @@
         :disabled="!dummySlot && !selectedNodeIds.length"
         @click="dialogStackStore.popDialogStack(selectedNodeIds)"
       >
-        <template v-if="model?.spaceLeft">
+        <span
+          v-if="model?.spaceLeft"
+          class="me-2"
+        >
           {{ totalQuantitySelected }} / {{ model.spaceLeft }}
-        </template>
+        </span>
         <template v-if="slotId">
           {{ $t('common.insert') }}
         </template>
@@ -228,9 +241,9 @@ import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyD
 import evaluateSlotFillerConditions from '/imports/ui/creature/slots/slotFillerConditions';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/ui/library/LibraryNodeExpansionContent.vue';
-import PropertyTags from '/imports/ui/properties/viewers/shared/PropertyTags.vue';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
-import { clone, difference } from 'lodash';
+import { clone, difference, debounce } from 'lodash';
+import firstSentence from '/imports/ui/utility/firstSentence';
 import getDefaultSlotFiller from '/imports/api/library/methods/getDefaultSlotFiller';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
@@ -267,10 +280,24 @@ provide('context', reactive({
   get creatureId() { return props.creatureId; }
 }));
 
-const { ready: slotFillersReady, sub: slotFillersSubHandle } = subscribe(() => ['slotFillers', props.slotId || props.dummySlot?._id, searchValue.value || undefined, !!props.dummySlot]);
+// Keep the object: its `sub` is a getter for the current Meteor handle, which
+// changes when the arguments do. Destructured, it stayed the first handle, so
+// a search read a stopped subscription's data (an empty list) and setData
+// (load more, search terms) never reached the server
+const slotFillersSubscription = subscribe(() => ['slotFillers', props.slotId || props.dummySlot?._id, searchValue.value || undefined, !!props.dummySlot]);
+const slotFillersReady = slotFillersSubscription.ready;
 subscribe(() => ['selectedFillers', props.slotId || props.dummySlot?._id, selectedNodeIds.value, !!props.dummySlot]);
 
 const searchLoading = computed(() => !!searchValue.value && !slotFillersReady.value);
+
+// Search as the player types, once they pause; Enter searches at once
+const applySearch = debounce(() => {
+  searchValue.value = (searchInput.value && searchInput.value.trim()) || undefined;
+}, 350);
+watch(searchInput, applySearch);
+
+// A filler's first sentence, from its summary or else its description
+const preview = node => firstSentence(node.summary?.text || node.description?.text);
 
 const model = autorun(() => {
   if (props.slotId) {
@@ -291,11 +318,11 @@ const variables = autorun(() => {
 
 // autorun, not computed: subscription data is read from minimongo, which only
 // Tracker can react to
-const currentLimit = autorun(() => subscriptionData(slotFillersSubHandle, 'limit') || 50).result;
-const countAll = autorun(() => subscriptionData(slotFillersSubHandle, 'countAll')).result;
+const currentLimit = autorun(() => subscriptionData(slotFillersSubscription.sub, 'limit') || 50).result;
+const countAll = autorun(() => subscriptionData(slotFillersSubscription.sub, 'countAll')).result;
 
 const libraryNodeFilter = autorun(() => {
-  const filterString = subscriptionData(slotFillersSubHandle, 'libraryNodeFilter');
+  const filterString = subscriptionData(slotFillersSubscription.sub, 'libraryNodeFilter');
   if (!filterString) return;
   return EJSON.parse(filterString);
 }).result;
@@ -444,6 +471,16 @@ const slotPropertyTypeName = computed(() => {
   return propName;
 });
 
+// "Property with library tags: race, LoV OR … NOT …", the slot's filter
+const slotFilterText = computed(() => {
+  const { or, not } = tagsSearched.value;
+  return [
+    t('slots.withLibraryTags', { type: slotPropertyTypeName.value }),
+    or.map(tags => tags.join(', ')).join(` ${t('common.or')} `),
+    ...not.map(tags => `${t('common.not')} ${tags.join(', ')}`),
+  ].filter(Boolean).join(' ');
+});
+
 watch(activeCount, (val) => {
   if (!slotFillersReady.value) return;
   if (
@@ -456,7 +493,7 @@ watch(activeCount, (val) => {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  slotFillersSubHandle.value?.setData('limit', currentLimit.value + 50);
+  slotFillersSubscription.sub?.setData('limit', currentLimit.value + 50);
 }
 
 function openPropertyDetails(id) {
@@ -519,6 +556,17 @@ function insertCustomFiller() {
 <style lang="css" scoped>
 .disabled {
   opacity: 0.7;
+}
+
+/* Two lines per option: name and library, then a one-line preview */
+.filler-list :deep(.v-expansion-panel-title) {
+  min-height: 52px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.filler-text {
+  min-width: 0;
 }
 </style>
 

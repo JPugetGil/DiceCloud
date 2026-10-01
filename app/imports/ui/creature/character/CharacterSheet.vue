@@ -188,6 +188,8 @@ onMounted(() => {
         if (initializing) return;
         if (appStore.rightDrawer) return;
         if (dialogStackStore.dialogs.length) return;
+        // Nothing to show: every line is silenced (a hidden attribute changed)
+        if (content?.length && content.every(line => line.silenced)) return;
         snackbar({ content });
       },
     });

@@ -24,14 +24,31 @@
     </v-card-text>
     <v-spacer />
     <v-card-actions>
+      <v-btn
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-plus"
+        :disabled="context.editPermission === false"
+        :data-id="`slot-card-choose-${model._id}`"
+        @click.stop="fillSlot"
+      >
+        {{ chooseLabel }}
+      </v-btn>
       <v-spacer />
       <v-btn
         variant="text"
         icon
-        color="accent"
+        size="small"
+        :aria-label="$t('build.hideCard')"
+        :disabled="context.editPermission === false"
         @click.stop="ignoreProp"
       >
-        <v-icon>mdi-close</v-icon>
+        <v-icon>mdi-eye-off-outline</v-icon>
+        <v-tooltip
+          activator="parent"
+          location="top"
+          :text="$t('build.hideCardHint')"
+        />
       </v-btn>
     </v-card-actions>
   </v-card>
@@ -48,6 +65,7 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import useThemeState from '/imports/ui/composables/useThemeState';
+import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
 
@@ -64,6 +82,16 @@ const context = inject('context', {});
 const vuetifyTheme = useTheme();
 
 const hover = ref(false);
+
+const { t } = useI18n();
+
+// How many choices the slot still expects, when more than one
+const chooseLabel = computed(() => {
+  const left = props.model?.spaceLeft;
+  return Number.isFinite(left) && left > 1
+    ? t('build.chooseCount', { count: left })
+    : t('build.choose');
+});
 
 const accentColor = computed(() => {
   if (props.model?.color) {

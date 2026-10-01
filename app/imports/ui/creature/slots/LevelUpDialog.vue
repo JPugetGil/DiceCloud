@@ -16,7 +16,8 @@
         class="flex-grow-0"
         style="flex-basis: 300px;"
         :loading="searchLoading"
-        @change="searchValue = searchInput || undefined"
+        :placeholder="$t('common.search')"
+        @keyup.enter="applySearch.flush()"
         @click:clear="searchValue = undefined"
       />
     </template>
@@ -131,7 +132,7 @@
     <template v-if="!showDisabled && disabledNodeCount">
       <div class="d-flex flex-1-1 flex-column align-center justify-center ma-3">
         <div>
-          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }) }}
+          {{ $t('slots.requirementsNotMet', { count: disabledNodeCount }, disabledNodeCount) }}
         </div>
         <v-btn
           class="mt-2"
@@ -186,7 +187,7 @@ import evaluateSlotFillerConditions from '/imports/ui/creature/slots/slotFillerC
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/ui/library/LibraryNodeExpansionContent.vue';
 import PropertyTags from '/imports/ui/properties/viewers/shared/PropertyTags.vue';
-import { clone, difference, isEqual } from 'lodash';
+import { clone, difference, isEqual, debounce } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
@@ -218,9 +219,20 @@ provide('context', reactive({
   creatureId: computed(() => props.creatureId),
 }));
 
-const { ready: classFillersReady, sub: classFillersSubHandle } = subscribe(() => ['classFillers', props.classId, searchValue.value || undefined]);
+// Keep the object: its `sub` is a getter for the current Meteor handle, which
+// changes when the arguments do. Destructured, it stayed the first handle, so
+// a search read a stopped subscription's data (an empty list) and setData
+// (load more, search terms) never reached the server
+const classFillersSubscription = subscribe(() => ['classFillers', props.classId, searchValue.value || undefined]);
+const classFillersReady = classFillersSubscription.ready;
 
 const searchLoading = autorun(() => !!searchValue.value && !classFillersReady.value).result;
+
+// Search as the player types, once they pause; Enter searches at once
+const applySearch = debounce(() => {
+  searchValue.value = (searchInput.value && searchInput.value.trim()) || undefined;
+}, 350);
+watch(searchInput, applySearch);
 
 const model = autorun(() => {
   if (props.classId) {
@@ -239,8 +251,8 @@ const variables = autorun(() => {
   return CreatureVariables.findOne({ _creatureId: props.creatureId }) || {};
 }).result;
 
-const currentLimit = autorun(() => subscriptionData(classFillersSubHandle, 'limit') || 50).result;
-const countAll = autorun(() => subscriptionData(classFillersSubHandle, 'countAll')).result;
+const currentLimit = autorun(() => subscriptionData(classFillersSubscription.sub, 'limit') || 50).result;
+const countAll = autorun(() => subscriptionData(classFillersSubscription.sub, 'countAll')).result;
 
 const tagsSearched = computed(() => {
   let or = [];
@@ -317,7 +329,7 @@ const libraryNames = autorun(() => {
 }).result;
 
 const libraryNodeFilter = autorun(() => {
-  const filterString = subscriptionData(classFillersSubHandle, 'libraryNodeFilter');
+  const filterString = subscriptionData(classFillersSubscription.sub, 'libraryNodeFilter');
   if (!filterString) return;
   return EJSON.parse(filterString);
 }).result;
@@ -437,7 +449,7 @@ watch(activeCount, (val) => {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  classFillersSubHandle.value?.setData('limit', currentLimit.value + 50);
+  classFillersSubscription.sub?.setData('limit', currentLimit.value + 50);
 }
 
 function openPropertyDetails(id) {

@@ -2,6 +2,15 @@
   <div
     class="actions-tab ma-2"
   >
+    <empty-tab-state
+      v-if="isEmpty"
+      :creature-id="creatureId"
+      icon="mdi-lightning-bolt-outline"
+      :title="$t('emptyTabs.actionsTitle')"
+      :text="$t('emptyTabs.actionsText')"
+      type="action"
+      :add-label="$t('emptyTabs.actionsAdd')"
+    />
     <column-layout wide-columns>
       <folder-group-card
         v-for="folder in startFolders"
@@ -36,9 +45,10 @@
 </template>
 
 <script setup>
-import { toRef } from 'vue';
+import { toRef, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import ColumnLayout from '/imports/ui/components/ColumnLayout.vue';
+import EmptyTabState from '/imports/ui/creature/character/characterSheetTabs/EmptyTabState.vue';
 import ActionCard from '/imports/ui/properties/components/actions/ActionCard.vue';
 import FolderGroupCard from '/imports/ui/properties/components/folders/FolderGroupCard.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -85,4 +95,7 @@ const actions = autorun(() => {
     sort: { actionType: 1, order: 1 },
   });
 }).result;
+
+// Nothing to show yet: say what goes here and where it comes from
+const isEmpty = computed(() => !actions.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>

@@ -13,6 +13,7 @@
           class="action-input overflow-y-auto"
           v-bind="activeInputParams"
           @continue="continueAction"
+          @cancel="dialogStackStore.popDialogStack()"
           @set-input-ready="setInputReady"
         />
         <div

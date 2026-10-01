@@ -20,6 +20,9 @@ const insertCreature = new ValidatedMethod({
     'name',
     'gender',
     'alignment',
+    'picture',
+    'avatarPicture',
+    'color',
     'allowedLibraries',
     'allowedLibraryCollections',
   ).extend({
@@ -33,7 +36,7 @@ const insertCreature = new ValidatedMethod({
     timeInterval: 5000,
   },
 
-  async run({ name, gender, alignment, startingLevel,
+  async run({ name, gender, alignment, picture, avatarPicture, color, startingLevel,
     allowedLibraries, allowedLibraryCollections }) {
     const userId = this.userId
     if (!userId) {
@@ -51,6 +54,9 @@ const insertCreature = new ValidatedMethod({
       name,
       gender,
       alignment,
+      picture,
+      avatarPicture,
+      color,
       type: 'pc',
       allowedLibraries,
       allowedLibraryCollections,

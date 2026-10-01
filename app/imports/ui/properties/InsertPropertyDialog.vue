@@ -318,7 +318,12 @@ watch(() => props.prop, (newProp) => {
 });
 
 // Meteor Subscriptions
-const { ready: searchLibraryNodesReady, sub: searchLibraryNodesHandle } = subscribe(() => ['searchLibraryNodes', props.creatureId]);
+// Keep the object: its `sub` is a getter for the current Meteor handle, which
+// changes when the arguments do. Destructured, it stayed the first handle, so
+// a search read a stopped subscription's data (an empty list) and setData
+// (load more, search terms) never reached the server
+const searchLibraryNodesSubscription = subscribe(() => ['searchLibraryNodes', props.creatureId]);
+const searchLibraryNodesReady = searchLibraryNodesSubscription.ready;
 subscribe(() => ['selectedLibraryNodes', selectedNodeIds.value]);
 
 // Meteor Autoruns
@@ -328,11 +333,11 @@ const showPropertyHelp = autorun(() => {
 }).result;
 
 const currentLimit = autorun(() => {
-  return subscriptionData(searchLibraryNodesHandle, 'limit') || 32;
+  return subscriptionData(searchLibraryNodesSubscription.sub, 'limit') || 32;
 }).result;
 
 const countAll = autorun(() => {
-  return subscriptionData(searchLibraryNodesHandle, 'countAll');
+  return subscriptionData(searchLibraryNodesSubscription.sub, 'countAll');
 }).result;
 
 const libraryNodes = autorun(() => {
@@ -355,7 +360,7 @@ const libraryNames = autorun(() => {
 
 // Methods
 function changeType(newType) {
-  searchLibraryNodesHandle.value?.setData('type', newType);
+  searchLibraryNodesSubscription.sub?.setData('type', newType);
   if (!newType) return;
   tab.value = 1;
   schema.value = propertySchemasIndex[newType];
@@ -439,8 +444,8 @@ function helpDialog() {
 }
 
 function searchChanged(val, ack) {
-  searchLibraryNodesHandle.value?.setData('searchTerm', val);
-  searchLibraryNodesHandle.value?.setData('limit', undefined);
+  searchLibraryNodesSubscription.sub?.setData('searchTerm', val);
+  searchLibraryNodesSubscription.sub?.setData('limit', undefined);
   selectedNode.value = undefined;
   searchValue.value = val;
   setTimeout(ack, 200);
@@ -448,7 +453,7 @@ function searchChanged(val, ack) {
 
 function loadMore() {
   if (currentLimit.value >= countAll.value) return;
-  searchLibraryNodesHandle.value?.setData('limit', currentLimit.value + 32);
+  searchLibraryNodesSubscription.sub?.setData('limit', currentLimit.value + 32);
 }
 
 function openPropertyDetails(id) {

@@ -58,6 +58,9 @@ Meteor.publish('selectedFillers', function (slotId, nodeIds, isDummySlot) {
   });
 });
 
+// The texts a filler's one-line preview is taken from
+const PREVIEW_FIELDS = { 'summary.text': 1, 'description.text': 1 };
+
 Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
   if (searchTerm) check(searchTerm, String);
 
@@ -115,6 +118,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
       options = {
         fields: {
           ...LIBRARY_NODE_TREE_FIELDS,
+          ...PREVIEW_FIELDS,
         },
         sort: {
           'cache.node.name': 1,
@@ -133,7 +137,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
           name: 1,
           order: 1,
         },
-        fields: LIBRARY_NODE_TREE_FIELDS,
+        fields: { ...LIBRARY_NODE_TREE_FIELDS, ...PREVIEW_FIELDS },
       };
     }
     options.limit = limit;

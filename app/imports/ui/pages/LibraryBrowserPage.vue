@@ -4,6 +4,44 @@
     style="height: 100%"
   >
     <v-container>
+      <div class="d-flex flex-wrap align-center ga-3 mb-3">
+        <v-text-field
+          v-model="search"
+          prepend-inner-icon="mdi-magnify"
+          :placeholder="$t('library.searchCommunity')"
+          :aria-label="$t('library.searchCommunity')"
+          variant="outlined"
+          density="compact"
+          hide-details
+          clearable
+          class="flex-1-1"
+          style="min-width: 220px;"
+          data-id="community-search"
+        />
+        <v-btn-toggle
+          v-model="sort"
+          mandatory
+          divided
+          border
+          rounded="pill"
+          density="compact"
+          color="primary"
+          data-id="community-sort"
+        >
+          <v-btn
+            value="popular"
+            prepend-icon="mdi-account-multiple-outline"
+          >
+            {{ $t('library.sortPopular') }}
+          </v-btn>
+          <v-btn
+            value="name"
+            prepend-icon="mdi-sort-alphabetical-ascending"
+          >
+            {{ $t('library.sortName') }}
+          </v-btn>
+        </v-btn-toggle>
+      </div>
       <v-fade-transition mode="out-in">
         <v-row
           v-if="subReady"
@@ -18,40 +56,66 @@
             md="4"
             lg="3"
           >
-            <v-sheet
-              class="fill-height"
-              rounded
-              border
-              :color="card.subscribed ? 'accent': ''"
+            <v-card
+              class="fill-height d-flex flex-column"
+              :class="{ 'community-card--subscribed': card.subscribed }"
+              :to="`/library${card._type === 'libraryCollection' ? '-collection' : ''}/${card._id}`"
+              :data-id="`community-card-${card._id}`"
             >
-              <v-card
-                class="fill-height d-flex flex-column"
-                elevation="0"
-                :to="`/library${card._type === 'libraryCollection' ? '-collection' : ''}/${card._id}`"
-              >
-                <v-card-title>
+              <v-card-item>
+                <v-card-title class="text-wrap">
                   {{ card.name }}
                 </v-card-title>
-                <v-card-subtitle v-if="card.subscriberCount">
-                  {{ $t('library.subscribers', { count: formatNumber(card.subscriberCount) }) }}
-                </v-card-subtitle>
-                <v-card-text>
-                  <markdown-text :markdown="card.description" />
-                </v-card-text>
-                <v-spacer />
-                <v-card-actions>
-                  <v-spacer />
-                  <smart-btn
-                    variant="text"
-                    single-click
-                    :color="card.subscribed ? '': 'accent'"
-                    @click="ack => changeSubscribe(card, ack)"
+                <v-card-subtitle class="d-flex flex-wrap align-center ga-2 mt-1">
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    :prepend-icon="card._type === 'libraryCollection' ? 'mdi-bookshelf' : 'mdi-book-outline'"
                   >
-                    {{ card.subscribed ? $t('library.unsubscribe') : $t('library.subscribe') }}
-                  </smart-btn>
-                </v-card-actions>
-              </v-card>
-            </v-sheet>
+                    {{ card._type === 'libraryCollection' ? $t('library.collection') : $t('library.singleLibrary') }}
+                  </v-chip>
+                  <span v-if="card.subscriberCount">
+                    {{ $t('library.subscribers', { count: formatNumber(card.subscriberCount) }) }}
+                  </span>
+                </v-card-subtitle>
+              </v-card-item>
+              <v-card-text
+                v-if="card.summary"
+                class="community-card__summary pt-0"
+              >
+                {{ card.summary }}
+              </v-card-text>
+              <v-spacer />
+              <v-card-actions>
+                <smart-btn
+                  :variant="card.subscribed ? 'tonal' : 'flat'"
+                  color="primary"
+                  :prepend-icon="card.subscribed ? 'mdi-check' : 'mdi-plus'"
+                  single-click
+                  :data-id="`community-subscribe-${card._id}`"
+                  @click="ack => changeSubscribe(card, ack)"
+                >
+                  {{ card.subscribed ? $t('library.subscribed') : $t('library.subscribe') }}
+                </smart-btn>
+                <v-spacer />
+                <v-btn
+                  variant="text"
+                  append-icon="mdi-arrow-right"
+                  :to="`/library${card._type === 'libraryCollection' ? '-collection' : ''}/${card._id}`"
+                >
+                  {{ $t('library.open') }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+          <v-col
+            v-if="!libraryCards.length"
+            cols="12"
+          >
+            <v-empty-state
+              icon="mdi-magnify-remove-outline"
+              :title="$t('library.noCommunityMatch')"
+            />
           </v-col>
         </v-row>
         <v-row
@@ -75,14 +139,14 @@
 </template>
 
 <script setup>
-import {computed } from 'vue';
+import { ref, computed } from 'vue';
 import { orderBy } from 'lodash';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import Libraries from '/imports/api/library/Libraries';
-import MarkdownText from '/imports/ui/components/MarkdownText.vue';
+import firstSentence from '/imports/ui/utility/firstSentence';
 import formatter from '/imports/ui/utility/numberFormatter';
 import { useI18n } from 'vue-i18n';
 
@@ -122,8 +186,21 @@ const libraries = autorun(() => {
   });
 }).result;
 
+const search = ref('');
+const sort = ref('popular');
+
+// Searched by name and description, then sorted; each card shows the first
+// sentence of its description rather than all of it
 const libraryCards = computed(() => {
-  return orderBy([...(libraries.value || []), ...(collections.value || [])], ['subscriberCount', 'name'], ['desc', 'asc']);
+  const term = (search.value || '').trim().toLowerCase();
+  const cards = [...(libraries.value || []), ...(collections.value || [])]
+    .filter(card => !term
+      || card.name?.toLowerCase().includes(term)
+      || card.description?.toLowerCase().includes(term))
+    .map(card => ({ ...card, summary: firstSentence(card.description, 200) }));
+  return sort.value === 'name'
+    ? orderBy(cards, [card => card.name?.toLowerCase()], ['asc'])
+    : orderBy(cards, ['subscriberCount', 'name'], ['desc', 'asc']);
 });
 
 function formatNumber(num) {
@@ -156,3 +233,19 @@ async function changeSubscribe(card, ack) {
   }
 }
 </script>
+
+<style scoped>
+/* A few lines of summary: the card opens the whole description */
+.community-card__summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* A subscribed card keeps an outline in the primary colour */
+.community-card--subscribed {
+  outline: 2px solid rgb(var(--v-theme-primary));
+}
+</style>

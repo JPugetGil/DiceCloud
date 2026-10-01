@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-1-1 align-center justify-start">
+  <div class="default-tree-node d-flex flex-1-1 align-center justify-start">
     <property-icon
       v-if="!hideIcon"
       class="mr-2"
@@ -35,3 +35,11 @@ const title = computed(() => {
   return prop && prop.name;
 });
 </script>
+
+<style scoped>
+/* A flex item keeps its content's width unless allowed to shrink: without
+   this, long names ran past the card instead of truncating */
+.default-tree-node {
+  min-width: 0;
+}
+</style>

@@ -4,6 +4,30 @@
     class="stats-tab ma-2"
   >
     <div
+      v-if="choicesLeft > 0"
+      class="px-2 pt-2"
+    >
+      <v-alert
+        type="info"
+        variant="tonal"
+        density="compact"
+        icon="mdi-hammer-wrench"
+        data-id="build-incomplete"
+      >
+        {{ $t('build.incomplete', { count: choicesLeft }, choicesLeft) }}
+        <template #append>
+          <v-btn
+            variant="text"
+            size="small"
+            append-icon="mdi-arrow-right"
+            @click="appStore.setTabForCharacterSheet({ id: creatureId, tab: 'build' })"
+          >
+            {{ $t('build.continueBuilding') }}
+          </v-btn>
+        </template>
+      </v-alert>
+    </div>
+    <div
       v-if="properties.attribute.healthBar && properties.attribute.healthBar.length"
       class="px-2 pt-2"
     >
@@ -385,7 +409,7 @@
 </template>
 
 <script setup>
-import {computed } from 'vue';
+import { computed, inject } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
@@ -410,8 +434,11 @@ import { docsToForest, getFilter } from '/imports/api/parenting/parentingFunctio
 import doAction from '/imports/ui/creature/actions/doAction';
 import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { useAppStore } from '/imports/ui/stores/app';
+import useBuildProgress from '/imports/ui/composables/useBuildProgress';
 
 const dialogStackStore = useDialogStackStore();
+const appStore = useAppStore();
 
 const props = defineProps({
   creatureId: {
@@ -421,6 +448,14 @@ const props = defineProps({
 });
 
 
+
+// A character still being built says so, rather than showing a sheet of -5s.
+// Only to those who can build it
+const context = inject('context', {});
+const buildProgress = useBuildProgress(() => props.creatureId);
+const choicesLeft = computed(() => context.editPermission === false
+  ? 0
+  : (buildProgress.value?.total || 0) - (buildProgress.value?.done || 0));
 
 const creature = autorun(() => {
   return Creatures.findOne(props.creatureId, { fields: { settings: 1 } });

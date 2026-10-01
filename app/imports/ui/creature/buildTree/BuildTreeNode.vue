@@ -31,9 +31,10 @@
         class="d-flex flex-1-1 align-center justify-start pr-1"
       >
         <!--{{doc && doc.order}}-->
+        <!-- A slot shown with its one choice keeps its label whole: the choice truncates -->
         <div
           v-if="isSlot"
-          class="text-truncate"
+          :class="condenseChild ? 'flex-shrink-0' : 'text-truncate'"
         >
           <span
             :class="{
@@ -68,7 +69,7 @@
           </v-btn>
         </template>
         <template v-if="condenseChild">
-          <span class="mr-4">:</span>
+          <span class="mr-4 flex-shrink-0">:</span>
           <tree-node-view
             :model="children[0].doc"
           />
@@ -300,5 +301,9 @@ async function remove(model) {
   }
   .tree-node-title, .dummy-node {
     height: 40px;
+  }
+  /* Let long names shrink and truncate rather than run past the card */
+  .tree-node-title, .tree-node-title > .d-flex {
+    min-width: 0;
   }
 </style>

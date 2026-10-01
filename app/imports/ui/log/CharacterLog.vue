@@ -157,10 +157,13 @@ const { result: logs } = autorun(() => {
   if (props.creatureId) {
     filter.creatureId = props.creatureId;
   }
+  // An entry whose every line is silenced would show as an empty card
   return CreatureLogs.find(filter, {
     sort: {date: -1},
     limit: 100
-  }).fetch();
+  }).fetch().filter(log =>
+    log.text || !log.content?.length || log.content.some(line => !line.silenced)
+  );
 });
 
 const { result: creature } = autorun(() => {

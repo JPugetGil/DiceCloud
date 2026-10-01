@@ -12,11 +12,12 @@ import { Meteor } from 'meteor/meteor';
  * first subscription is made, which has always happened by the time a handle
  * exists to pass in.
  *
- * `handle` may be the Meteor handle or the ref that vue-meteor-tracker's
- * `subscribe(() => [...])` returns as `sub`. Passing the ref used to read
- * `ref.subscriptionId` (undefined), so every slot fill dialog showed an empty
- * list. Call this inside an `autorun`, not a `computed`: the minimongo read is
- * reactive to Tracker only.
+ * `handle` is the Meteor handle, or a ref holding one. vue-meteor-tracker's
+ * `subscribe(() => [...])` returns it as `sub`, a getter that follows the
+ * current subscription: read `result.sub` here, never a destructured copy,
+ * which stays the first, stopped handle once the arguments change. Call this
+ * inside an `autorun`, not a `computed`: the minimongo read is reactive to
+ * Tracker only.
  */
 export default function subscriptionData(handle, path) {
   handle = unref(handle);

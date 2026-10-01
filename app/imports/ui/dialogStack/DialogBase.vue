@@ -22,11 +22,12 @@
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
       <slot name="toolbar" />
-      <template #extension>
-        <slot
-
-          name="toolbar-extension"
-        />
+      <!-- A declared extension reserves its row even when empty -->
+      <template
+        v-if="$slots['toolbar-extension']"
+        #extension
+      >
+        <slot name="toolbar-extension" />
       </template>
     </v-toolbar>
     <div

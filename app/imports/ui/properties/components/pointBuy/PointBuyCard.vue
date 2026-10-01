@@ -24,14 +24,28 @@
     </v-card-text>
     <v-spacer />
     <v-card-actions>
+      <v-btn
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-pencil"
+        @click.stop="$emit('click')"
+      >
+        {{ $t('build.assignScores') }}
+      </v-btn>
       <v-spacer />
       <v-btn
         variant="text"
         icon
-        color="accent"
+        size="small"
+        :aria-label="$t('build.hideCard')"
         @click.stop="$emit('ignore')"
       >
-        <v-icon>mdi-close</v-icon>
+        <v-icon>mdi-eye-off-outline</v-icon>
+        <v-tooltip
+          activator="parent"
+          location="top"
+          :text="$t('build.hideCardHint')"
+        />
       </v-btn>
     </v-card-actions>
   </v-card>

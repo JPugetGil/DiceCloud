@@ -1,5 +1,14 @@
 <template>
   <div class="features">
+    <empty-tab-state
+      v-if="isEmpty"
+      :creature-id="creatureId"
+      icon="mdi-star-four-points-outline"
+      :title="$t('emptyTabs.featuresTitle')"
+      :text="$t('emptyTabs.featuresText')"
+      type="feature"
+      :add-label="$t('emptyTabs.featuresAdd')"
+    />
     <column-layout wide-columns>
       <folder-group-card
         v-for="folder in startFolders"
@@ -32,10 +41,11 @@
 </template>
 
 <script setup>
-import { toRef } from 'vue';
+import { toRef, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import ColumnLayout from '/imports/ui/components/ColumnLayout.vue';
+import EmptyTabState from '/imports/ui/creature/character/characterSheetTabs/EmptyTabState.vue';
 import FeatureCard from '/imports/ui/properties/components/features/FeatureCard.vue';
 import FolderGroupCard from '/imports/ui/properties/components/folders/FolderGroupCard.vue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
@@ -92,6 +102,9 @@ function featureClicked({ _id }) {
     data: { _id },
   });
 }
+
+// Nothing to show yet: say what goes here and where it comes from
+const isEmpty = computed(() => !features.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
 
 <style lang="css" scoped>

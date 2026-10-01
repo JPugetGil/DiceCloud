@@ -65,7 +65,7 @@ main(async () => {
     const { shown, hidden } = await page.evaluate(() => {
       const dialogs = document.querySelectorAll('.dialog-stack .dialog-component');
       const el = dialogs[dialogs.length - 1];
-      const note = el.innerText.match(/Requirements of (\d+) properties were not met/);
+      const note = el.innerText.match(/(\d+) options? hidden: (?:its|their) requirements/);
       return { shown: el.querySelectorAll('.v-expansion-panel').length, hidden: note ? +note[1] : 0 };
     });
     if (shown + hidden !== slot.count) {

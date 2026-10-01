@@ -45,6 +45,8 @@ const theme = useTheme();
 
 const fillFraction = computed(() => {
   let fraction = props.model.value / props.model.total;
+  // 0 / 0 (nothing built yet) is NaN, which drew a full bar
+  if (!Number.isFinite(fraction)) return 0;
   if (fraction < 0) fraction = 0;
   if (fraction > 1) fraction = 1;
   return fraction;

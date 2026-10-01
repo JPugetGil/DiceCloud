@@ -35,13 +35,17 @@
         </v-icon>
       </v-btn>
     </template>
+    <!--
+      Swatches are painted with their colour: the Vuetify 2 classes they used
+      (`red lighten-2`) no longer exist, which left every swatch blank
+    -->
     <v-card class="overflow-hidden">
       <v-card-text>
         <div class="d-flex flex-1-1 flex-wrap">
           <div
             v-for="colorOption in colors"
             :key="colorOption"
-            :class="[colorOption, shade]"
+            :style="{ backgroundColor: colorToHex(colorOption, shade || 'base') }"
             class="color-swatch d-flex align-center"
             @click="color = colorOption"
           >
@@ -68,7 +72,7 @@
             <div
               v-for="shadeOption in shades"
               :key="shadeOption"
-              :class="[kebabColor, shadeOption]"
+              :style="{ backgroundColor: colorToHex(kebabColor, shadeOption) }"
               class="shade-swatch d-flex align-center"
               @click="shade = shadeOption"
             >

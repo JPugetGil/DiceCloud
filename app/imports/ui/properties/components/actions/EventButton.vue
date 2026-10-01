@@ -2,8 +2,9 @@
   <v-btn
     :disabled="context.editPermission === false"
     :data-id="`event-btn-${model._id}`"
-    variant="tonal"
+    :variant="model.color ? 'flat' : 'tonal'"
     class="event-button"
+    :class="textClass"
     block
     :color="model.color"
     @click="doAction"
@@ -21,9 +22,10 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, inject, computed } from 'vue';
 import doActionApi from '/imports/ui/creature/actions/doAction';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
+import isDarkColor from '/imports/ui/utility/isDarkColor';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 
 const props = defineProps({
@@ -34,6 +36,14 @@ const props = defineProps({
 });
 
 const context = inject('context', {});
+
+// A library's colour fills the button; its text is black or white, whichever
+// reads on it (DESIGN_SYSTEM.md, rule 2). Vuetify's own pick put white on
+// orange at 3.2:1
+const textClass = computed(() => {
+  if (!props.model.color) return undefined;
+  return isDarkColor(props.model.color) ? 'text-white' : 'text-black';
+});
 
 const loading = ref(false);
 

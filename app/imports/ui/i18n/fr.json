@@ -210,7 +210,14 @@
     "selectLibraryProperty": "Choisir une propriété de bibliothèque",
     "subscribe": "S'abonner",
     "unsubscribe": "Se désabonner",
-    "playersCantCreate": "Tout le monde peut s'abonner aux bibliothèques. Seuls les administrateurs peuvent en créer."
+    "playersCantCreate": "Tout le monde peut s'abonner aux bibliothèques. Seuls les administrateurs peuvent en créer.",
+    "searchCommunity": "Rechercher des bibliothèques",
+    "sortPopular": "Populaires",
+    "sortName": "Nom",
+    "singleLibrary": "Bibliothèque",
+    "subscribed": "Abonné",
+    "open": "Ouvrir",
+    "noCommunityMatch": "Aucune bibliothèque ne correspond à cette recherche"
   },
   "maintenance": {
     "underMaintenance": "DiceCloud est actuellement en maintenance",
@@ -457,6 +464,20 @@
     "build": "Création",
     "tree": "Arbre"
   },
+  "emptyTabs": {
+    "actionsTitle": "Aucune action pour le moment",
+    "actionsText": "Les attaques et capacités que vous pouvez utiliser s'affichent ici. Votre classe, votre peuple et vos objets vous les donnent, ou ajoutez les vôtres.",
+    "actionsAdd": "Ajouter une action",
+    "spellsTitle": "Aucun sort pour le moment",
+    "spellsText": "Votre classe vous donne des listes de sorts : choisissez vos sorts avec le + sous chaque liste. Vous pouvez aussi ajouter une liste de sorts vous-même.",
+    "spellsAdd": "Ajouter une liste de sorts",
+    "featuresTitle": "Aucune aptitude pour le moment",
+    "featuresText": "Les aptitudes de votre peuple, de votre classe et de votre historique s'affichent ici au fil de la création du personnage.",
+    "featuresAdd": "Ajouter une aptitude",
+    "inventoryTitle": "L'inventaire est vide",
+    "inventoryText": "Votre classe et votre historique donnent votre équipement de départ. Ajoutez des objets ou des contenants vous-même avec le bouton +.",
+    "inventoryAdd": "Ajouter un objet"
+  },
   "creatureForm": {
     "alignment": "Alignement",
     "gender": "Genre",
@@ -488,14 +509,20 @@
   "check": {
     "ability": "Caractéristique",
     "skill": "Compétence",
-    "dc": "DD"
+    "dc": "DD",
+    "normal": "Normal",
+    "enterToRoll": "Appuyez sur Entrée pour lancer",
+    "dcValue": "DD {dc}",
+    "check": "Test"
   },
   "newCharacter": {
     "title": "Nouveau personnage",
     "biography": "Biographie",
     "level": "Niveau",
     "defaultName": "Nouveau personnage",
-    "nameRequired": "Nom obligatoire"
+    "nameRequired": "Nom obligatoire",
+    "color": "Couleur",
+    "chooseLibraries": "Choisir les bibliothèques"
   },
   "deleteCharacter": {
     "deleteForever": "Supprimer définitivement"
@@ -522,7 +549,15 @@
     "milestoneLevels": "{count} niveaux de jalon",
     "xp": "{xp} PX",
     "getMissingLevels": "Obtenir les niveaux manquants",
-    "levelUp": "Monter de niveau"
+    "levelUp": "Monter de niveau",
+    "choose": "Choisir…",
+    "chooseCount": "En choisir {count}",
+    "assignScores": "Répartir les valeurs",
+    "hideCard": "Masquer cette carte",
+    "hideCardHint": "Masquer cette carte : elle reste dans le menu des cartes masquées de la carte Emplacements",
+    "progress": "{done} choix faits sur {total}",
+    "incomplete": "Ce personnage n'est pas terminé : il reste {count} choix dans l'onglet Création. | Ce personnage n'est pas terminé : il reste {count} choix dans l'onglet Création.",
+    "continueBuilding": "Continuer la création"
   },
   "inventory": {
     "weightCarried": "Poids transporté",
@@ -596,7 +631,7 @@
   },
   "slots": {
     "slotCount": "{count} emplacements",
-    "requirementsNotMet": "Les prérequis de {count} propriétés ne sont pas remplis",
+    "requirementsNotMet": "{count} option masquée : ses prérequis ne sont pas remplis | {count} options masquées : leurs prérequis ne sont pas remplis",
     "closeTest": "Fermer le test",
     "withLibraryTags": "{type} avec les étiquettes de bibliothèque :",
     "cantFind": "Vous ne trouvez pas ce que vous cherchez ?",

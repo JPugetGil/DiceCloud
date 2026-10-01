@@ -85,6 +85,7 @@
 <script setup lang="js">
 import { ref, computed } from 'vue';
 import { useDisplay } from 'vuetify';
+import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -114,6 +115,7 @@ const loadingInsertFolder = ref(false);
 
 const { ready } = subscribe('characterList');
 const { xs } = useDisplay();
+const router = useRouter();
 
 const { result: folders } = autorun(() => {
   const userId = Meteor.userId();
@@ -181,7 +183,15 @@ function insertCharacter() {
   dialogStackStore.pushDialogStack({
     component: 'character-creation-dialog',
     elementId: 'new-character-button',
-    callback: creatureId => creatureId,
+    // Called once the dialog's history entry is gone: going to the new sheet
+    // from the dialog itself was undone by that step back. After the browser's
+    // own popstate handling, so that it is not undone either
+    callback: creatureId => {
+      if (creatureId) {
+        setTimeout(() => router.push({ name: 'characterSheet', params: { id: creatureId } }));
+      }
+      return creatureId;
+    },
   });
 }
 

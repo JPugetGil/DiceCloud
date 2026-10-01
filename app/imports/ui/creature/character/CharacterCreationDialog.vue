@@ -1,9 +1,15 @@
 <template>
-  <dialog-base>
+  <dialog-base :color="color">
     <template #toolbar>
       <v-toolbar-title>
         {{ $t('newCharacter.title') }}
       </v-toolbar-title>
+      <v-spacer />
+      <color-picker
+        v-model="color"
+        no-color-change
+        :label="$t('newCharacter.color')"
+      />
     </template>
     <template #unwrapped-content>
       <v-stepper
@@ -55,8 +61,31 @@
               :label="$t('newCharacter.level')"
               type="number"
               min="0"
-              @keydown.tab="step++"
             />
+            <v-row density="compact">
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <smart-image-input
+                  :label="$t('creatureForm.picture')"
+                  :hint="$t('creatureForm.pictureHint')"
+                  :model-value="picture"
+                  @change="(value, ack) => { picture = value; ack(); }"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                md="6"
+              >
+                <smart-image-input
+                  :label="$t('creatureForm.avatar')"
+                  :hint="$t('creatureForm.avatarHint')"
+                  :model-value="avatarPicture"
+                  @change="(value, ack) => { avatarPicture = value; ack(); }"
+                />
+              </v-col>
+            </v-row>
           </v-stepper-window-item>
           <v-stepper-window-item :value="2">
             <v-switch
@@ -91,18 +120,20 @@
         {{ $t('common.back') }}
       </v-btn>
       <v-spacer />
+      <!-- Creating is the main action: the libraries step is optional -->
       <v-btn
         v-if="step < 2"
-        color="accent"
+        variant="text"
+        append-icon="mdi-chevron-right"
         @click="step++"
       >
-        {{ $t('common.next') }}
+        {{ $t('newCharacter.chooseLibraries') }}
       </v-btn>
       <v-btn
         :disabled="!!biographyAlert"
         :loading="creating"
-        :variant="step < 2 ? 'text' : 'elevated'"
-        :color="step < 2? '' : 'accent'"
+        variant="flat"
+        color="primary"
         @click="submit"
       >
         {{ $t('common.create') }}
@@ -113,12 +144,13 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
 import { subscribe } from 'vue-meteor-tracker';
 
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import { defer, union, without } from 'lodash';
+import { union, without } from 'lodash';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
+import ColorPicker from '/imports/ui/components/ColorPicker.vue';
+import SmartImageInput from '/imports/ui/components/global/SmartImageInput.vue';
 import insertCreature from '/imports/api/creature/creatures/methods/insertCreature';
 import LibraryList from '/imports/ui/library/LibraryList.vue';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
@@ -130,12 +162,14 @@ const { t } = useI18n();
 const appStore = useAppStore();
 
 const emit = defineEmits(['pop']);
-const router = useRouter();
 
 const step = ref(1);
 const name = ref(t('newCharacter.defaultName'));
 const gender = ref('');
 const alignment = ref('');
+const picture = ref(undefined);
+const avatarPicture = ref(undefined);
+const color = ref(undefined);
 const startingLevel = ref(1);
 const librariesSelected = ref([]);
 const libraryCollectionsSelected = ref([]);
@@ -190,6 +224,9 @@ async function submit(){
     alignment: alignment.value,
     startingLevel: startingLevel.value,
   };
+  if (picture.value) char.picture = picture.value;
+  if (avatarPicture.value) char.avatarPicture = avatarPicture.value;
+  if (color.value) char.color = color.value;
   if (!allSubscribedLibraries.value) {
     char.allowedLibraries = librariesSelected.value;
     char.allowedLibraryCollections = libraryCollectionsSelected.value;
@@ -197,10 +234,9 @@ async function submit(){
   try {
     const creatureId = await insertCreature.callAsync(char);
     appStore.setTabForCharacterSheet({id: creatureId, tab: 'build'});
+    // The opener goes to the new sheet: closing a dialog steps back in the
+    // browser's history, which undid a navigation started from here
     emit('pop', creatureId);
-    defer(() => {
-      router.push({ name: 'characterSheet', params: {id: creatureId} });
-    });
     return creatureId;
   } catch (error) {
     if (error) {
