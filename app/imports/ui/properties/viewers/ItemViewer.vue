@@ -93,7 +93,7 @@
               $injustice
             </v-icon>
             <span class="text-body-large">
-              {{ $t('common.weightKg', { weight: totalWeight }) }}
+              {{ formatQuantity(totalWeight, 'weight') }}
             </span>
           </div>
           <div class="d-flex flex-1-1 align-center">
@@ -104,7 +104,7 @@
               $weight
             </v-icon>
             <span class="text-body-large mr-2">
-              {{ $t('common.weightKg', { weight: model.weight }) }}
+              {{ formatQuantity(model.weight, 'weight') }}
             </span>
             <span
               v-if="model.quantity > 1"
@@ -166,6 +166,10 @@ import stripFloatingPointOddities from '/imports/api/engine/computation/utility/
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
+import useUnits from '/imports/ui/composables/useUnits';
+
+// Weights are stored in kilograms, shown in the user's unit
+const { formatQuantity } = useUnits();
 
 const props = defineProps({
   model: {

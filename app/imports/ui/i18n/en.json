@@ -267,7 +267,6 @@
     "character": "Character",
     "or": "OR",
     "not": "NOT",
-    "weightKg": "{weight} kg",
     "each": "each",
     "contents": "contents",
     "total": "Total:",
@@ -609,6 +608,24 @@
     "sp": "{value} sp",
     "cp": "{value} cp"
   },
+  "units": {
+    "unit": "Unit",
+    "attributeHint": "Formulas compute in metres and kilograms; each player sees their own units",
+    "none": "No unit",
+    "distance": "Distance",
+    "weight": "Weight",
+    "m": "m",
+    "ft": "ft",
+    "kg": "kg",
+    "lb": "lb",
+    "distanceUnit": "Distances",
+    "weightUnit": "Weights",
+    "metres": "Metres",
+    "feet": "Feet",
+    "kilograms": "Kilograms",
+    "pounds": "Pounds",
+    "accountHint": "Character sheets are computed in metres and kilograms. Feet and pounds use the D&D rules: 1.5 m = 5 ft, 1 lb = 0.5 kg. Distances written in descriptions stay in metres."
+  },
   "components": {
     "uploadImage": "Upload Image",
     "addImage": "Add image",
@@ -707,7 +724,6 @@
     "value": "Value",
     "valueGpHint": "The value of the item in gold pieces, using decimals for values less than 1 gp",
     "gp": "gp",
-    "kg": "kg",
     "weight": "Weight",
     "quantity": "Quantity",
     "dcHint": "Saving throw DC",
@@ -941,7 +957,7 @@
     "item": {
       "pluralName": "Plural name",
       "pluralNameHint": "The plural name of your item. If your item's name is 'sword' plural name would be 'swords'",
-      "weightHint": "The weight of a single item in lbs. Can be a decimal value",
+      "weightHint": "The weight of a single item. Can be a decimal value",
       "showIncrement": "Show increment button",
       "attunement": "Attunement"
     },

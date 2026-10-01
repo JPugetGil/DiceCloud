@@ -1,40 +1,46 @@
 <template>
   <v-list-item
-    class="effect-viewer d-flex flex-1-1 align-center"
+    class="effect-viewer"
     v-on="!hideBreadcrumbs ? {click} : {}"
   >
-    <div class="effect-icon">
-      <v-tooltip location="bottom">
-        <template #activator="{ props: activatorProps }">
-          <v-icon
-            class="mx-2"
-            style="cursor: default;"
-            size="large"
-            v-bind="activatorProps"
-          >
-            {{ effectIcon }}
-          </v-icon>
-        </template>
-        <span>{{ operation }}</span>
-      </v-tooltip>
-    </div>
-    <div
-      class="text-headline-large effect-value mr-2"
-    >
-      {{ displayedValue }}
-    </div>
-    <div class="d-flex flex-1-1 flex-column my-2">
-      <div class="text-body-large mb-1">
-        {{ displayedText }}
+    <!-- One row: Vuetify puts the default slot in a block content area -->
+    <div class="d-flex align-center">
+      <div class="effect-icon">
+        <v-tooltip location="bottom">
+          <template #activator="{ props: activatorProps }">
+            <v-icon
+              class="mx-2"
+              style="cursor: default;"
+              size="large"
+              v-bind="activatorProps"
+            >
+              {{ effectIcon }}
+            </v-icon>
+          </template>
+          <span>{{ operation }}</span>
+        </v-tooltip>
       </div>
-      <div v-if="!hideBreadcrumbs && ancestors">
-        <property-breadcrumbs
-          :model="{...model, ancestors}"
-          class="text-body-small"
-          no-links
-          no-icons
-          style="margin-bottom: 0"
-        />
+      <div
+        class="text-headline-large effect-value mr-2"
+      >
+        {{ displayed.value }}<span
+          v-if="displayed.unit"
+          class="text-title-small ml-1"
+        >{{ displayed.unit }}</span>
+      </div>
+      <div class="d-flex flex-1-1 flex-column my-2">
+        <div class="text-body-large mb-1">
+          {{ displayedText }}
+        </div>
+        <div v-if="!hideBreadcrumbs && ancestors">
+          <property-breadcrumbs
+            :model="{...model, ancestors}"
+            class="text-body-small"
+            no-links
+            no-icons
+            style="margin-bottom: 0"
+          />
+        </div>
       </div>
     </div>
   </v-list-item>
@@ -47,6 +53,8 @@ import getEffectIcon from '/imports/ui/utility/getEffectIcon';
 import PropertyBreadcrumbs from '/imports/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { isFinite, find } from 'lodash';
+import useUnits from '/imports/ui/composables/useUnits';
+import { getAttributeUnit, CONVERTED_EFFECT_OPERATIONS } from '/imports/api/utility/units';
 
 const props = defineProps({
   hideBreadcrumbs: Boolean,
@@ -112,6 +120,15 @@ const displayedValue = computed(() => {
     default: return undefined;
   }
 });
+
+const { quantityParts } = useUnits();
+
+// An amount in the attribute's unit (a distance, a weight) is shown in the
+// user's units; a multiplier is not
+const displayed = computed(() => quantityParts(
+  displayedValue.value,
+  CONVERTED_EFFECT_OPERATIONS.has(operation.value) ? getAttributeUnit(props.attribute) : undefined,
+));
 
 const ancestors = autorun(() => {
   const prop = CreatureProperties.findOne(props.model._id);

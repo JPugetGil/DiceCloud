@@ -60,14 +60,14 @@
       >
         <text-field
           :label="$t('forms.weight')"
-          :suffix="$t('forms.kg')"
+          :suffix="unitLabel('weight')"
           type="number"
           min="0"
           prepend-inner-icon="$weight"
           :hint="$t('forms.item.weightHint')"
-          :model-value="model.weight"
+          :model-value="toInputValue(model.weight, 'weight')"
           :error-messages="errors.weight"
-          @change="(value, ack) => change('weight', value, ack)"
+          @change="(value, ack) => change('weight', fromInputValue(value, 'weight'), ack)"
         />
       </v-col>
     </v-row>
@@ -149,6 +149,10 @@
 import InlineComputationField from '/imports/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
+import useUnits from '/imports/ui/composables/useUnits';
+
+// Weights are stored in kilograms, typed in the user's unit
+const { unitLabel, toInputValue, fromInputValue } = useUnits();
 
 defineProps({
   model: {

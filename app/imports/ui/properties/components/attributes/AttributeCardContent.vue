@@ -20,7 +20,10 @@
       v-else
       class="value text-headline-large flex-shrink-0"
     >
-      {{ computedValue }}
+      {{ displayed.value }}<span
+        v-if="displayed.unit"
+        class="text-title-medium ml-1"
+      >{{ displayed.unit }}</span>
     </v-card-title>
     <v-card-title class="name text-body-large text-truncate d-block pl-0">
       {{ model.name }}
@@ -44,6 +47,8 @@
 import { computed } from 'vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import CheckButton from '/imports/ui/properties/shared/CheckButton.vue';
+import useUnits from '/imports/ui/composables/useUnits';
+import { getAttributeUnit } from '/imports/api/utility/units';
 
 const props = defineProps({
   model: {
@@ -54,6 +59,8 @@ const props = defineProps({
 
 defineEmits(['click', 'mouseover', 'mouseleave']);
 
+const { quantityParts } = useUnits();
+
 const computedValue = computed(() => {
   if (props.model.attributeType === 'modifier' || props.model.type === 'skill') {
     return numberToSignedString(props.model.value);
@@ -61,6 +68,12 @@ const computedValue = computed(() => {
     return props.model.value;
   }
 });
+
+// A distance or weight, in the user's units
+const displayed = computed(() => props.model.type === 'attribute'
+  ? quantityParts(props.model.value, getAttributeUnit(props.model))
+  : { value: computedValue.value }
+);
 </script>
 
 <style lang="css" scoped>

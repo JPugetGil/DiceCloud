@@ -25,7 +25,7 @@
 
               <template #append>
                 <v-list-item-title>
-                  {{ $t('common.weightKg', { weight: weightCarried }) }}
+                  {{ formatQuantity(weightCarried, 'weight') }}
                 </v-list-item-title>
               </template>
             </v-list-item>
@@ -131,6 +131,10 @@ import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import FolderGroupCard from '/imports/ui/properties/components/folders/FolderGroupCard.vue';
 import { useTabFolders } from '/imports/ui/properties/components/folders/useTabFolders';
+import useUnits from '/imports/ui/composables/useUnits';
+
+// Weights are stored in kilograms, shown in the user's unit
+const { formatQuantity } = useUnits();
 
 const props = defineProps({
   creatureId: {

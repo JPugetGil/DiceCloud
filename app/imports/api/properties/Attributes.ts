@@ -3,6 +3,7 @@ import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { ATTRIBUTE_UNITS } from '/imports/api/utility/units';
 
 /*
  * Attributes are numbered stats of a character
@@ -85,6 +86,13 @@ const AttributeSchema = createPropertySchema({
   },
   healthBarHealingOrder: {
     type: SimpleSchema.Integer,
+    optional: true,
+  },
+  // What the value measures, in metric: shown in the user's units. Unset, it
+  // comes from the variable name (see DEFAULT_ATTRIBUTE_UNITS)
+  unit: {
+    type: String,
+    allowedValues: ATTRIBUTE_UNITS,
     optional: true,
   },
   // The starting value, before effects

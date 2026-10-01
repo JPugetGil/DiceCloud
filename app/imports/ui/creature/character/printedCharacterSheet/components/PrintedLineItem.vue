@@ -25,7 +25,7 @@
           <template
             v-if="model.weight"
           >
-            {{ $t('common.weightKg', { weight: model.weight }) }}
+            {{ formatQuantity(model.weight, 'weight') }}
           </template>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <template
             v-if="model.weight"
           >
-            {{ $t('common.weightKg', { weight: totalWeight }) }}
+            {{ formatQuantity(totalWeight, 'weight') }}
           </template>
         </div>
       </div>
@@ -55,6 +55,10 @@ import PROPERTIES from '/imports/constants/PROPERTIES';
 import stripFloatingPointOddities from '/imports/api/engine/computation/utility/stripFloatingPointOddities';
 import CoinValue from '/imports/ui/components/CoinValue.vue';
 import { useI18n } from 'vue-i18n';
+import useUnits from '/imports/ui/composables/useUnits';
+
+// Weights are stored in kilograms, shown in the user's unit
+const { formatQuantity } = useUnits();
 
 const { t } = useI18n();
 

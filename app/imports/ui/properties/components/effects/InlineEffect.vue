@@ -23,7 +23,7 @@
       <span
         class="effect-value mr-2"
       >
-        {{ displayedValue }}
+        {{ formatQuantity(displayedValue, unit) }}
       </span>
       {{ displayedText }}
     </v-list-item-title>
@@ -37,6 +37,7 @@ import getEffectIcon from '/imports/ui/utility/getEffectIcon';
 import { isFinite } from 'lodash';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { useI18n } from 'vue-i18n';
+import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
 
 const { t } = useI18n();
 
@@ -51,6 +52,10 @@ const props = defineProps({
 const emit = defineEmits(['click']);
 
 const model = autorun(() => CreatureProperties.findOne(props.effectId)).result;
+
+// An amount in metres or kilograms is shown in the user's units
+const { formatQuantity } = useUnits();
+const unit = useEffectUnit(() => model.value);
 
 
 const resolvedValue = computed(() => {

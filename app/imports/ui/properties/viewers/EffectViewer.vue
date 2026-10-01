@@ -15,7 +15,7 @@
       <property-field
         v-if="model.operation !== 'conditional'"
         :name="$t('viewers.amount')"
-        :value="displayedValue || ' '"
+        :value="formatQuantity(displayedValue, unit) || ' '"
       />
       <property-target-tags
         v-if="model.targetByTags"
@@ -52,8 +52,11 @@ import getEffectIcon from '/imports/ui/utility/getEffectIcon';
 import { isFinite } from 'lodash';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import { useI18n } from 'vue-i18n';
+import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
 
 const { t } = useI18n();
+
+const { formatQuantity } = useUnits();
 
 const props = defineProps({
   model: {
@@ -61,6 +64,9 @@ const props = defineProps({
     required: true,
   },
 });
+
+// An amount in metres or kilograms is shown in the user's units
+const unit = useEffectUnit(() => props.model);
 
 const resolvedValue = computed(() => {
   if (!props.model.amount) return;

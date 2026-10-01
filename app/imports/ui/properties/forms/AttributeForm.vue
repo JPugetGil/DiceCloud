@@ -27,7 +27,10 @@
             $emit('change', {path: ['baseValue', ...path], value, ack})"
         />
       </v-col>
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        md="6"
+      >
         <smart-select
           :label="$t('common.type')"
           :items="attributeTypes"
@@ -36,6 +39,20 @@
           :menu-props="{auto: true, lazy: true}"
           :hint="attributeTypeHints[model.attributeType]"
           @change="(value, ack) => change('attributeType', value, ack)"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <smart-select
+          :label="$t('units.unit')"
+          :items="unitItems"
+          :model-value="getAttributeUnit(model) || 'none'"
+          :error-messages="errors.unit"
+          :hint="$t('units.attributeHint')"
+          data-id="attribute-unit"
+          @change="(value, ack) => change('unit', value, ack)"
         />
       </v-col>
       <v-expand-transition>
@@ -306,6 +323,7 @@ import ColorPicker from '/imports/ui/components/ColorPicker.vue';
 import ResetSelector from '/imports/ui/components/ResetSelector.vue';
 import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useI18n } from 'vue-i18n';
+import { getAttributeUnit } from '/imports/api/utility/units';
 
 const { t } = useI18n();
 
@@ -323,6 +341,14 @@ const props = defineProps({
 const emit = defineEmits(['change']);
 
 const context = inject('context', {});
+
+// The unit shown is the one in effect, including the one the variable name
+// gives; choosing one stores it on the attribute
+const unitItems = [
+  { title: t('units.none'), value: 'none' },
+  { title: t('units.distance'), value: 'distance' },
+  { title: t('units.weight'), value: 'weight' },
+];
 
 const attributeTypes = [
   {

@@ -12,6 +12,7 @@ import { some } from 'lodash';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
+import { DISTANCE_UNITS, WEIGHT_UNITS } from '/imports/api/utility/units';
 const defaultLibraries = process.env.DEFAULT_LIBRARIES && process.env.DEFAULT_LIBRARIES.split(',') || [];
 const defaultLibraryCollections = process.env.DEFAULT_LIBRARY_COLLECTIONS && process.env.DEFAULT_LIBRARY_COLLECTIONS.split(',') || [];
 
@@ -130,6 +131,18 @@ const userSchema = new SimpleSchema({
     allowedValues: ['en', 'fr'],
     optional: true,
   },
+  // Units distances and weights are shown in; stored values stay metric
+  // (see imports/api/utility/units)
+  'preferences.distanceUnit': {
+    type: String,
+    allowedValues: DISTANCE_UNITS,
+    optional: true,
+  },
+  'preferences.weightUnit': {
+    type: String,
+    allowedValues: WEIGHT_UNITS,
+    optional: true,
+  },
 });
 
 Meteor.users.attachSchema(userSchema);
@@ -181,6 +194,29 @@ Meteor.users.setLanguage = new ValidatedMethod({
   async run({ language }) {
     if (!this.userId) return;
     await Meteor.users.updateAsync(this.userId, { $set: { 'preferences.language': language } });
+  },
+});
+
+Meteor.users.setUnitPreference = new ValidatedMethod({
+  name: 'users.setUnitPreference',
+  validate: new SimpleSchema({
+    quantity: { type: String, allowedValues: ['distance', 'weight'] },
+    unit: { type: String, allowedValues: [...DISTANCE_UNITS, ...WEIGHT_UNITS] },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: {
+    numRequests: 5,
+    timeInterval: 2000,
+  },
+  async run({ quantity, unit }) {
+    const allowed = quantity === 'distance' ? DISTANCE_UNITS : WEIGHT_UNITS;
+    if (!allowed.includes(unit)) {
+      throw new Meteor.Error('invalid-unit', `${unit} is not a ${quantity} unit`);
+    }
+    if (!this.userId) return;
+    await Meteor.users.updateAsync(this.userId, {
+      $set: { [`preferences.${quantity}Unit`]: unit },
+    });
   },
 });
 

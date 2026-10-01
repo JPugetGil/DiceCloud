@@ -62,7 +62,7 @@
             >
               $weight
             </v-icon>
-            {{ $t('common.weightKg', { weight: model.weight }) }}
+            {{ formatQuantity(model.weight, 'weight') }}
           </div>
 
           <div class="d-flex flex-1-1 align-center mb-2">
@@ -72,7 +72,7 @@
             >
               $injustice
             </v-icon>
-            {{ $t('common.weightKg', { weight: model.contentsWeight }) }}
+            {{ formatQuantity(model.contentsWeight, 'weight') }}
             <span
               class="ml-1"
             >
@@ -88,6 +88,10 @@
 <script setup>
 import CoinValue from '/imports/ui/components/CoinValue.vue';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
+import useUnits from '/imports/ui/composables/useUnits';
+
+// Weights are stored in kilograms, shown in the user's unit
+const { formatQuantity } = useUnits();
 
 defineProps({
   model: {

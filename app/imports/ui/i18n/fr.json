@@ -267,7 +267,6 @@
     "character": "Personnage",
     "or": "OU",
     "not": "SAUF",
-    "weightKg": "{weight} kg",
     "each": "l'unité",
     "contents": "contenu",
     "total": "Total :",
@@ -609,6 +608,24 @@
     "sp": "{value} pa",
     "cp": "{value} pc"
   },
+  "units": {
+    "unit": "Unité",
+    "attributeHint": "Les formules calculent en mètres et en kilogrammes ; chaque joueur voit ses propres unités",
+    "none": "Aucune",
+    "distance": "Distance",
+    "weight": "Poids",
+    "m": "m",
+    "ft": "ft",
+    "kg": "kg",
+    "lb": "lb",
+    "distanceUnit": "Distances",
+    "weightUnit": "Poids",
+    "metres": "Mètres",
+    "feet": "Pieds",
+    "kilograms": "Kilogrammes",
+    "pounds": "Livres",
+    "accountHint": "Les fiches sont calculées en mètres et en kilogrammes. Les pieds et les livres suivent les règles de D&D : 1,5 m = 5 ft, 1 lb = 0,5 kg. Les distances écrites dans les descriptions restent en mètres."
+  },
   "components": {
     "uploadImage": "Téléverser une image",
     "addImage": "Ajouter une image",
@@ -707,7 +724,6 @@
     "value": "Valeur",
     "valueGpHint": "La valeur de l'objet en pièces d'or, avec des décimales pour les valeurs inférieures à 1 po",
     "gp": "po",
-    "kg": "kg",
     "weight": "Poids",
     "quantity": "Quantité",
     "dcHint": "DD du jet de sauvegarde",
@@ -941,7 +957,7 @@
     "item": {
       "pluralName": "Nom au pluriel",
       "pluralNameHint": "Le nom de l'objet au pluriel. Si l'objet s'appelle 'épée', son pluriel est 'épées'",
-      "weightHint": "Le poids d'un seul objet, en livres. Peut être décimal",
+      "weightHint": "Le poids d'un seul objet. Peut être décimal",
       "showIncrement": "Afficher le bouton d'incrément",
       "attunement": "Lien"
     },

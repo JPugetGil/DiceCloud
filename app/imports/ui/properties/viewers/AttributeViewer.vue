@@ -16,13 +16,13 @@
             v-if="model.damage !== undefined"
             class="text-headline-large mr-3"
           >
-            {{ model.value }} / {{ model.total }}
+            {{ formatQuantity(model.value, unit) }} / {{ formatQuantity(model.total, unit) }}
           </div>
           <div
             v-if="model.value !== undefined"
             class="text-headline-large mr-3"
           >
-            {{ model.value }}
+            {{ formatQuantity(model.value, unit) }}
           </div>
           <div
             v-else
@@ -151,8 +151,11 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 import { useI18n } from 'vue-i18n';
+import useUnits from '/imports/ui/composables/useUnits';
+import { getAttributeUnit } from '/imports/api/utility/units';
 
 const { t } = useI18n();
+const { formatQuantity } = useUnits();
 
 const props = defineProps({
   model: {
@@ -162,6 +165,9 @@ const props = defineProps({
 });
 
 const context = inject('context', {});
+
+// A distance or weight, shown in the user's units
+const unit = computed(() => getAttributeUnit(props.model));
 
 const attributeTypes = ref({
   ability: t('attributeTypes.ability'),

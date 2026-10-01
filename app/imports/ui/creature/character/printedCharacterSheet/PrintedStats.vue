@@ -67,10 +67,13 @@
             :class="stat.variableName == 'armor' ? 'shield-border' : 'octagon-border'"
             class="number big-number"
           >
-            {{ stat.value }}
+            {{ quantityParts(stat.value, getAttributeUnit(stat)).value }}
           </div>
           <div class="label double-border">
             {{ stat.name }}
+            <template v-if="getAttributeUnit(stat)">
+              ({{ unitLabel(getAttributeUnit(stat)) }})
+            </template>
           </div>
         </div>
       </div>
@@ -363,6 +366,11 @@ import PrintedDamageMultipliers from '/imports/ui/creature/character/printedChar
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 import { uniqBy } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import useUnits from '/imports/ui/composables/useUnits';
+import { getAttributeUnit } from '/imports/api/utility/units';
+
+// Speeds and senses in the user's units
+const { quantityParts, unitLabel } = useUnits();
 
 const props = defineProps({
   creatureId: {

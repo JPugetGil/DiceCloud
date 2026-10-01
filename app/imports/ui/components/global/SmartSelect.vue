@@ -7,7 +7,7 @@
     :menu-props="{auto: true, lazy: true}"
     :disabled="isDisabled"
     variant="outlined"
-    @update:model-value="change"
+    @update:model-value="select"
     @focus="focused = true"
     @blur="focused = false"
   >
@@ -42,4 +42,12 @@ const {
   change,
   focused,
 } = useSmartInput(props, model, emit);
+
+// The select is controlled by safeValue, which follows the model only while it
+// is not focused, and it keeps the focus after a pick: show the pick at once,
+// or the previous option stays on screen until the select is left
+function select(value) {
+  safeValue.value = value;
+  change(value);
+}
 </script>

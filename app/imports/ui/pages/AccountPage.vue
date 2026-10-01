@@ -31,6 +31,31 @@
             @change="setLanguage"
           />
         </v-list-item>
+        <v-list-item data-id="distance-unit-preference">
+          <smart-toggle
+            :label="$t('units.distanceUnit')"
+            :model-value="preferences.distanceUnit || 'm'"
+            :options="[
+              {name: $t('units.metres'), value: 'm'},
+              {name: $t('units.feet'), value: 'ft'},
+            ]"
+            @change="(value, ack) => setUnit('distance', value, ack)"
+          />
+        </v-list-item>
+        <v-list-item data-id="weight-unit-preference">
+          <smart-toggle
+            :label="$t('units.weightUnit')"
+            :model-value="preferences.weightUnit || 'kg'"
+            :options="[
+              {name: $t('units.kilograms'), value: 'kg'},
+              {name: $t('units.pounds'), value: 'lb'},
+            ]"
+            @change="(value, ack) => setUnit('weight', value, ack)"
+          />
+          <p class="text-body-small text-medium-emphasis mt-2 mb-0">
+            {{ $t('units.accountHint') }}
+          </p>
+        </v-list-item>
         <v-list-item>
           <smart-switch
             :label="$t('account.swapAbilityScores')"
@@ -235,6 +260,7 @@ import useLoginServiceConfigured from '/imports/ui/composables/useLoginServiceCo
 import { useI18n } from 'vue-i18n';
 import { LANGUAGES, setLocale } from '/imports/ui/i18n';
 import useUserRole from '/imports/ui/composables/useUserRole';
+import useUnits from '/imports/ui/composables/useUnits';
 import { ROLES } from '/imports/api/users/roles';
 import prettyBytes from 'pretty-bytes';
 import { Meteor } from 'meteor/meteor';
@@ -339,6 +365,18 @@ async function setDarkMode(value, ack) {
   }
   try {
     await Meteor.users.setDarkMode.callAsync({ darkMode: dm });
+    ack();
+  } catch (error) {
+    ack(error);
+  }
+}
+
+// Distances and weights are shown in these units; stored values stay metric
+const { preferences } = useUnits();
+
+async function setUnit(quantity, unit, ack) {
+  try {
+    await Meteor.users.setUnitPreference.callAsync({ quantity, unit });
     ack();
   } catch (error) {
     ack(error);

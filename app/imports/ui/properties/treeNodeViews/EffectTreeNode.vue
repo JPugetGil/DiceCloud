@@ -16,7 +16,7 @@
       </template>
       <template v-else-if="model.targetByTags">
         <span class="mr-1">
-          {{ displayedValue }}
+          {{ formatQuantity(displayedValue, unit) }}
         </span>
         <span
           class="mr-1"
@@ -24,7 +24,7 @@
       </template>
       <template v-else>
         <span class="mr-1">
-          {{ displayedValue }}
+          {{ formatQuantity(displayedValue, unit) }}
         </span>
         <span
           class="mr-1"
@@ -38,6 +38,7 @@
 import { computed } from 'vue';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
 import { useI18n } from 'vue-i18n';
+import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
 
 const { t } = useI18n();
 
@@ -49,6 +50,10 @@ const props = defineProps({
   selected: Boolean,
   hideIcon: Boolean,
 });
+
+// An amount in metres or kilograms is shown in the user's units
+const { formatQuantity } = useUnits();
+const unit = useEffectUnit(() => props.model);
 
 const resolvedValue = computed(() => {
   return (props.model.amount && props.model.amount.value) !== undefined ?
