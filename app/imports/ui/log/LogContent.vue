@@ -7,6 +7,10 @@
     >
       <h4
         class="content-name my-0"
+        :class="{
+          'text-success': content.name?.startsWith('Critical Hit'),
+          'text-error': content.name?.startsWith('Critical Miss'),
+        }"
         style="min-height: 12px;"
       >
         {{ content.name }}
@@ -15,6 +19,7 @@
         v-if="content.value"
         class="content-value"
         :markdown="content.value"
+        dice
       />
       <div
         v-else
@@ -53,7 +58,7 @@ const filteredModel = computed(() => {
 </style>
 
 <style lang="css">
-  .log-content .content-value > p:last-of-type {
+  .log-content .content-value > :last-child {
     margin-bottom: 0;
   }
 </style>

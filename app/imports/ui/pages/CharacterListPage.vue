@@ -9,24 +9,114 @@
       >
         <v-col
           cols="12"
-          xl="8"
+          :xl="view === 'list' ? 8 : 10"
         >
-          <v-card
-            v-if="hasCharacters || !ready"
-            :class="{ 'mb-4': folders && folders.length }"
+          <div
+            v-if="hasCharacters"
+            class="d-flex flex-wrap align-center ga-3 mb-3"
           >
-            <creature-folder-list
-              :creatures="CreaturesWithNoParty"
-              :folders="folders"
+            <v-text-field
+              v-model="search"
+              prepend-inner-icon="mdi-magnify"
+              :placeholder="$t('characterList.search')"
+              :aria-label="$t('characterList.search')"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              class="flex-1-1"
+              style="min-width: 220px;"
+              data-id="character-list-search"
             />
-          </v-card>
-          <v-card v-else>
+            <v-btn-toggle
+              v-model="sort"
+              mandatory
+              divided
+              border
+              rounded="pill"
+              density="compact"
+              color="primary"
+              data-id="character-list-sort"
+            >
+              <v-btn
+                value="name"
+                prepend-icon="mdi-sort-alphabetical-ascending"
+              >
+                {{ $t('characterList.sortName') }}
+              </v-btn>
+              <v-btn
+                value="level"
+                prepend-icon="mdi-sort-numeric-descending"
+              >
+                {{ $t('characterList.sortLevel') }}
+              </v-btn>
+            </v-btn-toggle>
+            <v-btn-toggle
+              v-model="view"
+              mandatory
+              divided
+              border
+              rounded="pill"
+              density="compact"
+              color="primary"
+              data-id="character-list-view"
+            >
+              <v-btn
+                value="grid"
+                :aria-label="$t('characterList.viewGrid')"
+              >
+                <v-icon>mdi-view-grid-outline</v-icon>
+                <v-tooltip
+                  activator="parent"
+                  location="top"
+                  :text="$t('characterList.viewGrid')"
+                />
+              </v-btn>
+              <v-btn
+                value="list"
+                :aria-label="$t('characterList.viewList')"
+              >
+                <v-icon>mdi-view-list-outline</v-icon>
+                <v-tooltip
+                  activator="parent"
+                  location="top"
+                  :text="$t('characterList.viewList')"
+                />
+              </v-btn>
+            </v-btn-toggle>
+          </div>
+          <v-card
+            v-if="!hasCharacters && ready"
+          >
             <v-empty-state
               icon="mdi-account-plus-outline"
               :title="$t('characterList.emptyTitle')"
               :text="$t('characterList.emptyText')"
             />
           </v-card>
+          <v-card
+            v-else-if="query && !shownCount"
+          >
+            <v-empty-state
+              icon="mdi-magnify-close"
+              :title="$t('characterList.noMatch', { search: search.trim() })"
+            />
+          </v-card>
+          <v-card
+            v-else-if="view === 'list'"
+            :class="{ 'mb-4': shownFolders && shownFolders.length }"
+          >
+            <creature-folder-list
+              :creatures="shownCreatures"
+              :folders="shownFolders"
+            />
+          </v-card>
+          <character-grid
+            v-else
+            :creatures="shownCreatures"
+            :folders="shownFolders"
+            :searching="!!query"
+          />
           <div class="d-flex flex-wrap justify-end align-center ga-2 mt-3">
             <v-chip
               v-if="characterLimit !== Infinity"
@@ -83,16 +173,18 @@
 </template>
 
 <script setup lang="js">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import insertCreatureFolder from '/imports/api/creature/creatureFolders/methods/insertCreatureFolder';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import CreatureFolderList from '/imports/ui/creature/creatureList/CreatureFolderList.vue';
+import CharacterGrid from '/imports/ui/creature/creatureList/CharacterGrid.vue';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { uniq, flatten } from 'lodash';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -153,6 +245,78 @@ const { result: CreaturesWithNoParty } = autorun(() => {
 const hasCharacters = computed(() =>
   !!(CreaturesWithNoParty.value?.length || folders.value?.length)
 );
+
+// How the list is shown and sorted, kept on this browser
+function stored(key, fallback, allowed) {
+  try {
+    const value = localStorage.getItem(key);
+    if (allowed.includes(value)) return value;
+  } catch {
+    // Storage blocked: the defaults
+  }
+  return fallback;
+}
+const view = ref(stored('characterListView', 'grid', ['grid', 'list']));
+const sort = ref(stored('characterListSort', 'name', ['name', 'level']));
+watch([view, sort], ([viewValue, sortValue]) => {
+  try {
+    localStorage.setItem('characterListView', viewValue);
+    localStorage.setItem('characterListSort', sortValue);
+  } catch {
+    // Only this visit remembers them
+  }
+});
+
+subscribe('characterListClasses');
+
+// Each character's classes, in the order of its sheet
+const { result: classesByCreature } = autorun(() => {
+  const classes = {};
+  CreatureProperties.find({
+    type: 'class', removed: { $ne: true }, inactive: { $ne: true },
+  }, {
+    fields: { root: 1, name: 1, level: 1 },
+    sort: { left: 1 },
+  }).forEach(cls => (classes[cls.root.id] ||= []).push(cls));
+  return classes;
+});
+
+function describe(character) {
+  const classes = classesByCreature.value?.[character._id] || [];
+  const level = classes.reduce((sum, cls) => sum + (cls.level || 0), 0);
+  // A class's own level only tells something once there are several
+  const names = classes
+    .map(cls => classes.length > 1 && cls.level ? `${cls.name}\u00a0${cls.level}` : cls.name)
+    .filter(Boolean).join(', ');
+  let levelText = names || t('characterList.noClass');
+  if (level) {
+    levelText = names
+      ? t('characterList.levelClasses', { level, classes: names })
+      : t('characterList.level', { level });
+  }
+  return { ...character, level, levelText };
+}
+
+// Case and accents do not count: "elea" finds "Éléa"
+const normalize = text => (text || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+const search = ref('');
+const query = computed(() => normalize(search.value).trim());
+
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+const byName = (a, b) => collator.compare(a.name || '', b.name || '');
+const compare = (a, b) => sort.value === 'level' ? (b.level - a.level || byName(a, b)) : byName(a, b);
+
+const arrange = creatures => (creatures || [])
+  .map(describe)
+  .filter(character => !query.value || normalize(`${character.name} ${character.levelText}`).includes(query.value))
+  .sort(compare);
+const shownCreatures = computed(() => arrange(CreaturesWithNoParty.value));
+const shownFolders = computed(() => (folders.value || []).map(folder => ({
+  ...folder,
+  creatures: arrange(folder.creatures),
+})));
+const shownCount = computed(() => shownCreatures.value.length
+  + shownFolders.value.reduce((count, folder) => count + folder.creatures.length, 0));
 
 const { result: showImportButton } = autorun(() => {
   return !Meteor.settings.public?.disallowCreatureApiImport;

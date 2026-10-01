@@ -37,7 +37,7 @@ meteor npm run check:contrast        # one check, by its npm script
 | Check | What it does | What it caught |
 |-------|--------------|----------------|
 | `routes` | Loads the main pages signed in and signed out (plus a public library and collection, and `E2E_EXTRA_ROUTES`); fails on a console error or warning, an empty page, "[object Promise]", or a subheader without its indent | Pages that did not mount; broken publications; card titles against the card's edge |
-| `flows` | The health bar's layout, every character sheet tab, the speed dial, creating a property, editing it; then removes it | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
+| `flows` | The health bar's layout, every character sheet tab, the speed dial, creating a property, editing it, finding it through the character search, a condition chip on and off, the character list's search; then removes the property | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
 | `actions` | An action may target the acting character but not one the user cannot edit; a skill check through its dialog; the Short rest button end to end; no log entry cut off | The check dialog failing as it opened; log entries clipped; guards the rule that replaced tabletop ids, under which any character id passed outside a tabletop (found in the code) |
 | `docs-navigation` | Navigates the default docs inside the app and loads one directly | Documents that showed a title and no content after navigation |
 | `property-forms` | Opens one library node of every property type in view and edit mode; checks select items, "false" values and console errors | Every select showing "false"; "[object Object]" options; a viewer that crashed |
@@ -81,6 +81,7 @@ meteor node tools/dom.js /account '.theme-preference'
   password; they never write login tokens or other data into the database.
 - They read the database (to find the test character and sample library nodes)
   and change data only through the app, as a user would: `setup` creates the
-  account and a character; `flows` creates a property and removes it again;
+  account and a character; `flows` creates a property and removes it again,
+  and gives the test character a condition and takes it away;
   `actions` takes a short rest with the test character; `contrast` sets the test
   account's theme preference to "Match device theme".

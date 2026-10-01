@@ -1,8 +1,13 @@
 <template>
+  <!--
+    Compact, a folder's characters sit just inside it: by default they are
+    pushed in by the room of a prepend icon too (56px in all)
+  -->
   <v-list
     v-model:opened="openFolders"
     :nav="nav"
     :density="dense ? 'compact' : undefined"
+    :indent="dense ? 12 : undefined"
     class="creature-folder-list"
   >
     <creature-list
@@ -10,7 +15,9 @@
       :selection="selection"
       :selected-creature="selectedCreature"
       :dense="dense"
+      :drop-hint="!dense && !!draggingFrom"
       @creature-selected="id => emit('creature-selected', id)"
+      @dragging="folderId => draggingFrom = folderId"
     />
     <v-slide-x-transition
       group
@@ -42,6 +49,7 @@
           :selected-creature="selectedCreature"
           :dense="dense"
           @creature-selected="id => emit('creature-selected', id)"
+          @dragging="folderId => draggingFrom = folderId"
         />
       </v-list-group>
     </v-slide-x-transition>
@@ -77,6 +85,9 @@ const emit = defineEmits(['creature-selected']);
 const openFolders = ref([]);
 // The sidebar and the page list the same folders: keep their element ids apart
 const listId = useId();
+// The folder a character is dragged out of: the list of characters in no
+// folder then shows that it takes it
+const draggingFrom = ref(undefined);
 </script>
 
 <style lang="css">

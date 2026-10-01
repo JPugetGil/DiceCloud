@@ -24,7 +24,8 @@
     "terms": "Terms of use",
     "administration": "Administration",
     "iconAdmin": "Icons",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "partyBoard": "Party board"
   },
   "nav": {
     "signIn": "Sign in",
@@ -118,7 +119,61 @@
     "anotherCharacter": "another character",
     "characterCount": "{count} / {limit} characters",
     "limitReached": "You can own up to {limit} characters. Archive or delete one, or ask an admin to make you an active player.",
-    "limitReachedActivePlayer": "You can own up to {limit} characters. Archive or delete one."
+    "limitReachedActivePlayer": "You can own up to {limit} characters. Archive or delete one.",
+    "search": "Search characters",
+    "sortName": "Name",
+    "sortLevel": "Level",
+    "viewGrid": "Portraits",
+    "viewList": "List",
+    "level": "Level {level}",
+    "levelClasses": "Level {level} · {classes}",
+    "noClass": "No class yet",
+    "noMatch": "No character matches “{search}”",
+    "emptyFolder": "No characters in this folder yet: drag one in, or use a character's folder button.",
+    "moveTo": "Move to folder",
+    "moveToFolder": "Move {name} to a folder",
+    "noFolder": "No folder",
+    "newFolder": "New folder",
+    "movedToFolder": "Moved {name} to {folder}",
+    "movedOutOfFolder": "Took {name} out of its folder",
+    "dropOutOfFolder": "Drop here to take it out of its folder",
+    "folderName": "Folder name",
+    "renameFolder": "Rename the folder",
+    "deleteFolder": "Delete the folder",
+    "folderDeleted": "Deleted {name}: its characters are out of any folder"
+  },
+  "party": {
+    "openBoard": "Party board",
+    "openSheet": "Open the sheet",
+    "tempHitPoints": "+{value} temporary hit points",
+    "noConditions": "No conditions",
+    "armorClass": "AC",
+    "initiative": "Init.",
+    "passivePerception": "Passive Perc.",
+    "speed": "Speed",
+    "notFound": "This party board does not exist or is not yours",
+    "untitled": "Party",
+    "memberCount": "{count} character | {count} characters",
+    "emptyTitle": "No characters in this folder",
+    "emptyText": "Drag characters into this folder on the Characters page. Players can share theirs with you from their sheet."
+  },
+  "initiative": {
+    "title": "Initiative",
+    "round": "Round {round}",
+    "roll": "Roll initiative",
+    "reroll": "Roll again",
+    "previous": "Previous turn",
+    "next": "Next turn",
+    "result": "Initiative of {name}",
+    "rollDetail": "d20 ({roll}) {bonus}",
+    "bonus": "Bonus {bonus}",
+    "remove": "Remove {name}",
+    "empty": "Roll initiative to start a combat: the characters roll d20 plus their initiative. Add monsters and other creatures below; type a result to use a player's own roll.",
+    "addTitle": "Add a creature",
+    "name": "Name",
+    "bonusLabel": "Bonus",
+    "add": "Add",
+    "end": "End combat"
   },
   "docs": {
     "notFound": "Documentation not found",
@@ -534,6 +589,13 @@
     "invalidUrl": "Not a valid character URL",
     "notShared": "This character's sharing settings are not set to allow anyone to view"
   },
+  "characterSearch": {
+    "open": "Search the character",
+    "placeholder": "Search the character",
+    "hint": "Find a spell, an item, a feature, an action or a stat by its name or its text",
+    "noMatch": "Nothing on this character matches “{search}”",
+    "more": "{count} more result: refine the search | {count} more results: refine the search"
+  },
   "sheet": {
     "notFound": "Character not found",
     "notFoundText": "Either this character does not exist, or you don't have permission to view it.",
@@ -728,7 +790,10 @@
   "log": {
     "compilationError": "Compilation error",
     "showSilenced": "Show {count} line left out of the log | Show {count} lines left out of the log",
-    "hideSilenced": "Hide the lines left out of the log"
+    "hideSilenced": "Hide the lines left out of the log",
+    "natural20": "Natural 20",
+    "natural1": "Natural 1",
+    "droppedDie": "Not counted"
   },
   "icons": {
     "metadataJson": "Metadata JSON",

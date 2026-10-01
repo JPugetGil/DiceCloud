@@ -13,7 +13,10 @@
           {{ snackbar.data.text }}
         </div>
         <template v-else-if="snackbar.data.content">
-          <log-content :model="snackbar.data.content" />
+          <log-content
+            class="log-fresh"
+            :model="snackbar.data.content"
+          />
         </template>
         <v-spacer />
         <v-btn

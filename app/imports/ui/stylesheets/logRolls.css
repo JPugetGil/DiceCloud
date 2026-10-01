@@ -1,0 +1,95 @@
+/*
+ * The dice of a roll in the log (markdownToHtml's `dice` option): a tile per
+ * die, a hexagon for a d20. A natural 20 or 1 on a d20 is filled, a die that
+ * advantage or a function dropped is struck out. Under `.log-fresh`, an entry
+ * just written, the dice roll in one after the other, then the total shows.
+ */
+.log-die {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75em;
+  height: 1.75em;
+  padding: 0 0.3em;
+  margin: 0.125em;
+  border-radius: 6px;
+  background: rgba(var(--v-theme-on-surface), 0.1);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.log-die--d20 {
+  min-width: 2em;
+  height: 2.25em;
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+.log-die--crit {
+  background: rgb(var(--v-theme-success));
+  color: rgb(var(--v-theme-on-success));
+  font-weight: 700;
+}
+
+.log-die--fumble {
+  background: rgb(var(--v-theme-error));
+  color: rgb(var(--v-theme-on-error));
+  font-weight: 700;
+}
+
+.log-die--dropped {
+  background: rgba(var(--v-theme-on-surface), 0.04);
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+}
+
+.log-fresh .log-die {
+  animation: log-die-roll 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.1s);
+}
+
+.log-fresh .log-die--crit,
+.log-fresh .log-die--fumble {
+  animation-name: log-die-roll, log-die-pop;
+  animation-duration: 0.6s, 0.5s;
+  animation-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1), ease-out;
+  animation-delay: calc(var(--i, 0) * 0.1s), calc(var(--i, 0) * 0.1s + 0.6s);
+}
+
+.log-fresh .log-roll ~ strong {
+  display: inline-block;
+  animation: log-total 0.3s ease-out both;
+  animation-delay: 0.5s;
+}
+
+@keyframes log-die-roll {
+  from {
+    opacity: 0;
+    transform: translateY(-0.75em) rotate(-300deg) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes log-die-pop {
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+@keyframes log-total {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-fresh .log-die,
+  .log-fresh .log-roll ~ strong {
+    animation: none;
+  }
+}

@@ -20,13 +20,20 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, watchEffect, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { subscribe } from 'vue-meteor-tracker';
 import CharacterSheet from '/imports/ui/creature/character/CharacterSheet.vue';
+import { useAppStore } from '/imports/ui/stores/app';
 
 const route = useRoute();
+const appStore = useAppStore();
 
 const { ready: ready } = subscribe(() => ['singleCharacter', route.params.id]);
 const subReady = computed(() => ready.value);
+
+watchEffect(() => {
+  appStore.loadedCharacterId = subReady.value ? route.params.id : undefined;
+});
+onBeforeUnmount(() => appStore.loadedCharacterId = undefined);
 </script>

@@ -8,6 +8,7 @@ import '/imports/api/rest/server';
 import '/imports/api/creature/creatures/server/publications/characterList';
 import '/imports/api/library/server/publications/library';
 import '/imports/api/creature/creatures/server/publications/singleCharacter';
+import '/imports/api/creature/creatureFolders/server/publications/partyBoard';
 import '/imports/api/creature/experience/server/publications';
 import '/imports/api/users/server/publications/users';
 import '/imports/api/library/server/publications/slotFillers';

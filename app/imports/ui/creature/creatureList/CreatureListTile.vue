@@ -9,6 +9,7 @@
     :class="$attrs.class"
     style="position: relative;"
     :style="$attrs.style"
+    :data-draggable="$attrs['data-draggable']"
     @change="dropItem"
   >
     <template #item>
@@ -16,7 +17,7 @@
     </template>
     <template #header>
       <v-list-item
-        v-bind="omit($attrs, ['class', 'style'])"
+        v-bind="omit($attrs, ['class', 'style', 'data-draggable'])"
         :class="{
           'text-primary v-list-item--active': isSelected,
           'item-to-creature-drag-over': dragover,
@@ -56,7 +57,12 @@
           {{ model.name }}
         </v-list-item-title>
         <v-list-item-subtitle v-if="!dense">
-          {{ model.alignment }} {{ model.gender }} {{ model.race }}
+          <template v-if="model.levelText">
+            {{ model.levelText }}
+          </template>
+          <template v-else>
+            {{ model.alignment }} {{ model.gender }} {{ model.race }}
+          </template>
         </v-list-item-subtitle>
 
         <template #append>
@@ -64,7 +70,11 @@
             v-if="!dense"
             :model="model"
           />
-        
+          <move-to-folder-menu
+            v-if="!selection && !dense"
+            :creature="model"
+            :folder-id="folderId"
+          />
           <drag-handle
             v-if="!selection && !dense"
             style="height: 100%; width: 40px;"
@@ -80,13 +90,15 @@ import { ref } from 'vue';
 import { omit } from 'lodash';
 import draggable from 'vuedraggable';
 import SharedIcon from '/imports/ui/components/SharedIcon.vue';
+import MoveToFolderMenu from '/imports/ui/creature/creatureList/MoveToFolderMenu.vue';
 import { moveBetweenRoots } from '/imports/api/parenting/organizeMethods';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useI18n } from 'vue-i18n';
 
-// Class and style stay on the root, the other attributes (to, data-id) go on the
-// list item: with the list's "creature" class on the item too, Sortable would
-// drag the item and vuedraggable ignore the drop
+// Class, style and vuedraggable's `data-draggable` mark stay on the root, the
+// other attributes (to, data-id) go on the list item. Sortable only drags an
+// element with both the list's "creature" class and that mark: with either on
+// the item, no tile could be dragged at all
 defineOptions({
   inheritAttrs: false,
 });
@@ -101,6 +113,11 @@ const props = defineProps({
   selection: Boolean,
   isSelected: Boolean,
   dense: Boolean,
+  // The folder the character is in, none for the characters in no folder
+  folderId: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(['click']);

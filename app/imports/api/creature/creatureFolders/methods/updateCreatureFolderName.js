@@ -20,7 +20,7 @@ const updateCreatureFolderName = new ValidatedMethod({
     }
     // Check that this folder is owned by the user
     let existingFolder = await CreatureFolders.findOneAsync(_id);
-    if (existingFolder.owner !== userId) {
+    if (existingFolder?.owner !== userId) {
       throw new Meteor.Error('creatureFolders.methods.updateName.denied',
         'This folder does not belong to you');
     }

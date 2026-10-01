@@ -14,6 +14,7 @@
         v-for="log in logs"
         :key="log._id"
         :model="log"
+        :fresh="freshIds.has(log._id)"
       />
     </v-slide-y-reverse-transition>
     <v-card>
@@ -37,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, reactive, watch, onBeforeUnmount } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Tracker } from 'meteor/tracker';
 
@@ -50,6 +51,7 @@ import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
 import LogEntry from '/imports/ui/log/LogEntry.vue';
+import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
 import { Meteor } from 'meteor/meteor';
 
@@ -77,6 +79,28 @@ watch(input, (value) => {
 watch(() => props.creatureId, () => {
   Tracker.afterFlush(() => recalculate());
 });
+
+// Entries written while the log is open roll their dice in: it starts watching
+// once the character's sheet has loaded the earlier ones
+const appStore = useAppStore();
+const freshIds = reactive(new Set());
+let logObserver;
+watch(() => props.creatureId && appStore.loadedCharacterId === props.creatureId, (loaded) => {
+  logObserver?.stop();
+  logObserver = undefined;
+  freshIds.clear();
+  if (!loaded) return;
+  let initializing = true;
+  logObserver = CreatureLogs.find({ creatureId: props.creatureId }, {
+    fields: { _id: 1 },
+  }).observeChanges({
+    added(id) {
+      if (!initializing) freshIds.add(id);
+    },
+  });
+  initializing = false;
+}, { immediate: true });
+onBeforeUnmount(() => logObserver?.stop());
 
 watch(historyIndex, (i) => {
   if (typeof history.value[i] === 'string') {

@@ -17,12 +17,14 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
+  // Draw the dice of rolls, as the log writes them
+  dice: Boolean,
 });
 
 defineEmits(['click']);
 
 const compiledMarkdown = computed(() => {
   if (!props.markdown) return;
-  return DOMPurify.sanitize(markdownToHtml(props.markdown));
+  return DOMPurify.sanitize(markdownToHtml(props.markdown, { dice: props.dice }));
 });
 </script>

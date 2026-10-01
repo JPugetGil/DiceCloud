@@ -57,6 +57,7 @@ const AboutPage = () => import('/imports/ui/pages/AboutPage.vue');
 const LegalPage = () => import('/imports/ui/pages/LegalPage.vue');
 const CharacterListPage = () => import('/imports/ui/pages/CharacterListPage.vue');
 const CharacterListToolbarItems = () => import('/imports/ui/creature/creatureList/CharacterListToolbarItems.vue');
+const PartyBoardPage = () => import('/imports/ui/pages/PartyBoardPage.vue');
 const LibraryPage = () => import('/imports/ui/pages/LibraryPage.vue');
 const LibraryCollectionPage = () => import('/imports/ui/pages/LibraryCollectionPage.vue');
 const LibraryCollectionToolbar = () => import('/imports/ui/library/LibraryCollectionToolbar.vue');
@@ -150,6 +151,16 @@ const routes = [{
     },
     meta: {
       title: 'pageTitle.characterList',
+    },
+    beforeEnter: ensureLoggedIn,
+  }, {
+    name: 'partyBoard',
+    path: '/party/:id',
+    components: {
+      default: PartyBoardPage,
+    },
+    meta: {
+      title: 'pageTitle.partyBoard',
     },
     beforeEnter: ensureLoggedIn,
   }, {

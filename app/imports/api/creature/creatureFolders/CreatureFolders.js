@@ -31,6 +31,60 @@ let creatureFolderSchema = new SimpleSchema({
     type: Number,
     defaultValue: 0,
   },
+  // The folder's initiative tracker, on its party board. Round 0: no combat
+  initiative: {
+    type: Object,
+    optional: true,
+  },
+  'initiative.round': {
+    type: SimpleSchema.Integer,
+    min: 0,
+    defaultValue: 0,
+  },
+  // The index, in initiative order, of the entry whose turn it is
+  'initiative.turn': {
+    type: SimpleSchema.Integer,
+    min: 0,
+    defaultValue: 0,
+  },
+  'initiative.entries': {
+    type: Array,
+    defaultValue: [],
+    maxCount: 64,
+  },
+  'initiative.entries.$': {
+    type: Object,
+  },
+  'initiative.entries.$._id': {
+    type: String,
+    max: 32,
+  },
+  // A character of the folder, or none for a creature added by hand
+  'initiative.entries.$.creatureId': {
+    type: String,
+    max: 32,
+    optional: true,
+  },
+  'initiative.entries.$.name': {
+    type: String,
+    max: STORAGE_LIMITS.name,
+    optional: true,
+  },
+  // The roll's result, once rolled or typed
+  'initiative.entries.$.initiative': {
+    type: Number,
+    optional: true,
+  },
+  // Added to the d20, and breaks ties
+  'initiative.entries.$.bonus': {
+    type: Number,
+    optional: true,
+  },
+  // The d20 of the last roll, to show how the result came about
+  'initiative.entries.$.roll': {
+    type: SimpleSchema.Integer,
+    optional: true,
+  },
 });
 
 CreatureFolders.attachSchema(creatureFolderSchema);

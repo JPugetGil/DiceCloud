@@ -1,5 +1,6 @@
 import { Marked, Renderer } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
+import { t } from '/imports/ui/i18n';
 
 /*
  * Rendered markdown takes Vuetify's own styles: the Material type scale for
@@ -37,12 +38,73 @@ const typography = {
     }
   },
 };
+
+// A die's value as the parser writes it (rollArray.ts): `~~dropped~~`, inside
+// `*added by an explosion*`, inside `**exploded**`, inside `__underlined__`
+function parseDie(text) {
+  const die = {};
+  for (const [flag, marker] of [['underline', '__'], ['bold', '**'], ['italics', '*'], ['dropped', '~~']]) {
+    if (text.length > 2 * marker.length && text.startsWith(marker) && text.endsWith(marker)) {
+      die[flag] = true;
+      text = text.slice(marker.length, -marker.length);
+    }
+  }
+  if (!/^\d+$/.test(text)) return;
+  die.value = +text;
+  return die;
+}
+
+// The dice of a roll in the log, `1d20 [ 15, ~~8~~ ]`, drawn one by one;
+// stylesheets/logRolls.css draws them and rolls them in
+const diceRolls = {
+  extensions: [{
+    name: 'diceRoll',
+    level: 'inline',
+    start(src) {
+      const index = src.search(/(?<!\w)\d*d\d+ ?\[/);
+      return index === -1 ? undefined : index;
+    },
+    tokenizer(src) {
+      const match = /^(\d*)d(\d+) ?\[ ?([^\]\n]+?) ?\]/.exec(src);
+      if (!match) return;
+      const dice = match[3].split(',').map(text => parseDie(text.trim()));
+      if (dice.some(die => !die)) return;
+      return { type: 'diceRoll', raw: match[0], notation: `${match[1]}d${match[2]}`, diceSize: +match[2], dice };
+    },
+    renderer({ notation, diceSize, dice }) {
+      const chips = dice.map((die, index) => {
+        const classes = ['log-die'];
+        let label;
+        if (diceSize === 20) classes.push('log-die--d20');
+        if (die.dropped) classes.push('log-die--dropped');
+        else if (diceSize === 20 && die.value === 20) {
+          classes.push('log-die--crit');
+          label = t('log.natural20');
+        } else if (diceSize === 20 && die.value === 1) {
+          classes.push('log-die--fumble');
+          label = t('log.natural1');
+        }
+        if (die.bold) classes.push('font-weight-bold');
+        if (die.italics) classes.push('font-italic');
+        if (die.underline) classes.push('text-decoration-underline');
+        const value = die.dropped ? `<del>${die.value}</del>` : `${die.value}`;
+        const title = (die.dropped ? t('log.droppedDie') : label)?.replace(/[&<>"]/g, c => `&#${c.charCodeAt(0)};`);
+        return `<span class="${classes.join(' ')}" style="--i: ${index}"`
+          + `${title ? ` title="${title}"` : ''}>${value}</span>`
+          + (title ? `<span class="d-sr-only"> (${title})</span>` : '');
+      });
+      return `<span class="log-roll"><span class="text-medium-emphasis">${notation}</span> ${chips.join('')}</span>`;
+    },
+  }],
+};
+
 const base = Renderer.prototype;
 // Adds classes to the element an html string starts with, if it is that tag
 const addClass = (html, tag, classes) => html.replace(new RegExp(`^<${tag}\\b`), `<${tag} class="${classes}"`);
 
-const marked = new Marked(
+const createMarked = (...extensions) => new Marked(
   { breaks: true, gfm: true, silent: true },
+  ...extensions,
   typography,
   // Heading ids, which links to a section (`#ancestor-references`) point at
   gfmHeadingId(),
@@ -87,15 +149,22 @@ const marked = new Marked(
 
 // Headings keep the id gfmHeadingId gives them: a renderer extension cannot
 // call the one it replaces, so its heading is wrapped here
-const renderer = marked.defaults.renderer;
-const headingWithId = renderer.heading;
-renderer.heading = function (token) {
-  return addClass(headingWithId.call(this, token), `h${token.depth}`, `${HEADINGS[token.depth]} mt-6 mb-3`);
-};
+function withHeadingClasses(marked) {
+  const renderer = marked.defaults.renderer;
+  const headingWithId = renderer.heading;
+  renderer.heading = function (token) {
+    return addClass(headingWithId.call(this, token), `h${token.depth}`, `${HEADINGS[token.depth]} mt-6 mb-3`);
+  };
+  return marked;
+}
+
+const marked = withHeadingClasses(createMarked());
+const logMarked = withHeadingClasses(createMarked(diceRolls));
 
 /**
  * Markdown to HTML, unsanitized: sanitize it before putting it in the page.
+ * `dice` draws the dice of rolls, as the log writes them.
  */
-export default function markdownToHtml(markdown) {
-  return marked.parse(markdown);
+export default function markdownToHtml(markdown, { dice = false } = {}) {
+  return (dice ? logMarked : marked).parse(markdown);
 }

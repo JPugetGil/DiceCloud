@@ -1,6 +1,6 @@
 <template>
   <div
-    class="px-2 my-1 rounded-sm"
+    class="px-2 my-1 rounded-sm log-fresh"
     :data-id="model.actionId"
   >
     <v-list-item

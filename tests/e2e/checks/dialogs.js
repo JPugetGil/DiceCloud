@@ -21,6 +21,7 @@ main(async () => {
     .map(m => m[1].replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase());
   const { userId, creatureId } = await getTestUser();
   const DATA = {
+    'character-search-dialog': { creatureId },
     'creature-form-dialog': { _id: creatureId },
     'help-dialog': { path: 'property' },
     // Only opened: the transfer happens on its confirm button

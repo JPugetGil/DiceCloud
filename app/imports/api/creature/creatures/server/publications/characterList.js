@@ -1,5 +1,6 @@
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { Meteor } from 'meteor/meteor';
 
 Meteor.publish('characterList', function () {
@@ -40,5 +41,24 @@ Meteor.publish('characterList', function () {
       ),
       CreatureFolders.find({ owner: userId }),
     ];
+  });
+});
+
+// The classes of the user's characters: the character list shows their class and level
+Meteor.publish('characterListClasses', function () {
+  this.autorun(async function () {
+    const userId = this.userId;
+    if (!userId) return [];
+    const creatureIds = await Creatures.find({
+      $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+      type: 'pc',
+    }, { fields: { _id: 1 } }).mapAsync(creature => creature._id);
+    return CreatureProperties.find({
+      'root.id': { $in: creatureIds },
+      type: 'class',
+      removed: { $ne: true },
+    }, {
+      fields: { root: 1, type: 1, name: 1, level: 1, left: 1, inactive: 1, removed: 1 },
+    });
   });
 });

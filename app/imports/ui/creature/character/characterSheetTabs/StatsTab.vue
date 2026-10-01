@@ -92,12 +92,24 @@
       />
 
       <div
-        v-if="properties.buff && properties.buff.length"
+        v-if="(properties.buff && properties.buff.length) || conditions.length"
         class="buffs"
       >
         <v-card>
-          <v-list>
+          <!-- The chips come first: a buff added to the list must not move them under the pointer -->
+          <v-list class="pb-0">
             <v-list-subheader>{{ $t('stats.buffsAndConditions') }}</v-list-subheader>
+          </v-list>
+          <condition-chips
+            v-if="conditions.length"
+            :creature-id="creatureId"
+            :conditions="conditions"
+            :buffs="properties.buff"
+          />
+          <v-list
+            v-if="properties.buff && properties.buff.length"
+            class="pt-0"
+          >
             <buff-list-item
               v-for="buff in properties.buff"
               :key="buff._id"
@@ -409,7 +421,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
@@ -425,6 +437,8 @@ import RestButton from '/imports/ui/creature/RestButton.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import ToggleCard from '/imports/ui/properties/components/toggles/ToggleCard.vue';
 import BuffListItem from '/imports/ui/properties/components/buffs/BuffListItem.vue';
+import ConditionChips from '/imports/ui/properties/components/buffs/ConditionChips.vue';
+import listConditions from '/imports/api/creature/creatureProperties/methods/listConditions';
 import SpellSlotCard from '/imports/ui/properties/components/attributes/SpellSlotCard.vue';
 import EventButton from '/imports/ui/properties/components/actions/EventButton.vue';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -460,6 +474,19 @@ const choicesLeft = computed(() => context.editPermission === false
 const creature = autorun(() => {
   return Creatures.findOne(props.creatureId, { fields: { settings: 1 } });
 }).result;
+
+// The conditions its editors can give the character in one click
+const conditions = ref([]);
+watch(() => context.editPermission && props.creatureId, async (creatureId) => {
+  conditions.value = [];
+  if (!creatureId) return;
+  try {
+    const result = await listConditions.callAsync({ creatureId });
+    if (creatureId === props.creatureId) conditions.value = result || [];
+  } catch (error) {
+    console.error(error);
+  }
+}, { immediate: true });
 
 function walkDown(forest, callback){
   let stack = [...forest].reverse();

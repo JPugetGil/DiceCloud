@@ -32,6 +32,7 @@ const TransferOwnershipDialog = defineAsyncComponent(() => commonDialogs().then(
 const ArchiveDialog = defineAsyncComponent(() => import('/imports/ui/creature/archive/ArchiveDialog.vue'));
 const CastSpellWithSlotDialog = defineAsyncComponent(() => import('/imports/ui/properties/components/spells/CastSpellWithSlotDialog.vue'));
 const CharacterImportDialog = defineAsyncComponent(() => import('/imports/ui/creature/character/CharacterImportDialog.vue'));
+const CharacterSearchDialog = defineAsyncComponent(() => import('/imports/ui/creature/character/CharacterSearchDialog.vue'));
 const DeleteUserAccountDialog = defineAsyncComponent(() => import('/imports/ui/user/DeleteUserAccountDialog.vue'));
 const DependencyGraphDialog = defineAsyncComponent(() => import('/imports/ui/creature/dependencyGraph/DependencyGraphDialog.vue'));
 const ImageInputDialog = defineAsyncComponent(() => import('/imports/ui/files/userImages/ImageInputDialog.vue'));
@@ -50,6 +51,7 @@ export default {
   CastSpellWithSlotDialog,
   CharacterCreationDialog,
   CharacterImportDialog,
+  CharacterSearchDialog,
   CreatureFormDialog,
   CreaturePropertyDialog,
   CreaturePropertyFromLibraryDialog,

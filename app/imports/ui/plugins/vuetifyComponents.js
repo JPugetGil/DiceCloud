@@ -60,6 +60,7 @@ export {
   VParallax,
   VProgressCircular,
   VProgressLinear,
+  VResponsive,
   VRow,
   VScaleTransition,
   VScrollYTransition,

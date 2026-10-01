@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 
 const VERSION = Meteor.isClient ?
   'CLIENT' :
-  process.env.CONTAINER_VERSION || getVersionFromGit();
+  process.env.CONTAINER_VERSION || Meteor.gitCommitHash?.slice(0, 8) || getVersionFromGit();
 
 export default VERSION;
 
@@ -13,7 +13,7 @@ function getVersionFromGit(){
     // runs in a try so the client just falls through to the placeholder
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require('child_process')
-      .execSync('git rev-parse --short HEAD')
+      .execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
       .toString().trim();
   } catch {
     return 'GIT_VERSION_FAIL'

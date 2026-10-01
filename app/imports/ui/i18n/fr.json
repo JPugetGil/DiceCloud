@@ -24,7 +24,8 @@
     "terms": "Conditions d'utilisation",
     "administration": "Administration",
     "iconAdmin": "Icônes",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "partyBoard": "Tableau du groupe"
   },
   "nav": {
     "signIn": "Se connecter",
@@ -118,7 +119,61 @@
     "anotherCharacter": "un autre personnage",
     "characterCount": "{count} / {limit} personnages",
     "limitReached": "Vous pouvez posséder jusqu'à {limit} personnages. Archivez-en ou supprimez-en un, ou demandez à un administrateur de vous passer joueur actif.",
-    "limitReachedActivePlayer": "Vous pouvez posséder jusqu'à {limit} personnages. Archivez-en ou supprimez-en un."
+    "limitReachedActivePlayer": "Vous pouvez posséder jusqu'à {limit} personnages. Archivez-en ou supprimez-en un.",
+    "search": "Rechercher un personnage",
+    "sortName": "Nom",
+    "sortLevel": "Niveau",
+    "viewGrid": "Portraits",
+    "viewList": "Liste",
+    "level": "Niveau {level}",
+    "levelClasses": "Niveau {level} · {classes}",
+    "noClass": "Pas encore de classe",
+    "noMatch": "Aucun personnage ne correspond à « {search} »",
+    "emptyFolder": "Aucun personnage dans ce dossier : glissez-en un ici, ou utilisez le bouton dossier d'un personnage.",
+    "moveTo": "Déplacer vers un dossier",
+    "moveToFolder": "Déplacer {name} vers un dossier",
+    "noFolder": "Aucun dossier",
+    "newFolder": "Nouveau dossier",
+    "movedToFolder": "{name} déplacé vers {folder}",
+    "movedOutOfFolder": "{name} sorti de son dossier",
+    "dropOutOfFolder": "Déposez-le ici pour le sortir de son dossier",
+    "folderName": "Nom du dossier",
+    "renameFolder": "Renommer le dossier",
+    "deleteFolder": "Supprimer le dossier",
+    "folderDeleted": "{name} supprimé : ses personnages ne sont plus dans un dossier"
+  },
+  "party": {
+    "openBoard": "Tableau du groupe",
+    "openSheet": "Ouvrir la fiche",
+    "tempHitPoints": "+{value} points de vie temporaires",
+    "noConditions": "Aucun état",
+    "armorClass": "CA",
+    "initiative": "Init.",
+    "passivePerception": "Perc. passive",
+    "speed": "Vitesse",
+    "notFound": "Ce tableau de groupe n'existe pas ou ne vous appartient pas",
+    "untitled": "Groupe",
+    "memberCount": "{count} personnage | {count} personnages",
+    "emptyTitle": "Aucun personnage dans ce dossier",
+    "emptyText": "Glissez des personnages dans ce dossier depuis la page Personnages. Les joueurs peuvent vous partager les leurs depuis leur fiche."
+  },
+  "initiative": {
+    "title": "Initiative",
+    "round": "Round {round}",
+    "roll": "Lancer l'initiative",
+    "reroll": "Relancer",
+    "previous": "Tour précédent",
+    "next": "Tour suivant",
+    "result": "Initiative de {name}",
+    "rollDetail": "d20 ({roll}) {bonus}",
+    "bonus": "Bonus {bonus}",
+    "remove": "Retirer {name}",
+    "empty": "Lancez l'initiative pour commencer un combat : les personnages lancent un d20 plus leur initiative. Ajoutez monstres et autres créatures ci-dessous ; saisissez un résultat pour garder le jet d'un joueur.",
+    "addTitle": "Ajouter une créature",
+    "name": "Nom",
+    "bonusLabel": "Bonus",
+    "add": "Ajouter",
+    "end": "Terminer le combat"
   },
   "docs": {
     "notFound": "Documentation introuvable",
@@ -534,6 +589,13 @@
     "invalidUrl": "Ce n'est pas une URL de personnage valide",
     "notShared": "Le partage de ce personnage ne permet pas à tout le monde de le voir"
   },
+  "characterSearch": {
+    "open": "Rechercher dans le personnage",
+    "placeholder": "Rechercher dans le personnage",
+    "hint": "Trouvez un sort, un objet, une aptitude, une action ou une statistique par son nom ou son texte",
+    "noMatch": "Rien sur ce personnage ne correspond à « {search} »",
+    "more": "{count} autre résultat : précisez la recherche | {count} autres résultats : précisez la recherche"
+  },
   "sheet": {
     "notFound": "Personnage introuvable",
     "notFoundText": "Ce personnage n'existe pas, ou vous n'avez pas la permission de le voir.",
@@ -728,7 +790,10 @@
   "log": {
     "compilationError": "Erreur de compilation",
     "showSilenced": "Afficher {count} ligne absente du journal | Afficher {count} lignes absentes du journal",
-    "hideSilenced": "Masquer les lignes absentes du journal"
+    "hideSilenced": "Masquer les lignes absentes du journal",
+    "natural20": "20 naturel",
+    "natural1": "1 naturel",
+    "droppedDie": "Non compté"
   },
   "icons": {
     "metadataJson": "JSON des métadonnées",

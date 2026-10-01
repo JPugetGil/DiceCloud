@@ -1,12 +1,19 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { ResetTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
-import { getCreature, getPropertiesByFilter, getPropertiesOfType } from '/imports/api/engine/loadCreatures';
+import { getCreature, getPropertiesByFilter } from '/imports/api/engine/loadCreatures';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
+import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+
+const REST_TITLES: Record<string, string> = {
+  shortRest: 'Short Rest',
+  longRest: 'Long Rest',
+};
 
 export default async function applyResetTask(
   task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -19,32 +26,34 @@ export default async function applyResetTask(
     throw new Meteor.Error('wrong-number-of-targets', `Must reset the properties of a single creature at a time, ${task.targetIds.length} targets were provided`)
   }
 
-  // Print a title for rest events
-  switch (task.eventName) {
-    case 'shortRest':
-      result.appendLog({
-        name: 'Short Rest',
-        silenced: task.silent ?? false,
-      }, task.targetIds);
-      break;
-    case 'longRest':
-      result.appendLog({
-        name: 'Long Rest',
-        silenced: task.silent ?? false,
-      }, task.targetIds);
-      break;
-  }
+  // A rest lists what it restored under its title, which comes first, and
+  // logs each change silenced; other events log each change
+  const restTitle = REST_TITLES[task.eventName];
+  const restored: string[] | undefined = restTitle ? [] : undefined;
+  const title: LogContent = { name: restTitle, ...task.silent && { silenced: true } };
+  if (restTitle) result.mutations.push({ targetIds: task.targetIds, contents: [title] });
 
   // Reset the properties by this event name
-  await resetProperties(task, action, result, userInput);
+  await resetProperties(task, action, result, userInput, restored);
 
   // Reset hit dice on a long rest, starting with the highest dice
   if (task.eventName === 'longRest') {
-    await resetHitDice(task, action, result, userInput);
+    await resetHitDice(task, action, result, userInput, restored);
+  }
+
+  if (restored) {
+    title.value = restored.length ? restored.map(line => `- ${line}`).join('\n') : 'Nothing to restore';
   }
 }
 
-export async function resetProperties(task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider) {
+// The line of a rest's summary for an attribute it restored
+function restoredAttributeLine(title: string, prop, increment: number) {
+  return `${title} **${numberToSignedString(-increment)}** (${(prop.value || 0) - increment}/${prop.total || 0})`;
+}
+
+export async function resetProperties(
+  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: string[]
+) {
   const creatureId = task.targetIds[0];
 
   // Long rests reset short rest properties as well
@@ -82,16 +91,22 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
   const attributes = await getPropertiesByFilter(creatureId, attributeFilterFunction, attributeFilter);
 
   for (const prop of attributes) {
-    await applyTask(action, {
+    const title = getPropertyTitle(prop);
+    const increment = await applyTask(action, {
       targetIds: [action.creatureId],
       subtaskFn: 'damageProp',
+      ...(task.silent || restored) && { silent: true },
       params: {
-        title: getPropertyTitle(prop),
+        title,
         operation: 'increment',
         value: -prop.damage || 0,
         targetProp: prop,
       },
     }, userInput);
+    // A utility attribute is never shown
+    if (increment && prop.attributeType !== 'utility') {
+      restored?.push(restoredAttributeLine(title, prop, increment));
+    }
   }
 
   // Action-like properties
@@ -114,6 +129,8 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
   const actionProps = await getPropertiesByFilter(creatureId, actionFilterFunction, actionFilter);
 
   for (const prop of actionProps) {
+    const uses = Math.abs(prop.usesUsed);
+    restored?.push(`${prop.name} **${numberToSignedString(prop.usesUsed)}** ${uses === 1 ? 'use' : 'uses'}`);
     result.mutations.push({
       targetIds: [creatureId],
       updates: [{
@@ -123,16 +140,24 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
       }],
       contents: [{
         name: prop.name,
-        value: prop.usesUsed >= 0 ? `Restored ${prop.usesUsed} uses` : `Removed ${-prop.usesUsed} uses`
+        value: prop.usesUsed >= 0 ? `Restored ${prop.usesUsed} uses` : `Removed ${-prop.usesUsed} uses`,
+        ...(task.silent || restored) && { silenced: true },
       }],
     });
   }
 }
 
-async function resetHitDice(task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider) {
+async function resetHitDice(
+  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: string[]
+) {
   const creatureId = task.targetIds[0];
 
-  const hitDice = await getPropertiesOfType(creatureId, 'hitDice');
+  // Hit dice are attributes: there is no property of type hitDice
+  const hitDice = await getPropertiesByFilter(
+    creatureId,
+    prop => prop.type === 'attribute' && prop.attributeType === 'hitDice' && !prop.removed && !prop.inactive,
+    { type: 'attribute', attributeType: 'hitDice', inactive: { $ne: true } },
+  ) as CreaturePropertyTypes['attribute'][];
 
   // Use a collator to do sorting in natural order
   const collator = new Intl.Collator('en', {
@@ -149,25 +174,32 @@ async function resetHitDice(task: ResetTask, action: EngineAction, result: TaskR
   const resetMultiplier = creature.settings.hitDiceResetMultiplier || 0.5;
   let recoverableHd = Math.max(Math.floor(totalHd * resetMultiplier), 1);
 
-  // recover each hit dice in turn until the recoverable amount is used up
+  // recover each hit dice in turn until the recoverable amount is used up,
+  // passing over the sizes that have none spent
   let amountToRecover;
   for (const hd of hitDice) {
-    if (!recoverableHd) return;
+    if (!recoverableHd) break;
     amountToRecover = Math.min(recoverableHd, hd.damage ?? 0);
-    if (!amountToRecover) return;
+    if (!amountToRecover) continue;
     recoverableHd -= amountToRecover;
 
     // Apply the damage prop task
-    await applyTask(action, {
+    const title = getPropertyTitle(hd);
+    const increment = await applyTask(action, {
       targetIds: [creatureId],
       subtaskFn: 'damageProp',
+      ...(task.silent || restored) && { silent: true },
       params: {
-        title: getPropertyTitle(hd),
+        title,
         operation: 'increment',
         value: -amountToRecover,
         targetProp: hd,
       },
     }, userInput);
+    if (increment) {
+      const size = hd.hitDiceSize && !title.includes(hd.hitDiceSize) ? ` ${hd.hitDiceSize}` : '';
+      restored?.push(restoredAttributeLine(`${title}${size}`, hd, increment));
+    }
 
   }
 }

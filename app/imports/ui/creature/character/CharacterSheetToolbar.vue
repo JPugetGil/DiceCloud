@@ -21,6 +21,21 @@
       >
         <template v-if="creature">
           <shared-icon :model="creature" />
+          <v-btn
+            variant="text"
+            icon
+            data-id="character-search"
+            :aria-label="$t('characterSearch.open')"
+            @click="showSearch"
+          >
+            <v-icon>mdi-magnify</v-icon>
+            <v-tooltip
+              activator="parent"
+              location="bottom"
+            >
+              {{ $t('characterSearch.open') }}
+            </v-tooltip>
+          </v-btn>
           <v-menu
             location="bottom left"
 
@@ -240,6 +255,14 @@ function toggleDrawer() {
 
 function toggleRightDrawer() {
   appStore.toggleRightDrawer();
+}
+
+function showSearch() {
+  dialogStackStore.pushDialogStack({
+    component: 'character-search-dialog',
+    elementId: 'character-search',
+    data: { creatureId: creatureId.value },
+  });
 }
 
 function showCharacterForm() {

@@ -1,13 +1,26 @@
 <template>
+  <!--
+    Its height is where a character is dropped out of a folder. The compact
+    sidebar list has no drag handles: it keeps none, or an empty list left a
+    gap above the folders
+  -->
+  <!--
+    forceFallback: Sortable follows the pointer itself. With the browser's
+    drag and drop, the tile's link was dragged as a URL in place of the tile,
+    and nothing was ever dropped
+  -->
   <draggable
     v-model="dataCreatures"
-    style="min-height: 24px;"
+    :style="{ minHeight: dense ? undefined : '24px' }"
     :sort="false"
     :group="`creature-list`"
+    :force-fallback="true"
     ghost-class="ghost"
     draggable=".creature"
     handle=".handle"
     item-key="_id"
+    @start="emit('dragging', folderId)"
+    @end="emit('dragging', undefined)"
     @change="draggableChange"
   >
     <template #item="{ element: creature }">
@@ -19,8 +32,24 @@
         v-bind="selection ? {} : {to: creature.url}"
         :dense="dense"
         :data-id="dense ? undefined : creature._id"
+        :folder-id="folderId || undefined"
         @click="$emit('creature-selected', creature._id)"
       />
+    </template>
+    <template
+      v-if="dropHint"
+      #footer
+    >
+      <div
+        class="creature-list__drop-hint text-body-medium text-medium-emphasis"
+        data-id="no-folder-drop-zone"
+      >
+        <v-icon
+          icon="mdi-folder-remove-outline"
+          class="me-2"
+        />
+        {{ $t('characterList.dropOutOfFolder') }}
+      </div>
     </template>
   </draggable>
 </template>
@@ -51,9 +80,13 @@ const props = defineProps({
     default: () => new Set(),
   },
   dense: Boolean,
+  // Shows where a character dragged out of its folder is dropped
+  dropHint: Boolean,
 });
 
-const emit = defineEmits(['creature-selected', 'creatureSelected']);
+// dragging: the folder of the character being dragged (null for none), then
+// undefined once it is dropped
+const emit = defineEmits(['creature-selected', 'creatureSelected', 'dragging']);
 
 const dataCreatures = ref(props.creatures || []);
 
@@ -94,4 +127,12 @@ defineExpose({
 </script>
 
 <style lang="css" scoped>
+.creature-list__drop-hint {
+  display: flex;
+  align-items: center;
+  margin: 4px 8px;
+  padding: 12px 16px;
+  border: 2px dashed rgba(var(--v-border-color), 0.38);
+  border-radius: 12px;
+}
 </style>

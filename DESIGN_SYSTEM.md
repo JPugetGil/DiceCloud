@@ -170,8 +170,9 @@ Vuetify rule, utilities included, whatever the specificity:
    `v-code`); `stylesheets/markdown.css` keeps only what classes cannot say.
 6. **Global stylesheets hold only what Vuetify has no equivalent for**
    (`app/imports/ui/stylesheets`): thin scrollbars and their reserved gutter,
-   the dialog stack's scroll lock, large numeric inputs and a few markdown
-   rules. Scrollbar colours come from the theme: Vuetify sets `color-scheme`.
+   the dialog stack's scroll lock, large numeric inputs, a few markdown rules
+   and the dice the log draws in rolls (`logRolls.css`). Scrollbar colours
+   come from the theme: Vuetify sets `color-scheme`.
 7. **Register a Vuetify component before using it.** Only the components
    listed in `app/imports/ui/plugins/vuetifyComponents.js` are in the bundle,
    with their styles; a missing one renders as an unknown `<v-...>` element and

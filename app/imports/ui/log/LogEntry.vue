@@ -1,6 +1,7 @@
 <template>
   <v-card
     class="ma-2 log-entry flex-shrink-0"
+    :class="{ 'log-fresh': fresh }"
   >
     <v-card-title v-if="showName && model.creatureName">
       {{ model.creatureName }}
@@ -23,6 +24,8 @@ defineProps({
     required: true,
   },
   showName: Boolean,
+  // Written since the log opened: its dice roll in
+  fresh: Boolean,
 });
 </script>
 
