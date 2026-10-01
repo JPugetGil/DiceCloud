@@ -341,16 +341,25 @@ const routes = [{
     path: '/icon-admin',
     name: 'iconAdmin',
     component: IconAdmin,
+    meta: {
+      title: 'pageTitle.iconAdmin',
+    },
     beforeEnter: ensureAdmin,
   }, {
     path: '/admin',
     name: 'admin',
     component: AdminPage,
+    meta: {
+      title: 'pageTitle.administration',
+    },
     beforeEnter: ensureAdmin,
   }, {
     path: '/maintenance',
     name: 'maintenance',
     component: MaintenancePage,
+    meta: {
+      title: 'pageTitle.maintenance',
+    },
   },
 ];
 

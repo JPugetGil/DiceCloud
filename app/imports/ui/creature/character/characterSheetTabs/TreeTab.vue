@@ -1,7 +1,7 @@
 <template>
   <div
     class="tree-tab pa-4 d-flex flex-1-1 flex-column align-center"
-    style="height: calc(100vh - 96px); display: flex;"
+    style="height: calc(100dvh - var(--v-layout-top) - var(--v-layout-bottom)); display: flex;"
   >
     <v-card
       style="height: 100%; width: 100%; max-width: 1800px;"

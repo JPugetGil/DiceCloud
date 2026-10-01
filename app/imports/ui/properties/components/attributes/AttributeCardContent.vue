@@ -5,20 +5,17 @@
     @mouseover="$emit('mouseover')"
     @mouseleave="$emit('mouseleave')"
   >
-    <v-btn
+    <check-button
       v-if="model.attributeType === 'modifier' || model.type === 'skill'"
-      class="px-0"
-      variant="text"
-      height="70"
-      min-width="72"
-      :loading="checkLoading"
-      :disabled="!context.editPermission"
-      @click.stop="check"
+      :model="model"
+      shape="tile"
+      height="56"
+      min-width="64"
+      class="ma-2 flex-shrink-0"
+      :inherit-color="!!model.color"
     >
-      <v-card-title class="value text-headline-large flex-shrink-0">
-        {{ computedValue }}
-      </v-card-title>
-    </v-btn>
+      <span class="text-headline-medium">{{ computedValue }}</span>
+    </check-button>
     <v-card-title
       v-else
       class="value text-headline-large flex-shrink-0"
@@ -44,10 +41,9 @@
 </template>
 
 <script setup>
-import { inject, ref, computed } from 'vue';
-import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { computed } from 'vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
-import doAction from '/imports/ui/creature/actions/doAction';
+import CheckButton from '/imports/ui/properties/shared/CheckButton.vue';
 
 const props = defineProps({
   model: {
@@ -58,10 +54,6 @@ const props = defineProps({
 
 defineEmits(['click', 'mouseover', 'mouseleave']);
 
-const context = inject('context', {});
-
-const checkLoading = ref(false);
-
 const computedValue = computed(() => {
   if (props.model.attributeType === 'modifier' || props.model.type === 'skill') {
     return numberToSignedString(props.model.value);
@@ -69,27 +61,6 @@ const computedValue = computed(() => {
     return props.model.value;
   }
 });
-
-async function check() {
-  checkLoading.value = true;
-  await doAction({
-    creatureId: props.model.root.id,
-    elementId: `check-btn-${props.model._id}`,
-    task: {
-      subtaskFn: 'check',
-      targetIds: [props.model.root.id],
-      advantage: props.model.advantage,
-      skillVariableName: props.model.variableName,
-      abilityVariableName: props.model.ability,
-      dc: null,
-    },
-  }).catch(error => {
-    snackbar({ text: error.reason || error.message || error.toString() });
-    console.error(error);
-  }).finally(() => {
-    checkLoading.value = false;
-  });
-}
 </script>
 
 <style lang="css" scoped>

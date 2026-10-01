@@ -76,6 +76,6 @@ function hoverToolbar(val) {
 }
 
 .toolbar-card.transparent-toolbar .v-theme--dark.v-toolbar.v-sheet {
-  background-color: #303030;
+  background-color: rgb(var(--v-theme-surface));
 }
 </style>

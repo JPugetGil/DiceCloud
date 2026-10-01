@@ -22,7 +22,7 @@ Colour roles
 
 | Role | Light | on- (light) | Dark | on- (dark) | Used for |
 |------|-------|-------------|------|------------|----------|
-| `primary` | `#B91D1D` | `#FFFFFF` | `#FFB4AB` | `#690005` | Brand: main actions, links, selection, active tabs |
+| `primary` | `#B91D1D` | `#FFFFFF` | `#FF7165` | `#410002` | Brand: main actions, links, selection, active tabs, roll buttons |
 | `accent` | same as primary | | same as primary | | Material 2 name still used by components |
 | `primary-container` | `#FFDAD6` | `#410002` | `#93000B` | `#FFDAD6` | Tinted areas that hold content, the chosen option of a toggle |
 | `error` | `#9F4200` | `#FFFFFF` | `#FFB692` | `#562000` | Errors, validation messages |
@@ -40,29 +40,40 @@ Each role is generated from a seed, DiceCloud's earlier colour for it (primary
 | Light | 40 | 100 | 90 | 10 |
 | Dark | 80 | 20 | 30 | 90 |
 
-Material spaces those tones for contrast. On DiceCloud's surfaces every role
-reaches at least **6.0:1** as text in the light theme and **7.1:1** in the dark
-theme, and **6.4:1** / **7.7:1** under its on- colour.
+Except the dark theme's `primary`: tone **65**, with tone 10 on it. Tone 80 of a
+crimson is a pale salmon, which made every filled button, active tab and health
+bar pink; tone 65 stays red and still reads at 5.8:1 on the lightest dark
+surface.
+
+Material spaces those tones for contrast. Measured by the `palette` check, on
+DiceCloud's surfaces and under its on- colour, every role reaches at least
+**5.9:1** in the light theme; in the dark theme primary reaches **5.8:1** and the
+other roles **7.2:1**.
 
 Neutrals
 --------
 
-DiceCloud keeps its own greys:
+Greys are warm, so that they sit with the crimson instead of against it. The
+dark theme's are the primary seed's hue at chroma 2 (a warm ink); at light
+tones any chroma of that hue reads pink, so the light theme uses Tailwind's
+"stone" greys, which are nearly neutral.
 
 | | Light | Dark | Where |
 |--|-------|------|-------|
-| `secondary` (app bars) | `#424242` | `#212121` | themes.js; app bars use the dark value in both themes |
-| `surface` (cards, dialogs, menus) | `#FFFFFF` | `#303030` | themes.js |
-| `drawer` (navigation drawer) | `#FFFFFF` | `#363636` | themes.js |
-| `toolbar` (plain toolbars) | `#FFFFFF` | `#272727` | themes.js, the default toolbar colour in vuetify.js |
-| `surface-bright` (a switch's thumb when off) | `#FFFFFF` | `#BDBDBD` | themes.js; Vuetify's dark default is a lavender from none of our palettes |
-| `page` (behind a page's cards) | `#F6F6F6` | `#151515` | themes.js; `bg-page` |
-| `raised` (panels raised from the page) | `#FAFAFA` | `#1D1D1D` | themes.js; `bg-raised` |
+| `secondary` (app bars, dialog toolbars) | `#44403C` | `#221F1E` | themes.js; app bars use the dark value in both themes |
+| `surface` (cards, dialogs, menus) | `#FFFFFF` | `#262322` | themes.js |
+| `drawer` (navigation drawer) | `#FAFAF9` | `#1E1B1A` | themes.js |
+| `toolbar` (plain toolbars) | `#FFFFFF` | `#1E1B1A` | themes.js, the default toolbar colour in vuetify.js |
+| `background`, `page` (behind a page's cards) | `#F5F5F4` | `#161312` | themes.js; `bg-page` |
+| `raised` (panels raised from the page) | `#FAFAF9` | `#1A1716` | themes.js; `bg-raised` |
+| `surface-light` (tracks, filled fields) | `#E7E5E4` | `#383433` | themes.js |
+| `surface-variant` (tooltips) | `#292524` | `#E9E1DF` | themes.js |
+| `surface-bright` (a switch's thumb when off) | `#FFFFFF` | `#CCC5C4` | themes.js; Vuetify's dark default is a lavender from none of our palettes |
 
 Text on neutrals uses Vuetify's emphasis levels, not fixed greys:
 `text-high-emphasis`, `text-medium-emphasis`, `text-disabled`. The light theme
 raises Vuetify's medium emphasis to 0.68, so secondary text (labels, subtitles)
-is 59% black, Material's 60% level, instead of 52%, which failed AA.
+is at Material's 60% level instead of 52%, which failed AA.
 
 Rules
 -----
@@ -83,6 +94,30 @@ Rules
 5. **Dark surfaces take the dark roles.** Anything drawn dark in both themes
    (app bars, the dependency graph) uses the dark theme's values: they are made
    for dark backgrounds.
+
+Layout and components
+---------------------
+
+- **App bars** are Vuetify's default height (64px) in the `secondary` ink. Only
+  the character sheet's is extended, for its tabs: an app bar reserves its
+  extension row even when nothing fills it. Heights below the app bar come from
+  Vuetify's layout variables (`calc(100dvh - var(--v-layout-top) -
+  var(--v-layout-bottom))`), never a fixed number of pixels.
+- **Cards** are rounded `lg` (8px, a default in vuetify.js).
+- **The navigation drawer** holds the brand, the account, the main pages
+  (active one tinted with primary), the user's characters, then help,
+  community and legal pages in a compact list.
+- **Roll buttons** (`properties/shared/CheckButton.vue`) are tonal primary
+  buttons marked with a d20 (`mdi-dice-d20-outline`) and a tooltip naming the
+  roll. Abilities and check cards use the `tile` shape, which holds the large
+  value; skills and saves the `pill` shape, which holds the modifier. The row
+  around them opens the property, so the two targets never look alike. Without
+  edit permission the value shows as plain text.
+- **Secondary actions** beside a list are text buttons with an icon; a page's
+  main creation action is a floating button, extended with its label from
+  small screens up. An empty list shows a `v-empty-state`.
+- **Forms that stand alone** (sign in, register) sit in a centred card: one
+  primary button, other routes as text buttons, errors in a tonal `v-alert`.
 
 Inputs
 ------
@@ -177,12 +212,11 @@ Known exceptions
 ----------------
 
 Colours still written as values in components, all neutral greys or white:
-dialog bodies (`DialogBase.vue`, `InsertPropertyDialog.vue`), the transparent
-toolbar card (`ToolbarCard.vue`), health bar tracks (`HealthBar.vue`), the
-printed character sheet (print colours), the disabled speed-dial button
-(`LabeledFab.vue`), the inner hexagon of the roll inputs (`VerticalHex.vue`),
-tree guide lines (`TreeNode.vue`, `BuildTreeNode.vue`), the white highlight of
-`CardHighlight.vue`, and the dependency graph's canvas, node text and
-edges (6.8:1 and more, measured). The axe audit of the main pages flags none of
+health bar tracks (`HealthBar.vue`), the printed character sheet (print colours), the
+disabled speed-dial button (`LabeledFab.vue`), the inner hexagon of the roll
+inputs (`VerticalHex.vue`), tree guide lines (`TreeNode.vue`,
+`BuildTreeNode.vue`), the white highlight of `CardHighlight.vue`, and the
+dependency graph's canvas, node text and edges (6.8:1 and more, measured).
+The axe audit of the main pages flags none of
 them, but it does not reach every one (the graph is drawn on a canvas); moving
 them into themes.js as roles would give them one source and the palette check.

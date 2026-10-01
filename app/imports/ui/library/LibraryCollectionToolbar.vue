@@ -2,9 +2,6 @@
   <v-app-bar
     color="secondary"
     theme="dark"
-    tabs
-    extended
-    density="compact"
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-btn
@@ -18,9 +15,15 @@
       {{ libraryCollection && libraryCollection.name }}
     </v-toolbar-title>
     <v-spacer />
+    <div
+      v-if="libraryCollection && libraryCollection.subscriberCount"
+      class="mx-2 text-body-medium text-medium-emphasis d-none d-sm-block"
+    >
+      {{ $t('library.subscribers', { count: formatNumber(libraryCollection.subscriberCount) }) }}
+    </div>
     <v-btn
       v-if="showSubscribeButton"
-      variant="text"
+      variant="tonal"
       :loading="loading"
       @click="subscribe(!subscribed)"
     >
@@ -35,15 +38,6 @@
     >
       <v-icon>mdi-cog</v-icon>
     </v-btn>
-    <template #extension>
-      <v-spacer />
-      <div
-        v-if="libraryCollection && libraryCollection.subscriberCount"
-        class="mx-4 text-medium-emphasis"
-      >
-        {{ $t('library.subscribers', { count: formatNumber(libraryCollection.subscriberCount) }) }}
-      </div>
-    </template>
   </v-app-bar>
 </template>
 

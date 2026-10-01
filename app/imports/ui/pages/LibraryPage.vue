@@ -30,6 +30,7 @@
           <div class="d-flex flex-1-1 flex-wrap justify-end mt-2">
             <v-btn
               variant="text"
+              prepend-icon="mdi-earth"
               to="/community-libraries"
             >
               {{ $t('library.browseCommunity') }}
@@ -37,6 +38,7 @@
             <v-btn
               v-if="permissions.canCreateLibraries"
               variant="text"
+              prepend-icon="mdi-folder-plus-outline"
               data-id="insert-library-collection-button"
               color="accent"
               :loading="loadingInsertLibraryCollection"

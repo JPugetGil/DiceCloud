@@ -2,9 +2,6 @@
   <v-app-bar
     color="secondary"
     theme="dark"
-    :extended="smAndUp"
-    :tabs="smAndUp"
-    density="compact"
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-btn
@@ -18,9 +15,15 @@
       {{ library && library.name }}
     </v-toolbar-title>
     <v-spacer />
+    <div
+      v-if="library && library.subscriberCount"
+      class="mx-2 text-body-medium text-medium-emphasis d-none d-sm-block"
+    >
+      {{ $t('library.subscribers', { count: formatNumber(library.subscriberCount) }) }}
+    </div>
     <v-btn
       v-if="showSubscribeButton"
-      variant="text"
+      variant="tonal"
       :loading="loading"
       @click="subscribe(!subscribed)"
     >
@@ -35,22 +38,12 @@
     >
       <v-icon>mdi-cog</v-icon>
     </v-btn>
-    <template #extension>
-      <v-spacer />
-      <div
-        v-if="library && library.subscriberCount"
-        class="mx-4 text-medium-emphasis"
-      >
-        {{ $t('library.subscribers', { count: formatNumber(library.subscriberCount) }) }}
-      </div>
-    </template>
   </v-app-bar>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useDisplay } from 'vuetify';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import { hasDocEditPermission } from '/imports/api/sharing/sharingPermissions';
@@ -64,7 +57,6 @@ const dialogStackStore = useDialogStackStore();
 
 const route = useRoute();
 const router = useRouter();
-const { smAndUp } = useDisplay();
 
 const loading = ref(false);
 

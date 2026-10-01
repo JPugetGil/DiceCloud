@@ -1,59 +1,57 @@
 <template>
   <v-list-item
-    class="ability-list-tile pl-0"
+    class="ability-list-tile"
     v-on="hasClickListener ? {click} : {}"
   >
     <template #prepend>
-      <div
-        class="ma-0"
-        style="min-width: 40px;"
+      <check-button
+        :model="model"
+        ability
+        shape="tile"
+        class="mr-4"
       >
-        <v-btn
-          class="mr-4 py-2"
-          variant="text"
-          height="82"
-          :data-id="`check-btn-${model._id}`"
-          :loading="checkLoading"
-          :disabled="!context.editPermission"
-          @click.stop="check"
-        >
-          <div>
-            <div class="text-headline-large text-center w-100 mod">
-              <template v-if="swapScoresAndMods">
-                <span :class="{'text-primary': model.total !== model.value}">
-                  {{ model.value }}
-                </span>
-              </template>
-              <template v-else>
-                {{ numberToSignedString(model.modifier) }}
-              </template>
-            </div>
-            <div class="text-headline-small font-weight-semibold text-medium-emphasis text-center w-100 value">
-              <template v-if="swapScoresAndMods">
-                {{ numberToSignedString(model.modifier) }}
-              </template>
-              <template v-else>
-                <span :class="{'text-primary': model.total !== model.value}">
-                  {{ model.value }}
-                </span>
-              </template>
-            </div>
+        <div class="d-flex flex-column align-center">
+          <div class="text-headline-medium">
+            <span
+              v-if="swapScoresAndMods"
+              :class="{'text-error font-weight-bold': model.total !== model.value}"
+            >
+              {{ model.value }}
+            </span>
+            <template v-else>
+              {{ numberToSignedString(model.modifier) }}
+            </template>
           </div>
-        </v-btn>
-      </div>
+          <div class="text-title-small text-medium-emphasis">
+            <template v-if="swapScoresAndMods">
+              {{ numberToSignedString(model.modifier) }}
+            </template>
+            <span
+              v-else
+              :class="{'text-error font-weight-bold': model.total !== model.value}"
+            >
+              {{ model.value }}
+            </span>
+          </div>
+        </div>
+      </check-button>
     </template>
 
-    <v-list-item-title>
+    <v-list-item-title class="text-title-medium">
       {{ model.name }}
       <v-icon
         v-if="model.advantage > 0"
         end
+        size="small"
+        :aria-label="$t('common.advantage')"
       >
         mdi-chevron-double-up
       </v-icon>
       <v-icon
         v-if="model.advantage < 0"
         end
+        size="small"
+        :aria-label="$t('common.disadvantage')"
       >
         mdi-chevron-double-down
       </v-icon>
@@ -62,11 +60,10 @@
 </template>
 
 <script setup lang="js">
-import { inject, ref, computed } from 'vue';
+import { computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
-import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import doAction from '/imports/ui/creature/actions/doAction';
+import CheckButton from '/imports/ui/properties/shared/CheckButton.vue';
 import { Meteor } from 'meteor/meteor';
 
 const props = defineProps({
@@ -82,35 +79,10 @@ const props = defineProps({
 
 const emit = defineEmits(['click']);
 
-const context = inject('context', {});
-
-const checkLoading = ref(false);
-
 const hasClickListener = computed(() => !!props.onClick);
 
 function click(e) {
   emit('click', e);
-}
-
-async function check() {
-  checkLoading.value = true;
-  await doAction({
-    creatureId: props.model.root.id,
-    elementId: `check-btn-${props.model._id}`,
-    task: {
-      subtaskFn: 'check',
-      targetIds: [props.model.root.id],
-      advantage: props.model.advantage,
-      skillVariableName: undefined,
-      abilityVariableName: props.model.variableName,
-      dc: null,
-    },
-  }).catch(error => {
-    snackbar({ text: error.reason || error.message || error.toString() });
-    console.error(error);
-  }).finally(() => {
-    checkLoading.value = false;
-  });
 }
 
 const swapScoresAndMods = autorun(() => {
@@ -123,12 +95,6 @@ const swapScoresAndMods = autorun(() => {
 
 <style lang="css" scoped>
 .ability-list-tile {
-  background: inherit;
   min-height: 88px;
-}
-
-.mod,
-.value {
-  min-width: 42px;
 }
 </style>

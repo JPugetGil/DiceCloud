@@ -2,9 +2,9 @@
   <v-btn
     :disabled="context.editPermission === false"
     :data-id="`event-btn-${model._id}`"
-    variant="outlined"
+    variant="tonal"
     class="event-button"
-    style="min-width: 160px; max-width: 100%;"
+    block
     :color="model.color"
     @click="doAction"
   >

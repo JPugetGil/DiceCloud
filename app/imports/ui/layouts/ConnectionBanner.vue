@@ -5,7 +5,7 @@
     single-line
     :icon="icon"
     :color="color"
-    style="top: 96px;"
+    style="top: var(--v-layout-top);"
   >
     {{ status }}
   </v-banner>

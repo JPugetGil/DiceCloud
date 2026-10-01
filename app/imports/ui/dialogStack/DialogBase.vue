@@ -111,10 +111,10 @@ function close() {
 }
 
 #base-dialog-body.dark-body {
-  background-color: #fafafa;
+  background-color: rgb(var(--v-theme-raised));
 }
 
 .v-theme--dark #base-dialog-body.dark-body {
-  background-color: #303030;
+  background-color: rgb(var(--v-theme-surface));
 }
 </style>

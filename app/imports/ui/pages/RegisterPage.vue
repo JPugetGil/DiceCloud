@@ -1,108 +1,140 @@
 <template>
-  <div>
-    <v-form
-      ref="form"
-      class="mt-4"
+  <div class="d-flex justify-center pa-4">
+    <v-card
+      class="auth-card w-100 pa-2"
+      elevation="2"
     >
-      <div class="d-flex flex-1-1 flex-column align-center">
+      <v-card-item class="text-center">
         <v-img
-          cover
-          src="crown-dice-logo-cropped-transparent.png"
-          width="120px"
-          class="ma-3"
+          src="/crown-dice-logo-cropped-transparent.png"
+          alt=""
+          width="72"
+          height="72"
+          class="mx-auto mb-2"
         />
-        <v-text-field
-          v-model="email"
-          type="text"
-          :label="$t('auth.email')"
-          :rules="emailRules"
-          class="ma-2 w-100"
-          style="max-width: 320px;"
-          variant="outlined"
-          required
-          @keyup.enter="submit"
-        />
-        <v-text-field
-          v-model="username"
-          type="text"
-          :label="$t('auth.username')"
-          :rules="usernameRules"
-          class="ma-2 w-100"
-          style="max-width: 320px;"
-          variant="outlined"
-          required
-          @keyup.enter="submit"
-        />
-        <v-text-field
-          v-model="password"
-          type="password"
-          :label="$t('auth.password')"
-          :rules="passwordRules"
-          class="ma-2 w-100"
-          style="max-width: 320px;"
-          variant="outlined"
-          required
-          @keyup.enter="submit"
-        />
-        <v-text-field
-          v-model="password2"
-          type="password"
-          :label="$t('auth.passwordAgain')"
-          :rules="password2Rules"
-          class="ma-2 w-100"
-          style="max-width: 320px;"
-          variant="outlined"
-          required
-          @keyup.enter="submit"
-        />
-        <div class="text-error">
-          {{ error }}
-        </div>
-        <div class="d-flex flex-1-1">
+        <v-card-title class="text-headline-small">
+          {{ $t('auth.register') }}
+        </v-card-title>
+      </v-card-item>
+      <v-card-text>
+        <v-form
+          ref="form"
+          class="d-flex flex-column ga-2"
+        >
+          <v-text-field
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            :label="$t('auth.email')"
+            :rules="emailRules"
+            prepend-inner-icon="mdi-email-outline"
+            variant="outlined"
+            required
+            @keyup.enter="submit"
+          />
+          <v-text-field
+            v-model="username"
+            type="text"
+            autocomplete="username"
+            :label="$t('auth.username')"
+            :rules="usernameRules"
+            prepend-inner-icon="mdi-account-outline"
+            variant="outlined"
+            required
+            @keyup.enter="submit"
+          />
+          <v-text-field
+            v-model="password"
+            type="password"
+            autocomplete="new-password"
+            :label="$t('auth.password')"
+            :rules="passwordRules"
+            prepend-inner-icon="mdi-lock-outline"
+            variant="outlined"
+            required
+            @keyup.enter="submit"
+          />
+          <v-text-field
+            v-model="password2"
+            type="password"
+            autocomplete="new-password"
+            :label="$t('auth.passwordAgain')"
+            :rules="password2Rules"
+            prepend-inner-icon="mdi-lock-check-outline"
+            variant="outlined"
+            required
+            @keyup.enter="submit"
+          />
+          <v-alert
+            v-if="error"
+            type="error"
+            variant="tonal"
+            density="compact"
+            :text="error"
+          />
           <v-btn
             :disabled="!valid"
-            color="accent"
+            color="primary"
+            variant="flat"
+            size="large"
+            block
             @click="submit"
           >
             {{ $t('auth.register') }}
           </v-btn>
-        </div>
-      </div>
-    </v-form>
-    <!-- Only once Google sign-in is configured on the server (see README) -->
-    <template v-if="googleConfigured">
-      <v-divider class="ma-4" />
-      <div class="d-flex flex-1-1 flex-column align-center">
-        <div class="text-error">
-          {{ googleError }}
-        </div>
-        <v-btn
-          color="accent"
-          @click="googleLogin"
-        >
-          {{ $t('auth.registerWithGoogle') }}
-        </v-btn>
-      </div>
-    </template>
-    <!-- Applies to both ways of registering -->
-    <i18n-t
-      keypath="auth.acceptTerms"
-      scope="global"
-      tag="p"
-      class="text-body-small text-medium-emphasis text-center ma-4"
-      data-id="accept-terms"
-    >
-      <template #terms>
-        <router-link to="/terms">
-          {{ $t('legal.termsLink') }}
-        </router-link>
+          <div class="d-flex justify-end">
+            <v-btn
+              variant="text"
+              size="small"
+              color="primary"
+              :to="{ name: 'signIn', query: { redirect: $route.query.redirect} }"
+            >
+              {{ $t('auth.haveAccount') }}
+            </v-btn>
+          </div>
+        </v-form>
+      </v-card-text>
+      <!-- Only once Google sign-in is configured on the server (see README) -->
+      <template v-if="googleConfigured">
+        <v-divider class="mx-4" />
+        <v-card-text class="d-flex flex-column ga-2">
+          <v-alert
+            v-if="googleError"
+            type="error"
+            variant="tonal"
+            density="compact"
+            :text="googleError"
+          />
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-google"
+            block
+            @click="googleLogin"
+          >
+            {{ $t('auth.registerWithGoogle') }}
+          </v-btn>
+        </v-card-text>
       </template>
-      <template #privacy>
-        <router-link to="/privacy">
-          {{ $t('legal.privacyLink') }}
-        </router-link>
-      </template>
-    </i18n-t>
+      <!-- Applies to both ways of registering -->
+      <i18n-t
+        keypath="auth.acceptTerms"
+        scope="global"
+        tag="p"
+        class="text-body-small text-medium-emphasis text-center mx-4 mb-4 mt-0"
+        data-id="accept-terms"
+      >
+        <template #terms>
+          <router-link to="/terms">
+            {{ $t('legal.termsLink') }}
+          </router-link>
+        </template>
+        <template #privacy>
+          <router-link to="/privacy">
+            {{ $t('legal.privacyLink') }}
+          </router-link>
+        </template>
+      </i18n-t>
+    </v-card>
   </div>
 </template>
 
@@ -167,3 +199,9 @@ function googleLogin() {
   });
 }
 </script>
+
+<style scoped>
+.auth-card {
+  max-width: 420px;
+}
+</style>

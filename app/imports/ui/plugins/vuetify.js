@@ -37,6 +37,10 @@ const vuetify = createVuetify({
     VToolbar: {
       color: 'toolbar',
     },
+    // Material 3 rounds cards more than Vuetify's 4px: 8px (rounded-lg)
+    VCard: {
+      rounded: 'lg',
+    },
     // An avatar is transparent unless given a colour: `flat` (Vuetify's default)
     // fills it with the surface colour, a circle that shows on hovered or
     // selected list items and in the drawer. Coloured avatars set `flat`

@@ -21,7 +21,10 @@
     "resetPassword": "Réinitialiser le mot de passe",
     "docNotFound": "Document introuvable",
     "privacy": "Règles de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "administration": "Administration",
+    "iconAdmin": "Icônes",
+    "maintenance": "Maintenance"
   },
   "nav": {
     "signIn": "Se connecter",
@@ -76,6 +79,15 @@
     "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
     "supporters": "Soutiens"
   },
+  "discord": {
+    "communityTitle": "DiceCloud sur Discord",
+    "communityText": "Posez vos questions, partagez des bibliothèques et signalez des bugs avec d'autres joueurs.",
+    "webhookTitle": "Envoyer les jets d'un personnage sur Discord",
+    "webhookText": "Chaque personnage peut publier son journal (jets, actions, repos) dans un salon Discord.",
+    "webhookStep1": "Dans Discord, ouvrez les paramètres du salon, puis Intégrations, Webhooks, et créez un webhook.",
+    "webhookStep2": "Copiez l'URL du webhook.",
+    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord »."
+  },
   "legal": {
     "termsLink": "conditions d'utilisation",
     "privacyLink": "règles de confidentialité",
@@ -95,6 +107,9 @@
     "roleChanged": "{user} est maintenant : {role}"
   },
   "characterList": {
+    "newCharacter": "Nouveau personnage",
+    "emptyTitle": "Aucun personnage pour le moment",
+    "emptyText": "Créez votre premier personnage avec le bouton Nouveau personnage.",
     "importCharacter": "Importer un personnage",
     "addFolder": "Ajouter un dossier",
     "archiveCharacters": "Archiver des personnages",
@@ -206,6 +221,8 @@
     "text": "Aucune page n'existe à cette adresse"
   },
   "auth": {
+    "createAccount": "Créer un compte",
+    "haveAccount": "J'ai déjà un compte",
     "email": "E-mail",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
@@ -516,6 +533,7 @@
     "carried": "Transporté"
   },
   "stats": {
+    "roll": "Jet de {name}",
     "buffsAndConditions": "Buffs et états",
     "hitDice": "Dés de vie",
     "savingThrows": "Jets de sauvegarde",

@@ -1,70 +1,112 @@
 <template>
   <div class="sidebar">
+    <router-link
+      to="/"
+      class="d-flex align-center ga-3 px-4 pt-4 pb-2 text-decoration-none text-high-emphasis"
+    >
+      <v-img
+        src="/crown-dice-logo-cropped-transparent.png"
+        alt=""
+        width="32"
+        height="32"
+        class="flex-grow-0"
+      />
+      <span class="text-title-large">DiceCloud</span>
+    </router-link>
+
     <div
       v-if="!signedIn"
-      class="d-flex flex-1-1 justify-center"
+      class="px-4 py-2"
     >
       <v-btn
-        variant="text"
+        color="primary"
+        variant="flat"
+        block
+        prepend-icon="mdi-login"
         to="/sign-in"
       >
         {{ $t('nav.signIn') }}
       </v-btn>
     </div>
+
     <v-list
       nav
+      color="primary"
       class="links"
     >
-      <v-list-item v-if="signedIn">
-        <v-list-item-title>
-          {{ userName }}
-        </v-list-item-title>
-
+      <v-list-item
+        v-if="signedIn"
+        class="mb-2"
+        :title="userName"
+        :subtitle="$t(`roles.${userRole}`)"
+      >
+        <template #prepend>
+          <v-avatar
+            color="primary-container"
+            variant="flat"
+            size="36"
+          >
+            {{ userInitial }}
+          </v-avatar>
+        </template>
         <template #append>
-          <v-tooltip location="bottom">
-            <template #activator="{ props }">
-              <v-btn
-                variant="text"
-                icon
-                to="/account"
-                v-bind="props"
-              >
-                <v-icon>mdi-cog</v-icon>
-              </v-btn>
-            </template>
-            <span>{{ $t('nav.accountSettings') }}</span>
-          </v-tooltip>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            to="/account"
+            :aria-label="$t('nav.accountSettings')"
+          >
+            <v-icon>mdi-cog</v-icon>
+            <v-tooltip
+              activator="parent"
+              location="bottom"
+              :text="$t('nav.accountSettings')"
+            />
+          </v-btn>
         </template>
       </v-list-item>
 
       <v-list-item
-        v-for="(link, i) in links"
-        :key="i"
+        v-for="link in mainLinks"
+        :key="link.to"
+        :to="link.to"
+        :prepend-icon="link.icon"
+        :title="link.title"
+      />
+    </v-list>
+
+    <template v-if="signedIn && hasCharacters">
+      <v-divider class="mx-4" />
+      <v-list-subheader class="px-6 pt-2">
+        {{ $t('nav.characters') }}
+      </v-list-subheader>
+      <creature-folder-list
+        dense
+        nav
+        :creatures="CreaturesWithNoParty"
+        :folders="folders"
+      />
+    </template>
+
+    <v-divider class="mx-4" />
+    <v-list
+      nav
+      density="compact"
+      color="primary"
+      class="links"
+    >
+      <v-list-item
+        v-for="link in resourceLinks"
+        :key="link.to || link.href"
         :to="link.to"
         :href="link.href"
         :target="link.href ? '_blank': undefined"
-      >
-        <template #prepend>
-          <v-icon>{{ link.icon }}</v-icon>
-        </template>
-        <v-list-item-title>
-          {{ link.title }}
-        </v-list-item-title>
-        <template
-          v-if="link.href"
-          #append
-        >
-          <v-icon>mdi-open-in-new</v-icon>
-        </template>
-      </v-list-item>
-      <v-divider />
+        :prepend-icon="link.icon"
+        :title="link.title"
+        :append-icon="link.href ? 'mdi-open-in-new' : undefined"
+      />
     </v-list>
-    <creature-folder-list
-      v-if="signedIn"
-      dense
-      :creatures="CreaturesWithNoParty"
-      :folders="folders"
-    />
   </div>
 </template>
 
@@ -97,28 +139,34 @@ const userName = autorun(() => {
   return user && user.username || user && user._id;
 }).result;
 
-const isAdmin = autorun(() => getUserRole(Meteor.user()) === ROLES.admin).result;
+const userInitial = computed(() => (userName.value || '?')[0].toUpperCase());
+
+const userRole = autorun(() => getUserRole(Meteor.user())).result;
 
 // computed, not autorun: the titles follow the language
-const links = computed(() => {
+const mainLinks = computed(() => {
   let isLoggedIn = !!signedIn.value;
   let links = [
-    { title: t('nav.home'), icon: 'mdi-home', to: '/' },
-    { title: t('nav.characters'), icon: 'mdi-account-group', to: '/character-list', requireLogin: true },
+    { title: t('nav.home'), icon: 'mdi-home-outline', to: '/' },
+    { title: t('nav.characters'), icon: 'mdi-account-group-outline', to: '/character-list', requireLogin: true },
     { title: t('nav.library'), icon: 'mdi-library-shelves', to: '/library', requireLogin: true },
-    { title: t('nav.files'), icon: 'mdi-file-multiple', to: '/my-files', requireLogin: true, },
-    { title: t('nav.admin'), icon: 'mdi-shield-account', to: '/admin', requireAdmin: true },
-    { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
-    { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
-    { title: t('nav.about'), icon: 'mdi-sign-text', to: '/about' },
-    { title: t('nav.privacy'), icon: 'mdi-shield-lock-outline', to: '/privacy' },
-    { title: t('nav.terms'), icon: 'mdi-file-document-outline', to: '/terms' },
-    { title: t('nav.github'), icon: 'mdi-github', href: 'https://github.com/JPugetGil/DiceCloud' },
+    { title: t('nav.files'), icon: 'mdi-file-multiple-outline', to: '/my-files', requireLogin: true, },
+    { title: t('nav.admin'), icon: 'mdi-shield-account-outline', to: '/admin', requireAdmin: true },
   ];
   return links.filter(link =>
-    (!link.requireLogin || isLoggedIn) && (!link.requireAdmin || isAdmin.value)
+    (!link.requireLogin || isLoggedIn) && (!link.requireAdmin || userRole.value === ROLES.admin)
   );
 });
+
+// Help, community and legal pages, below the characters
+const resourceLinks = computed(() => [
+  { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
+  { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
+  { title: t('nav.about'), icon: 'mdi-information-outline', to: '/about' },
+  { title: t('nav.privacy'), icon: 'mdi-shield-lock-outline', to: '/privacy' },
+  { title: t('nav.terms'), icon: 'mdi-file-document-outline', to: '/terms' },
+  { title: t('nav.github'), icon: 'mdi-github', href: 'https://github.com/JPugetGil/DiceCloud' },
+]);
 
 const folders = autorun(() => {
   const userId = Meteor.userId();
@@ -153,10 +201,14 @@ const CreaturesWithNoParty = autorun(() => {
     { sort: { name: 1 } }
   ).map(characterTransform);
 }).result;
+
+const hasCharacters = computed(() =>
+  !!(CreaturesWithNoParty.value?.length || folders.value?.length)
+);
 </script>
 
 <style scoped>
 .links .v-list-item:not(:last-child):not(:only-child) {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 </style>

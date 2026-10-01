@@ -50,10 +50,10 @@
           @input="inputArchiveFile"
         >
         <v-btn
-          variant="outlined"
+          variant="tonal"
           style="height: 100%; width: 100%; min-height: 120px;"
           class="archive-button"
-          :color="archiveFileError ? 'error' : undefined"
+          :color="archiveFileError ? 'error' : 'primary'"
           :disabled="archiveUploadInProgress"
           @click="archiveFileInput.click()"
         >

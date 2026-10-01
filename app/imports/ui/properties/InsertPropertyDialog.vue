@@ -469,10 +469,10 @@ onMounted(() => {
 
 <style lang="css" scoped>
 .dialog-background {
-  background-color: #fafafa;
+  background-color: rgb(var(--v-theme-raised));
 }
 
 .v-theme--dark .dialog-background {
-  background-color: #303030;
+  background-color: rgb(var(--v-theme-surface));
 }
 </style>

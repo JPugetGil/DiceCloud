@@ -11,9 +11,6 @@
       v-if="!route.matched[0] || !route.matched[0].components.toolbar"
       color="secondary"
       theme="dark"
-      :extended="smAndUp"
-      :tabs="smAndUp"
-      density="compact"
     >
       <v-app-bar-nav-icon @click="toggleDrawer" />
       <v-toolbar-title>
@@ -27,27 +24,11 @@
       <v-fade-transition mode="out-in">
         <div
           :key="route.meta.title"
-          style="
-        text-overflow: ellipsis;
-        overflow: hidden;"
+          class="text-truncate"
         >
           <router-view name="toolbarItems" />
         </div>
       </v-fade-transition>
-      <template #extension>
-        <v-fade-transition
-          v-if="smAndUp"
-
-          mode="out-in"
-        >
-          <div
-            :key="route.meta.title"
-            style="width: 100%"
-          >
-            <router-view name="toolbarExtension" />
-          </div>
-        </v-fade-transition>
-      </template>
     </v-app-bar>
     <v-main>
       <connection-banner />
@@ -67,7 +48,7 @@
 import '/imports/api/users/Users';
 import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useDisplay, useTheme } from 'vuetify';
+import { useTheme } from 'vuetify';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
 import AppSidebar from '/imports/ui/layouts/AppSidebar.vue';
@@ -83,7 +64,6 @@ const { t, locale } = useI18n();
 
 const route = useRoute();
 const theme = useTheme();
-const { smAndUp } = useDisplay();
 const darkMode = autorun(() => Meteor.user()?.darkMode ?? null).result;
 const language = autorun(() => Meteor.user()?.preferences?.language).result;
 const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');

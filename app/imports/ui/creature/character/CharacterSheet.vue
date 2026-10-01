@@ -63,6 +63,7 @@
       mode="shift"
       grow
       mandatory
+      color="primary"
       class="bottom-nav-btns"
       :model-value="appStore.tabById(creatureId)"
       @update:model-value="e => appStore.setTabForCharacterSheet({id: creatureId, tab: e})"
@@ -219,7 +220,7 @@ onBeforeUnmount(() => {
 
 <style>
 .character-sheet .v-window-item {
-  min-height: calc(100vh - 96px);
+  min-height: calc(100dvh - var(--v-layout-top) - var(--v-layout-bottom));
   overflow: hidden;
 }
 

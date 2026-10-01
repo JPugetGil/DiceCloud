@@ -2,9 +2,6 @@
   <v-app-bar
     color="secondary"
     theme="dark"
-    tabs
-    extended
-    density="compact"
   >
     <v-app-bar-nav-icon @click="toggleDrawer" />
     <v-toolbar-title>

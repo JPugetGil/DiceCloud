@@ -32,24 +32,21 @@
         class="character-buttons"
       >
         <v-card>
-          <v-card-text class="d-flex flex-1-1 flex-column align-center">
+          <v-card-text class="d-flex flex-column ga-2">
             <rest-button
               v-if="!creature.settings.hideRestButtons"
               :creature-id="creatureId"
               type="shortRest"
-              class="ma-1"
             />
             <rest-button
               v-if="!creature.settings.hideRestButtons"
               :creature-id="creatureId"
               type="longRest"
-              class="ma-1"
             />
             <event-button
               v-for="event in properties.event"
               :key="event._id"
               :model="event"
-              class="ma-1"
             />
           </v-card-text>
         </v-card>

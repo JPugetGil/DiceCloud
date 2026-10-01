@@ -11,23 +11,36 @@
           cols="12"
           xl="8"
         >
-          <v-card :class="{ 'mb-4': folders && folders.length }">
+          <v-card
+            v-if="hasCharacters || !ready"
+            :class="{ 'mb-4': folders && folders.length }"
+          >
             <creature-folder-list
               :creatures="CreaturesWithNoParty"
               :folders="folders"
             />
           </v-card>
-          <div class="d-flex flex-1-1 justify-end align-center mt-2">
-            <span
+          <v-card v-else>
+            <v-empty-state
+              icon="mdi-account-plus-outline"
+              :title="$t('characterList.emptyTitle')"
+              :text="$t('characterList.emptyText')"
+            />
+          </v-card>
+          <div class="d-flex flex-wrap justify-end align-center ga-2 mt-3">
+            <v-chip
               v-if="characterLimit !== Infinity"
-              class="text-body-medium text-medium-emphasis mr-auto"
+              class="mr-auto"
+              variant="tonal"
+              prepend-icon="mdi-account-multiple-outline"
               data-id="character-count"
             >
               {{ $t('characterList.characterCount', { count: ownedCharacterCount, limit: characterLimit }) }}
-            </span>
+            </v-chip>
             <v-btn
               v-if="showImportButton"
               variant="text"
+              prepend-icon="mdi-file-import-outline"
               data-id="import-character-button"
               @click="importCharacter"
             >
@@ -35,6 +48,7 @@
             </v-btn>
             <v-btn
               variant="text"
+              prepend-icon="mdi-folder-plus-outline"
               :loading="loadingInsertFolder"
               @click="insertFolder"
             >
@@ -42,16 +56,25 @@
             </v-btn>
           </div>
           <v-btn
-            color="accent"
-            icon
+            color="primary"
+            size="large"
+            :icon="xs"
+            :prepend-icon="xs ? undefined : 'mdi-plus'"
+            rounded="lg"
+            elevation="4"
             position="fixed"
             class="ma-4"
             location="bottom right"
-
+            :aria-label="$t('characterList.newCharacter')"
             data-id="new-character-button"
             @click="insertCharacter"
           >
-            <v-icon>mdi-plus</v-icon>
+            <v-icon v-if="xs">
+              mdi-plus
+            </v-icon>
+            <template v-else>
+              {{ $t('characterList.newCharacter') }}
+            </template>
           </v-btn>
         </v-col>
       </v-row>
@@ -61,6 +84,7 @@
 
 <script setup lang="js">
 import { ref, computed } from 'vue';
+import { useDisplay } from 'vuetify';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -88,7 +112,8 @@ const characterTransform = function (char) {
 
 const loadingInsertFolder = ref(false);
 
-subscribe('characterList');
+const { ready } = subscribe('characterList');
+const { xs } = useDisplay();
 
 const { result: folders } = autorun(() => {
   const userId = Meteor.userId();
@@ -121,6 +146,11 @@ const { result: CreaturesWithNoParty } = autorun(() => {
     { sort: { name: 1 } }
   ).map(characterTransform);
 });
+
+// Folders show even while empty: they are where characters are dropped
+const hasCharacters = computed(() =>
+  !!(CreaturesWithNoParty.value?.length || folders.value?.length)
+);
 
 const { result: showImportButton } = autorun(() => {
   return !Meteor.settings.public?.disallowCreatureApiImport;

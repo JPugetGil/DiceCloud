@@ -21,7 +21,10 @@
     "resetPassword": "Reset Password",
     "docNotFound": "Doc not found",
     "privacy": "Privacy policy",
-    "terms": "Terms of use"
+    "terms": "Terms of use",
+    "administration": "Administration",
+    "iconAdmin": "Icons",
+    "maintenance": "Maintenance"
   },
   "nav": {
     "signIn": "Sign in",
@@ -30,7 +33,7 @@
     "characters": "Characters",
     "library": "Library",
     "files": "Files",
-    "admin": "Admin",
+    "admin": "Administration",
     "documentation": "Documentation",
     "discord": "Discord",
     "about": "About",
@@ -76,6 +79,15 @@
     "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
     "supporters": "Supporters"
   },
+  "discord": {
+    "communityTitle": "DiceCloud on Discord",
+    "communityText": "Ask questions, share libraries and report bugs with other players.",
+    "webhookTitle": "Send a character's rolls to Discord",
+    "webhookText": "Each character can post its log (rolls, actions, rests) to a Discord channel.",
+    "webhookStep1": "In Discord, open the channel settings, then Integrations, Webhooks, and create a webhook.",
+    "webhookStep2": "Copy its webhook URL.",
+    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord Webhook URL” field."
+  },
   "legal": {
     "termsLink": "terms of use",
     "privacyLink": "privacy policy",
@@ -95,6 +107,9 @@
     "roleChanged": "{user} is now: {role}"
   },
   "characterList": {
+    "newCharacter": "New character",
+    "emptyTitle": "No characters yet",
+    "emptyText": "Create your first character with the New character button.",
     "importCharacter": "Import character",
     "addFolder": "Add folder",
     "archiveCharacters": "Archive Characters",
@@ -206,6 +221,8 @@
     "text": "No page was found for this address"
   },
   "auth": {
+    "createAccount": "Create an account",
+    "haveAccount": "I already have an account",
     "email": "Email",
     "username": "Username",
     "password": "Password",
@@ -516,6 +533,7 @@
     "carried": "Carried"
   },
   "stats": {
+    "roll": "Roll {name}",
     "buffsAndConditions": "Buffs and conditions",
     "hitDice": "Hit Dice",
     "savingThrows": "Saving Throws",

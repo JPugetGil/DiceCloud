@@ -112,8 +112,10 @@ const barBackgroundColor = computed(() => {
     .hex();
 });
 
+// The value is centred on the bar: it sits on the filled part from half full
 const isTextLight = computed(() => {
-  return isDarkColor(barBackgroundColor.value);
+  const fraction = props.model.value / props.model.total;
+  return isDarkColor(fraction >= 0.5 ? barColor.value : barBackgroundColor.value);
 });
 
 function edit(e) {
@@ -171,10 +173,6 @@ function changeIncrementMenu({ type, value }) {
 }
 
 .hover {
-  background: #f5f5f5 !important;
-}
-
-.v-theme--dark .hover {
-  background: #515151 !important;
+  background: rgba(var(--v-theme-on-surface), 0.06) !important;
 }
 </style>

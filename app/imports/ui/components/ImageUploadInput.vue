@@ -4,7 +4,8 @@
     class="d-flex flex-column "
   >
     <v-btn
-      variant="outlined"
+      variant="tonal"
+      color="primary"
       block
       class="image-upload-button flex-grow-1"
       v-bind="$attrs"

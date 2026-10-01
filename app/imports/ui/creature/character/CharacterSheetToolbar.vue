@@ -216,10 +216,9 @@ const ownerName = autorun(() => {
   return Meteor.users.findOne(creature.value.owner)?.username;
 }).result;
 
-// Without a creature colour, the same #212121 as the other app bars in both
-// themes: they are dark in light mode too (`theme="dark"`), and white text on it
-// is 16:1 where the light theme's secondary (#424242) gave 10:1. The active tab
-// then takes the dark theme's primary, which is made for dark surfaces
+// Without a creature colour, the dark theme's `secondary` ink, as the other app
+// bars in both themes: they are dark in light mode too (`theme="dark"`). The
+// active tab then takes the dark theme's primary, which is made for dark surfaces
 const toolbarColor = computed(() => {
   if (creature.value && creature.value.color) {
     return creature.value.color;

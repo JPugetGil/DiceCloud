@@ -2,9 +2,9 @@
   <v-btn
     :loading="loading"
     :disabled="context.editPermission === false"
-    variant="outlined"
+    variant="tonal"
     :data-id="`rest-btn-${type}`"
-    style="width: 160px;"
+    block
     @click="rest"
   >
     <v-icon start>
