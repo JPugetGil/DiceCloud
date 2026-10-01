@@ -1,0 +1,94 @@
+# DiceCloud in production on one machine: the app, its MongoDB, and a
+# Cloudflare tunnel that publishes it. Driven by dicecloud.sh, which passes the
+# settings and the version; values come from .env (see .env.example).
+name: ${COMPOSE_PROJECT_NAME:-dicecloud}
+
+# Docker keeps every log line otherwise: a few megabytes per service are enough
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  # A replica set of one: Meteor then keeps pages live with change streams
+  # instead of polling. Nothing outside these containers reaches it.
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    logging: *logging
+    entrypoint: ["bash", "/opt/dicecloud/mongo-entrypoint.sh"]
+    command: [
+      "mongod", "--replSet", "rs0", "--bind_ip_all",
+      "--keyFile", "/etc/mongo/replica.key",
+      # The data fits in memory many times over; the rest is for the app
+      "--wiredTigerCacheSizeGB", "2",
+    ]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set in .env}
+      MONGO_REPLICA_KEY: ${MONGO_REPLICA_KEY:?set in .env}
+      MONGO_APP_DATABASE: ${MONGO_APP_DATABASE:-dicecloud}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?set in .env}
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo/mongo-entrypoint.sh:/opt/dicecloud/mongo-entrypoint.sh:ro
+      - ./mongo/init:/docker-entrypoint-initdb.d:ro
+    # Starts the replica set the first time, then is healthy once it accepts writes
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet -u root -p "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin
+          --eval "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) }
+          quit(db.hello().isWritablePrimary ? 0 : 1)"
+      interval: 10s
+      timeout: 10s
+      retries: 6
+      start_period: 30s
+
+  dicecloud:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        CONTAINER_VERSION: ${CONTAINER_VERSION:-}
+    image: dicecloud:${CONTAINER_VERSION:-latest}
+    restart: unless-stopped
+    logging: *logging
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      ROOT_URL: ${ROOT_URL:?set in .env}
+      PORT: 3000
+      MONGO_URL: mongodb://dicecloud:${MONGO_APP_PASSWORD}@mongo:27017/${MONGO_APP_DATABASE:-dicecloud}?replicaSet=rs0&authSource=admin
+      MAIL_URL: ${MAIL_URL:-}
+      # Behind the tunnel: the visitor's address is the last X-Forwarded-For entry
+      HTTP_FORWARDED_COUNT: 1
+      METEOR_SETTINGS: ${METEOR_SETTINGS:?dicecloud.sh passes the settings file}
+    # On the machine itself only, to check the app without the tunnel
+    ports:
+      - 127.0.0.1:${APP_LOCAL_PORT:-3000}:3000
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Publishes the app at ROOT_URL with no port open on the router. Its public
+  # hostname and target (http://dicecloud:3000) are set on Cloudflare's side
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    logging: *logging
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - dicecloud
+
+volumes:
+  mongo-data:
