@@ -80,19 +80,31 @@ Until the tunnel runs, the app answers on the server itself:
 Keep `.env` safe, and a copy of it somewhere else: the database was created
 with its passwords, and a restore on a new machine needs them.
 
-## 5. Moving the data from Atlas
+## 5. Administrator and libraries
 
-Once the app runs, copy the Atlas database into it:
+The database starts empty. Once the app runs:
 
-```sh
-./dicecloud.sh import "mongodb+srv://<user>:<password>@<cluster>.mongodb.net/"
-```
+1. Create your account on the site, then make it an administrator:
+   `./dicecloud.sh admin <username>`.
+2. Copy the library import tools to the server. They are kept out of git, in
+   `tools/libraryImport`; only these are needed:
 
-The URL is the `MONGO_URL` of the current deployment. When it names no
-database, as here, the data is in `test`, MongoDB's default; another one can be
-given after the URL. The current database is backed up first, and the app stops
-during the copy: start it again with `./dicecloud.sh start`. Characters are
-computed again as they are opened.
+   ```sh
+   cd tools/libraryImport
+   tar -czf - import.js createCollection.js lib.js data | ssh <user>@<server> 'mkdir -p ~/libraryImport && tar -C ~/libraryImport -xzf -'
+   ```
+
+3. Import them, owned by your account:
+   `./dicecloud.sh libraries ~/libraryImport <username>`. Every snapshot in
+   `data/*.gz` is imported, then each `data/manifest*.json` becomes a library
+   collection. It takes a few minutes; the database is backed up first.
+   Libraries already there are skipped, so it can be run again.
+
+To bring a whole database from another MongoDB instead, such as Atlas:
+`./dicecloud.sh import "<its URL>"`. It replaces the current database (backed
+up first); when the URL names no database, the data is in `test`, MongoDB's
+default. The app stops during the copy: start it again with
+`./dicecloud.sh start`.
 
 Then:
 

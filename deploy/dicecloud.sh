@@ -10,6 +10,11 @@
 #   ./dicecloud.sh logs [service]   follows a service's log (default: dicecloud)
 #   ./dicecloud.sh backup           backs the database up now (the timer does it daily)
 #   ./dicecloud.sh restore <file>   replaces the database with a backup
+#   ./dicecloud.sh libraries <folder> <username>
+#                                   imports the libraries of tools/libraryImport
+#                                   (its data/*.gz and manifests), owned by that
+#                                   account, which must exist
+#   ./dicecloud.sh admin <username> makes that account an administrator
 #   ./dicecloud.sh import <url> [database]
 #                                   replaces the database with another MongoDB's,
 #                                   such as Atlas. Its database: the one named in
@@ -388,6 +393,56 @@ cmd_import() {
   log "Imported. Start the app: ./dicecloud.sh start"
 }
 
+# The MongoDB driver inside the app's image, for the library import tools
+MONGODB_DRIVER=/home/node/bundle/programs/server/npm/node_modules/meteor/npm-mongo/node_modules/mongodb
+
+# The library import tools run inside the app's container, which has Node,
+# that driver and the database's address: the database is not reachable from
+# outside the containers
+cmd_libraries() {
+  load_env
+  local dir="${1:-}" owner="${2:-}" id file
+  [ -n "$dir" ] && [ -n "$owner" ] || die "usage: ./dicecloud.sh libraries <tools/libraryImport folder> <owner's username>"
+  for file in import.js createCollection.js lib.js; do
+    [ -f "$dir/$file" ] || die "$dir/$file not found"
+  done
+  compgen -G "$dir/data/*.gz" >/dev/null || die "no snapshot (*.gz) in $dir/data"
+  is_running dicecloud || die "DiceCloud is not running: ./dicecloud.sh start"
+  id="$(compose ps -q dicecloud)"
+
+  log "Backing up the database first"
+  cmd_backup
+  log "Copying the import tools into the app's container"
+  tar -C "$dir" -cf - import.js createCollection.js lib.js data \
+    | docker_ exec -i "$id" sh -c 'rm -rf /tmp/libraryImport && mkdir /tmp/libraryImport && tar -C /tmp/libraryImport -xf -'
+  log "Importing the libraries, owned by $owner"
+  if ! docker_ exec -w /tmp/libraryImport -e "MONGODB_PATH=$MONGODB_DRIVER" -e "OWNER=$owner" "$id" sh -c '
+    set -e
+    node import.js --owner "$OWNER" data/*.gz
+    for manifest in data/manifest*.json; do
+      [ -e "$manifest" ] || continue
+      node createCollection.js --owner "$OWNER" --manifest "$manifest"
+    done'; then
+    docker_ exec "$id" rm -rf /tmp/libraryImport || true
+    die "the import failed: see above"
+  fi
+  docker_ exec "$id" rm -rf /tmp/libraryImport
+  log "Libraries imported: they are in $owner's library, and in the community libraries"
+}
+
+# A new database has no administrator: the first one is made here
+cmd_admin() {
+  load_env
+  local username="${1:-}"
+  [ -n "$username" ] || die "usage: ./dicecloud.sh admin <username>"
+  is_running mongo || die "MongoDB is not running: ./dicecloud.sh start"
+  if compose exec -T -e "ADMIN_USERNAME=$username" mongo sh -c 'exec mongosh --quiet -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin "$MONGO_APP_DATABASE" --eval "quit(db.users.updateOne({ username: process.env.ADMIN_USERNAME }, { \$addToSet: { roles: \"admin\" } }).matchedCount ? 0 : 1)"'; then
+    log "$username is now an administrator"
+  else
+    die "no account named $username: create it on the site first"
+  fi
+}
+
 main() {
   local command="${1:-}"
   shift || true
@@ -401,7 +456,10 @@ main() {
     backup) cmd_backup ;;
     restore) cmd_restore "$@" ;;
     import) cmd_import "$@" ;;
-    *) sed -n '2,19s/^# \{0,1\}//p' "${BASH_SOURCE[0]}"; [ -z "$command" ] || exit 1 ;;
+    libraries) cmd_libraries "$@" ;;
+    admin) cmd_admin "$@" ;;
+    *) awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "${BASH_SOURCE[0]}"
+      [ -z "$command" ] || exit 1 ;;
   esac
 }
 
