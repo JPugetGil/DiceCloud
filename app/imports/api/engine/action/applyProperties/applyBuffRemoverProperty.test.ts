@@ -1,4 +1,7 @@
 import { assert } from 'chai';
+import { Meteor } from 'meteor/meteor';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import {
   allMutations,
   createTestCreature,
@@ -9,7 +12,8 @@ import {
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [
-  creatureId, otherCreatureId, buffId, removeParentBuffId, removeTargetBuffsId,
+  creatureId, otherCreatureId, buffId, removeParentBuffId, removeTargetBuffsId, buffEffectId,
+  removeParentBuffUntargetedId,
 ] = getRandomIds(100);
 
 const actionTestCreature: TestCreature = {
@@ -22,6 +26,7 @@ const actionTestCreature: TestCreature = {
       tags: ['some buff'],
       children: [
         {
+          _id: buffEffectId,
           type: 'effect',
           stats: ['armor'],
           operation: 'add',
@@ -32,6 +37,12 @@ const actionTestCreature: TestCreature = {
           type: 'buffRemover',
           targetParentBuff: true,
           target: 'self',
+        },
+        {
+          _id: removeParentBuffUntargetedId,
+          type: 'buffRemover',
+          targetParentBuff: true,
+          target: 'target',
         },
       ],
     },
@@ -79,6 +90,25 @@ describe('Apply Buff Remover Properties', function () {
       }],
       targetIds: []
     }]);
+  });
+
+  it('removes its parent buff when run without targets', async function () {
+    const action = await runActionById(removeParentBuffUntargetedId);
+    const mutations = allMutations(action);
+    assert.deepEqual(mutations.flatMap(mutation => mutation.removals || []), [{
+      propId: buffId,
+    }]);
+  });
+
+  it('removes the buff and what is under it from the sheet', async function () {
+    if (!Meteor.isServer) this.skip();
+    const action = await runActionById(removeParentBuffId);
+    await writeActionResults(action);
+    const buff = await CreatureProperties.findOneAsync(buffId);
+    const effect = await CreatureProperties.findOneAsync(buffEffectId);
+    assert.isTrue(buff?.removed, 'the buff is removed');
+    assert.isTrue(effect?.removed, 'its effect is removed with it');
+    assert.equal(effect?.removedWith, buffId, 'and restored with it');
   });
 
   it('removes a tag targeted buff', async function () {

@@ -5,6 +5,7 @@ import { union, uniq } from 'lodash';
 import CreatureLogs, { trimCreatureLogs } from '/imports/api/creature/log/CreatureLogs';
 import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { softRemove } from '/imports/api/parenting/softRemove';
 import computeCreature from '/imports/api/engine/computeCreature';
 import { reloadCachedProperties } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
@@ -19,12 +20,14 @@ export default async function writeActionResults(action: EngineAction) {
   const engineActionPromise = EngineActions.removeAsync(action._id);
   const creaturePropUpdates: any[] = [];
   const logContents: any[] = [];
+  const removedPropIds: string[] = [];
 
-  // Collect all the updates and log content
+  // Collect all the updates, removals and log content
   action.results.forEach(result => {
     result.mutations.forEach(mutation => {
       creaturePropUpdates.push(...mutationToPropUpdates(mutation));
       logContents.push(...mutationToLogUpdates(mutation));
+      mutation.removals?.forEach(removal => removedPropIds.push(removal.propId));
     });
   });
   const allTargetIds: string[] = union(...logContents.map(c => c.targetIds));
@@ -45,6 +48,14 @@ export default async function writeActionResults(action: EngineAction) {
   const bulkWritePromise = await bulkWrite(creaturePropUpdates, CreatureProperties, true);
 
   await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
+
+  // A removed buff goes with everything under it, as when it is removed from
+  // the sheet, and can be restored the same way. The sequential writes above
+  // only insert and update: removals used to be dropped there
+  for (const propId of uniq(removedPropIds)) {
+    const prop = await CreatureProperties.findOneAsync(propId);
+    if (prop && !prop.removed) await softRemove(CreatureProperties, prop);
+  }
 
   // Recompute the creatures involved. Their caches have not heard of the writes
   // above yet: computing from them would evaluate everything that depends on a

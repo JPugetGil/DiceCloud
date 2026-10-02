@@ -52,18 +52,18 @@
         @remove="softRemove"
       />
       <div
-        v-if="!creature.settings.hideRestButtons || (properties.action && properties.action.event && properties.action.event.length)"
+        v-if="!creature.settings?.hideRestButtons || (properties.action && properties.action.event && properties.action.event.length)"
         class="character-buttons"
       >
         <v-card>
           <v-card-text class="d-flex flex-column ga-2">
             <rest-button
-              v-if="!creature.settings.hideRestButtons"
+              v-if="!creature.settings?.hideRestButtons"
               :creature-id="creatureId"
               type="shortRest"
             />
             <rest-button
-              v-if="!creature.settings.hideRestButtons"
+              v-if="!creature.settings?.hideRestButtons"
               :creature-id="creatureId"
               type="longRest"
             />
@@ -575,7 +575,9 @@ const properties = autorun(() => {
       ]
     }
   };
-  if (c.settings.hideUnusedStats) {
+  // The sidebar's character list publishes the character without its settings,
+  // which may reach the sheet before its own subscription does
+  if (c.settings?.hideUnusedStats) {
     filter.hide = { $ne: true };
   }
   const allProps = CreatureProperties.find(filter, { sort: { left: 1 } }).fetch();

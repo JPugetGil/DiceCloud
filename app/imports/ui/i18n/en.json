@@ -612,6 +612,7 @@
     "xp": "{xp} XP",
     "getMissingLevels": "Get Missing Levels",
     "levelUp": "Level Up",
+    "experienceHistory": "Experience history",
     "choose": "Choose…",
     "chooseCount": "Choose {count}",
     "assignScores": "Assign scores",

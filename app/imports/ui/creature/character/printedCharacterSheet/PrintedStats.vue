@@ -20,7 +20,7 @@
                 {{ ability.name }}
               </div>
               <div class="big-number mb-1">
-                <template v-if="creature.settings.swapScoresAndMods">
+                <template v-if="creature.settings?.swapScoresAndMods">
                   {{ ability.total }}
                 </template>
                 <template v-else>
@@ -29,7 +29,7 @@
               </div>
             </div>
             <div class="bottom">
-              <template v-if="creature.settings.swapScoresAndMods">
+              <template v-if="creature.settings?.swapScoresAndMods">
                 {{ numberToSignedString(ability.modifier) }}
               </template>
               <template v-else>
@@ -256,16 +256,28 @@
         <div
           class="double-border"
         >
-          <p class="mt-0">
+          <p
+            v-if="weapons?.length"
+            class="mt-0"
+          >
             <b>{{ $t('printed.weapons') }}</b> {{ weapons.map(p => p.name).join(', ') }}
           </p>
-          <p class="mt-0">
+          <p
+            v-if="armors?.length"
+            class="mt-0"
+          >
             <b>{{ $t('printed.armor') }}</b> {{ armors.map(p => p.name).join(', ') }}
           </p>
-          <p class="mt-0">
+          <p
+            v-if="tools?.length"
+            class="mt-0"
+          >
             <b>{{ $t('printed.tools') }}</b> {{ tools.map(p => p.name).join(', ') }}
           </p>
-          <p class="mt-0">
+          <p
+            v-if="languages?.length"
+            class="mt-0"
+          >
             <b>{{ $t('printed.languages') }}</b> {{ languages.map(p => p.name).join(', ') }}
           </p>
           <div class="label text-center">
@@ -380,11 +392,27 @@ const props = defineProps({
 });
 
 
+// What the Build tab shows is for making the character, not for playing it:
+// a library's guide, its ability score tools, its XP tracking. Their folders
+// put them there, and the printed sheet leaves out everything under them, as
+// the other tabs do
+function onBuildTab(creatureId) {
+  const folders = CreatureProperties.find({
+    'root.id': creatureId,
+    type: 'folder',
+    groupStats: true,
+    hideStatsGroup: true,
+    tab: 'build',
+    removed: { $ne: true },
+  }, { fields: { root: 1, left: 1, right: 1 } }).fetch();
+  return getFilter.descendantsOfAll(folders);
+}
+
 const getProperties = function (creature, filter, options = {
   sort: { left: 1 }
 }) {
   if (!creature) return [];
-  if (creature.settings.hideUnusedStats) {
+  if (creature.settings?.hideUnusedStats) {
     filter.hide = { $ne: true };
   }
   filter['root.id'] = creature._id;
@@ -394,6 +422,7 @@ const getProperties = function (creature, filter, options = {
   filter.$nor = [
     { hideWhenTotalZero: true, total: 0 },
     { hideWhenValueZero: true, value: 0 },
+    onBuildTab(creature._id),
   ];
 
   return CreatureProperties.find(filter, options).fetch();
@@ -420,6 +449,7 @@ const stats = autorun(() => getAttributeOfType(creature.value, 'stat')).result;
 const toggles = autorun(() => CreatureProperties.find({
   ...getFilter.descendantsOfRoot(props.creatureId),
   type: 'toggle',
+  $nor: [onBuildTab(props.creatureId)],
   removed: { $ne: true },
   deactivatedByAncestor: { $ne: true },
   deactivatedByToggle: { $ne: true },

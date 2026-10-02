@@ -24,6 +24,24 @@ export default async function applyBuffRemoverProperty(
     }, task.targetIds)
   }
 
+  // The parent buff is on the creature running the action, whoever the
+  // targets are: an event with none (a library's "roll the stats" button)
+  // still removes the buff it comes in
+  if (prop.targetParentBuff) {
+    const ancestors = await getPropertyAncestors(action.creatureId, prop._id);
+    const nearestBuff = findLast(ancestors, ancestor => ancestor.type === 'buff');
+    if (!nearestBuff) {
+      result.appendLog({
+        name: 'Error',
+        value: 'Buff remover does not have a parent buff to remove',
+        silenced: prop.silent,
+      }, task.targetIds);
+      return;
+    }
+    removeBuff(nearestBuff, prop, result);
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  }
+
   if (targetIds.length > 1) {
     return await applyTaskToEachTarget(action, task, targetIds, userInput);
   }
@@ -37,42 +55,25 @@ export default async function applyBuffRemoverProperty(
   }
   const targetId = targetIds[0];
 
-  // Remove buffs
-  if (prop.targetParentBuff) {
-    // Remove nearest ancestor buff
-    const ancestors = await getPropertyAncestors(action.creatureId, prop._id);
-    const nearestBuff = findLast(ancestors, ancestor => ancestor.type === 'buff');
-    if (!nearestBuff) {
-      result.appendLog({
-        name: 'Error',
-        value: 'Buff remover does not have a parent buff to remove',
-        silenced: prop.silent,
-      }, [targetId]);
-      return;
-    }
-    removeBuff(nearestBuff, prop, result);
-  } else {
-    // Get all the buffs targeted by tags
-    const allBuffs = await getPropertiesOfType(targetId, 'buff');
-    const targetedBuffs = filter(allBuffs, (buff): boolean => {
-      if (buff.inactive) return false;
-      if (buffRemoverMatchTags(prop, buff)) return true;
-      return false;
+  // Remove the target's buffs that match the tags
+  const allBuffs = await getPropertiesOfType(targetId, 'buff');
+  const targetedBuffs = filter(allBuffs, (buff): boolean => {
+    if (buff.inactive) return false;
+    if (buffRemoverMatchTags(prop, buff)) return true;
+    return false;
+  });
+  if (prop.removeAll) {
+    // Remove all matching buffs
+    targetedBuffs.forEach(buff => {
+      removeBuff(buff, prop, result);
     });
-    // Remove the buffs
-    if (prop.removeAll) {
-      // Remove all matching buffs
-      targetedBuffs.forEach(buff => {
-        removeBuff(buff, prop, result);
-      });
-    } else {
-      // Sort in reverse order
-      targetedBuffs.sort((a, b) => b.left - a.left);
-      // Remove the one with the highest order
-      const buff = targetedBuffs[0];
-      if (buff) {
-        removeBuff(buff, prop, result);
-      }
+  } else {
+    // Sort in reverse order
+    targetedBuffs.sort((a, b) => b.left - a.left);
+    // Remove the one with the highest order
+    const buff = targetedBuffs[0];
+    if (buff) {
+      removeBuff(buff, prop, result);
     }
   }
   return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);

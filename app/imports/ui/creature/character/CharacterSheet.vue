@@ -76,7 +76,7 @@
         <v-icon>mdi-lightning-bolt</v-icon>
         <span>{{ $t('tabs.actions') }}</span>
       </v-btn>
-      <v-btn v-if="!creature.settings.hideSpellsTab">
+      <v-btn v-if="!creature.settings?.hideSpellsTab">
         <v-icon>mdi-fire</v-icon>
         <span>{{ $t('tabs.spells') }}</span>
       </v-btn>
@@ -96,7 +96,7 @@
         <v-icon>mdi-wrench</v-icon>
         <span>{{ $t('tabs.build') }}</span>
       </v-btn>
-      <v-btn v-if="creature.settings.showTreeTab">
+      <v-btn v-if="creature.settings?.showTreeTab">
         <v-icon>mdi-file-tree</v-icon>
         <span>{{ $t('tabs.tree') }}</span>
       </v-btn>

@@ -123,19 +123,31 @@
                 <v-btn
                   variant="text"
                   icon
+                  :aria-label="$t('build.experienceHistory')"
                   data-id="experience-info-button"
                   @click="showExperienceList"
                 >
                   <v-icon>mdi-information-outline</v-icon>
+                  <v-tooltip
+                    activator="parent"
+                    location="top"
+                    :text="$t('build.experienceHistory')"
+                  />
                 </v-btn>
-              
+
                 <v-btn
                   variant="text"
                   icon
+                  :aria-label="$t('xp.addExperience')"
                   data-id="experience-add-button"
                   @click="addExperience"
                 >
                   <v-icon>mdi-plus</v-icon>
+                  <v-tooltip
+                    activator="parent"
+                    location="top"
+                    :text="$t('xp.addExperience')"
+                  />
                 </v-btn>
               </template>
             </v-list-item>
@@ -416,14 +428,16 @@ function propertyClicked({ _id, prefix }) {
   });
 }
 
+// Experience is added as XP by default, the milestone switch still at hand:
+// every character has milestone levels, its starting level, so they tell
+// nothing of how its table levels up, and libraries that lock levels behind
+// XP ignore them
 function addExperience() {
   dialogStackStore.pushDialogStack({
     component: 'experience-insert-dialog',
     elementId: 'experience-add-button',
     data: {
       creatureIds: [props.creatureId],
-      startAsMilestone: variables.value?.milestoneLevels &&
-        !!variables.value.milestoneLevels.value,
     },
   });
 }
@@ -434,8 +448,6 @@ function showExperienceList() {
     elementId: 'experience-info-button',
     data: {
       creatureId: props.creatureId,
-      startAsMilestone: variables.value?.milestoneLevels &&
-        !!variables.value.milestoneLevels.value,
     },
   });
 }

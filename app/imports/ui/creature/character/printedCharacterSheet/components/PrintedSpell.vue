@@ -32,18 +32,20 @@
     >
       <b>{{ $t('printed.toHitLabel') }}</b> {{ rollBonus }}
     </div>
-    <div>
+    <!-- Only what the spell sets: an empty label tells the reader nothing -->
+    <div v-if="model.castingTime">
       <b>{{ $t('printed.castingTime') }}</b> {{ model.castingTime }}
     </div>
-    <div>
+    <div v-if="model.range">
       <b>{{ $t('printed.range') }}</b> {{ model.range }}
     </div>
-    <div>
+    <div v-if="spellComponents">
       <b>{{ $t('printed.components') }}</b> {{ spellComponents }}
     </div>
-    <div class="mb-4">
+    <div v-if="model.duration">
       <b>{{ $t('printed.duration') }}</b> {{ model.duration }}
     </div>
+    <div class="mb-4" />
     <property-description
       text
       :model="model.summary"

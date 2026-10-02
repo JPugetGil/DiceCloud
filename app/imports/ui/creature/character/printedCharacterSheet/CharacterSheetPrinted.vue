@@ -68,7 +68,7 @@
             class="page-break-before"
           />
           <printed-spells
-            v-if="!creature.settings.hideSpellsTab"
+            v-if="!creature.settings?.hideSpellsTab"
             class="page-break-before"
             :creature-id="creatureId"
           />

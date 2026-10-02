@@ -242,4 +242,53 @@ describe('Triggers', function () {
       value: 'note summary 3',
     }]);
   });
+
+  it('Fires only when its condition holds, as the action has left things', async function () {
+    const [creatureId, actionId] = getRandomIds(2);
+    // The counter starts at 1: both conditions were false when the sheet was
+    // computed, only one is once the action has set it to 7
+    const trigger = (name: string, condition: string) => ({
+      type: 'trigger',
+      name,
+      event: 'damageProperty',
+      timing: 'after',
+      targetTags: ['counter'],
+      condition: { calculation: condition },
+      children: [{ type: 'note', name: `${name} child` }],
+    });
+    const creature: TestCreature = {
+      _id: creatureId,
+      props: [
+        {
+          type: 'attribute',
+          attributeType: 'stat',
+          variableName: 'counter',
+          tags: ['counter'],
+          baseValue: { calculation: '1' },
+          ignoreUpperLimit: true,
+        }, {
+          _id: actionId,
+          type: 'action',
+          name: 'Action',
+          children: [{
+            type: 'adjustment',
+            target: 'self',
+            stat: 'counter',
+            operation: 'set',
+            amount: { calculation: '7' },
+            silent: true,
+          }],
+        },
+        trigger('Counter past 6', 'counter > 6'),
+        trigger('Counter past 10', 'counter > 10'),
+      ],
+    };
+    await createTestCreature(creature);
+    const action = await runActionById(actionId);
+    const names = allLogContent(action).map(content => content.name);
+    assert.include(names, 'Counter past 6');
+    assert.include(names, 'Counter past 6 child');
+    assert.notInclude(names, 'Counter past 10');
+    assert.notInclude(names, 'Counter past 10 child');
+  });
 });
