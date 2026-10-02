@@ -4,8 +4,9 @@
 laptop at home:
 
 - the app, built from this repository's `Dockerfile`;
-- MongoDB 8.0 as a replica set of one, so that Meteor keeps pages live with
-  change streams rather than polling. Only the app's containers reach it;
+- MongoDB 7.0 as a replica set of one, so that Meteor keeps pages live with
+  change streams rather than polling. Only the app's containers reach it. Not
+  8.x, which refuses recent Linux kernels (see `compose.yml`);
 - a Cloudflare tunnel, which publishes the app at its address over HTTPS
   without opening any port on the router, even behind a shared or changing IP;
 - a database backup every day, the last 7 days kept, optionally copied to an

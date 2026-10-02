@@ -116,6 +116,17 @@ check_config() {
   [ -n "$MAIL_URL" ] || log "No MAIL_URL: account emails are printed in the app's log instead of sent"
 }
 
+# What a failing container says: its latest log lines and health checks
+show_failure() {
+  local service="$1" id
+  id="$(compose ps -aq "$service" 2>/dev/null)"
+  [ -n "$id" ] || return 0
+  echo "--- $service: log" >&2
+  compose logs --no-log-prefix --tail 40 "$service" >&2 || true
+  echo "--- $service: latest health checks" >&2
+  docker_ inspect -f '{{if .State.Health}}{{range .State.Health.Log}}exit {{.ExitCode}}: {{.Output}}{{println}}{{end}}{{end}}' "$id" >&2 || true
+}
+
 # Waits for a container's health check, and shows its log if it fails
 wait_healthy() {
   local service="$1" id status
@@ -129,7 +140,7 @@ wait_healthy() {
     esac
     sleep 5
   done
-  compose logs --tail 60 "$service" >&2 || true
+  show_failure "$service"
   die "$service did not start properly ($status)"
 }
 
@@ -224,7 +235,11 @@ cmd_start() {
   compose build dicecloud
   log "Starting"
   # shellcheck disable=SC2046
-  compose $(up_profiles) up -d --remove-orphans
+  if ! compose $(up_profiles) up -d --remove-orphans; then
+    show_failure mongo
+    show_failure dicecloud
+    die "the containers did not start: see above"
+  fi
   wait_healthy dicecloud
   log "DiceCloud $CONTAINER_VERSION is running: $ROOT_URL"
 }

@@ -14,7 +14,7 @@ services:
   # A replica set of one: Meteor then keeps pages live with change streams
   # instead of polling. Nothing outside these containers reaches it.
   mongo:
-    image: mongo:8.0
+    image: mongo:7.0
     restart: unless-stopped
     logging: *logging
     entrypoint: ["bash", "/opt/dicecloud/mongo-entrypoint.sh"]
