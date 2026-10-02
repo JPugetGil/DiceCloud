@@ -46,8 +46,10 @@ Cloudflared**, name it `dicecloud`.
    `--token` in the command shown. It goes in `CLOUDFLARE_TUNNEL_TOKEN`.
    Nothing else on that page needs running: the script starts the connector.
 2. **Public hostname**: subdomain `dicecloud`, domain `hemoreg.me` (or no
-   subdomain for `hemoreg.me` itself), service type **HTTP**, URL
-   `dicecloud:3000`. Cloudflare creates the DNS record.
+   subdomain for `hemoreg.me` itself), service URL `http://dicecloud:3000`.
+   Plain `http`: the tunnel already encrypts the way to Cloudflare, which
+   gives visitors HTTPS; the app's container answers in plain HTTP. Cloudflare
+   creates the DNS record.
 
 ## 4. Install and start
 
