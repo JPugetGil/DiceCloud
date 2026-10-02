@@ -92,6 +92,7 @@ settings, a JSON document. Locally, copy `app/exampleMeteorSettings.json` to
 | `PORT` | The port the server listens on |
 | `METEOR_SETTINGS` | The settings, as JSON |
 | `MAIL_URL` | The SMTP server that sends password reset and email verification messages, such as `smtps://<user>:<password>@<server>:465`. Without it, the server prints those emails in its log |
+| `MAIL_FROM` | Those messages' sender, such as `DiceCloud <no-reply@example.com>`: a domain the SMTP service has authenticated. Default: `no-reply@<the ROOT_URL host>` |
 | `DEFAULT_LIBRARIES` | Comma-separated ids of the libraries new users are subscribed to |
 | `DEFAULT_LIBRARY_COLLECTIONS` | Comma-separated ids of the library collections new users are subscribed to |
 

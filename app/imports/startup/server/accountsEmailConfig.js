@@ -3,7 +3,8 @@ import emailTemplate from './emailTemplate';
 import { Accounts } from 'meteor/accounts-base';
 
 // Sent from the domain the server runs on (ROOT_URL)
-Accounts.emailTemplates.from = `no-reply@${new URL(Meteor.absoluteUrl()).hostname}`;
+Accounts.emailTemplates.from = process.env.MAIL_FROM
+  || `no-reply@${new URL(Meteor.absoluteUrl()).hostname}`;
 Accounts.emailTemplates.siteName = 'DiceCloud';
 
 // Written in the account's interface language (preferences.language)

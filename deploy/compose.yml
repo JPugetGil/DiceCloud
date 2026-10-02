@@ -64,6 +64,7 @@ services:
       PORT: 3000
       MONGO_URL: mongodb://dicecloud:${MONGO_APP_PASSWORD}@mongo:27017/${MONGO_APP_DATABASE:-dicecloud}?replicaSet=rs0&authSource=admin
       MAIL_URL: ${MAIL_URL:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       # Behind the tunnel: the visitor's address is the last X-Forwarded-For entry
       HTTP_FORWARDED_COUNT: 1
       METEOR_SETTINGS: ${METEOR_SETTINGS:?dicecloud.sh passes the settings file}

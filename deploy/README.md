@@ -66,7 +66,8 @@ up the daily backup. Then:
 1. In `deploy/.env`:
    - `ROOT_URL`: the public address, `https://dicecloud.hemoreg.me`;
    - `CLOUDFLARE_TUNNEL_TOKEN`: the tunnel's token;
-   - `MAIL_URL`: the SMTP server, see `.env.example`.
+   - `MAIL_URL`: the SMTP server, see `.env.example`;
+   - `MAIL_FROM`: the sender, on the domain authenticated with the SMTP
 2. Copy the settings file from your computer:
    `scp app/settings.production.json <user>@<server>:~/DiceCloud/app/`.
    Its `galaxy.meteor.com` section is ignored here: `MAIL_URL` comes from
@@ -111,9 +112,10 @@ Then:
 - **Google sign-in**: in Google Cloud's console, add
   `https://dicecloud.hemoreg.me/_oauth/google` to the OAuth client's
   authorized redirect URIs.
-- **Emails**: the app sends from `no-reply@<the ROOT_URL host>`. In Brevo,
-  authenticate that domain (Senders, domains and dedicated IPs > Domains), then
-  add the records it gives in Cloudflare.
+- **Emails**: in Brevo, authenticate the domain of `MAIL_FROM` (Senders,
+  domains and dedicated IPs > Domains), then add the records it gives in
+  Cloudflare, its DKIM records as **DNS only**: proxied, they hide the keys
+  that receiving servers check signatures with.
 - Once everything works, stop Galaxy and the Atlas cluster.
 
 ## 6. Backups
