@@ -16,3 +16,6 @@ app/*settings*.json
 build
 tests
 tools
+
+# Production scripts and their secrets (.env)
+deploy

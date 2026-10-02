@@ -14,7 +14,8 @@
   },
   "galaxy.meteor.com": {
     "env": {
-      "MONGO_URL": "<MongoDB connection URL>"
+      "MONGO_URL": "<MongoDB connection URL>",
+      "MAIL_URL": "<SMTP connection URL>"
     }
   },
   "packages": {
