@@ -239,6 +239,14 @@ cmd_start() {
   log "Building DiceCloud $CONTAINER_VERSION (the first build takes a while)"
   compose build dicecloud
   log "Starting"
+  if ! compose up -d mongo; then
+    show_failure mongo
+    die "MongoDB did not start: see above"
+  fi
+  wait_healthy mongo
+  # The app's account, brought up to date before the app connects with it
+  compose exec -T mongo sh -c 'exec mongosh --quiet -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin admin /docker-entrypoint-initdb.d/create-app-user.js' \
+    || die "could not update the app's database account"
   # shellcheck disable=SC2046
   if ! compose $(up_profiles) up -d --remove-orphans; then
     show_failure mongo
