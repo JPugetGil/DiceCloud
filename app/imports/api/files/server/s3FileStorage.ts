@@ -5,6 +5,8 @@ import { Random } from 'meteor/random';
 import { FileObj, FileRef, FilesCollection, FilesCollectionConfig } from 'meteor/ostrio:files';
 import stream from 'stream';
 import { S3 } from '@aws-sdk/client-s3';
+import { DEFAULT_S3_REGION } from '/imports/api/files/s3Pricing';
+import { APP_FILES_PREFIX, type PrefixUsage, addObjectToUsage } from '/imports/api/files/bucketUsage';
 
 /* See fs-extra and graceful-fs NPM packages */
 /* For better i/o performance */
@@ -34,6 +36,13 @@ const bound = Meteor.bindEnvironment((callback: () => any) => {
 
 let createS3FilesCollection;
 
+/**
+ * The size and number of the bucket's objects, by top-level folder: the app's
+ * files and anything else stored there, such as the database backups. Needs
+ * s3:ListBucket on the bucket. Undefined without S3.
+ */
+let getBucketUsage: (() => Promise<PrefixUsage[]>) | undefined;
+
 type S3Metadata = {
   pipePath: string,
 }
@@ -51,11 +60,24 @@ if (Meteor.settings.useS3) {
       accessKeyId: s3Conf.key,
       secretAccessKey: s3Conf.secret,
     },
-    region: s3Conf.region || 'eu-west-3',
+    region: s3Conf.region || DEFAULT_S3_REGION,
     ...(s3Conf.endpoint && { endpoint: s3Conf.endpoint, forcePathStyle: true }),
     tls: true,
     maxAttempts: 10,
   });
+
+  getBucketUsage = async function () {
+    const usage = new Map<string, PrefixUsage>();
+    let ContinuationToken: string | undefined;
+    do {
+      const page = await s3.listObjectsV2({ Bucket: s3Conf.bucket, ContinuationToken });
+      for (const { Key, Size } of page.Contents || []) {
+        if (Key) addObjectToUsage(usage, Key, Size || 0);
+      }
+      ContinuationToken = page.NextContinuationToken;
+    } while (ContinuationToken);
+    return [...usage.values()];
+  };
 
   createS3FilesCollection = function ({
     collectionName,
@@ -87,7 +109,7 @@ if (Meteor.settings.useS3) {
         each(fileRef.versions, (vRef, version) => {
           // We use Random.id() instead of real file's _id
           // to secure files from reverse engineering on the AWS client
-          const filePath = 'files/' + (Random.id()) + '-' + version + '.' + fileRef.extension;
+          const filePath = APP_FILES_PREFIX + (Random.id()) + '-' + version + '.' + fileRef.extension;
 
           // Create the AWS:S3 object.
           // Feel free to change the storage class from, see the documentation,
@@ -276,4 +298,4 @@ if (Meteor.settings.useS3) {
   }
 }
 
-export { createS3FilesCollection };
+export { createS3FilesCollection, getBucketUsage };

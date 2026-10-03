@@ -105,7 +105,22 @@
     "overLimit": "Over the limit of this role",
     "cantChangeOwnRole": "You can't change your own role",
     "noUsersFound": "No users found",
-    "roleChanged": "{user} is now: {role}"
+    "roleChanged": "{user} is now: {role}",
+    "s3": {
+      "title": "AWS S3 storage",
+      "refresh": "Refresh",
+      "notConfigured": "S3 isn't configured: the files are on the server's disk. The figures below are what they would take, and cost, on S3.",
+      "spaceUsed": "Space used",
+      "objects": "Objects",
+      "listingDenied": "The access key can't list the bucket: give it s3:ListBucket on arn:aws:s3:::{bucket}. Meanwhile, only the app's files recorded in its database are counted.",
+      "listingFailed": "The bucket couldn't be listed ({reason}). Only the app's files recorded in its database are counted.",
+      "folder": "Folder",
+      "size": "Size",
+      "appFiles": "Images and character archives ({folder})",
+      "bucketRoot": "Bucket root",
+      "monthlyCost": "Estimated cost per month",
+      "costHint": "Estimate for S3 Standard storage in {region} at {price} per GB and month, as if the files stayed the same all month. Requests, data transfer and the AWS free tier are not counted."
+    }
   },
   "characterList": {
     "newCharacter": "New character",

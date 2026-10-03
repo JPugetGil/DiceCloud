@@ -266,7 +266,19 @@ The server also takes this JSON, as `{ "s3": { ... } }`, from an `S3`
 environment variable. `region` defaults to `eu-west-3` (Paris). `endpoint` is
 only needed for an S3-compatible service other than AWS. The access key needs
 `s3:PutObject`, `s3:GetObject` and `s3:DeleteObject` on
-`arn:aws:s3:::<bucket name>/files/*`, and nothing else.
+`arn:aws:s3:::<bucket name>/files/*`, and nothing else but the optional
+`s3:ListBucket` below.
+
+The Admin page shows the space the bucket takes, by top-level folder (the
+app's `files/`, and anything else such as the database backups of
+`deploy/`), and an estimate of what it costs a month. It lists the bucket, so
+the key also needs `s3:ListBucket` on `arn:aws:s3:::<bucket name>`; without
+it, the page only counts the app's files recorded in the database it is
+connected to, and says so. The estimate counts the storage only, at the S3
+Standard prices of Paris ($0.024 per GB and month for the first 50 TB): add
+`"storagePricePerGB"` to `s3`, in USD, to use another price, for instance in
+another region. Without S3 settings, the page shows what the files on the
+server's disk would cost on S3.
 
 Privacy policy and terms of use
 -------------------------------
