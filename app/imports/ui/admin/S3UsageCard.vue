@@ -7,8 +7,8 @@
         icon="mdi-refresh"
         variant="text"
         :loading="loading"
-        :aria-label="$t('admin.s3.refresh')"
-        :title="$t('admin.s3.refresh')"
+        :aria-label="$t('admin.refresh')"
+        :title="$t('admin.refresh')"
         @click="refresh"
       />
     </v-card-title>

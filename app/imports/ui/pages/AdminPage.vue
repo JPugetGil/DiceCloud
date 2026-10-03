@@ -1,8 +1,17 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        lg="6"
+      >
         <s3-usage-card />
+      </v-col>
+      <v-col
+        cols="12"
+        lg="6"
+      >
+        <database-usage-card />
       </v-col>
       <v-col cols="12">
         <user-roles-card />
@@ -12,6 +21,7 @@
 </template>
 
 <script setup>
+import DatabaseUsageCard from '/imports/ui/admin/DatabaseUsageCard.vue';
 import S3UsageCard from '/imports/ui/admin/S3UsageCard.vue';
 import UserRolesCard from '/imports/ui/admin/UserRolesCard.vue';
 </script>

@@ -29,3 +29,4 @@ import '/imports/api/creature/creatures/methods/index';
 import '/imports/api/engine/action/methods/index';
 import '/imports/api/sharing/sharing';
 import '/imports/api/files/methods/getS3Usage';
+import '/imports/api/admin/methods/getDatabaseUsage';

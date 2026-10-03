@@ -106,9 +106,21 @@
     "cantChangeOwnRole": "Vous ne pouvez pas changer votre propre rôle",
     "noUsersFound": "Aucun utilisateur trouvé",
     "roleChanged": "{user} est maintenant : {role}",
+    "refresh": "Actualiser",
+    "database": {
+      "title": "Stockage MongoDB",
+      "totalSize": "Sur le disque",
+      "dataSize": "Données",
+      "indexSize": "Index",
+      "documents": "Documents",
+      "collection": "Collection",
+      "disk": "Disque du serveur de base de données",
+      "diskUsed": "Disque du serveur de base de données : {used} utilisés sur {total}, {free} libres",
+      "collectionsError": "La taille de certaines collections n'a pas pu être lue ({reason}).",
+      "hint": "Base {database}. Sur le disque : les documents compressés et leurs index. Données : la taille des documents non compressés. MongoDB réutilise la place des documents supprimés au lieu de la rendre au disque."
+    },
     "s3": {
       "title": "Stockage AWS S3",
-      "refresh": "Actualiser",
       "notConfigured": "S3 n'est pas configuré : les fichiers sont sur le disque du serveur. Les chiffres ci-dessous sont ce qu'ils occuperaient, et coûteraient, sur S3.",
       "spaceUsed": "Espace utilisé",
       "objects": "Objets",

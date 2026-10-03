@@ -170,6 +170,12 @@ db.users.updateOne({ username: '<username>' }, { $addToSet: { roles: 'admin' } }
 
 The roles and their limits are defined in `app/imports/api/users/roles.ts`.
 
+The Admin page also shows the storage: the S3 bucket's (see
+[File storage (AWS S3)](#file-storage-aws-s3)), and the MongoDB database's, in
+all and by collection, with how full the database server's disk is. The app's
+database user reads these with its `readWrite` role, which includes the
+`dbStats` and `collStats` actions.
+
 Tests
 -----
 
