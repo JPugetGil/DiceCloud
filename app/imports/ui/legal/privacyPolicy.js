@@ -2,8 +2,8 @@
 // instance and how to reach them come from the settings (public.legal): see
 // LegalPage.vue. Update LAST_UPDATED and both languages together.
 const LAST_UPDATED = {
-  en: 'September 29, 2026',
-  fr: '29 septembre 2026',
+  en: 'October 4, 2026',
+  fr: '4 octobre 2026',
 };
 
 const contactLink = (email, missing) => email ? `[${email}](mailto:${email})` : missing;
@@ -70,7 +70,7 @@ Connections are encrypted (HTTPS), passwords are never stored in clear, and file
 
 ## Your rights
 
-You can at any time access your data, correct it, have it erased, restrict or object to its processing, and receive a copy of it (portability). You can change most of it on the Account page, archive a character to get it as a file you can download from the Files page, and delete your account yourself. For anything else, write to ${contact}. If you believe your rights are not respected, you can lodge a complaint with the CNIL ([www.cnil.fr](https://www.cnil.fr)).
+You can at any time access your data, correct it, have it erased, restrict or object to its processing, and receive a copy of it (portability). You can change most of it on the Account page, download any of your characters as a file from its sheet's menu, and delete your account yourself. For anything else, write to ${contact}. If you believe your rights are not respected, you can lodge a complaint with the CNIL ([www.cnil.fr](https://www.cnil.fr)).
 
 ## Changes
 
@@ -138,7 +138,7 @@ Les échanges sont chiffrés (HTTPS), les mots de passe ne sont jamais stockés 
 
 ## Vos droits
 
-Vous pouvez à tout moment accéder à vos données, les rectifier, les faire effacer, en limiter le traitement ou vous y opposer, et en recevoir une copie (portabilité). Vous pouvez modifier la plupart d'entre elles depuis la page Compte, archiver un personnage pour l'obtenir sous forme de fichier à télécharger depuis la page Fichiers, et supprimer votre compte vous-même. Pour toute autre demande, écrivez à ${contact}. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL ([www.cnil.fr](https://www.cnil.fr)).
+Vous pouvez à tout moment accéder à vos données, les rectifier, les faire effacer, en limiter le traitement ou vous y opposer, et en recevoir une copie (portabilité). Vous pouvez modifier la plupart d'entre elles depuis la page Compte, télécharger chacun de vos personnages sous forme de fichier depuis le menu de sa fiche, et supprimer votre compte vous-même. Pour toute autre demande, écrivez à ${contact}. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL ([www.cnil.fr](https://www.cnil.fr)).
 
 ## Modifications
 

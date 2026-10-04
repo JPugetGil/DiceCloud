@@ -634,7 +634,11 @@
     "buffOrCondition": "Buff ou état",
     "owner": "Propriétaire de la fiche",
     "unshareWithMe": "Ne plus partager avec moi",
-    "editDetails": "Modifier les détails"
+    "editDetails": "Modifier les détails",
+    "duplicate": "Dupliquer",
+    "download": "Télécharger",
+    "copyName": "{name} (copie)",
+    "duplicated": "{name} dupliqué : voici la copie"
   },
   "build": {
     "slots": "Emplacements",

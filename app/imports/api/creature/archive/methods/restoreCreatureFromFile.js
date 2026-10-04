@@ -12,6 +12,7 @@ import { incrementFileStorageUsed } from '/imports/api/users/methods/updateFileS
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
+import { insertCreatureCopy } from '/imports/api/creature/creatures/methods/duplicateCreature';
 import { Meteor } from 'meteor/meteor';
 
 let migrateArchive;
@@ -34,12 +35,14 @@ async function restoreCreature(archive, userId) {
   // Asset that the archive is safe
   verifyArchiveSafety(archive);
 
-  // Don't upload creatures twice
+  // The character still exists, as when restoring a file downloaded from its
+  // sheet: restore a copy beside it, with new ids
   const existingCreature = await Creatures.findOneAsync(archive.creature._id, {
     fields: { _id: 1 }
   });
-  if (existingCreature) throw new Meteor.Error('Already exists',
-    'The creature you are trying to restore already exists.')
+  if (existingCreature) {
+    return insertCreatureCopy(archive, { owner: userId });
+  }
 
   // Ensure the user owns the restored creature
   archive.creature.owner = userId;
@@ -63,6 +66,7 @@ async function restoreCreature(archive, userId) {
     await removeCreatureWork(archive.creature._id);
     throw e;
   }
+  return archive.creature._id;
 }
 
 const restoreCreaturefromFile = new ValidatedMethod({
@@ -93,17 +97,19 @@ const restoreCreaturefromFile = new ValidatedMethod({
     }
 
 
+    let creatureId;
     if (Meteor.isServer) {
       // A restored character counts towards the user's character limit
       await assertCanCreateCharacter(this.userId);
       // Read the file data
       const archive = await ArchiveCreatureFiles.readJSONFile(file);
-      await restoreCreature(archive, this.userId);
+      creatureId = await restoreCreature(archive, this.userId);
     }
     //Remove the archive once the restore succeeded
     await ArchiveCreatureFiles.removeAsync({ _id: fileId });
     // Update the user's file storage limits
     await incrementFileStorageUsed(userId, -file.size);
+    return creatureId;
   },
 });
 

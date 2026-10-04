@@ -343,7 +343,7 @@ export function renewDocIds({ docArray, collectionMap = {}, idMap = {} }) {
     doc.parentId = remap(doc.parentId);
 
     // Remap itemIds of items selected as ammo
-    doc.resource?.itemsConsumed?.forEach(itemConsumed => {
+    doc.resources?.itemsConsumed?.forEach(itemConsumed => {
       itemConsumed.itemId = remap(itemConsumed.itemId);
     });
   });

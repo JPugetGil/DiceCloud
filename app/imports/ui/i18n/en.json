@@ -634,7 +634,11 @@
     "buffOrCondition": "Buff or Condition",
     "owner": "Sheet owner",
     "unshareWithMe": "Unshare with me",
-    "editDetails": "Edit details"
+    "editDetails": "Edit details",
+    "duplicate": "Duplicate",
+    "download": "Download",
+    "copyName": "{name} (copy)",
+    "duplicated": "{name} duplicated: this is the copy"
   },
   "build": {
     "slots": "Slots",

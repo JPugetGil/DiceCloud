@@ -97,6 +97,28 @@
                 </v-list-item-title>
               </v-list-item>
               <v-list-item
+                :disabled="!copyPermission || !!busy"
+                data-id="creature-duplicate"
+                @click="duplicate"
+              >
+                <v-list-item-title>
+                  <v-icon start>
+                    mdi-content-copy
+                  </v-icon> {{ $t('sheet.duplicate') }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
+                :disabled="!copyPermission || !!busy"
+                data-id="creature-download"
+                @click="download"
+              >
+                <v-list-item-title>
+                  <v-icon start>
+                    mdi-download
+                  </v-icon> {{ $t('sheet.download') }}
+                </v-list-item-title>
+              </v-list-item>
+              <v-list-item
                 :disabled="!isOwner"
                 @click="showShareDialog"
               >
@@ -187,7 +209,7 @@
 </template>
 
 <script setup>
-import { computed} from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -195,7 +217,10 @@ import { useDisplay, useTheme } from 'vuetify';
 
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
-import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { hasCopyPermission, hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import duplicateCreature from '/imports/api/creature/creatures/methods/duplicateCreature';
+import getCreatureArchive from '/imports/api/creature/archive/methods/getCreatureArchive';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { updateUserSharePermissions } from '/imports/api/sharing/sharing';
 import isDarkColor from '/imports/ui/utility/isDarkColor';
 import CharacterSheetFab from '/imports/ui/creature/character/CharacterSheetFab.vue';
@@ -220,6 +245,11 @@ const creatureId = computed(() => route.params.id);
 const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
 
 const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
+
+const copyPermission = autorun(() => hasCopyPermission(creature.value, Meteor.user())).result;
+
+// The menu action running: 'duplicate' or 'download'
+const busy = ref(undefined);
 
 const isOwner = autorun(() => {
   if (!creature.value) return false;
@@ -306,6 +336,43 @@ function deleteCharacter() {
       }
     }
   });
+}
+
+async function duplicate() {
+  busy.value = 'duplicate';
+  try {
+    const copyId = await duplicateCreature.callAsync({
+      creatureId: creatureId.value,
+      name: t('sheet.copyName', { name: creature.value.name }),
+    });
+    snackbar({ text: t('sheet.duplicated', { name: creature.value.name }) });
+    await router.push(`/character/${copyId}`);
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  } finally {
+    busy.value = undefined;
+  }
+}
+
+// The same file archiving makes, saved by the browser: the character stays
+async function download() {
+  busy.value = 'download';
+  try {
+    const archive = await getCreatureArchive.callAsync({ creatureId: creatureId.value });
+    const blob = new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(creature.value.name || creatureId.value).replace(/[\\/:*?"<>|]+/g, '_')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  } finally {
+    busy.value = undefined;
+  }
 }
 
 async function unshareWithMe() {
