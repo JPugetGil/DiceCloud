@@ -17,7 +17,8 @@
         :fresh="freshIds.has(log._id)"
       />
     </v-slide-y-reverse-transition>
-    <v-card>
+    <!-- Never shrinks: a long log scrolls, and squeezed the input instead -->
+    <v-card class="flex-shrink-0">
       <v-text-field
         v-model="input"
         class="mx-2 mb-2"
