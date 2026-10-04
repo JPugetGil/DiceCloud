@@ -262,6 +262,9 @@ const isLibraryForm = computed(() => props.collection === 'libraryNodes' || unde
 provide('context', reactive({
   debounceTime,
   isLibraryForm,
+  // Not creatureId, which turns the viewers of library previews into the
+  // character's: only the formula suggestions read this one
+  get variablesCreatureId() { return props.creatureId; },
 }));
 
 // State

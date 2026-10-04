@@ -276,6 +276,9 @@
     "storage": "Storage",
     "storageUsed": "{used} of {limit} used"
   },
+  "formula": {
+    "suggestions": "Variables and functions"
+  },
   "functions": {
     "title": "Functions"
   },
