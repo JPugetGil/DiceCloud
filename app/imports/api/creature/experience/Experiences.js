@@ -64,10 +64,11 @@ const insertExperienceForCreature = async function ({ experience, creatureId }) 
       $set: { dirty: true },
     });
   }
-  experience.creatureId = creatureId;
-  let id = await Experiences.insertAsync(experience);
-  return id;
+  return Experiences.insertAsync({ ...experience, creatureId });
 };
+
+// How many characters can get an experience at once: a party, with room to spare
+export const MAX_EXPERIENCE_CREATURES = 12;
 
 const insertExperience = new ValidatedMethod({
   name: 'experiences.insert',
@@ -77,7 +78,8 @@ const insertExperience = new ValidatedMethod({
     },
     creatureIds: {
       type: Array,
-      max: 12,
+      minCount: 1,
+      maxCount: MAX_EXPERIENCE_CREATURES,
     },
     'creatureIds.$': {
       type: String,
@@ -95,13 +97,17 @@ const insertExperience = new ValidatedMethod({
       throw new Meteor.Error('Experiences.methods.insert.denied',
         'You need to be logged in to insert an experience');
     }
-    let insertedIds = [];
+    const uniqueIds = [...new Set(creatureIds)];
+    // Every character is checked before any gets the experience: a party
+    // either all gets it, or none does
+    for (const creatureId of uniqueIds) {
+      await assertEditPermission(creatureId, userId);
+    }
+    const insertedIds = [];
     // for...of rather than forEach: an async callback handed to forEach is never
     // awaited, so this returned an empty array before any insert had finished.
-    for (const creatureId of creatureIds) {
-      await assertEditPermission(creatureId, userId);
-      let id = await insertExperienceForCreature({ experience, creatureId });
-      insertedIds.push(id);
+    for (const creatureId of uniqueIds) {
+      insertedIds.push(await insertExperienceForCreature({ experience, creatureId }));
     }
     return insertedIds;
   },

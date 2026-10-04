@@ -41,6 +41,11 @@
               >
                 {{ $t('party.memberCount', { count: creatures.length }, creatures.length) }}
               </v-chip>
+              <v-spacer />
+              <party-actions
+                v-if="creatures.length"
+                :creatures="creatures"
+              />
             </div>
             <v-empty-state
               v-if="!creatures.length"
@@ -86,6 +91,7 @@ import { autorun, subscribe } from 'vue-meteor-tracker';
 import { useI18n } from 'vue-i18n';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import PartyActions from '/imports/ui/creature/party/PartyActions.vue';
 import PartyMemberCard from '/imports/ui/creature/party/PartyMemberCard.vue';
 import InitiativeTracker from '/imports/ui/creature/party/InitiativeTracker.vue';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';

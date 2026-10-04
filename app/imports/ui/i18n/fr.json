@@ -182,7 +182,12 @@
     "untitled": "Groupe",
     "memberCount": "{count} personnage | {count} personnages",
     "emptyTitle": "Aucun personnage dans ce dossier",
-    "emptyText": "Glissez des personnages dans ce dossier depuis la page Personnages. Les joueurs peuvent vous partager les leurs depuis leur fiche."
+    "emptyText": "Glissez des personnages dans ce dossier depuis la page Personnages. Les joueurs peuvent vous partager les leurs depuis leur fiche.",
+    "giveExperience": "Donner de l'expérience",
+    "rest": "Repos",
+    "restFor": "Pour le personnage que vous pouvez modifier | Pour les {count} personnages que vous pouvez modifier",
+    "restDone": "{rest} terminé pour {count} personnage | {rest} terminé pour {count} personnages",
+    "restFailed": "{rest} a échoué pour {names}"
   },
   "initiative": {
     "title": "Initiative",
@@ -717,7 +722,14 @@
     "noExperiences": "Aucune expérience",
     "oneMilestoneLevel": "1 niveau de jalon",
     "milestoneLevels": "{count} niveaux de jalon",
-    "amount": "{xp} PX"
+    "amount": "{xp} PX",
+    "members": "Personnages",
+    "cantEdit": "Vous ne pouvez pas modifier ce personnage",
+    "chooseMembers": "Choisissez au moins un personnage",
+    "tooManyMembers": "Jusqu'à {max} personnages à la fois",
+    "share": "Partager les PX entre eux",
+    "each": "{xp} PX chacun",
+    "given": "Expérience donnée à {count} personnage | Expérience donnée à {count} personnages"
   },
   "slots": {
     "slotCount": "{count} emplacements",

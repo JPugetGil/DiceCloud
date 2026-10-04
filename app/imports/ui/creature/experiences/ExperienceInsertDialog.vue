@@ -5,6 +5,31 @@
         {{ $t('xp.addExperience') }}
       </v-toolbar-title>
     </template>
+    <template v-if="members">
+      <v-list-subheader class="ps-0">
+        {{ $t('xp.members') }}
+      </v-list-subheader>
+      <v-checkbox
+        v-for="member in members"
+        :key="member._id"
+        v-model="selectedIds"
+        :value="member._id"
+        :label="member.name"
+        :disabled="!member.editable"
+        :hint="member.editable ? undefined : $t('xp.cantEdit')"
+        :persistent-hint="!member.editable"
+        :hide-details="member.editable"
+        density="compact"
+        :data-id="`xp-member-${member._id}`"
+      />
+      <p
+        v-if="selectionError"
+        class="text-error text-body-medium mt-2 mb-0"
+      >
+        {{ selectionError }}
+      </p>
+      <v-divider class="my-4" />
+    </template>
     <experience-form
       :start-as-milestone="startAsMilestone"
       :model="model"
@@ -13,14 +38,27 @@
       @push="push"
       @pull="pull"
     />
+    <template v-if="members && !isMilestone && selectedIds.length > 1">
+      <v-switch
+        v-model="share"
+        :label="$t('xp.share')"
+        color="primary"
+        hide-details
+        data-id="xp-share"
+      />
+      <p class="text-body-medium text-medium-emphasis mb-0">
+        {{ $t('xp.each', { xp: xpEach }) }}
+      </p>
+    </template>
     <template #actions>
       <div
-
         class="d-flex flex-1-1 justify-end"
       >
         <v-btn
           variant="text"
-          :disabled="!valid"
+          :disabled="!valid || !!selectionError"
+          :loading="saving"
+          data-id="xp-insert"
           @click="insertExperience"
         >
           {{ $t('common.insert') }}
@@ -35,20 +73,51 @@ import { ref, computed, provide, reactive } from 'vue';
 import { get, toPath } from 'lodash';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import ExperienceForm from '/imports/ui/creature/experiences/ExperienceForm.vue';
-import { ExperienceSchema, insertExperience as insertExperienceMethod } from '/imports/api/creature/experience/Experiences';
+import { useI18n } from 'vue-i18n';
+import {
+  ExperienceSchema, insertExperience as insertExperienceMethod, MAX_EXPERIENCE_CREATURES,
+} from '/imports/api/creature/experience/Experiences';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 
 const dialogStackStore = useDialogStackStore();
+const { t } = useI18n();
 
 const props = defineProps({
+  // The characters that get the experience, unless `members` is given
   creatureIds: {
     type: Array,
-    required: true,
+    default: () => [],
+  },
+  // A party's characters to choose from: { _id, name, type, editable }. Those
+  // that can be edited and are player characters start chosen.
+  members: {
+    type: Array,
+    default: undefined,
   },
   startAsMilestone: {
     type: Boolean,
   },
 });
+
+const selectedIds = ref((props.members || [])
+  .filter(member => member.editable && member.type === 'pc')
+  .map(member => member._id));
+const recipientIds = computed(() => props.members ? selectedIds.value : props.creatureIds);
+
+const selectionError = computed(() => {
+  if (!props.members) return undefined;
+  if (!selectedIds.value.length) return t('xp.chooseMembers');
+  if (selectedIds.value.length > MAX_EXPERIENCE_CREATURES) {
+    return t('xp.tooManyMembers', { max: MAX_EXPERIENCE_CREATURES });
+  }
+  return undefined;
+});
+
+// Shares the XP typed among the characters chosen, rounded down, rather than
+// giving it to each
+const share = ref(false);
+const saving = ref(false);
 
 
 // Provide Context
@@ -89,6 +158,14 @@ const errors = computed(() => {
 // Derived rather than set from inside errors(): a computed that writes to a ref
 // runs its side effect on every re-evaluation, including ones Vue discards
 const valid = computed(() => !Object.keys(errors.value).length);
+
+const isMilestone = computed(() => model.value.levels !== undefined);
+
+const xpEach = computed(() => {
+  const xp = Number(model.value.xp) || 0;
+  if (!share.value) return xp;
+  return Math.floor(xp / Math.max(recipientIds.value.length, 1));
+});
 
 // The object that holds the value at `path`, and the value's key in it
 function resolvePath(modelObj, path) {
@@ -141,15 +218,23 @@ function pull({ path, ack }) {
 
 // Methods
 async function insertExperience() {
-  let experience = schema.clean(model.value);
+  const experience = schema.clean(model.value);
+  if (experience.xp && share.value) experience.xp = xpEach.value;
+  saving.value = true;
   try {
-    const id = await insertExperienceMethod.callAsync({
+    const ids = await insertExperienceMethod.callAsync({
       experience,
-      creatureIds: props.creatureIds,
+      creatureIds: recipientIds.value,
     });
-    await dialogStackStore.popDialogStack(id);
+    if (props.members) {
+      snackbar({ text: t('xp.given', { count: ids.length }, ids.length) });
+    }
+    await dialogStackStore.popDialogStack(ids);
   } catch (error) {
     console.error(error);
+    snackbar({ text: error.reason || error.message || String(error) });
+  } finally {
+    saving.value = false;
   }
 }
 </script>

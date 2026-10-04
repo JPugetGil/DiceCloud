@@ -182,7 +182,12 @@
     "untitled": "Party",
     "memberCount": "{count} character | {count} characters",
     "emptyTitle": "No characters in this folder",
-    "emptyText": "Drag characters into this folder on the Characters page. Players can share theirs with you from their sheet."
+    "emptyText": "Drag characters into this folder on the Characters page. Players can share theirs with you from their sheet.",
+    "giveExperience": "Give experience",
+    "rest": "Rest",
+    "restFor": "For the {count} character you can edit | For the {count} characters you can edit",
+    "restDone": "{rest} done for {count} character | {rest} done for {count} characters",
+    "restFailed": "{rest} failed for {names}"
   },
   "initiative": {
     "title": "Initiative",
@@ -717,7 +722,14 @@
     "noExperiences": "No experiences",
     "oneMilestoneLevel": "1 Milestone level",
     "milestoneLevels": "{count} Milestone levels",
-    "amount": "{xp} XP"
+    "amount": "{xp} XP",
+    "members": "Characters",
+    "cantEdit": "You can't edit this character",
+    "chooseMembers": "Choose at least one character",
+    "tooManyMembers": "Up to {max} characters at a time",
+    "share": "Share the XP among them",
+    "each": "{xp} XP each",
+    "given": "Experience given to {count} character | Experience given to {count} characters"
   },
   "slots": {
     "slotCount": "{count} slots",
