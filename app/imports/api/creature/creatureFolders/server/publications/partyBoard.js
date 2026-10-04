@@ -34,6 +34,8 @@ const PROPERTY_FIELDS = {
   level: 1, color: 1, icon: 1, removed: 1, inactive: 1, overridden: 1,
   healthBarColorMid: 1, healthBarColorLow: 1, healthBarNoDamage: 1, healthBarNoHealing: 1,
   hideRemoveButton: 1, decimal: 1, ignoreLowerLimit: 1, ignoreUpperLimit: 1, unit: 1,
+  // Effects' durations, which the initiative tracker counts down
+  duration: 1, durationSpent: 1,
 };
 
 /**

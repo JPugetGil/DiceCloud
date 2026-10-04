@@ -190,6 +190,14 @@ rest. A player who leaves, or whom the game master removes, takes their
 characters out, and the game master can no longer edit them. A new link
 replaces the old one; turning it off keeps the players who joined.
 
+The initiative tracker counts effect durations down: at the start of a
+character's turn, its effects (buffs and conditions) that last some rounds lose
+one, and end when none is left, which the character's log records. A duration
+is read in rounds from the effect ("3", "1 minute", "1 turn"); on the board,
+whoever may edit a character sets one on any of its conditions. Only the
+characters the game master may edit are counted, and the game master can turn
+counting off for the party (Count effect durations).
+
 Library files
 -------------
 

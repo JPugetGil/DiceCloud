@@ -18,6 +18,29 @@ import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 
 const rateLimit = { numRequests: 10, timeInterval: 5000 };
 
+let startCreatureTurn;
+if (Meteor.isServer) {
+  // require(), not import: the server alone counts durations down
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  ({ startCreatureTurn } = require('/imports/api/creature/creatureFolders/server/startCreatureTurn'));
+}
+
+/**
+ * The turn of the entry at `turn` starts: its creature's effects count a
+ * round down, unless the game master turned that off for the party
+ */
+async function startTurn(folder, entries, turn, userId) {
+  if (!Meteor.isServer || folder.trackDurations === false) return;
+  const entry = initiativeOrder(entries)[turn];
+  if (!entry?.creatureId) return;
+  try {
+    await startCreatureTurn(entry.creatureId, userId);
+  } catch (error) {
+    // The turn still moves on
+    console.error(error);
+  }
+}
+
 async function getOwnFolder(folderId, userId) {
   if (!userId) {
     throw new Meteor.Error('initiative.denied', 'You need to be logged in to track initiative');
@@ -81,6 +104,7 @@ export const rollInitiative = new ValidatedMethod({
     await CreatureFolders.updateAsync(folderId, {
       $set: { initiative: { round: 1, turn: 0, entries } },
     });
+    await startTurn(folder, entries, 0, userId);
   },
 });
 
@@ -206,6 +230,25 @@ export const advanceInitiative = new ValidatedMethod({
     await CreatureFolders.updateAsync(folderId, {
       $set: { 'initiative.round': round, 'initiative.turn': turn },
     });
+    // Going back a turn gives no round back
+    if (step === 1) await startTurn(folder, tracker.entries, turn, this.userId);
+  },
+});
+
+/** Turns counting effect durations down on or off, for the party */
+export const setTrackDurations = new ValidatedMethod({
+  name: 'creatureFolders.initiative.setTrackDurations',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    trackDurations: { type: Boolean },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ folderId, trackDurations }) {
+    await getOwnFolder(folderId, this.userId);
+    await CreatureFolders.updateAsync(folderId, trackDurations
+      ? { $unset: { trackDurations: 1 } }
+      : { $set: { trackDurations: false } });
   },
 });
 

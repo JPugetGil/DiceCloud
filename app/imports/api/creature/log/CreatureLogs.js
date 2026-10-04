@@ -112,6 +112,10 @@ function logWebhook({ log, creature }) {
   }
 }
 
+/**
+ * @param {{ log: any, creature?: any, method?: { unblock: () => void } }} args
+ * The method writing it, if any, is unblocked once the log is in
+ */
 export async function insertCreatureLogWork({ log, creature, method }) {
   // Build the new log
   if (typeof log === 'string') {

@@ -175,6 +175,23 @@
       </form>
     </v-card-text>
 
+    <v-card-text
+      v-if="isGm"
+      class="pt-0"
+    >
+      <v-switch
+        :model-value="folder.trackDurations !== false"
+        :label="$t('combat.trackDurations')"
+        :hint="$t('combat.trackDurationsHint')"
+        persistent-hint
+        color="primary"
+        density="compact"
+        :loading="busy === 'track'"
+        data-id="initiative-track-durations"
+        @update:model-value="value => run('track', () => setTrackDurations.callAsync({ folderId: folder._id, trackDurations: !!value }))"
+      />
+    </v-card-text>
+
     <v-card-actions v-if="isGm && order.length">
       <v-spacer />
       <v-btn
@@ -196,7 +213,7 @@ import { autorun } from 'vue-meteor-tracker';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import {
   rollInitiative, addInitiativeEntry, updateInitiativeEntry, removeInitiativeEntry,
-  advanceInitiative, endInitiative,
+  advanceInitiative, endInitiative, setTrackDurations,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';

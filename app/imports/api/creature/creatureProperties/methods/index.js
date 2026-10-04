@@ -12,3 +12,4 @@ import '/imports/api/creature/creatureProperties/methods/selectAmmoItem';
 import '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import '/imports/api/creature/creatureProperties/methods/flipToggle';
+import '/imports/api/creature/creatureProperties/methods/setBuffDuration';

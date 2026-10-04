@@ -53,6 +53,12 @@ let creatureFolderSchema = new SimpleSchema({
     type: Number,
     defaultValue: 0,
   },
+  // Whether the initiative tracker counts down effect durations, at the start
+  // of each creature's turn. On unless the game master turns it off
+  trackDurations: {
+    type: Boolean,
+    optional: true,
+  },
   // The folder's initiative tracker, on its party board. Round 0: no combat
   initiative: {
     type: Object,

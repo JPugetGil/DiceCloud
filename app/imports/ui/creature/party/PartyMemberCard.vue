@@ -87,16 +87,45 @@
         v-if="conditions.length"
         class="d-flex flex-wrap ga-1"
       >
-        <v-chip
+        <v-menu
           v-for="condition in conditions"
           :key="condition._id"
-          size="small"
-          :color="condition.color || undefined"
-          :variant="condition.color ? 'flat' : 'outlined'"
-          prepend-icon="mdi-alert-circle-outline"
+          :disabled="!canEdit"
         >
-          {{ condition.name }}
-        </v-chip>
+          <template #activator="{ props: menuProps }">
+            <v-chip
+              v-bind="menuProps"
+              size="small"
+              :color="condition.color || undefined"
+              :variant="condition.color ? 'flat' : 'outlined'"
+              :prepend-icon="roundsLeft(condition) === undefined ? 'mdi-alert-circle-outline' : 'mdi-timer-sand'"
+              :data-id="`party-condition-${condition._id}`"
+            >
+              {{ condition.name }}
+              <span
+                v-if="roundsLeft(condition) !== undefined"
+                class="ms-1 font-weight-bold"
+                :title="$t('combat.roundsLeft', { count: roundsLeft(condition) }, roundsLeft(condition))"
+              >
+                · {{ roundsLeft(condition) }}
+              </span>
+            </v-chip>
+          </template>
+          <v-list
+            density="compact"
+            :data-id="`party-condition-menu-${condition._id}`"
+          >
+            <v-list-subheader>{{ $t('combat.lasts') }}</v-list-subheader>
+            <v-list-item
+              v-for="option in DURATION_OPTIONS"
+              :key="option.rounds || 'none'"
+              :title="durationTitle(option.rounds)"
+              :active="(roundsLeft(condition) ?? null) === (option.rounds ?? null)"
+              :data-id="`party-condition-duration-${option.rounds || 'none'}`"
+              @click="setDuration(condition, option.rounds)"
+            />
+          </v-list>
+        </v-menu>
       </div>
       <div
         v-else
@@ -115,6 +144,8 @@ import { Meteor } from 'meteor/meteor';
 import { useI18n } from 'vue-i18n';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { buffRoundsLeft } from '/imports/api/creature/creatureFolders/buffDurations';
+import setBuffDuration from '/imports/api/creature/creatureProperties/methods/setBuffDuration';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import HealthBar from '/imports/ui/properties/components/attributes/HealthBar.vue';
 import HealthBarProgress from '/imports/ui/properties/components/attributes/HealthBarProgress.vue';
@@ -186,6 +217,29 @@ const classText = autorun(() => activeProperties({ type: 'class' })
   .join(' / ')).result;
 
 const conditions = autorun(() => activeProperties({ type: 'buff' })).result;
+
+// How long an effect lasts, counted down by the initiative tracker
+const DURATION_OPTIONS = [
+  { rounds: 1 }, { rounds: 2 }, { rounds: 3 }, { rounds: 10 }, { rounds: 100 }, { rounds: undefined },
+];
+const roundsLeft = buff => buffRoundsLeft(buff);
+
+function durationTitle(rounds) {
+  if (!rounds) return t('combat.untilRemoved');
+  if (rounds % 10 === 0) {
+    return t('combat.minutes', { count: rounds / 10, rounds }, rounds / 10);
+  }
+  return t('combat.rounds', { count: rounds }, rounds);
+}
+
+async function setDuration(buff, rounds) {
+  try {
+    await setBuffDuration.callAsync({ _id: buff._id, rounds });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  }
+}
 
 const stats = computed(() => {
   const found = byVariable.value || {};

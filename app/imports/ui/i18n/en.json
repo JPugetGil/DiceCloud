@@ -221,6 +221,15 @@
     "bringCharacters": "Bring them",
     "joined": "Welcome to {name}"
   },
+  "combat": {
+    "trackDurations": "Count effect durations",
+    "trackDurationsHint": "At the start of each character's turn, its effects lose a round, and end once their duration runs out",
+    "roundsLeft": "{count} round left | {count} rounds left",
+    "lasts": "Lasts",
+    "rounds": "{count} round | {count} rounds",
+    "minutes": "{count} minute ({rounds} rounds) | {count} minutes ({rounds} rounds)",
+    "untilRemoved": "Until removed"
+  },
   "initiative": {
     "title": "Initiative",
     "round": "Round {round}",
