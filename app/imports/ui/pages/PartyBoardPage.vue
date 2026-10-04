@@ -17,7 +17,7 @@
           />
         </div>
         <v-empty-state
-          v-else-if="!folder"
+          v-else-if="!folder || !role"
           key="missing"
           icon="mdi-folder-alert-outline"
           :title="$t('party.notFound')"
@@ -41,9 +41,17 @@
               >
                 {{ $t('party.memberCount', { count: creatures.length }, creatures.length) }}
               </v-chip>
+              <v-chip
+                v-if="role === 'member'"
+                size="small"
+                variant="outlined"
+                prepend-icon="mdi-crown-outline"
+              >
+                {{ $t('party.gmChip', { name: gmName }) }}
+              </v-chip>
               <v-spacer />
               <party-actions
-                v-if="creatures.length"
+                v-if="role === 'gm' && creatures.length"
                 :creatures="creatures"
               />
             </div>
@@ -51,7 +59,7 @@
               v-if="!creatures.length"
               icon="mdi-account-group-outline"
               :title="$t('party.emptyTitle')"
-              :text="$t('party.emptyText')"
+              :text="role === 'gm' ? $t('party.emptyText') : $t('party.emptyTextPlayer')"
             />
             <v-row density="compact">
               <v-col
@@ -72,11 +80,18 @@
             cols="12"
             lg="4"
           >
-            <initiative-tracker
-              class="party-board__tracker"
-              :folder="folder"
-              :creatures="creatures"
-            />
+            <div class="party-board__side d-flex flex-column ga-4">
+              <initiative-tracker
+                :folder="folder"
+                :creatures="creatures"
+                :role="role"
+              />
+              <party-players-card
+                :folder="folder"
+                :creatures="creatures"
+                :role="role"
+              />
+            </div>
           </v-col>
         </v-row>
       </v-fade-transition>
@@ -91,7 +106,10 @@ import { autorun, subscribe } from 'vue-meteor-tracker';
 import { useI18n } from 'vue-i18n';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import { Meteor } from 'meteor/meteor';
 import PartyActions from '/imports/ui/creature/party/PartyActions.vue';
+import PartyPlayersCard from '/imports/ui/creature/party/PartyPlayersCard.vue';
+import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import PartyMemberCard from '/imports/ui/creature/party/PartyMemberCard.vue';
 import InitiativeTracker from '/imports/ui/creature/party/InitiativeTracker.vue';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
@@ -99,7 +117,8 @@ import { useAppStore } from '/imports/ui/stores/app';
 
 /**
  * A character folder as a live board for the table: one card per character
- * in it, with what a game master checks at a glance.
+ * in it, with what a game master checks at a glance. Its owner is the game
+ * master; the players who joined it see it too, and the tracker.
  */
 const route = useRoute();
 const { t } = useI18n();
@@ -109,6 +128,12 @@ const folderId = computed(() => route.params.id);
 const { ready } = subscribe(() => ['partyBoard', folderId.value]);
 
 const folder = autorun(() => CreatureFolders.findOne(folderId.value)).result;
+
+// 'gm' or 'member'; undefined while loading, or when the board isn't theirs
+const role = autorun(() => getPartyRole(folder.value, Meteor.userId())).result;
+
+const gmName = autorun(() => folder.value
+  && Meteor.users.findOne(folder.value.owner, { fields: { username: 1 } })?.username).result;
 
 // In the folder's order, those the viewer can see
 const creatures = autorun(() => {
@@ -130,8 +155,8 @@ watch(() => folder.value?.name, name => {
 </script>
 
 <style scoped>
-/* The tracker stays in view while the board scrolls */
-.party-board__tracker {
+/* The tracker and the players stay in view while the board scrolls */
+.party-board__side {
   position: sticky;
   top: calc(var(--v-layout-top) + 16px);
 }

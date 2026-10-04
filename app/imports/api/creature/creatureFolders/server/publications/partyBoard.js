@@ -8,6 +8,7 @@ import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
 import EngineActions from '/imports/api/engine/action/EngineActions';
+import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatureFolders/party';
 
 const schema = new SimpleSchema({
   folderId: { type: String, max: 32 },
@@ -21,6 +22,12 @@ const CREATURE_FIELDS = {
   public: 1, type: 1, settings: 1, computeVersion: 1,
 };
 
+// What players see of the party's characters: no settings, which hold the
+// Discord webhook, nor who else they are shared with
+const MEMBER_CREATURE_FIELDS = {
+  name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, writers: 1, type: 1, computeVersion: 1,
+};
+
 const PROPERTY_FIELDS = {
   root: 1, parentId: 1, left: 1, right: 1, type: 1, name: 1, variableName: 1,
   attributeType: 1, value: 1, total: 1, damage: 1, modifier: 1, passiveBonus: 1,
@@ -30,11 +37,13 @@ const PROPERTY_FIELDS = {
 };
 
 /**
- * A character folder as a party board, for its owner: its characters they
- * can view, with the properties the board shows (health bars, AC, speed,
- * initiative, passive Perception, classes, buffs and conditions), and their
- * variables and actions in progress, which the board's damage and healing
- * actions read.
+ * A character folder as a party board, for its owner (the game master) and
+ * the players who joined it: its characters (see partyCreaturesFilter), with
+ * the properties the board shows (health bars, AC, speed, initiative, passive
+ * Perception, classes, buffs and conditions), and their variables and actions
+ * in progress, which the board's damage and healing actions read. Also the
+ * names of the game master and the players. The invitation link's token is
+ * the game master's alone.
  */
 Meteor.publish('partyBoard', function (folderId) {
   const self = this;
@@ -47,12 +56,12 @@ Meteor.publish('partyBoard', function (folderId) {
   this.autorun(async function (computation) {
     const userId = this.userId;
     if (!userId) return [];
-    const folder = await CreatureFolders.findOneAsync({ _id: folderId, owner: userId });
-    if (!folder) return [];
-    const creatures = await Creatures.find({
-      _id: { $in: folder.creatures || [] },
-      $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
-    }, { fields: { computeVersion: 1 } }).fetchAsync();
+    const folder = await CreatureFolders.findOneAsync(folderId);
+    const role = getPartyRole(folder, userId);
+    if (!folder || !role) return [];
+    const creatures = await Creatures.find(
+      partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1 } },
+    ).fetchAsync();
     const creatureIds = creatures.map(creature => creature._id);
     creatures.forEach(creature => {
       loadCreature(creature._id, self);
@@ -62,8 +71,13 @@ Meteor.publish('partyBoard', function (folderId) {
       }
     });
     return [
-      CreatureFolders.find({ _id: folderId }),
-      Creatures.find({ _id: { $in: creatureIds } }, { fields: CREATURE_FIELDS }),
+      CreatureFolders.find({ _id: folderId }, role === 'gm' ? {} : { fields: { inviteToken: 0 } }),
+      Creatures.find({ _id: { $in: creatureIds } }, {
+        fields: role === 'gm' ? CREATURE_FIELDS : MEMBER_CREATURE_FIELDS,
+      }),
+      Meteor.users.find(
+        { _id: { $in: [folder.owner, ...(folder.members || [])] } }, { fields: { username: 1 } },
+      ),
       CreatureVariables.find({ _creatureId: { $in: creatureIds } }),
       // The actions in progress, which doAction reads back once it inserts one
       EngineActions.find({ creatureId: { $in: creatureIds } }),

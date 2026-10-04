@@ -89,6 +89,28 @@
       />
     </template>
 
+    <template v-if="signedIn && parties.length">
+      <v-divider class="mx-4" />
+      <v-list-subheader class="px-6 pt-2">
+        {{ $t('nav.parties') }}
+      </v-list-subheader>
+      <v-list
+        nav
+        density="compact"
+        color="primary"
+        class="links"
+        data-id="sidebar-parties"
+      >
+        <v-list-item
+          v-for="party in parties"
+          :key="party._id"
+          :to="`/party/${party._id}`"
+          prepend-icon="mdi-account-group-outline"
+          :title="party.name || $t('party.untitled')"
+        />
+      </v-list>
+    </template>
+
     <v-divider class="mx-4" />
     <v-list
       nav
@@ -187,6 +209,11 @@ const folders = autorun(() => {
   folders = folders.filter(folder => !!folder.creatures.length);
   return folders;
 }).result;
+
+// The parties the user plays in; those they run are their own folders, above
+const parties = autorun(() => CreatureFolders.find(
+  { members: Meteor.userId() }, { sort: { name: 1 }, fields: { name: 1 } },
+).fetch()).result;
 
 const CreaturesWithNoParty = autorun(() => {
   var userId = Meteor.userId();

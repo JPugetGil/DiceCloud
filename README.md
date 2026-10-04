@@ -176,6 +176,20 @@ all and by collection, with how full the database server's disk is. The app's
 database user reads these with its `readWrite` role, which includes the
 `dbStats` and `collStats` actions.
 
+Parties
+-------
+
+Any character folder is a party board (the board icon next to the folder): one
+card per character, an initiative tracker, and actions for the whole table
+(experience, short and long rests). Its owner is the game master. They invite
+players with the link of the board's Players card; a player who opens it joins
+with the characters they choose, which the game master may then edit. Everyone
+at the table sees every party character's card and the tracker, live; players
+type their own characters' initiative results and the game master runs the
+rest. A player who leaves, or whom the game master removes, takes their
+characters out, and the game master can no longer edit them. A new link
+replaces the old one; turning it off keeps the players who joined.
+
 Tests
 -----
 

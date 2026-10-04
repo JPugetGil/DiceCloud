@@ -27,6 +27,7 @@
       </v-card-subtitle>
       <template #append>
         <v-btn
+          v-if="canOpenSheet"
           variant="text"
           icon
           size="small"
@@ -140,6 +141,11 @@ const { t } = useI18n();
 const { formatQuantity } = useUnits();
 
 const canEdit = autorun(() => hasEditPermission(props.creature, Meteor.user())).result;
+
+// A player sees the other players' characters on the board, not their sheets
+const userId = autorun(() => Meteor.userId()).result;
+const canOpenSheet = computed(() => canEdit.value || !!props.creature.public
+  || [props.creature.owner, ...(props.creature.readers || [])].includes(userId.value));
 
 // The cards and dialogs inside read the character from the context, as on its sheet
 provide('context', reactive({

@@ -25,7 +25,8 @@
     "administration": "Administration",
     "iconAdmin": "Icons",
     "maintenance": "Maintenance",
-    "partyBoard": "Party board"
+    "partyBoard": "Party board",
+    "partyJoin": "Join a party"
   },
   "nav": {
     "signIn": "Sign in",
@@ -40,7 +41,8 @@
     "about": "About",
     "github": "Github",
     "privacy": "Privacy policy",
-    "terms": "Terms of use"
+    "terms": "Terms of use",
+    "parties": "Parties"
   },
   "roles": {
     "player": "Player",
@@ -178,16 +180,46 @@
     "initiative": "Init.",
     "passivePerception": "Passive Perc.",
     "speed": "Speed",
-    "notFound": "This party board does not exist or is not yours",
+    "notFound": "This party board does not exist, or you are not part of it",
     "untitled": "Party",
     "memberCount": "{count} character | {count} characters",
     "emptyTitle": "No characters in this folder",
-    "emptyText": "Drag characters into this folder on the Characters page. Players can share theirs with you from their sheet.",
+    "emptyText": "Invite players with the link of the Players card, or drag characters into this folder on the Characters page.",
     "giveExperience": "Give experience",
     "rest": "Rest",
     "restFor": "For the {count} character you can edit | For the {count} characters you can edit",
     "restDone": "{rest} done for {count} character | {rest} done for {count} characters",
-    "restFailed": "{rest} failed for {names}"
+    "restFailed": "{rest} failed for {names}",
+    "emptyTextPlayer": "Bring your characters with My characters, in the Players card.",
+    "gmChip": "GM: {name}",
+    "players": "Players",
+    "gameMaster": "Game master",
+    "unknownPlayer": "Unknown player",
+    "noCharacter": "No character",
+    "removePlayer": "Remove {name}",
+    "removePlayerHint": "Their characters leave the party, and you can no longer edit them",
+    "invitation": "Invitation link",
+    "invitationHint": "Anyone with this link can join the party with their characters, which you can then edit. Make a new link to stop the old one from working.",
+    "noInvitation": "Invite players with a link: they join the board with their characters.",
+    "invite": "Invite players",
+    "newInvitation": "New link",
+    "turnOffInvitation": "Turn off",
+    "invitationCopied": "Invitation link copied",
+    "myCharacters": "My characters",
+    "myCharactersHint": "The characters you bring to the party: the game master can edit them, and the whole table sees them on the board.",
+    "noOwnCharacters": "You don't have a character yet: create one on the Characters page.",
+    "leave": "Leave the party",
+    "leaveHint": "Your characters leave it, and the game master can no longer edit them",
+    "left": "You left {name}",
+    "invitationInvalid": "This invitation no longer works",
+    "invitationInvalidText": "The game master turned this link off or replaced it: ask them for the new one.",
+    "joinSubtitle": "A party run by {gm}",
+    "youAreGm": "You are the game master of this party: share this link with your players.",
+    "joinHint": "Choose the characters you bring: the game master can edit them (to give experience, rest, apply damage), and the whole table sees them on the board.",
+    "joinMoreHint": "You are already a player of this party. Choose more characters to bring, or open the board.",
+    "join": "Join the party",
+    "bringCharacters": "Bring them",
+    "joined": "Welcome to {name}"
   },
   "initiative": {
     "title": "Initiative",
@@ -205,7 +237,8 @@
     "name": "Name",
     "bonusLabel": "Bonus",
     "add": "Add",
-    "end": "End combat"
+    "end": "End combat",
+    "emptyPlayer": "No combat for now: the game master rolls initiative. You can then type your own roll for your characters."
   },
   "docs": {
     "notFound": "Documentation not found",

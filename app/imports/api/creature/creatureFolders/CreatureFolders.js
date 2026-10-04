@@ -3,6 +3,9 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 let CreatureFolders = new Mongo.Collection('creatureFolders');
 
+// Players in a party besides its game master
+export const MAX_PARTY_MEMBERS = 16;
+
 let creatureFolderSchema = new SimpleSchema({
   name: {
     type: String,
@@ -26,6 +29,25 @@ let creatureFolderSchema = new SimpleSchema({
   archived: {
     type: Boolean,
     optional: true,
+  },
+  // The players who joined the folder's party board through its invitation.
+  // The owner is the game master
+  members: {
+    type: Array,
+    defaultValue: [],
+    index: 1,
+    maxCount: MAX_PARTY_MEMBERS,
+  },
+  'members.$': {
+    type: String,
+    max: 32,
+  },
+  // The secret of the party's invitation link, unset when there is none
+  inviteToken: {
+    type: String,
+    optional: true,
+    max: 32,
+    index: 1,
   },
   order: {
     type: Number,

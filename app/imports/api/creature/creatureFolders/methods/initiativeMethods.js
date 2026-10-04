@@ -8,10 +8,12 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 
 /*
  * The initiative tracker of a party board, stored on its character folder.
- * Only the folder's owner runs it.
+ * The folder's owner, the game master, runs it; the players of the party only
+ * type their own characters' results.
  */
 
 const rateLimit = { numRequests: 10, timeInterval: 5000 };
@@ -117,7 +119,21 @@ export const updateInitiativeEntry = new ValidatedMethod({
   mixins: [RateLimiterMixin],
   rateLimit,
   async run({ folderId, entryId, initiative, bonus }) {
-    await getOwnFolder(folderId, this.userId);
+    if (!this.userId) {
+      throw new Meteor.Error('initiative.denied', 'You need to be logged in to track initiative');
+    }
+    const folder = await CreatureFolders.findOneAsync(folderId);
+    const role = getPartyRole(folder, this.userId);
+    if (role !== 'gm') {
+      const entry = folder?.initiative?.entries?.find(entry => entry._id === entryId);
+      const ownCharacter = role === 'member' && entry?.creatureId && await Creatures.findOneAsync(
+        { _id: entry.creatureId, owner: this.userId }, { fields: { _id: 1 } },
+      );
+      if (!ownCharacter || bonus !== undefined) {
+        throw new Meteor.Error('initiative.denied',
+          'Players can only type the initiative result of their own characters');
+      }
+    }
     const $set = {};
     if (initiative !== undefined) $set['initiative.entries.$.initiative'] = initiative;
     if (bonus !== undefined) $set['initiative.entries.$.bonus'] = bonus;

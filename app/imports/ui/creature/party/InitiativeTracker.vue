@@ -19,7 +19,10 @@
       </v-card-title>
     </v-card-item>
 
-    <v-card-actions class="flex-wrap ga-2 px-4">
+    <v-card-actions
+      v-if="isGm"
+      class="flex-wrap ga-2 px-4"
+    >
       <v-btn
         variant="tonal"
         color="primary"
@@ -79,6 +82,7 @@
             mdi-play
           </v-icon>
           <v-text-field
+            v-if="canSetResult(entry)"
             :model-value="Number.isFinite(entry.initiative) ? entry.initiative : ''"
             type="number"
             variant="outlined"
@@ -86,8 +90,16 @@
             hide-details
             class="initiative-tracker__value me-3"
             :aria-label="$t('initiative.result', { name: entryName(entry) })"
+            :data-id="`initiative-result-${entry._id}`"
             @change="event => setResult(entry, event.target.value)"
           />
+          <span
+            v-else
+            class="initiative-tracker__value initiative-tracker__value--readonly text-title-medium me-3"
+            :data-id="`initiative-result-${entry._id}`"
+          >
+            {{ Number.isFinite(entry.initiative) ? entry.initiative : '–' }}
+          </span>
         </template>
         <v-list-item-title>{{ entryName(entry) }}</v-list-item-title>
         <v-list-item-subtitle>
@@ -99,7 +111,7 @@
           </template>
         </v-list-item-subtitle>
         <template
-          v-if="!entry.creatureId"
+          v-if="isGm && !entry.creatureId"
           #append
         >
           <v-btn
@@ -118,11 +130,11 @@
       v-else
       class="text-body-medium text-medium-emphasis"
     >
-      {{ $t('initiative.empty') }}
+      {{ isGm ? $t('initiative.empty') : $t('initiative.emptyPlayer') }}
     </v-card-text>
 
-    <v-divider />
-    <v-card-text>
+    <v-divider v-if="isGm" />
+    <v-card-text v-if="isGm">
       <div class="text-label-large mb-2">
         {{ $t('initiative.addTitle') }}
       </div>
@@ -163,7 +175,7 @@
       </form>
     </v-card-text>
 
-    <v-card-actions v-if="order.length">
+    <v-card-actions v-if="isGm && order.length">
       <v-spacer />
       <v-btn
         variant="text"
@@ -179,6 +191,8 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { Meteor } from 'meteor/meteor';
+import { autorun } from 'vue-meteor-tracker';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import {
   rollInitiative, addInitiativeEntry, updateInitiativeEntry, removeInitiativeEntry,
@@ -191,7 +205,8 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
  * A party board's initiative tracker: the folder's characters roll d20 plus
  * their initiative (on the server), creatures are added by hand, results can
  * be typed in (a player's own roll), and the turn moves through the rounds.
- * Stored on the folder, so it follows the board live.
+ * Stored on the folder, so it follows the board live. The game master runs
+ * it; the players follow it and type their own characters' results.
  */
 const props = defineProps({
   folder: {
@@ -202,7 +217,21 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // 'gm' or 'member'
+  role: {
+    type: String,
+    default: 'gm',
+  },
 });
+
+const isGm = computed(() => props.role === 'gm');
+const userId = autorun(() => Meteor.userId()).result;
+
+function canSetResult(entry) {
+  if (isGm.value) return true;
+  if (!entry.creatureId) return false;
+  return props.creatures.find(creature => creature._id === entry.creatureId)?.owner === userId.value;
+}
 
 const order = computed(() => initiativeOrder(props.folder.initiative?.entries || []));
 const round = computed(() => props.folder.initiative?.round || 0);
@@ -257,5 +286,9 @@ async function addEntry() {
 .initiative-tracker__value {
   width: 72px;
   flex: 0 0 auto;
+}
+
+.initiative-tracker__value--readonly {
+  text-align: center;
 }
 </style>

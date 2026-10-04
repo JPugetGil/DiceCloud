@@ -25,7 +25,8 @@
     "administration": "Administration",
     "iconAdmin": "Icônes",
     "maintenance": "Maintenance",
-    "partyBoard": "Tableau du groupe"
+    "partyBoard": "Tableau du groupe",
+    "partyJoin": "Rejoindre un groupe"
   },
   "nav": {
     "signIn": "Se connecter",
@@ -40,7 +41,8 @@
     "about": "À propos",
     "github": "GitHub",
     "privacy": "Règles de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "parties": "Groupes"
   },
   "roles": {
     "player": "Joueur",
@@ -178,16 +180,46 @@
     "initiative": "Init.",
     "passivePerception": "Perc. passive",
     "speed": "Vitesse",
-    "notFound": "Ce tableau de groupe n'existe pas ou ne vous appartient pas",
+    "notFound": "Ce tableau de groupe n'existe pas, ou vous n'en faites pas partie",
     "untitled": "Groupe",
     "memberCount": "{count} personnage | {count} personnages",
     "emptyTitle": "Aucun personnage dans ce dossier",
-    "emptyText": "Glissez des personnages dans ce dossier depuis la page Personnages. Les joueurs peuvent vous partager les leurs depuis leur fiche.",
+    "emptyText": "Invitez des joueurs avec le lien de la carte Joueurs, ou glissez des personnages dans ce dossier depuis la page Personnages.",
     "giveExperience": "Donner de l'expérience",
     "rest": "Repos",
     "restFor": "Pour le personnage que vous pouvez modifier | Pour les {count} personnages que vous pouvez modifier",
     "restDone": "{rest} terminé pour {count} personnage | {rest} terminé pour {count} personnages",
-    "restFailed": "{rest} a échoué pour {names}"
+    "restFailed": "{rest} a échoué pour {names}",
+    "emptyTextPlayer": "Amenez vos personnages avec Mes personnages, dans la carte Joueurs.",
+    "gmChip": "MJ : {name}",
+    "players": "Joueurs",
+    "gameMaster": "Maître du jeu",
+    "unknownPlayer": "Joueur inconnu",
+    "noCharacter": "Aucun personnage",
+    "removePlayer": "Retirer {name}",
+    "removePlayerHint": "Ses personnages quittent le groupe, et vous ne pouvez plus les modifier",
+    "invitation": "Lien d'invitation",
+    "invitationHint": "Toute personne qui a ce lien peut rejoindre le groupe avec ses personnages, que vous pourrez alors modifier. Créez un nouveau lien pour que l'ancien ne fonctionne plus.",
+    "noInvitation": "Invitez des joueurs avec un lien : ils rejoignent le tableau avec leurs personnages.",
+    "invite": "Inviter des joueurs",
+    "newInvitation": "Nouveau lien",
+    "turnOffInvitation": "Désactiver",
+    "invitationCopied": "Lien d'invitation copié",
+    "myCharacters": "Mes personnages",
+    "myCharactersHint": "Les personnages que vous amenez dans le groupe : le maître du jeu peut les modifier, et toute la table les voit sur le tableau.",
+    "noOwnCharacters": "Vous n'avez pas encore de personnage : créez-en un depuis la page Personnages.",
+    "leave": "Quitter le groupe",
+    "leaveHint": "Vos personnages le quittent, et le maître du jeu ne peut plus les modifier",
+    "left": "Vous avez quitté {name}",
+    "invitationInvalid": "Cette invitation ne fonctionne plus",
+    "invitationInvalidText": "Le maître du jeu a désactivé ou remplacé ce lien : demandez-lui le nouveau.",
+    "joinSubtitle": "Un groupe mené par {gm}",
+    "youAreGm": "Vous êtes le maître du jeu de ce groupe : partagez ce lien avec vos joueurs.",
+    "joinHint": "Choisissez les personnages que vous amenez : le maître du jeu peut les modifier (pour donner de l'expérience, faire un repos, infliger des dégâts), et toute la table les voit sur le tableau.",
+    "joinMoreHint": "Vous êtes déjà joueur de ce groupe. Choisissez d'autres personnages à amener, ou ouvrez le tableau.",
+    "join": "Rejoindre le groupe",
+    "bringCharacters": "Les amener",
+    "joined": "Bienvenue dans {name}"
   },
   "initiative": {
     "title": "Initiative",
@@ -205,7 +237,8 @@
     "name": "Nom",
     "bonusLabel": "Bonus",
     "add": "Ajouter",
-    "end": "Terminer le combat"
+    "end": "Terminer le combat",
+    "emptyPlayer": "Pas de combat pour l'instant : le maître du jeu lance l'initiative. Vous pourrez ensuite saisir votre propre jet pour vos personnages."
   },
   "docs": {
     "notFound": "Documentation introuvable",

@@ -39,7 +39,11 @@ Meteor.publish('characterList', function () {
         }
       }
       ),
-      CreatureFolders.find({ owner: userId }),
+      // The user's folders, and the parties they play in for the sidebar. The
+      // invitation link's token is the party board's to publish, to its owner
+      CreatureFolders.find(
+        { $or: [{ owner: userId }, { members: userId }] }, { fields: { inviteToken: 0 } },
+      ),
     ];
   });
 });

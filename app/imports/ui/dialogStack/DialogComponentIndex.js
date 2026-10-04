@@ -42,6 +42,7 @@ const LibraryCreationDialog = defineAsyncComponent(() => import('/imports/ui/lib
 const LibraryEditDialog = defineAsyncComponent(() => import('/imports/ui/library/LibraryEditDialog.vue'));
 const LibraryNodeDialog = defineAsyncComponent(() => import('/imports/ui/library/LibraryNodeDialog.vue'));
 const MoveLibraryNodeDialog = defineAsyncComponent(() => import('/imports/ui/library/MoveLibraryNodeDialog.vue'));
+const PartyCharactersDialog = defineAsyncComponent(() => import('/imports/ui/creature/party/PartyCharactersDialog.vue'));
 const ShareDialog = defineAsyncComponent(() => import('/imports/ui/sharing/ShareDialog.vue'));
 const UsernameDialog = defineAsyncComponent(() => import('/imports/ui/user/UsernameDialog.vue'));
 
@@ -73,6 +74,7 @@ export default {
   LibraryEditDialog,
   LibraryNodeDialog,
   MoveLibraryNodeDialog,
+  PartyCharactersDialog,
   SelectLibraryNodeDialog,
   ShareDialog,
   SlotFillDialog,
