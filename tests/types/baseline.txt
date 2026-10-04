@@ -442,19 +442,6 @@ imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does 
 imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does not exist on type 'typeof Meteor'. Did you mean 'isServer'?
 imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does not exist on type 'typeof Meteor'. Did you mean 'isServer'?
 imports/startup/server/throwUnresolvedPromises.test.ts: TS18046: 'error' is of type 'unknown'.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/DatePicker.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/DragHandle.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/IconPicker.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartBtn.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartCheckbox.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartCombobox.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartSelect.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartSlider.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartSwitch.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SmartToggle.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/SvgIcon.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/TextArea.vue' or its corresponding type declarations.
-imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/TextField.vue' or its corresponding type declarations.
 imports/ui/components/snackbars/SnackbarQueue.js: TS2345: Argument of type '{ data: any; id: number; enqueuedAt: Date; shown: boolean; }' is not assignable to parameter of type 'never'.
 imports/ui/composables/useSmartInput.js: TS18047: 'rulesErrors.value' is possibly 'null'.
 imports/ui/composables/useSmartInput.js: TS2322: Type 'never[]' is not assignable to type 'null'.
@@ -469,38 +456,6 @@ imports/ui/composables/useSmartInput.js: TS2488: Type 'never' must have a '[Symb
 imports/ui/composables/useUnits.js: TS2339: Property 'preferences' does not exist on type 'User'.
 imports/ui/creature/actions/doAction.ts: TS2769: No overload matches this call.
 imports/ui/creature/slots/slotFillerConditions.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/creature/archive/ArchiveDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/creature/character/CharacterImportDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/creature/character/CharacterSearchDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/creature/dependencyGraph/DependencyGraphDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/files/userImages/ImageInputDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/LibraryCollectionCreationDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/LibraryCollectionEditDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/LibraryCreationDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/LibraryEditDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/LibraryNodeDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/library/MoveLibraryNodeDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/spells/CastSpellWithSlotDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/sharing/ShareDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/user/DeleteUserAccountDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/DialogComponentIndex.js: TS2307: Cannot find module '/imports/ui/user/UsernameDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/CreatureFormDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/actions/ActionDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/character/CharacterCreationDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/character/CreatureRootDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/creatureProperties/CreaturePropertyDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/creatureProperties/CreaturePropertyFromLibraryDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/experiences/ExperienceInsertDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/experiences/ExperienceListDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/slots/LevelUpDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/creature/slots/SlotFillDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/dialogStack/DeleteConfirmationDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/dialogStack/HelpDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/files/userImages/ImagePreviewDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/library/LibraryBrowserDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/library/SelectLibraryNodeDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/properties/InsertPropertyDialog.vue' or its corresponding type declarations.
-imports/ui/dialogStack/commonDialogs.js: TS2307: Cannot find module '/imports/ui/sharing/TransferOwnershipDialog.vue' or its corresponding type declarations.
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
@@ -508,21 +463,7 @@ imports/ui/i18n/index.js: TS2556: A spread argument must either have a tuple typ
 imports/ui/i18n/index.js: TS2769: No overload matches this call.
 imports/ui/icons/importIcons.js: TS2345: Argument of type 'string | ArrayBuffer | null' is not assignable to parameter of type 'string'.
 imports/ui/icons/importIcons.js: TS2345: Argument of type 'string | ArrayBuffer | null' is not assignable to parameter of type 'string'.
-imports/ui/main.js: TS2307: Cannot find module '/imports/ui/App.vue' or its corresponding type declarations.
-imports/ui/plugins/vuetify.js: TS2307: Cannot find module '/imports/ui/icons/SvgIconByName.vue' or its corresponding type declarations.
 imports/ui/plugins/vuetify.js: TS2322: Type 'I18n<{}, {}, {}, string, true>' is not assignable to type 'I18n<any, {}, {}, string, false>'.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module './folderGroupComponents/AttributeGroupComponent.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/buffs/BuffListItem.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/features/FeatureCard.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/folders/folderGroupComponents/ActionGroupComponent.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/folders/folderGroupComponents/SlotBuildTree.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/inventory/ContainerCard.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/inventory/ItemListTile.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/persona/NoteCard.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/skills/SkillListTile.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/spells/SpellListCard.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/spells/SpellListTile.vue' or its corresponding type declarations.
-imports/ui/properties/components/folders/propertyComponentIndex.js: TS2307: Cannot find module '/imports/ui/properties/components/toggles/ToggleCard.vue' or its corresponding type declarations.
 imports/ui/properties/components/folders/useTabFolders.js: TS18046: 'error' is of type 'unknown'.
 imports/ui/properties/components/folders/useTabFolders.js: TS18046: 'error' is of type 'unknown'.
 imports/ui/properties/components/folders/useTabFolders.js: TS18046: 'error' is of type 'unknown'.
@@ -530,107 +471,6 @@ imports/ui/properties/components/folders/useTabFolders.js: TS2345: Argument of t
 imports/ui/properties/components/folders/useTabFolders.js: TS2345: Argument of type '{ component: string; elementId: string; data: { _id: any; }; }' is not assignable to parameter of type '{ component: any; data: any; elementId: any; callback: any; }'.
 imports/ui/properties/forms/shared/lists/createListOfProperties.js: TS2769: No overload matches this call.
 imports/ui/properties/forms/shared/lists/createListOfProperties.js: TS2769: No overload matches this call.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ActionForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/AdjustmentForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/AttributeForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/BranchForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/BuffForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/BuffRemoverForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ClassForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ClassLevelForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ConstantForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ContainerForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/CreatureTemplateForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/DamageForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/DamageMultiplierForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/EffectForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/FeatureForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/FolderForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ItemForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/NoteForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/PointBuyForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ProficiencyForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ReferenceForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/RollForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/SavingThrowForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/SkillForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/SlotForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/SpellForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/SpellListForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/ToggleForm.vue' or its corresponding type declarations.
-imports/ui/properties/forms/shared/propertyFormIndex.js: TS2307: Cannot find module '/imports/ui/properties/forms/TriggerForm.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/AdjustmentTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/BranchTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/ClassLevelTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/DamageTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/DefaultTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/EffectTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/ItemTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/ProficiencyTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/ReferenceTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/treeNodeViews/treeNodeViewIndex.js: TS2307: Cannot find module '/imports/ui/properties/treeNodeViews/SavingThrowTreeNode.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ActionViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/AdjustmentViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/AttributeViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/BranchViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/BuffRemoverViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/BuffViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ClassLevelViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ClassViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ConstantViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ContainerViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/CreatureTemplateViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/DamageMultiplierViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/DamageViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/EffectViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/FeatureViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/FolderViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ItemViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/NoteViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/PointBuyViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ProficiencyViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ReferenceViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/RollViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/SavingThrowViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/SkillViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/SlotViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/SpellListViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/SpellViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/ToggleViewer.vue' or its corresponding type declarations.
-imports/ui/properties/viewers/shared/propertyViewerIndex.js: TS2307: Cannot find module '/imports/ui/properties/viewers/TriggerViewer.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/creature/character/CharacterSheetRightDrawer.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/creature/character/CharacterSheetToolbar.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/creature/character/printedCharacterSheet/CharacterSheetPrinted.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/creature/character/printedCharacterSheet/CharacterSheetPrintedToolbar.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/creature/creatureList/CharacterListToolbarItems.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/docs/DocToolbar.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/docs/DocsRightDrawer.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/icons/IconAdmin.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/library/LibraryCollectionToolbar.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/library/SingleLibraryToolbar.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/AboutPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/AccountPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/AdminPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/CharacterListPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/CharacterSheetPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/DiscordPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/DocsPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/EmailVerificationErrorPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/EmailVerificationSuccessPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/FilesPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/FunctionReferencePage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/HomePage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/LegalPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/LibraryBrowserPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/LibraryCollectionPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/LibraryPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/MaintenancePage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/NotFoundPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/PartyBoardPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/RegisterPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/ResetPasswordPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/SignInPage.vue' or its corresponding type declarations.
-imports/ui/router.js: TS2307: Cannot find module '/imports/ui/pages/SingleLibraryPage.vue' or its corresponding type declarations.
 imports/ui/router.js: TS2322: Type '{ path: string; beforeEnter: (to: any) => Promise<any>; }' is not assignable to type 'RouteRecordRaw'.
 imports/ui/router.js: TS2339: Property 'offsetHeight' does not exist on type 'Element'.
 imports/ui/router.js: TS2339: Property 'reason' does not exist on type 'Error | Meteor.Error | TypedError'.
