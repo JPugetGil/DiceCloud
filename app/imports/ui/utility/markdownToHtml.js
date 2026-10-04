@@ -1,6 +1,7 @@
 import { Marked, Renderer } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { t } from '/imports/ui/i18n';
+import { DICE_ROLL_AT_START, parseDice } from '/imports/ui/dice/logDice';
 
 /*
  * Rendered markdown takes Vuetify's own styles: the Material type scale for
@@ -39,21 +40,6 @@ const typography = {
   },
 };
 
-// A die's value as the parser writes it (rollArray.ts): `~~dropped~~`, inside
-// `*added by an explosion*`, inside `**exploded**`, inside `__underlined__`
-function parseDie(text) {
-  const die = {};
-  for (const [flag, marker] of [['underline', '__'], ['bold', '**'], ['italics', '*'], ['dropped', '~~']]) {
-    if (text.length > 2 * marker.length && text.startsWith(marker) && text.endsWith(marker)) {
-      die[flag] = true;
-      text = text.slice(marker.length, -marker.length);
-    }
-  }
-  if (!/^\d+$/.test(text)) return;
-  die.value = +text;
-  return die;
-}
-
 // The dice of a roll in the log, `1d20 [ 15, ~~8~~ ]`, drawn one by one;
 // stylesheets/logRolls.css draws them and rolls them in
 const diceRolls = {
@@ -65,10 +51,10 @@ const diceRolls = {
       return index === -1 ? undefined : index;
     },
     tokenizer(src) {
-      const match = /^(\d*)d(\d+) ?\[ ?([^\]\n]+?) ?\]/.exec(src);
+      const match = DICE_ROLL_AT_START.exec(src);
       if (!match) return;
-      const dice = match[3].split(',').map(text => parseDie(text.trim()));
-      if (dice.some(die => !die)) return;
+      const dice = parseDice(match[3]);
+      if (!dice) return;
       return { type: 'diceRoll', raw: match[0], notation: `${match[1]}d${match[2]}`, diceSize: +match[2], dice };
     },
     renderer({ notation, diceSize, dice }) {

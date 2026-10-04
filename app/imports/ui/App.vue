@@ -41,12 +41,17 @@
     <router-view name="rightDrawer" />
     <dialog-stack />
     <snackbar-queue />
+    <dice-tray
+      v-if="appStore.loadedCharacterId"
+      :key="appStore.loadedCharacterId"
+      :creature-id="appStore.loadedCharacterId"
+    />
   </v-app>
 </template>
 
 <script setup>
 import '/imports/api/users/Users';
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTheme } from 'vuetify';
 import { Meteor } from 'meteor/meteor';
@@ -55,6 +60,9 @@ import AppSidebar from '/imports/ui/layouts/AppSidebar.vue';
 import DialogStack from '/imports/ui/dialogStack/DialogStack.vue';
 import SnackbarQueue from '/imports/ui/components/snackbars/SnackbarQueue.vue';
 import ConnectionBanner from '/imports/ui/layouts/ConnectionBanner.vue';
+
+// Thrown on a character's sheet, once its log is loaded: loaded with the first
+const DiceTray = defineAsyncComponent(() => import('/imports/ui/dice/DiceTray.vue'));
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
 import { setLocale } from '/imports/ui/i18n';

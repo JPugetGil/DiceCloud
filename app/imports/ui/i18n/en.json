@@ -57,6 +57,8 @@
     "themeLight": "Light",
     "language": "Language",
     "swapAbilityScores": "Swap ability scores and modifiers",
+    "animateDice": "Animate dice rolls",
+    "animateDiceHint": "Dice are thrown across the sheet when a roll is made. The log keeps every roll either way.",
     "username": "Username",
     "changeUsername": "Change Username",
     "email": "Email",

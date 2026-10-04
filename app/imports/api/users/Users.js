@@ -125,6 +125,11 @@ const userSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // No dice thrown across the sheet: the rolls stay in the log
+  'preferences.disableDiceAnimation': {
+    type: Boolean,
+    optional: true,
+  },
   // Interface language, see imports/ui/i18n
   'preferences.language': {
     type: String,

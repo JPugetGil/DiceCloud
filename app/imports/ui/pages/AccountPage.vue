@@ -67,6 +67,16 @@
             @change="swapAbilityScoresAndModifiers"
           />
         </v-list-item>
+        <v-list-item>
+          <smart-switch
+            :label="$t('account.animateDice')"
+            :hint="$t('account.animateDiceHint')"
+            persistent-hint
+            :model-value="!user?.preferences?.disableDiceAnimation"
+            data-id="animate-dice"
+            @change="animateDice"
+          />
+        </v-list-item>
 
         <v-list-subheader>
           {{ $t('account.role') }}
@@ -380,6 +390,18 @@ async function setUnit(quantity, unit, ack) {
     ack();
   } catch (error) {
     ack(error);
+  }
+}
+
+async function animateDice(value, ack) {
+  try {
+    await Meteor.users.setPreference.callAsync({
+      preference: 'disableDiceAnimation',
+      value: !value,
+    });
+    ack();
+  } catch (error) {
+    ack(error.reason || error.message);
   }
 }
 

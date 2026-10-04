@@ -57,6 +57,8 @@
     "themeLight": "Clair",
     "language": "Langue",
     "swapAbilityScores": "Inverser valeurs de caractéristique et modificateurs",
+    "animateDice": "Animer les jets de dés",
+    "animateDiceHint": "Des dés sont lancés sur la fiche à chaque jet. Le journal garde tous les jets dans tous les cas.",
     "username": "Nom d'utilisateur",
     "changeUsername": "Changer de nom d'utilisateur",
     "email": "E-mail",
