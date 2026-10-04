@@ -59,10 +59,15 @@ if (result.status !== 0 && !errors.length) {
 }
 
 const isAppFile = file => !/^(node_modules|\.meteor|\.\.)[\\/]/.test(file) && !path.isAbsolute(file);
+// A Meteor package without type declarations, such as aldeed:simple-schema,
+// resolves to the generated packages.d.ts, which is not a module: every file
+// importing it gets this error, whatever its code
+const isUntypedMeteorPackage = ({ code, message }) =>
+  code === 'TS2306' && message.includes('.meteor/local/types/packages.d.ts');
 const keyOf = ({ file, code, message }) =>
   `${file.replaceAll('\\', '/')}: ${code}: ${message.replaceAll(appDir, '<app>')}`;
 
-const appErrors = errors.filter(error => isAppFile(error.file));
+const appErrors = errors.filter(error => isAppFile(error.file) && !isUntypedMeteorPackage(error));
 const keys = appErrors.map(keyOf).sort();
 
 if (update) {

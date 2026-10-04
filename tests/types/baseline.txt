@@ -8,25 +8,14 @@ imports/@types/meteor-ostrio-files.d.ts: TS2428: All declarations of 'FileObj' m
 imports/@types/meteor-ostrio-files.d.ts: TS2428: All declarations of 'FilesCollectionConfig' must have identical type parameters.
 imports/@types/meteor-ostrio-files.d.ts: TS2428: All declarations of 'InsertOptions' must have identical type parameters.
 imports/@types/meteor-ostrio-files.d.ts: TS2428: All declarations of 'Version' must have identical type parameters.
-imports/api/creature/archive/ArchiveCreatureFiles.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/archive/methods/archiveCreatureToFile.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/archive/methods/removeArchiveCreature.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/archive/methods/restoreCreatureFromFile.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatureFolders/CreatureFolders.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatureFolders/methods/initiativeMethods.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2322: Type 'string' is not assignable to type 'ObjectId'.
 imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2339: Property 'error' does not exist on type '{}'.
 imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2532: Object is possibly 'undefined'.
-imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
 imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2769: No overload matches this call.
-imports/api/creature/creatureProperties/CreatureProperties.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/CreatureProperties.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; optional: true; max: 10000; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/creature/creatureProperties/methods/adjustQuantity.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/methods/adjustQuantity.js: TS2339: Property 'allowsKey' does not exist on type 'TypedSimpleSchema<any>'.
-imports/api/creature/creatureProperties/methods/copyPropertyToLibrary.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatureProperties/methods/duplicateProperty.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/methods/equipItem.test.js: TS2554: Expected 1 arguments, but got 2.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2345: Argument of type '{ $or: ({ type: any; } | { slotFillerType: any; })[]; }' is not assignable to parameter of type 'never'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2345: Argument of type '{ $or: ({ type: string; } | { slotFillerType: string; })[]; }' is not assignable to parameter of type 'never'.
@@ -37,73 +26,54 @@ imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS234
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ $or: { libraryTags: { $all: string[]; }; }[]; 'root.id': { $in: string[]; }; removed: { $ne: true; }; fillSlots: true; }' is not assignable to parameter of type '{ fillSlots: boolean; removed: { $ne: boolean; }; $and: never[]; }'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ libraryIds: string[]; }' is not assignable to parameter of type '{ slot: any; libraryIds: any; }'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ slot: { slotTags: string[]; }; }' is not assignable to parameter of type '{ slot: any; libraryIds: any; }'.
-imports/api/creature/creatureProperties/methods/insertProperty.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js: TS18046: 'e' is of type 'unknown'.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js: TS18046: 'e' is of type 'unknown'.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js: TS18046: 'e' is of type 'unknown'.
-imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.test.js: TS2322: Type 'string' is not assignable to type 'ObjectId'.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.test.js: TS2322: Type 'string' is not assignable to type 'ObjectId'.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.test.js: TS2554: Expected 1 arguments, but got 2.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.test.js: TS2769: No overload matches this call.
-imports/api/creature/creatureProperties/methods/listConditions.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatureProperties/methods/listConditions.test.js: TS2322: Type 'string' is not assignable to type 'ObjectId'.
 imports/api/creature/creatureProperties/methods/listConditions.test.js: TS2339: Property 'error' does not exist on type '{}'.
 imports/api/creature/creatureProperties/methods/listConditions.test.js: TS2554: Expected 1 arguments, but got 2.
 imports/api/creature/creatureProperties/methods/listConditions.test.js: TS2769: No overload matches this call.
 imports/api/creature/creatureProperties/methods/pullFromProperty.js: TS2769: No overload matches this call.
 imports/api/creature/creatureProperties/methods/pushToProperty.js: TS2339: Property 'get' does not exist on type 'TypedSimpleSchema<any>'.
-imports/api/creature/creatureProperties/methods/restoreProperty.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatureProperties/methods/selectAmmoItem.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatureProperties/methods/softRemoveProperty.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/creatures/Creatures.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatures/Creatures.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; defaultValue: {}; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2339: Property 'allowedLibraryCollections' does not exist on type '{ allowedLibraries: any; } | {}'.
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
-imports/api/creature/creatures/methods/insertCreature.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatures/methods/insertCreature.js: TS2339: Property 'pick' does not exist on type 'TypedSimpleSchema<any>'.
-imports/api/creature/creatures/methods/removeCreature.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatures/server/publications/characterList.js: TS2339: Property 'subscribedCharacters' does not exist on type 'User'.
 imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/creature/creatures/server/publications/singleCharacter.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2769: No overload matches this call.
-imports/api/creature/experience/Experiences.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/creature/experience/server/publications.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/creature/log/CreatureLogs.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/creature/log/CreatureLogs.test.js: TS18048: 'oldest' is possibly 'undefined'.
 imports/api/creature/log/CreatureLogs.test.js: TS2345: Argument of type '{ _id: string; creatureId: any; date: Date; content: { value: string; }[]; }[]' is not assignable to parameter of type 'OptionalId<Document>[]'.
-imports/api/creature/log/LogContentSchema.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'avatarURL' does not exist on type '{}'.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'avatarURL' does not exist on type '{}'.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'content' does not exist on type '{}'.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'embeds' does not exist on type '{}'.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'username' does not exist on type '{}'.
 imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'username' does not exist on type '{}'.
-imports/api/creature/mixins/simpleSchemaMixin.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/docs/Docs.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/docs/Docs.ts: TS2339: Property 'getTextAsync' does not exist on type 'typeof Assets'.
 imports/api/docs/Docs.ts: TS2339: Property 'getTextAsync' does not exist on type 'typeof Assets'.
 imports/api/docs/Docs.ts: TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 imports/api/docs/Docs.ts: TS2578: Unused '@ts-expect-error' directive.
 imports/api/docs/server/publications.js: TS2790: The operand of a 'delete' operator must be optional.
 imports/api/docs/server/publications.js: TS2790: The operand of a 'delete' operator must be optional.
-imports/api/engine/action/EngineActions.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/engine/action/EngineActions.ts: TS2578: Unused '@ts-expect-error' directive.
 imports/api/engine/action/functions/recalculateInlineCalculations.ts: TS2305: Module '"/imports/api/properties/subSchemas/inlineCalculationField"' has no exported member 'InlineCalculation'.
 imports/api/engine/action/functions/spendResources.ts: TS2769: No overload matches this call.
 imports/api/engine/action/functions/userInput/saveInputChoices.ts: TS2322: Type '(...args: any[]) => Promise<void | string[] | number[][] | Advantage | CheckParams>' is not assignable to type '((suggestedParams: CheckParams) => Promise<CheckParams>) & ((dice: { number: number; diceSize: number; }[]) => Promise<number[][]>) & ((choices: ({ _id: string; } & Record<string, any>)[], quantity?: [min: number, max: number] | undefined) => Promise<string[]>) & ((suggestedAdvantage: Advantage) => Promise<Advantage>) & ((task: Task) => Promise<void>)'.
 imports/api/engine/action/functions/userInput/saveInputChoices.ts: TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
-imports/api/engine/action/methods/insertAction.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/engine/computation/buildComputation/parseCalculationFields.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/engine/computation/buildComputation/tests/computeInactiveStatus.testFn.js: TS2554: Expected 3 arguments, but got 1.
 imports/api/engine/computation/buildComputation/tests/computeSlotQuantityFilled.testFn.js: TS2554: Expected 3 arguments, but got 1.
@@ -135,24 +105,16 @@ imports/api/files/server/s3FileStorage.ts: TS2339: Property 'findOneAsync' does 
 imports/api/files/server/s3FileStorage.ts: TS2339: Property 'removeAsync' does not exist on type 'S3FilesCollection'.
 imports/api/files/server/s3FileStorage.ts: TS2339: Property 'removeAsync' does not exist on type 'S3FilesCollection'.
 imports/api/files/server/s3FileStorage.ts: TS2339: Property 'serve' does not exist on type 'FilesCollectionConfig<S3Metadata>'.
-imports/api/files/userImages/methods/removeUserImage.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/files/userImages/methods/renameUserImage.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/icons/Icons.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/icons/Icons.ts: TS2578: Unused '@ts-expect-error' directive.
-imports/api/library/Libraries.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/Libraries.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/library/Libraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
-imports/api/library/LibraryCollections.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/LibraryCollections.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/library/LibraryCollections.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/library/LibraryCollections.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
-imports/api/library/LibraryNodes.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/LibraryNodes.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; optional: true; max: 10000; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/library/LibraryNodes.ts: TS2769: No overload matches this call.
 imports/api/library/getUserLibraryIds.js: TS2339: Property 'subscribedLibraries' does not exist on type 'User'.
 imports/api/library/getUserLibraryIds.js: TS2339: Property 'subscribedLibraryCollections' does not exist on type 'User'.
-imports/api/library/methods/copyLibraryNodeTo.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/library/methods/duplicateLibraryNode.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/methods/moveAndCopyLibraryNodes.test.js: TS2322: Type 'string' is not assignable to type 'ObjectId'.
 imports/api/library/methods/moveAndCopyLibraryNodes.test.js: TS2554: Expected 1 arguments, but got 2.
 imports/api/library/methods/moveAndCopyLibraryNodes.test.js: TS2554: Expected 1 arguments, but got 2.
@@ -162,11 +124,9 @@ imports/api/library/methods/moveAndCopyLibraryNodes.test.js: TS2769: No overload
 imports/api/library/methods/updateReferenceNode.js: TS18046: 'e' is of type 'unknown'.
 imports/api/library/methods/updateReferenceNode.js: TS18046: 'e' is of type 'unknown'.
 imports/api/library/methods/updateReferenceNode.js: TS18046: 'e' is of type 'unknown'.
-imports/api/library/methods/updateReferenceNode.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/methods/updateReferenceNode.js: TS2741: Property 'library' is missing in type '{ error: any; }' but required in type '{ library: { id: any; name: any; }; }'.
 imports/api/library/methods/updateReferenceNode.js: TS2741: Property 'library' is missing in type '{ node: any; }' but required in type '{ library: { id: any; name: any; }; }'.
 imports/api/library/server/publications/library.js: TS18048: 'library' is possibly 'undefined'.
-imports/api/library/server/publications/library.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/library/server/publications/library.js: TS2339: Property 'subscribedLibraries' does not exist on type 'User'.
 imports/api/library/server/publications/library.js: TS2339: Property 'subscribedLibraryCollections' does not exist on type 'User'.
 imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
@@ -197,12 +157,9 @@ imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitl
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
-imports/api/parenting/organizeMethods.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/parenting/parentingFunctions.ts: TS2344: Type 'T' does not satisfy the constraint 'Document'.
 imports/api/parenting/parentingFunctions.ts: TS2344: Type 'T' does not satisfy the constraint 'Document'.
 imports/api/parenting/parentingFunctions.ts: TS2698: Spread types may only be created from object types.
-imports/api/parenting/server/deleteSoftRemovedDocuments.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/properties/Actions.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Actions.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Actions.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Actions.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -227,7 +184,6 @@ imports/api/properties/Actions.ts: TS2353: Object literal may only specify known
 imports/api/properties/Actions.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
 imports/api/properties/Adjustments.ts: TS2322: Type '{ type: "computedOnlyField"; parseLevel: string; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Adjustments.ts: TS2322: Type '{ type: "fieldToCompute"; parseLevel: string; optional: true; defaultValue: number; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/Attributes.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Attributes.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Attributes.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Attributes.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -255,10 +211,8 @@ imports/api/properties/Buffs.ts: TS2322: Type '{ type: "computedOnlyField"; opti
 imports/api/properties/Buffs.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; max: 49473; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Buffs.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Buffs.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/ClassLevels.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/ClassLevels.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/ClassLevels.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/Classes.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Classes.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Classes.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Classes.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -288,7 +242,6 @@ imports/api/properties/Features.ts: TS2322: Type '{ type: "inlineCalculationFiel
 imports/api/properties/Features.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Folders.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Folders.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/Items.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Items.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Items.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Items.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
@@ -315,7 +268,6 @@ imports/api/properties/Rolls.ts: TS2322: Type '{ type: "computedOnlyField"; pars
 imports/api/properties/Rolls.ts: TS2322: Type '{ type: "fieldToCompute"; parseLevel: string; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SavingThrows.ts: TS2322: Type '{ type: "computedOnlyField"; parseLevel: string; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SavingThrows.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/Skills.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Skills.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Skills.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Skills.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -333,7 +285,6 @@ imports/api/properties/Skills.ts: TS2353: Object literal may only specify known 
 imports/api/properties/Skills.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
 imports/api/properties/Skills.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
 imports/api/properties/Skills.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
-imports/api/properties/Slots.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Slots.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Slots.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Slots.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -342,7 +293,6 @@ imports/api/properties/Slots.ts: TS2322: Type '{ type: "fieldToCompute"; optiona
 imports/api/properties/Slots.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Slots.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
 imports/api/properties/Slots.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
-imports/api/properties/SpellLists.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -352,7 +302,6 @@ imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "fieldToCompute"; op
 imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SpellLists.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/SpellLists.ts: TS2353: Object literal may only specify known properties, and 'removeBeforeCompute' does not exist in type 'RegExp | ObjectConstructor | FunctionConstructor | StringConstructor | BooleanConstructor | NumberConstructor | DateConstructor | ArrayConstructor | SimpleSchema | SchemaDefinition | Class | SchemaDefinitionType[]'.
-imports/api/properties/Spells.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/Toggles.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Toggles.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Triggers.ts: TS2322: Type '{ type: "computedOnlyField"; optional: true; parseLevel: string; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
@@ -360,7 +309,6 @@ imports/api/properties/Triggers.ts: TS2322: Type '{ type: "computedOnlyInlineCal
 imports/api/properties/Triggers.ts: TS2322: Type '{ type: "computedOnlyInlineCalculationField"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Triggers.ts: TS2322: Type '{ type: "fieldToCompute"; optional: true; parseLevel: string; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/properties/Triggers.ts: TS2322: Type '{ type: "inlineCalculationFieldToCompute"; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
-imports/api/properties/subSchemas/computedField.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2345: Argument of type 'SchemaDefinitionType' is not assignable to parameter of type 'string'.
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'ArrayConstructor' cannot be used as an index type.
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'BooleanConstructor' cannot be used as an index type.
@@ -373,30 +321,21 @@ imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'RegExp'
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'SchemaDefinition' cannot be used as an index type.
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'SimpleSchema' cannot be used as an index type.
 imports/api/properties/subSchemas/createPropertySchema.ts: TS2538: Type 'StringConstructor' cannot be used as an index type.
-imports/api/properties/subSchemas/inlineCalculationField.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/properties/subSchemas/inlineCalculationField.ts: TS2578: Unused '@ts-expect-error' directive.
 imports/api/rest/server/apiPublications/creature.js: TS18046: 'e' is of type 'unknown'.
 imports/api/rest/server/apiPublications/creature.js: TS18046: 'e' is of type 'unknown'.
-imports/api/rest/server/apiPublications/creature.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/rest/server/apiPublications/creature.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/rest/server/apiPublications/creature.js: TS2339: Property 'statusCode' does not exist on type 'Error'.
-imports/api/rest/server/apiPublications/healthCheck.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/rest/server/middleware/authenticateUserByToken.js: TS2322: Type 'null' is not assignable to type 'string'.
 imports/api/rest/server/middleware/authenticateUserByToken.js: TS2339: Property 'statusCode' does not exist on type 'Error'.
 imports/api/rest/server/middleware/parseBearerToken.js: TS2366: Function lacks ending return statement and return type does not include 'undefined'.
 imports/api/rest/server/middleware/parseBearerToken.js: TS2366: Function lacks ending return statement and return type does not include 'undefined'.
-imports/api/rest/server/restLogin.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/rest/server/restLogin.js: TS2339: Property '_insertLoginToken' does not exist on type 'typeof Accounts'.
 imports/api/rest/server/restLogin.js: TS2339: Property '_tokenExpiration' does not exist on type 'typeof Accounts'.
-imports/api/sharing/SharingSchema.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/sharing/sharing.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
-imports/api/simpleSchemaConfig.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/api/users/Users.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/Users.js: TS2339: Property 'apiKey' does not exist on type 'User'.
 imports/api/users/Users.js: TS2339: Property 'canPickUsername' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'findUserByUsernameOrEmail' does not exist on type 'Collection<User, User>'.
@@ -418,26 +357,20 @@ imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
-imports/api/users/methods/addEmail.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/methods/addEmail.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/users/methods/addEmail.js: TS2769: No overload matches this call.
 imports/api/users/methods/addEmail.js: TS2769: No overload matches this call.
 imports/api/users/methods/deleteMyAccount.js: TS2339: Property 'deleteMyAccount' does not exist on type 'Collection<User, User>'.
 imports/api/users/methods/deleteMyAccount.js: TS2769: No overload matches this call.
 imports/api/users/methods/deleteMyAccount.js: TS2769: No overload matches this call.
-imports/api/users/methods/removeEmail.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/methods/removeEmail.js: TS2769: No overload matches this call.
 imports/api/users/methods/removeEmail.js: TS2769: No overload matches this call.
-imports/api/users/methods/searchUsers.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/methods/searchUsers.js: TS2339: Property 'fileStorageUsed' does not exist on type 'User'.
-imports/api/users/methods/setUserRole.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/methods/updateFileStorageUsed.js: TS2339: Property 'fileStorageUsed' does not exist on type 'User'.
 imports/api/users/methods/updateFileStorageUsed.js: TS2339: Property 'fileStorageUsed' does not exist on type 'User'.
 imports/api/users/methods/updateFileStorageUsed.js: TS2345: Argument of type 'User | undefined' is not assignable to parameter of type '{ roles?: string[] | undefined; } & { fileStorageUsed?: number | undefined; }'.
 imports/api/users/server/publications/ownedDocuments.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/users/server/publications/users.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/users/server/publications/users.js: TS2769: No overload matches this call.
-imports/api/utility/TypedSimpleSchema.ts: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/api/utility/TypedSimpleSchema.ts: TS2339: Property 'validate' does not exist on type 'TypedSimpleSchema<T>'.
 imports/migrations/apiCreature/cleanApiCreatureAtCurrent.js: TS18046: 'e' is of type 'unknown'.
 imports/migrations/apiCreature/cleanApiCreatureAtCurrent.js: TS18046: 'e' is of type 'unknown'.
@@ -505,12 +438,9 @@ imports/startup/both/index.js: TS2724: '"meteor/aldeed:collection2"' has no expo
 imports/startup/server/limitLoginTokens.js: TS2551: Property 'users' does not exist on type 'typeof Accounts'. Did you mean 'user'?
 imports/startup/server/limitLoginTokens.js: TS2551: Property 'users' does not exist on type 'typeof Accounts'. Did you mean 'user'?
 imports/startup/server/limitLoginTokens.js: TS2551: Property 'users' does not exist on type 'typeof Accounts'. Did you mean 'user'?
-imports/startup/server/publicationStrategies.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does not exist on type 'typeof Meteor'. Did you mean 'isServer'?
 imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does not exist on type 'typeof Meteor'. Did you mean 'isServer'?
 imports/startup/server/publicationStrategies.js: TS2551: Property 'server' does not exist on type 'typeof Meteor'. Did you mean 'isServer'?
-imports/startup/server/simpleRestConfig.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
-imports/startup/server/syncedCronConfig.js: TS2306: File '<app>/.meteor/local/types/packages.d.ts' is not a module.
 imports/startup/server/throwUnresolvedPromises.test.ts: TS18046: 'error' is of type 'unknown'.
 imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/DatePicker.vue' or its corresponding type declarations.
 imports/ui/components/global/globalIndex.js: TS2307: Cannot find module '/imports/ui/components/global/DragHandle.vue' or its corresponding type declarations.
