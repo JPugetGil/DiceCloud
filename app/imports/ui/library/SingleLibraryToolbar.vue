@@ -30,6 +30,22 @@
       {{ subscribed ? $t('library.unsubscribe') : $t('library.subscribe') }}
     </v-btn>
     <v-btn
+      v-if="canCopy"
+      variant="text"
+      icon
+      :loading="downloading"
+      :aria-label="$t('libraryFiles.download')"
+      data-id="library-download-button"
+      @click="download"
+    >
+      <v-icon>mdi-download</v-icon>
+      <v-tooltip
+        activator="parent"
+        location="bottom"
+        :text="$t('libraryFiles.download')"
+      />
+    </v-btn>
+    <v-btn
       v-if="canEdit"
       variant="text"
       icon
@@ -46,7 +62,10 @@ import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
-import { hasDocEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { hasCopyPermission, hasDocEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { exportLibrary } from '/imports/api/library/methods/libraryFiles';
+import { downloadLibraryFile } from '/imports/ui/library/libraryFiles';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import Libraries from '/imports/api/library/Libraries';
 import formatter from '/imports/ui/utility/numberFormatter';
 import { useAppStore } from '/imports/ui/stores/app';
@@ -89,6 +108,23 @@ const showSubscribeButton = autorun(() => {
 }).result;
 
 const canEdit = autorun(() => hasDocEditPermission(library.value, Meteor.user())).result;
+
+// Saving it as a file copies it: the library's readers only can if it lets them
+const canCopy = autorun(() => hasCopyPermission(library.value, Meteor.user())).result;
+const downloading = ref(false);
+
+async function download() {
+  downloading.value = true;
+  try {
+    const entry = await exportLibrary.callAsync({ libraryId: route.params.id });
+    await downloadLibraryFile({ name: entry.library.name, libraries: [entry] });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  } finally {
+    downloading.value = false;
+  }
+}
 
 const formatNumber = (num) => formatter.format(num);
 

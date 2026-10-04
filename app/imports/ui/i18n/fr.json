@@ -276,6 +276,28 @@
     "storage": "Stockage",
     "storageUsed": "{used} utilisés sur {limit}"
   },
+  "libraryFiles": {
+    "importTitle": "Importer des bibliothèques",
+    "importHint": "Un fichier enregistré depuis une bibliothèque ou une collection, ici ou sur une autre instance DiceCloud. Les bibliothèques gardent leurs identifiants, ainsi les références entre elles tiennent ; celles qui sont nouvelles ici vous appartiennent.",
+    "file": "Fichier de bibliothèques (.json ou .json.gz)",
+    "notALibraryFile": "Ce fichier ne contient aucune bibliothèque DiceCloud",
+    "untitledCollection": "Collection sans nom",
+    "nodeCount": "{count} propriété | {count} propriétés",
+    "replace": "Remplacer les bibliothèques déjà présentes",
+    "replaceHint": "Leur contenu devient celui du fichier, et ce qui y a été modifié ici est perdu ; leur propriétaire, leurs partages et leurs abonnés restent. Sinon, elles sont ignorées.",
+    "makePublic": "Partager les nouvelles bibliothèques avec tout le monde",
+    "makePublicHint": "Publiques, et listées dans les bibliothèques de la communauté. Sinon, vous seul les voyez, jusqu'à ce que vous les partagiez.",
+    "import": "Importer",
+    "status": {
+      "imported": "Importée",
+      "replaced": "Remplacée",
+      "skipped": "Déjà présente : ignorée"
+    },
+    "download": "Télécharger la bibliothèque",
+    "downloadCollection": "Télécharger la collection",
+    "nothingToDownload": "La copie des bibliothèques de cette collection n'est pas autorisée",
+    "someLeftOut": "{count} bibliothèque laissée de côté : sa copie n'est pas autorisée | {count} bibliothèques laissées de côté : leur copie n'est pas autorisée"
+  },
   "formula": {
     "suggestions": "Variables et fonctions"
   },

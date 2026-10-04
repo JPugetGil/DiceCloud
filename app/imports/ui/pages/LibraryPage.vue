@@ -38,6 +38,15 @@
             <v-btn
               v-if="permissions.canCreateLibraries"
               variant="text"
+              prepend-icon="mdi-file-upload-outline"
+              data-id="import-libraries-button"
+              @click="importLibrariesDialog"
+            >
+              {{ $t('libraryFiles.importTitle') }}
+            </v-btn>
+            <v-btn
+              v-if="permissions.canCreateLibraries"
+              variant="text"
               prepend-icon="mdi-folder-plus-outline"
               data-id="insert-library-collection-button"
               color="accent"
@@ -146,6 +155,13 @@ function insertLibraryDialog() {
         });
       }
     }
+  });
+}
+
+function importLibrariesDialog() {
+  dialogStackStore.pushDialogStack({
+    component: 'library-import-dialog',
+    elementId: 'import-libraries-button',
   });
 }
 

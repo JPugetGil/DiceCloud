@@ -276,6 +276,28 @@
     "storage": "Storage",
     "storageUsed": "{used} of {limit} used"
   },
+  "libraryFiles": {
+    "importTitle": "Import libraries",
+    "importHint": "A file saved from a library or a collection, here or on another DiceCloud instance. The libraries keep their ids, so the references between them hold; you own those that are new here.",
+    "file": "Library file (.json or .json.gz)",
+    "notALibraryFile": "This file holds no DiceCloud library",
+    "untitledCollection": "Untitled collection",
+    "nodeCount": "{count} property | {count} properties",
+    "replace": "Replace the libraries already here",
+    "replaceHint": "Their content becomes the file's, and what was edited here is lost; their owner, sharing and subscribers stay. Otherwise they are skipped.",
+    "makePublic": "Share the new libraries with everyone",
+    "makePublicHint": "Public, and listed in the community libraries. Otherwise only you see them, until you share them.",
+    "import": "Import",
+    "status": {
+      "imported": "Imported",
+      "replaced": "Replaced",
+      "skipped": "Already here: skipped"
+    },
+    "download": "Download the library",
+    "downloadCollection": "Download the collection",
+    "nothingToDownload": "Copying the libraries of this collection is not allowed",
+    "someLeftOut": "{count} library left out: copying it is not allowed | {count} libraries left out: copying them is not allowed"
+  },
   "formula": {
     "suggestions": "Variables and functions"
   },

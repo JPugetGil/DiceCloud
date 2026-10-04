@@ -190,6 +190,20 @@ rest. A player who leaves, or whom the game master removes, takes their
 characters out, and the game master can no longer edit them. A new link
 replaces the old one; turning it off keeps the players who joined.
 
+Library files
+-------------
+
+A library, or a library collection with its libraries, can be saved as a file
+from its page (the download button), by whoever may copy it: its owner and
+editors, admins, or anyone when it lets its readers copy it. Admins import such
+files on the Library page (Import libraries), from this instance or another
+one; the scripts of `tools/libraryImport` read and write the same libraries.
+Libraries and their properties keep their ids, so the references between
+libraries still hold: a library that is already here is skipped, unless the
+admin chooses to replace it, which keeps its owner, sharing and subscribers.
+New libraries belong to the admin, private unless they choose to share them.
+Each library is sent on its own, so a file can hold a whole collection.
+
 Tests
 -----
 
