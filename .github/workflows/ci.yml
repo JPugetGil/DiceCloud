@@ -1,0 +1,63 @@
+# Lint, unit tests and type check of the app, on every push and pull request.
+# The browser checks of tests/e2e need a running app with data: run them
+# locally (see tests/e2e/README.md).
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cache Meteor
+        uses: actions/cache@v4
+        with:
+          path: ~/.meteor
+          key: meteor-${{ runner.os }}-${{ hashFiles('app/.meteor/release', 'app/.meteor/versions') }}
+
+      - name: Install Meteor
+        run: |
+          if [ ! -x "$HOME/.meteor/meteor" ]; then
+            curl -fsSL "https://install.meteor.com/?release=$(sed 's/^METEOR@//' .meteor/release)" | sh
+          fi
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('app/package-lock.json') }}
+
+      - name: Install npm packages
+        run: meteor npm ci
+
+      - name: Lint
+        run: meteor npm run lint
+
+      # Client tests would need a browser driver: the tests that matter run on
+      # the server
+      - name: Unit tests
+        run: meteor npm test
+        env:
+          TEST_CLIENT: 0
+
+      # After the tests: building the app writes the Meteor packages' types
+      - name: Type check (no new errors)
+        run: meteor npm run typecheck

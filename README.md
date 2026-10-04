@@ -182,6 +182,15 @@ Tests
 `meteor npm test` in `app/` runs the unit tests (`*.test.js` and `*.test.ts`
 files in `app/imports/`), next to a running development server if need be.
 
+`meteor npm run typecheck` in `app/` type checks the app once Meteor has built
+it (`meteor` or `meteor npm test`). The app has a backlog of type errors, listed
+in `tests/types/baseline.txt`: the check fails only on errors that list doesn't
+hold. After fixing some, `meteor npm run typecheck -- --update` removes them
+from it.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs the lint, the unit tests on the
+server and the type check on every push to `develop` and every pull request.
+
 `tests/e2e/` holds Playwright checks that drive a running development server:
 pages, the character sheet, action targets, docs navigation, every property
 form, dialogs, login services, and colour contrast (the theme palette and an

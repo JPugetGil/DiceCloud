@@ -1,7 +1,9 @@
 build
 .DS_Store
-# Local agent configuration and data tools, kept out of the repository
-/.github/
+# Local agent configuration and data tools, kept out of the repository, but
+# for the CI workflows
+/.github/*
+!/.github/workflows/
 /tools/
 
 # Production secrets (deploy/dicecloud.sh)
