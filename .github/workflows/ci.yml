@@ -57,6 +57,9 @@ jobs:
         run: meteor npm test
         env:
           TEST_CLIENT: 0
+          # Mocha's 2 s per test is short for the database work some do on a
+          # busy runner
+          MOCHA_TIMEOUT: 10000
 
       # After the tests: building the app writes the Meteor packages' types
       - name: Type check (no new errors)
