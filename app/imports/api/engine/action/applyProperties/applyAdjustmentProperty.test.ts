@@ -108,7 +108,7 @@ describe('Apply Adjustment Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Ability damaged',
+          name: 'Ability score damaged',
           value: '−2 Attribute',
         }
       ],
@@ -132,7 +132,7 @@ describe('Apply Adjustment Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Ability damaged',
+          name: 'Ability score damaged',
           value: '−2 Attribute',
         }
       ],
@@ -148,7 +148,7 @@ describe('Apply Adjustment Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Ability damaged',
+          name: 'Ability score damaged',
           value: '−2 Attribute',
         }
       ],

@@ -7,7 +7,6 @@
       <v-toolbar-title>
         {{ $t('creatureForm.characterDetails') }}
       </v-toolbar-title>
-      <v-spacer />
       <color-picker
         :model-value="model.color"
         no-color-change

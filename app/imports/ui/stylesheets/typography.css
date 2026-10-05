@@ -1,0 +1,69 @@
+/*
+ * Numbers. Roboto's figures are tabular by default; saying so keeps columns
+ * of numbers (hit points, modifiers, log totals) aligned if the font changes.
+ *
+ * The stat classes set the size of a sheet's numbers without the Material
+ * type scale: Vuetify 4 gives `text-display-*` and `text-headline-*` the
+ * heading font, which a decorative heading font would then put on armor class
+ * and modifiers. They keep the body font.
+ *   stat-value-lg  36/44  the number a card is about: hit points, a roll's total
+ *   stat-value     28/36  a stat on its tile: ability, skill, armor class
+ *   stat-mod       16/24  the smaller number beside or under it
+ */
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value-lg,
+.stat-value,
+.stat-mod {
+  font-family: var(--v-font-body, "Roboto", sans-serif);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+}
+
+.stat-value-lg {
+  font-size: 2.25rem;
+  line-height: 2.75rem;
+  font-weight: 400;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 400;
+}
+
+.stat-mod {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+/*
+ * The display font (D10): Fraunces, a serif with the printed sheet's
+ * character (SIL Open Font License, French accents included), for the logo,
+ * the character's name and the titles of cards. Everything else stays in
+ * Roboto, numbers too: the stat classes above set the body font. Not through
+ * Vuetify's --v-font-heading, which text-headline-* also takes.
+ * :where() keeps the card titles' rule below any class, a stat-value included.
+ */
+:root {
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+}
+
+.font-display,
+:where(.v-card-title),
+:where(.toolbar-card .v-toolbar-title),
+:where(.character-sheet .v-card .v-list-subheader) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-optical-sizing: auto;
+  letter-spacing: normal;
+}
+
+/* Chips and buttons in a card's title keep the body font */
+:where(.v-card-title) :where(.v-chip, .v-btn) {
+  font-family: var(--v-font-body, "Roboto", sans-serif);
+  font-weight: 500;
+}

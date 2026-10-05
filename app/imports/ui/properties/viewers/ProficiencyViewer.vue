@@ -7,7 +7,6 @@
       >
         <proficiency-icon
           :value="model.value"
-          style="height: 12px"
           class="ml-1 mr-2"
         />
         <div>

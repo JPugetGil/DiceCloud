@@ -15,6 +15,7 @@ import { CalculatedField } from '/imports/api/properties/subSchemas/computedFiel
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { Meteor } from 'meteor/meteor';
+import { logLine, msg, withAdvantage } from '/imports/api/creature/log/logMessages';
 
 export default async function applyActionProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -48,21 +49,21 @@ export default async function applyActionProperty(
 
   // Check Uses
   if (prop.usesLeft !== undefined && prop.usesLeft <= 0) {
-    result.appendLog({
-      name: 'Error',
-      value: `${getPropertyTitle(prop)} does not have enough uses left`,
+    result.appendLog(logLine({
+      name: msg('logs.error'),
+      value: msg('logs.notEnoughUses', { name: getPropertyTitle(prop) }),
       silenced: prop.silent,
-    }, targetIds);
+    }), targetIds);
     return;
   }
 
   // Check Resources
   if (prop.insufficientResources) {
-    result.appendLog({
-      name: 'Error',
-      value: 'This creature doesn\'t have sufficient resources to perform this action',
+    result.appendLog(logLine({
+      name: msg('logs.error'),
+      value: msg('logs.notEnoughResources'),
       silenced: prop.silent,
-    }, targetIds);
+    }), targetIds);
     return;
   }
 
@@ -129,21 +130,16 @@ async function applyAttackToTarget(
   const targetArmor = await getNumberFromScope('armor', targetScope)
 
   if (targetArmor !== undefined) {
-    let name = criticalHit ? 'Critical Hit!' :
-      criticalMiss ? 'Critical Miss!' :
-        result >= targetArmor ? 'Hit!' : 'Miss!';
-    if (advantage === 1) {
-      name += ' (Advantage)';
-    } else if (advantage === -1) {
-      name += ' (Disadvantage)';
-    }
+    const name = msg(criticalHit ? 'logs.criticalHit' :
+      criticalMiss ? 'logs.criticalMiss' :
+        result >= targetArmor ? 'logs.hit' : 'logs.miss');
 
-    contents.push({
-      name,
+    contents.push(logLine({
+      name: withAdvantage(name, advantage),
       value: `${resultPrefix}\n**${result}**`,
       inline: true,
       ...prop.silent && { silenced: true },
-    });
+    }));
 
     if (criticalMiss || result < targetArmor) {
       taskResult.pushScope['~attackMiss'] = { value: true };
@@ -151,17 +147,17 @@ async function applyAttackToTarget(
       taskResult.pushScope['~attackHit'] = { value: true };
     }
   } else {
-    contents.push({
-      name: 'Error',
-      value: 'Target has no `armor`',
+    contents.push(logLine({
+      name: msg('logs.error'),
+      value: msg('logs.noArmor'),
       inline: true,
       ...prop.silent && { silenced: true },
-    }, {
-      name: criticalHit ? 'Critical Hit!' : criticalMiss ? 'Critical Miss!' : 'To Hit',
+    }), logLine({
+      name: msg(criticalHit ? 'logs.criticalHit' : criticalMiss ? 'logs.criticalMiss' : 'logs.toHit'),
       value: `${resultPrefix}\n**${result}**`,
       inline: true,
       ...prop.silent && { silenced: true },
-    });
+    }));
   }
   if (contents.length) {
     taskResult.mutations.push({
@@ -188,12 +184,9 @@ async function applyAttackWithoutTarget(action, prop, attack, taskResult: TaskRe
     criticalMiss,
     advantage,
   } = await rollAttack(attack, scope, taskResult.pushScope, userInput);
-  let name = criticalHit ? 'Critical Hit!' : criticalMiss ? 'Critical Miss!' : 'To Hit';
-  if (advantage === 1) {
-    name += ' (Advantage)';
-  } else if (advantage === -1) {
-    name += ' (Disadvantage)';
-  }
+  const name = withAdvantage(
+    msg(criticalHit ? 'logs.criticalHit' : criticalMiss ? 'logs.criticalMiss' : 'logs.toHit'), advantage
+  );
   if (!criticalMiss) {
     taskResult.pushScope['~attackHit'] = { value: true }
   }
@@ -201,12 +194,12 @@ async function applyAttackWithoutTarget(action, prop, attack, taskResult: TaskRe
     taskResult.pushScope['~attackMiss'] = { value: true };
   }
   taskResult.mutations.push({
-    contents: [{
+    contents: [logLine({
       name,
       value: `${resultPrefix}\n**${result}**`,
       inline: true,
       ...prop.silent && { silenced: true },
-    }],
+    })],
     targetIds: [],
   });
 }

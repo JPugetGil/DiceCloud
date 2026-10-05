@@ -43,6 +43,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
@@ -51,7 +52,10 @@ import MarkdownText from '/imports/ui/components/MarkdownText.vue';
 
 const route = useRoute();
 
-subscribe(() => ['libraryCollection', route.params.id]);
+// Through a computed, which only changes with the id: closing a dialog gives
+// the route new params, and the subscription started again
+const collectionId = computed(() => route.params.id);
+subscribe(() => ['libraryCollection', collectionId.value]);
 
 const collection = autorun(() => LibraryCollections.findOne(route.params.id)).result;
 

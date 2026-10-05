@@ -67,6 +67,9 @@ services:
       MAIL_FROM: ${MAIL_FROM:-}
       # Behind the tunnel: the visitor's address is the last X-Forwarded-For entry
       HTTP_FORWARDED_COUNT: 1
+      # What a new account is subscribed to (comma-separated ids, see .env.example)
+      DEFAULT_LIBRARY_COLLECTIONS: ${DEFAULT_LIBRARY_COLLECTIONS:-}
+      DEFAULT_LIBRARIES: ${DEFAULT_LIBRARIES:-}
       METEOR_SETTINGS: ${METEOR_SETTINGS:?dicecloud.sh passes the settings file}
     # On the machine itself only, to check the app without the tunnel
     ports:

@@ -6,7 +6,7 @@
       :color="model.color"
       :class="selected && 'text-primary'"
     />
-    <div class="text-no-wrap text-truncate">
+    <div class="tree-node-text">
       {{ title }}
     </div>
   </div>

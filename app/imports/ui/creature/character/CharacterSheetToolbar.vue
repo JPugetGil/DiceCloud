@@ -1,19 +1,25 @@
 <template>
   <v-app-bar
     class="character-sheet-toolbar"
-    :color="toolbarColor"
-    :theme="isDark ? 'dark' : 'light'"
+    v-bind="toolbarProps()"
     :extended="smAndUp"
     :tabs="smAndUp"
     density="compact"
   >
-    <v-app-bar-nav-icon @click="toggleDrawer" />
+    <v-app-bar-nav-icon
+      :aria-label="$t('nav.openMenu')"
+      @click="toggleDrawer"
+    />
     <v-fade-transition mode="out-in">
-      <v-toolbar-title :key="appStore.pageTitle">
+      <!-- The character's name, in the display font (D10) -->
+      <v-toolbar-title
+        :key="appStore.pageTitle"
+        class="font-display"
+      >
         {{ appStore.pageTitle }}
       </v-toolbar-title>
     </v-fade-transition>
-    <v-spacer />
+    <!-- No spacer: Vuetify's title already grows, and a spacer halved its room -->
     <v-fade-transition mode="out-in">
       <div
         :key="route.meta.title"
@@ -21,7 +27,9 @@
       >
         <template v-if="creature">
           <shared-icon :model="creature" />
+          <!-- On a phone it is in the menu: the name needs the room -->
           <v-btn
+            v-if="smAndUp"
             variant="text"
             icon
             data-id="character-search"
@@ -46,12 +54,24 @@
                 variant="text"
                 data-id="creature-menu"
                 icon
+                :aria-label="$t('sheet.characterMenu')"
                 v-bind="props"
               >
                 <v-icon>mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
             <v-list>
+              <v-list-item
+                v-if="!smAndUp"
+                data-id="character-search"
+                @click="showSearch"
+              >
+                <v-list-item-title>
+                  <v-icon start>
+                    mdi-magnify
+                  </v-icon> {{ $t('characterSearch.open') }}
+                </v-list-item-title>
+              </v-list-item>
               <v-list-item
                 v-if="!isOwner && ownerName"
                 lines="two"
@@ -140,7 +160,11 @@
               </v-list-item>
             </v-list>
           </v-menu>
-          <v-app-bar-nav-icon @click="toggleRightDrawer">
+          <v-app-bar-nav-icon
+            :aria-label="$t('sheet.toggleLog')"
+            data-id="toggle-log"
+            @click="toggleRightDrawer"
+          >
             <v-icon>mdi-forum</v-icon>
           </v-app-bar-nav-icon>
         </template>
@@ -168,7 +192,7 @@
             grow
             :color="creature.color ? undefined : 'primary'"
             :model-value="appStore.tabById(route.params.id)"
-            :bg-color="toolbarColor"
+            v-bind="toolbarProps('bg-color')"
             @update:model-value="e => appStore.setTabForCharacterSheet({id: route.params.id, tab: e})"
           >
             <v-tab>
@@ -222,13 +246,17 @@ import duplicateCreature from '/imports/api/creature/creatures/methods/duplicate
 import getCreatureArchive from '/imports/api/creature/archive/methods/getCreatureArchive';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { updateUserSharePermissions } from '/imports/api/sharing/sharing';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
+import userColorProps from '/imports/ui/utility/userColor';
 import CharacterSheetFab from '/imports/ui/creature/character/CharacterSheetFab.vue';
 import SharedIcon from '/imports/ui/components/SharedIcon.vue';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useI18n } from 'vue-i18n';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const { t } = useI18n();
 
@@ -264,6 +292,12 @@ const ownerName = autorun(() => {
 // Without a creature colour, the dark theme's `secondary` ink, as the other app
 // bars in both themes: they are dark in light mode too (`theme="dark"`). The
 // active tab then takes the dark theme's primary, which is made for dark surfaces
+// The character's own colour in its tone for the theme (D2); without one,
+// the app bars' ink, as it is
+const toolbarProps = (colorProp = 'color') => creature.value?.color
+  ? userSurface(creature.value.color, colorProp)
+  : userColorProps(toolbarColor.value, colorProp);
+
 const toolbarColor = computed(() => {
   if (creature.value && creature.value.color) {
     return creature.value.color;
@@ -272,7 +306,6 @@ const toolbarColor = computed(() => {
   }
 });
 
-const isDark = computed(() => isDarkColor(toolbarColor.value));
 
 const printUrl = computed(() => {
   if (!creature.value) return '';

@@ -21,7 +21,7 @@
         </v-tooltip>
       </div>
       <div
-        class="text-headline-large effect-value mr-2"
+        class="stat-value effect-value mr-2"
       >
         {{ displayed.value }}<span
           v-if="displayed.unit"
@@ -54,10 +54,13 @@ import PropertyBreadcrumbs from '/imports/ui/creature/creatureProperties/Propert
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { isFinite, find } from 'lodash';
 import useUnits from '/imports/ui/composables/useUnits';
+import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { getAttributeUnit, CONVERTED_EFFECT_OPERATIONS } from '/imports/api/utility/units';
 
 const props = defineProps({
   hideBreadcrumbs: Boolean,
+  // The amount is a modifier, written with its sign: +2, −1
+  signed: Boolean,
   model: {
     type: Object,
     required: true,
@@ -125,10 +128,15 @@ const { quantityParts } = useUnits();
 
 // An amount in the attribute's unit (a distance, a weight) is shown in the
 // user's units; a multiplier is not
-const displayed = computed(() => quantityParts(
-  displayedValue.value,
-  CONVERTED_EFFECT_OPERATIONS.has(operation.value) ? getAttributeUnit(props.attribute) : undefined,
-));
+const displayed = computed(() => {
+  if (props.signed && isFinite(displayedValue.value)) {
+    return { value: numberToSignedString(displayedValue.value), unit: undefined };
+  }
+  return quantityParts(
+    displayedValue.value,
+    CONVERTED_EFFECT_OPERATIONS.has(operation.value) ? getAttributeUnit(props.attribute) : undefined,
+  );
+});
 
 const ancestors = autorun(() => {
   const prop = CreatureProperties.findOne(props.model._id);

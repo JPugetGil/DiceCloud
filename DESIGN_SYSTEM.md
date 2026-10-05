@@ -83,9 +83,25 @@ Rules
    in scripts `useTheme().current.value.colors.primary`. A hard-coded colour
    does not follow the theme, and nothing checks its contrast.
 2. **Put content on a colour with its on- colour.** Vuetify does this for
-   components given a `color`. For user-chosen colours (a creature's or a
-   property's), pick black or white text with `isDarkColor`, as the character
-   sheet toolbar and health bars do.
+   components given a theme colour (`color="primary"`). For a colour the user
+   chose (a creature's, a note's, a property's), give the text explicitly:
+   black or white, whichever has the higher WCAG contrast ratio with it
+   (`onColor`, `utility/onColor.mjs`). Bind `v-bind="userColorProps(color)"`
+   (`utility/userColor.js`): the colour, the matching theme and the text
+   colour. Left to itself, Vuetify picks the text by APCA, which favours
+   white: 49 of the 190 colours of the colour picker then fell below 4.5:1
+   (white titles on light blue notes at 2.6:1); with `onColor`, none does
+   (lowest 4.6:1). The `palette` check measures all 190; `accessibility`
+   measures the Journal's notes as they are drawn. `isDarkColor` follows the
+   same rule.
+   A large surface in the user's colour (a character's bar, a card's header or
+   background, a note, a dialog's toolbar) takes the colour's tone rather than
+   the colour itself, as Material's tonal palettes do: tone 40 under white in
+   the light theme, tone 30 under tone 90 in the dark one (`utility/tonal.mjs`,
+   `useUserSurface()`). A bright colour no longer outshines the page in the
+   dark theme, and the contrast no longer depends on the hue: 6.4:1 at least
+   in the light theme, 7.2:1 in the dark one, over the 190 colours (`palette`
+   check). Small marks (a chip, an avatar) keep the colour as chosen.
 3. **Do not rely on colour alone.** Links stay underlined; errors and warnings
    come with text or an icon.
 4. **Keep selected and active states readable.** A selected option is shown by
@@ -180,7 +196,70 @@ Vuetify rule, utilities included, whatever the specificity:
 
 Typography uses Material 3's type scale (`text-display-*`, `text-headline-*`,
 `text-title-*`, `text-body-*`, `text-label-*`), and buttons keep the case their
-label is written in: write labels in sentence case.
+label is written in: write labels in sentence case, in English too ("Sign in",
+"Character list"); rules terms keep their capitals ("Hit Dice", "Armor Class").
+
+- **Numbers** have their own classes (`stylesheets/typography.css`), in the
+  body font with tabular figures: `stat-value-lg` (36/44) for the number a card
+  is about (hit points, a roll's total), `stat-value` (28/36) for a stat on its
+  tile, `stat-mod` (16/24, medium) for the number beside or under it. Don't use
+  `text-display-*` or `text-headline-*` for numbers: Vuetify gives them the
+  heading font.
+- **Signs**: a modifier is written with `numberToSignedString` (`+2`, `−1`,
+  with the true minus sign); `useUnits` writes negative quantities with it too.
+- **French**: a narrow no-break space (U+202F) before `!`, `?` and `;`, a
+  no-break space (U+00A0) before `:` and inside « », in `fr.json`, so the sign
+  never starts a line on its own.
+- **Font**: Roboto in three weights, 400, 500 and 700 (`client/main.html`).
+- **Display font**: Fraunces 600 (SIL Open Font License, French accents
+  included) for the logo, the character's name and the titles of cards
+  (`.font-display`, and `.v-card-title`, a card toolbar's title and the
+  sheet's card subheaders in `stylesheets/typography.css`). Not through
+  Vuetify's `--v-font-heading`, which `text-headline-*` also takes: numbers
+  stay in Roboto. The armor class sits on a shield, as on the printed sheet.
+
+Motion
+------
+
+Material 3's motion, as CSS variables (`stylesheets/motion.css`) and, for
+animations started from scripts, the same values in `utility/motion.js`:
+
+| Token | Value | For |
+|-------|-------|-----|
+| `--motion-duration-short` | 150ms | A chip, an icon, a fade |
+| `--motion-duration-medium` | 250ms | A row moving, a card appearing, a value changing |
+| `--motion-duration-long` | 400ms | A dialog, a long path, what has to be noticed |
+| `--motion-easing-standard` | `cubic-bezier(0.2, 0, 0, 1)` | Starts and ends on screen |
+| `--motion-easing-emphasized-decelerate` | `cubic-bezier(0.05, 0.7, 0.1, 1)` | Enters the screen |
+| `--motion-easing-emphasized-accelerate` | `cubic-bezier(0.3, 0, 0.8, 0.15)` | Leaves the screen |
+
+Write `transition: opacity var(--motion-duration-short) var(--motion-easing-standard)`,
+not a number of milliseconds. One exception: the dice tray's throw
+(`DiceTray.vue`), a physical flight of 900ms.
+
+1. **Only what changes moves.** No transition group with a `move` class on
+   `column-layout` (CSS columns reflow everything) or on a list a server
+   update reloads (the log's 100 entries, the slot cards): the group measures
+   every item at each change. The new item animates itself (a CSS animation
+   on a class it gets once loaded); nothing animates before the first load.
+2. **One event shows once at a time.** A roll is thrown by the dice tray;
+   the log and the snackbar wait for the dice to land (`dice/diceTrayState.js`),
+   and on a phone, where the tray covers the snackbar, for it to leave.
+3. **Reduced animations.** The account's Animations preference (system or
+   reduced, `preferences.reduceMotion`) or the system's
+   `prefers-reduced-motion` makes `useReducedMotion()` true and puts
+   `reduce-motion` on the root: nothing moves or changes size, only fades of
+   150ms at most. Vuetify's transitions become fades (`motion.css`); every
+   animation the app writes checks the class or the composable.
+4. **Said, not only shown.** What an animation tells (a roll's result) is
+   also announced to screen readers (`components/announcer.js`, a polite
+   live region in `App.vue`).
+5. **Don't wait on the server to show a choice.** A toggle or a counter
+   shows its new state at once (a spell slot empties, a condition turns on)
+   and keeps it until the server's data arrives; while it waits, the changed
+   part pulses rather than greys out, and a spinner appears only after
+   `SLOW_MS` (600ms, `utility/motion.js`). On an error it goes back, with a
+   snackbar.
 
 Adding or changing a colour
 ---------------------------
@@ -206,14 +285,14 @@ exported.)
 
 Add the role to both themes in `themes.js`, with its `on-` colour, then run the
 browser checks: `palette` verifies every role against every surface, and
-`accessibility` runs axe-core's WCAG contrast rule over the main pages in both
-themes.
+`accessibility` runs axe-core's WCAG 2.1 A and AA rules (contrast among them)
+over the main pages in both themes, at a computer's width and a phone's.
 
 Known exceptions
 ----------------
 
 Colours still written as values in components, all neutral greys or white:
-health bar tracks (`HealthBar.vue`), the printed character sheet (print colours), the
+health bar tracks (`HealthBarProgress.vue`, from the bar's colour), the printed character sheet (print colours), the
 disabled speed-dial button (`LabeledFab.vue`), the inner hexagon of the roll
 inputs (`VerticalHex.vue`), tree guide lines (`TreeNode.vue`,
 `BuildTreeNode.vue`), the white highlight of `CardHighlight.vue`, and the

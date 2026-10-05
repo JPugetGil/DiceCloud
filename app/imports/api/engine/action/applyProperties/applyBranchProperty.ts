@@ -24,7 +24,7 @@ export default async function applyBranchProperty(
     case 'if': {
       if (!prop.condition) {
         result.appendLog({
-          name: 'Branch Error',
+          name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: 'If branch does not have a condition set',
           silenced: prop.silent,
         }, targets);
@@ -44,7 +44,7 @@ export default async function applyBranchProperty(
       }
       if (!prop.condition) {
         result.appendLog({
-          name: 'Branch Error',
+          name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: 'Index branch does not have a condition set',
           silenced: prop.silent,
         }, targets);
@@ -54,7 +54,7 @@ export default async function applyBranchProperty(
       let index = Number(prop.condition.value);
       if (!isFinite(index)) {
         result.appendLog({
-          name: 'Branch Error',
+          name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: `Index did not resolve into a valid number, got \`${prop.condition?.value}\` instead`,
           silenced: prop.silent,
         }, targets);

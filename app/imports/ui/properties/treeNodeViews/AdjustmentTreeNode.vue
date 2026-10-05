@@ -7,7 +7,7 @@
       :color="model.color"
     />
     <div
-      class="text-no-wrap text-truncate"
+      class="tree-node-text"
     >
       <template v-if="model.amount && model.amount.calculation">
         <span v-if="amount < 0">+</span>

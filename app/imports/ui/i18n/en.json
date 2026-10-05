@@ -1,14 +1,14 @@
 {
   "pageTitle": {
     "home": "Home",
-    "characterList": "Character List",
+    "characterList": "Character list",
     "library": "Library",
-    "libraryCollection": "Library Collection",
-    "communityLibraries": "Community Libraries",
-    "characterSheet": "Character Sheet",
-    "printCharacterSheet": "Print Character Sheet",
+    "libraryCollection": "Library collection",
+    "communityLibraries": "Community libraries",
+    "characterSheet": "Character sheet",
+    "printCharacterSheet": "Print character sheet",
     "printCharacter": "Print {name}",
-    "signIn": "Sign In",
+    "signIn": "Sign in",
     "register": "Register",
     "account": "Account",
     "files": "Files",
@@ -16,9 +16,9 @@
     "functions": "Functions",
     "documentation": "Documentation",
     "about": "About DiceCloud",
-    "emailVerificationError": "Email Verification Error",
-    "emailVerificationSuccess": "Email Verification Success",
-    "resetPassword": "Reset Password",
+    "emailVerificationError": "Email verification error",
+    "emailVerificationSuccess": "Email verified",
+    "resetPassword": "Reset password",
     "docNotFound": "Doc not found",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
@@ -30,7 +30,7 @@
   },
   "nav": {
     "signIn": "Sign in",
-    "accountSettings": "Account Settings",
+    "accountSettings": "Account settings",
     "home": "Home",
     "characters": "Characters",
     "library": "Library",
@@ -42,7 +42,12 @@
     "github": "Github",
     "privacy": "Privacy policy",
     "terms": "Terms of use",
-    "parties": "Parties"
+    "parties": "Parties",
+    "openMenu": "Menu",
+    "toggleDocsTree": "Show or hide the documents",
+    "main": "Main navigation",
+    "pages": "Pages",
+    "help": "Help and community"
   },
   "roles": {
     "player": "Player",
@@ -57,15 +62,17 @@
     "themeLight": "Light",
     "language": "Language",
     "swapAbilityScores": "Swap ability scores and modifiers",
-    "animateDice": "Animate dice rolls",
-    "animateDiceHint": "Dice are thrown across the sheet when a roll is made. The log keeps every roll either way.",
+    "animations": "Animations",
+    "animationsSystem": "System",
+    "animationsReduced": "Reduced",
+    "animationsHint": "Reduced: nothing moves across the screen, and the dice only show their result. System: as your device's reduced motion setting asks.",
     "username": "Username",
-    "changeUsername": "Change Username",
+    "changeUsername": "Change username",
     "email": "Email",
-    "addEmail": "Add Email Address",
-    "linkGoogle": "Link Google Account",
-    "signOut": "Sign Out",
-    "deleteAccount": "Delete Account",
+    "addEmail": "Add email address",
+    "linkGoogle": "Link Google account",
+    "signOut": "Sign out",
+    "deleteAccount": "Delete account",
     "usernameTaken": "Username is already taken",
     "role": "Role",
     "characterLimit": "Up to {limit} characters",
@@ -74,11 +81,12 @@
     "cantCreateLibraries": "Can subscribe to libraries, but not create them",
     "fileStorage": "{used} of {limit} file storage used",
     "canManageRoles": "Can change user roles",
-    "askAdmin": "Ask an admin to make you an active player for more characters and file storage."
+    "askAdmin": "Ask an admin to make you an active player for more characters and file storage.",
+    "removeEmail": "Remove {address}"
   },
   "about": {
     "intro": "DiceCloud is a single-developer project started in 2014 with the aim of being a character sheet that stayed in sync between the DM and their players, and made it clear where every value in the sheet came from, and how it was calculated.",
-    "specialThanks": "Special Thanks",
+    "specialThanks": "Special thanks",
     "samThanks": "without her love, DiceCloud could not hope to exist",
     "heroes": "The \"Heroes\" of Asaea",
     "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
@@ -91,7 +99,7 @@
     "webhookText": "Each character can post its log (rolls, actions, rests) to a Discord channel.",
     "webhookStep1": "In Discord, open the channel settings, then Integrations, Webhooks, and create a webhook.",
     "webhookStep2": "Copy its webhook URL.",
-    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord Webhook URL” field."
+    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord webhook URL” field."
   },
   "legal": {
     "termsLink": "terms of use",
@@ -170,7 +178,8 @@
     "folderName": "Folder name",
     "renameFolder": "Rename the folder",
     "deleteFolder": "Delete the folder",
-    "folderDeleted": "Deleted {name}: its characters are out of any folder"
+    "folderDeleted": "Deleted {name}: its characters are out of any folder",
+    "emptyTextNoLibraries": "Characters are built from libraries: subscribe to one from the community first, then create your character with the New character button."
   },
   "party": {
     "openBoard": "Party board",
@@ -229,7 +238,19 @@
     "lasts": "Lasts",
     "rounds": "{count} round | {count} rounds",
     "minutes": "{count} minute ({rounds} rounds) | {count} minutes ({rounds} rounds)",
-    "untilRemoved": "Until removed"
+    "untilRemoved": "Until removed",
+    "tempHitPoints": "+{value} temporary",
+    "armorClass": "AC",
+    "initiative": "Initiative",
+    "speed": "Speed",
+    "proficiency": "Proficiency",
+    "passivePerception": "Passive Perception",
+    "yourTurn": "Your turn!",
+    "turnOf": "{name}'s turn",
+    "roundIn": "Round {round}, {party}",
+    "openBoard": "Party board",
+    "round": "Round {round}",
+    "turnNow": "{name}'s turn"
   },
   "initiative": {
     "title": "Initiative",
@@ -248,7 +269,21 @@
     "bonusLabel": "Bonus",
     "add": "Add",
     "end": "End combat",
-    "emptyPlayer": "No combat for now: the game master rolls initiative. You can then type your own roll for your characters."
+    "emptyPlayer": "No combat for now: the game master rolls initiative. You can then type your own roll for your characters.",
+    "count": "Number",
+    "hpLabel": "HP",
+    "acLabel": "AC",
+    "status": {
+      "unhurt": "Unhurt",
+      "bloodied": "Bloodied",
+      "down": "Down"
+    },
+    "hitPoints": "HP {value}/{total}",
+    "armorClass": "AC {ac}",
+    "changeHealth": "Change {name}'s hit points",
+    "outOfFight": "{name} out of the fight",
+    "showStats": "Show the creatures' hit points and armor class to the players",
+    "showStatsHint": "Otherwise they only see whether each one is unhurt, bloodied or down."
   },
   "docs": {
     "notFound": "Documentation not found",
@@ -261,23 +296,24 @@
     "icon": "Icon",
     "body": "Body",
     "addChild": "Add child",
-    "newDoc": "New Doc"
+    "newDoc": "New doc",
+    "contents": "Documents"
   },
   "email": {
-    "verificationError": "Email Verification Error",
-    "verified": "Email Verified",
+    "verificationError": "Email verification error",
+    "verified": "Email verified",
     "verifiedText": "Your email address has been verified"
   },
   "files": {
-    "archivedCharacters": "Archived Characters",
+    "archivedCharacters": "Archived characters",
     "uploadArchive": "Upload archive",
     "images": "Images",
     "mustBeJson": "File must be .json",
     "tooLarge": "File too large",
     "parseFailed": "File could not be parsed",
     "validationFailed": "File failed validation: {reason}",
-    "characterArchive": "Character Archive",
-    "userFiles": "User Files",
+    "characterArchive": "Character archive",
+    "userFiles": "User files",
     "fromUrl": "From URL",
     "directLink": "Direct link to image",
     "deleteFile": "Delete file",
@@ -315,16 +351,16 @@
     "title": "Functions"
   },
   "home": {
-    "tagline": "Free, Auditable, real-time character tracking for 5th edition",
+    "tagline": "Free, auditable, real-time character tracking for 5th edition",
     "subtitle": "Spend less time shuffling paper, and more time playing the game",
     "register": "Register",
-    "signIn": "Sign In",
-    "myCharacters": "My Characters",
+    "signIn": "Sign in",
+    "myCharacters": "My characters",
     "freeTitle": "Free, open source, community funded",
     "freeText": "DiceCloud is free to use, community funded, and the source code is available on Github under a GPL license.",
     "customTitle": "Custom everything",
     "customText": "Add new ability scores, skills, health-bars, and stats to your character. The entire sheet is under your control.",
-    "engineTitle": "Advanced Character Engine",
+    "engineTitle": "Advanced character engine",
     "engineText": "Characters are computed in real-time based on their equipment, features, and buffs.",
     "community": "Get involved in the DiceCloud community",
     "highlights": {
@@ -336,42 +372,59 @@
       "libraries": "Custom libraries of content",
       "discord": "Discord webhooks",
       "printing": "Printed character sheets"
-    }
+    },
+    "tableTitle": "Play at the table",
+    "tableText": "The party board shows the game master every character's hit points and conditions, the initiative order and whose turn it is, live as the players roll.",
+    "tableImage": "The party board: two characters with their hit points and conditions, beside the initiative order"
   },
   "library": {
     "browseCommunity": "Browse community libraries",
-    "addCollection": "Add Collection",
+    "addCollection": "Add collection",
     "subscribers": "{count} subscribers",
-    "notFound": "Library or Library Collection not found",
+    "notFound": "Library or library collection not found",
     "showSecondTree": "Show second library tree",
     "newLibrary": "New library",
-    "communityLibraries": "Community Libraries",
-    "newCollection": "New Collection",
+    "communityLibraries": "Community libraries",
+    "newCollection": "New collection",
     "libraries": "Libraries",
     "noLibrariesFound": "No libraries found",
-    "insertCollection": "Insert Collection",
+    "insertCollection": "Insert collection",
     "collectionOwner": "Collection owner",
     "nameLower": "name",
     "showInBrowser": "Show in community library browser",
     "collection": "Collection",
-    "newLibraryTitle": "New Library",
-    "insertLibrary": "Insert Library",
+    "newLibraryTitle": "New library",
+    "insertLibrary": "Insert library",
     "libraryOwner": "Library owner",
-    "recentlyDeleted": "Recently Deleted Properties",
+    "recentlyDeleted": "Recently deleted properties",
     "library": "Library",
-    "selectLibrary": "Select Library",
+    "selectLibrary": "Select library",
     "selectNewLocation": "Select new location",
-    "selectLibraryProperty": "Select Library Property",
+    "selectLibraryProperty": "Select library property",
     "subscribe": "Subscribe",
     "unsubscribe": "Unsubscribe",
-    "playersCantCreate": "Everyone can subscribe to libraries. Only admins can create them.",
     "searchCommunity": "Search libraries",
     "sortPopular": "Popular",
     "sortName": "Name",
     "singleLibrary": "Library",
     "subscribed": "Subscribed",
     "open": "Open",
-    "noCommunityMatch": "No library matches this search"
+    "noCommunityMatch": "No library matches this search",
+    "editCollection": "Edit {name}",
+    "openCollection": "Open {name}",
+    "emptyTitle": "No libraries yet",
+    "emptyText": "Libraries hold the races, classes, spells and items characters are built from. Subscribe to one from the community to start.",
+    "chooseProperty": "Choose a property",
+    "choosePropertyText": "Its details show here. Open the folders in the tree to find it.",
+    "language": "Language",
+    "languageAuto": "Not set (looks like {language})",
+    "languageUnknown": "Not set",
+    "languageAutoHint": "The community library browser filters by language. Without one, it guesses from the name and description.",
+    "languageFilter": "Language",
+    "allLanguages": "All languages",
+    "recommended": "Recommended",
+    "recommendedSwitch": "Recommended",
+    "recommendedHint": "Admins only: a badge on its card, and first in the community library browser and at character creation."
   },
   "maintenance": {
     "underMaintenance": "DiceCloud is currently under maintenance",
@@ -387,14 +440,14 @@
     "email": "Email",
     "username": "Username",
     "password": "Password",
-    "passwordAgain": "Password Again",
-    "newPassword": "New Password",
+    "passwordAgain": "Password again",
+    "newPassword": "New password",
     "usernameOrEmail": "Username or email",
     "register": "Register",
     "registerWithGoogle": "Register with Google",
-    "signIn": "Sign In",
+    "signIn": "Sign in",
     "signInWithGoogle": "Sign in with Google",
-    "resetPassword": "Reset Password",
+    "resetPassword": "Reset password",
     "nameRequired": "Name is required",
     "emailRequired": "E-mail is required",
     "emailInvalid": "E-mail must be valid",
@@ -417,8 +470,8 @@
     "disadvantage": "Disadvantage",
     "name": "Name",
     "import": "Import",
-    "loadMore": "Load More",
-    "showAll": "Show All",
+    "loadMore": "Load more",
+    "showAll": "Show all",
     "archive": "Archive",
     "restore": "Restore",
     "print": "Print",
@@ -447,10 +500,11 @@
     "shortRest": "Short rest",
     "longRest": "Long rest",
     "nameRequired": "Name is required",
-    "shortRestTitle": "Short Rest",
-    "longRestTitle": "Long Rest",
+    "shortRestTitle": "Short rest",
+    "longRestTitle": "Long rest",
     "edit": "Edit",
-    "deleted": "Deleted {name}"
+    "deleted": "Deleted {name}",
+    "removeItem": "Remove {name}"
   },
   "propertyTypes": {
     "action": {
@@ -470,7 +524,7 @@
       "helpText": "When a buff is activated as a child of an action, it will copy the properties under itself onto a target character."
     },
     "buffRemover": {
-      "name": "Remove Buff",
+      "name": "Remove buff",
       "helpText": "Removes a buff from the target character"
     },
     "branch": {
@@ -526,7 +580,7 @@
       "helpText": "Notes about your character and their adventures"
     },
     "pointBuy": {
-      "name": "Point Buy",
+      "name": "Point buy",
       "helpText": "A point buy table that allows the user to select an array of values that match a given cost"
     },
     "proficiency": {
@@ -582,11 +636,11 @@
   },
   "actionTypes": {
     "action": "Action",
-    "bonus": "Bonus Action",
+    "bonus": "Bonus action",
     "attack": "Attack",
     "reaction": "Reaction",
-    "free": "Free Action",
-    "long": "Long Action",
+    "free": "Free action",
+    "long": "Long action",
     "event": "Event"
   },
   "spellComponents": {
@@ -615,7 +669,9 @@
     "features": "Features",
     "journal": "Journal",
     "build": "Build",
-    "tree": "Tree"
+    "tree": "Tree",
+    "more": "More",
+    "moreWith": "More: {tab}"
   },
   "emptyTabs": {
     "actionsTitle": "No actions yet",
@@ -645,13 +701,13 @@
     "showTreeTab": "Show tree tab",
     "hitDiceMultiplier": "Hit Dice reset multiplier",
     "hitDiceMultiplierHint": "What fraction of your hit dice are reset every long rest",
-    "discordWebhook": "Discord Webhook URL",
+    "discordWebhook": "Discord webhook URL",
     "discordWebhookHint": "This creature's logs will be posted to the discord channel",
     "libraries": "Libraries",
     "allUserLibraries": "All user libraries",
     "debug": "Debug",
-    "dependencyGraph": "Dependency Graph",
-    "characterDetails": "Character Details"
+    "dependencyGraph": "Dependency graph",
+    "characterDetails": "Character details"
   },
   "castSpell": {
     "slot": "Slot",
@@ -669,13 +725,24 @@
     "check": "Check"
   },
   "newCharacter": {
-    "title": "New Character",
+    "title": "New character",
     "biography": "Biography",
     "level": "Level",
-    "defaultName": "New Character",
+    "defaultName": "New character",
     "nameRequired": "Name required",
     "color": "Colour",
-    "chooseLibraries": "Choose libraries"
+    "chooseLibraries": "Choose libraries",
+    "start": "Character",
+    "ruleset": "Ruleset",
+    "rulesetHint": "What the character is built from: its sheet, then its people, class and background to choose on the Build tab.",
+    "noRuleset": "No ruleset",
+    "noRulesetHint": "An empty sheet, to fill in yourself.",
+    "followed": "Subscribed",
+    "language": {
+      "en": "English",
+      "fr": "French"
+    },
+    "biographyLater": "Alignment, gender and pictures can wait: they are on the Journal tab."
   },
   "deleteCharacter": {
     "deleteForever": "Delete forever"
@@ -697,35 +764,45 @@
   "sheet": {
     "notFound": "Character not found",
     "notFoundText": "Either this character does not exist, or you don't have permission to view it.",
-    "buffOrCondition": "Buff or Condition",
+    "buffOrCondition": "Buff or condition",
     "owner": "Sheet owner",
     "unshareWithMe": "Unshare with me",
     "editDetails": "Edit details",
     "duplicate": "Duplicate",
     "download": "Download",
     "copyName": "{name} (copy)",
-    "duplicated": "{name} duplicated: this is the copy"
+    "duplicated": "{name} duplicated: this is the copy",
+    "characterMenu": "More options",
+    "toggleLog": "Show or hide the log",
+    "addProperty": "Add a property",
+    "valuesRecalculated": "{count} values recalculated",
+    "addBiography": "Add an alignment, a gender, pictures"
   },
   "build": {
     "slots": "Slots",
     "hiddenProperties": "{count} hidden property | {count} hidden properties",
     "level": "Level {level}",
-    "milestoneLevels": "{count} Milestone levels",
+    "milestoneLevels": "{count} milestone levels",
     "xp": "{xp} XP",
-    "getMissingLevels": "Get Missing Levels",
-    "levelUp": "Level Up",
+    "getMissingLevels": "Get missing levels",
+    "levelUp": "Level up",
     "experienceHistory": "Experience history",
     "choose": "Choose…",
     "chooseCount": "Choose {count}",
     "assignScores": "Assign scores",
     "hideCard": "Hide this card",
     "hideCardHint": "Hide this card: it stays in the hidden cards menu of the Slots card",
-    "progress": "{done} of {total} choices made",
-    "incomplete": "This character isn't finished: {count} choice left on the Build tab. | This character isn't finished: {count} choices left on the Build tab.",
-    "continueBuilding": "Continue building"
+    "progress": "Steps done: {done} of {total}",
+    "incomplete": "This character isn't finished: {count} step left on the Build tab. | This character isn't finished: {count} steps left on the Build tab.",
+    "continueBuilding": "Continue building",
+    "nextStep": "Next: {name}",
+    "steps": "Creation steps",
+    "stepDone": "{name}, done",
+    "stepToDo": "{name}, to do",
+    "stepLocked": "{name}, available after an earlier step"
   },
   "inventory": {
-    "weightCarried": "Weight Carried",
+    "weightCarried": "Weight carried",
     "netWorth": "Net worth",
     "itemsAttuned": "Items attuned",
     "equipped": "Equipped",
@@ -735,14 +812,15 @@
     "roll": "Roll {name}",
     "buffsAndConditions": "Buffs and conditions",
     "hitDice": "Hit Dice",
-    "savingThrows": "Saving Throws",
+    "savingThrows": "Saving throws",
     "skills": "Skills",
     "weapons": "Weapons",
     "armor": "Armor",
     "tools": "Tools",
     "languages": "Languages",
     "proficiencies": "Proficiencies",
-    "spellSlots": "Spell Slots"
+    "spellSlots": "Spell slots",
+    "changeHealth": "{name}: {value} of {total}. Change"
   },
   "tree": {
     "organize": "Organize"
@@ -754,7 +832,7 @@
   "printed": {
     "levelClass": "Level {level} {className}",
     "levelClasses": "Level {level} ({classes})",
-    "weightCarried": "Weight Carried: {weight} kg",
+    "weightCarried": "Weight carried: {weight}",
     "netWorth": "Net worth:",
     "itemsAttuned": "Items attuned: {count}",
     "totalLower": "total: {total}",
@@ -776,10 +854,10 @@
     "cantripOf": "{school} cantrip",
     "levelOf": "{levelText} {school}",
     "spellLevel": "level {level}",
-    "spellSaveDc": "Spell Save DC: {dc}",
+    "spellSaveDc": "Spell save DC: {dc}",
     "spellAbility": "Spell casting ability: {ability}",
     "spellAbilityMod": "Spell casting ability modifier: {mod}",
-    "spellAttackBonus": "Spell Attack Bonus: {bonus}",
+    "spellAttackBonus": "Spell attack bonus: {bonus}",
     "maxPrepared": "Maximum prepared spells: {count}",
     "castingTimeName": "Casting time"
   },
@@ -787,11 +865,11 @@
     "milestone": "Milestone",
     "levels": "Levels",
     "xp": "XP",
-    "addExperience": "Add Experience",
+    "addExperience": "Add experience",
     "experiences": "Experiences",
     "noExperiences": "No experiences",
     "oneMilestoneLevel": "1 Milestone level",
-    "milestoneLevels": "{count} Milestone levels",
+    "milestoneLevels": "{count} milestone levels",
     "amount": "{xp} XP",
     "members": "Characters",
     "cantEdit": "You can't edit this character",
@@ -804,11 +882,12 @@
   "slots": {
     "slotCount": "{count} slots",
     "requirementsNotMet": "{count} option hidden: its requirements aren't met | {count} options hidden: their requirements aren't met",
-    "closeTest": "Close Test",
+    "closeTest": "Close test",
     "withLibraryTags": "{type} with library tags:",
     "cantFind": "Can't find what you're looking for?",
     "browseCommunity": "Browse community libraries",
-    "createCustom": "Create custom filler"
+    "createCustom": "Create custom filler",
+    "openDetails": "Show details"
   },
   "coins": {
     "gp": "{value} gp",
@@ -834,7 +913,7 @@
     "accountHint": "Character sheets are computed in metres and kilograms. Feet and pounds use the D&D rules: 1.5 m = 5 ft, 1 lb = 0.5 kg. Distances written in descriptions stay in metres."
   },
   "components": {
-    "uploadImage": "Upload Image",
+    "uploadImage": "Upload image",
     "addImage": "Add image",
     "searchIcons": "Search icons"
   },
@@ -851,7 +930,7 @@
     "link": "Link",
     "canEdit": "Can edit",
     "viewOnly": "View only",
-    "transferOwnership": "Transfer Ownership",
+    "transferOwnership": "Transfer ownership",
     "alreadyOwner": "User is already the owner",
     "userNotFound": "User not found",
     "transferConfirm": "Are you sure you want to transfer ownership to {user}?",
@@ -863,8 +942,8 @@
   },
   "toolbar": {
     "duplicate": "Duplicate",
-    "copyTo": "Copy To",
-    "createReference": "Create Reference",
+    "copyTo": "Copy to",
+    "createReference": "Create reference",
     "move": "Move",
     "copyToLibrary": "Copy to library",
     "moveTitle": "Move"
@@ -883,7 +962,7 @@
     "title": "Help: {title}"
   },
   "deleteAccount": {
-    "title": "Delete User Account",
+    "title": "Delete user account",
     "areYouSure": "Are you sure you want to delete your account?",
     "cantRecover": "Deleted accounts can not be recovered",
     "immediately": "We will immediately delete your account and all of your data",
@@ -903,7 +982,13 @@
     "hideSilenced": "Hide the lines left out of the log",
     "natural20": "Natural 20",
     "natural1": "Natural 1",
-    "droppedDie": "Not counted"
+    "droppedDie": "Not counted",
+    "entries": "Log",
+    "rollInput": "Roll dice",
+    "quickDice": "Quick dice",
+    "rollDie": "Roll a {die}",
+    "advantageToggle": "Advantage on the next roll",
+    "rollPlaceholder": "1d20+4, 2d6…"
   },
   "icons": {
     "metadataJson": "Metadata JSON",
@@ -915,16 +1000,16 @@
     "log": "Log",
     "dontShowInLog": "Don't show in log",
     "targetCreature": "Target creature",
-    "actionTarget": "Action Target",
+    "actionTarget": "Action target",
     "self": "Self",
-    "singleTarget": "Single Target",
-    "multipleTargets": "Multiple Targets",
+    "singleTarget": "Single target",
+    "multipleTargets": "Multiple targets",
     "variableName": "Variable name",
     "variableNameAttributeHint": "Use this name in calculations to reference this attribute",
     "behavior": "Behavior",
     "children": "Children",
-    "resourcesConsumed": "Resources Consumed",
-    "limitUses": "Limit Uses",
+    "resourcesConsumed": "Resources consumed",
+    "limitUses": "Limit uses",
     "uses": "Uses",
     "usesHint": "How many times this action can be used before needing to be reset",
     "usesUsed": "Uses used",
@@ -951,7 +1036,7 @@
     "level": "Level",
     "text": "Text",
     "tags": "Tags",
-    "tagsRequired": "Tags Required",
+    "tagsRequired": "Tags required",
     "attributeLabel": "Attribute",
     "equipped": "Equipped",
     "carried": "Carried",
@@ -994,12 +1079,12 @@
       "quantityHint": "How much of the attribute will be consumed. If this amount is not available in the attribute, the action can't be taken"
     },
     "attribute": {
-      "baseValue": "Base Value",
+      "baseValue": "Base value",
       "baseValueHint": "This is the value of the attribute before effects are applied. Can be a number or a calculation",
-      "hitDiceSize": "Hit Dice Size",
+      "hitDiceSize": "Hit Dice size",
       "spellSlotLevel": "Spell slot level",
-      "healthBar": "Health Bar",
-      "damagedColors": "Damaged Colors",
+      "healthBar": "Health bar",
+      "damagedColors": "Damaged colors",
       "half": "Half",
       "empty": "Empty",
       "damageOrder": "Damage order",
@@ -1020,7 +1105,7 @@
       "hideWhenValueZero": "Hide when value is zero"
     },
     "branch": {
-      "branchType": "Branch Type",
+      "branchType": "Branch type",
       "conditionHint": "If this resolved to a true value, the child properties will be applied",
       "index": "Index",
       "indexHint": "Which child to apply. An index of 2 will choose the 2nd child."
@@ -1085,7 +1170,7 @@
     },
     "damage": {
       "damageHint": "A calculation including dice rolls of the damage to deal to the target when activated by an action",
-      "damageType": "Damage Type",
+      "damageType": "Damage type",
       "damageTypeHint": "Use the Healing type to restore hit points",
       "savingThrow": "Saving throw",
       "onSave": "Damage on successful save",
@@ -1096,7 +1181,7 @@
     },
     "damageMultiplier": {
       "multiplier": "Multiplier",
-      "damageTypes": "Damage Types",
+      "damageTypes": "Damage types",
       "applyByTag": "Apply by tag",
       "tagsRequired": "Tags required",
       "tagsRequiredHint": "Only apply to damage that has all of these tags",
@@ -1110,7 +1195,7 @@
       "statsHint": "Which stats will this effect apply to"
     },
     "effectOps": {
-      "base": "Base Value",
+      "base": "Base value",
       "add": "Add",
       "mul": "Multiply",
       "min": "Minimum",
@@ -1118,9 +1203,9 @@
       "set": "Set",
       "advantage": "Advantage",
       "disadvantage": "Disadvantage",
-      "passiveAdd": "Passive Bonus",
+      "passiveAdd": "Passive bonus",
       "fail": "Fail",
-      "conditional": "Conditional Benefit"
+      "conditional": "Conditional benefit"
     },
     "effectHelp": {
       "base": "Stats take their largest base value, and then apply all other effects",
@@ -1144,13 +1229,13 @@
       "groupOnCard": "Group children on a card",
       "hideChildren": "Hide children from their default locations",
       "tab": "Tab",
-      "statsTab": "Stats Tab",
-      "featuresTab": "Features Tab",
-      "actionsTab": "Actions Tab",
-      "spellsTab": "Spells Tab",
-      "inventoryTab": "Inventory Tab",
-      "journalTab": "Journal Tab",
-      "buildTab": "Build Tab",
+      "statsTab": "Stats tab",
+      "featuresTab": "Features tab",
+      "actionsTab": "Actions tab",
+      "spellsTab": "Spells tab",
+      "inventoryTab": "Inventory tab",
+      "journalTab": "Journal tab",
+      "buildTab": "Build tab",
       "location": "Location",
       "start": "Start",
       "afterEvents": "After events",
@@ -1186,7 +1271,7 @@
       "total": "Total available points",
       "totalHint": "The total allowed cost of all rows",
       "rows": "Rows",
-      "rowName": "Row Name",
+      "rowName": "Row name",
       "rowVariableHint": "Use this name in calculations to reference this row of the table",
       "defaultValue": "Default value",
       "defaultValueHint": "The starting value of the row",
@@ -1197,15 +1282,15 @@
       "skillsHint": "Which skills does this proficiency apply to"
     },
     "reference": {
-      "linked": "Linked Property"
+      "linked": "Linked property"
     },
     "resources": {
       "conditions": "Conditions",
       "attributes": "Attributes",
       "ammo": "Ammo",
-      "addCondition": "Add Condition",
-      "addResource": "Add Resource",
-      "addAmmo": "Add Ammo"
+      "addCondition": "Add condition",
+      "addResource": "Add resource",
+      "addAmmo": "Add ammo"
     },
     "roll": {
       "variableNameHint": "Use this name in action formulae to refer to the result of this roll",
@@ -1215,8 +1300,8 @@
     "skill": {
       "variableNameHint": "Use this name in formulae to reference this skill",
       "abilityHint": "Which ability is this skill based off of",
-      "baseValues": "Base Values",
-      "baseProficiency": "Base Proficiency",
+      "baseValues": "Base values",
+      "baseProficiency": "Base proficiency",
       "baseValueHint": "This is the value of the skill before effects are applied",
       "applySkill": "Apply skill",
       "applyToTags": "Apply skill to targeted tags"
@@ -1231,7 +1316,7 @@
       "uniqueHint": "Do the properties that fill this slot need to be unique?",
       "allowDuplicates": "Allow duplicate values",
       "test": "Test",
-      "testSlot": "Test Slot",
+      "testSlot": "Test slot",
       "ignored": "Ignored",
       "uniqueInSlot": "Each property inside this slot should be unique",
       "uniqueInCreature": "Properties in this slot should be unique across the whole character",
@@ -1245,10 +1330,10 @@
       "withoutSlots": "Cast without spell slots",
       "levelHint": "The spell level",
       "school": "School",
-      "castingTime": "Casting Time",
+      "castingTime": "Casting time",
       "range": "Range",
       "duration": "Duration",
-      "toHit": "To Hit",
+      "toHit": "To hit",
       "toHitHint": "The bonus to attack if this action has an attack roll",
       "summaryHint": "This will appear in the action card in the character sheet, summarise what the action does",
       "cantrip": "Cantrip",
@@ -1281,7 +1366,7 @@
       "event": "Event",
       "eventHint": "What causes this trigger to fire",
       "conditionHint": "A calculation to determine if this trigger should fire",
-      "eventType": "Event Type",
+      "eventType": "Event type",
       "eventTypeHint": "Which action event causes this trigger to fire"
     },
     "iconColor": {
@@ -1302,9 +1387,9 @@
       "slotQuantity": "Slot quantity filled",
       "slotQuantityHint": "How many properties this counts as when filling a slot",
       "conditionHint": "A caclulation to determine if this property can be added to a character",
-      "conditionErrorText": "Condition Error Text",
+      "conditionErrorText": "Condition error text",
       "conditionErrorTextHint": "Text to display if the condition isn't met",
-      "libraryTags": "Library Tags",
+      "libraryTags": "Library tags",
       "libraryTagsHint": "Used to let slots find this property in a library",
       "tagsHint": "Tags let other properties target this property with interactions",
       "childProperties": "Child properties",
@@ -1360,7 +1445,7 @@
     "timing": {
       "before": "Before",
       "after": "After",
-      "afterChildren": "After Children"
+      "afterChildren": "After children"
     },
     "actionPropertyType": {
       "action": "Action",
@@ -1368,7 +1453,7 @@
       "adjustment": "Trigger damage",
       "branch": "Branch",
       "buff": "Buff",
-      "buffRemover": "Buff Removed",
+      "buffRemover": "Buff removed",
       "damage": "Damage",
       "note": "Note",
       "roll": "Roll",
@@ -1463,11 +1548,11 @@
     "itemsConsumed": "Items consumed",
     "amount": "Amount",
     "target": "Target",
-    "valueTotal": "Value / Total",
+    "valueTotal": "Value / total",
     "value": "Value",
     "valueLower": "value",
     "modifier": "Modifier",
-    "variableName": "Variable Name",
+    "variableName": "Variable name",
     "variableNameLower": "Variable name",
     "attributeType": "Attribute type",
     "hitDiceSize": "Hit dice size",
@@ -1475,14 +1560,14 @@
     "spellSlotLevel": "Spell slot level",
     "overridden": "Overridden",
     "effects": "Effects",
-    "branchType": "Branch Type",
+    "branchType": "Branch type",
     "index": "Index",
     "whenApplied": "When applied",
     "removeAllMatching": "Remove all matching buffs",
     "removeOneMatching": "Remove 1 matching buff",
     "targetedTags": "Targeted tags",
     "duration": "Duration",
-    "missingLevels": "Missing Levels",
+    "missingLevels": "Missing levels",
     "calculation": "Calculation",
     "contentsWeightless": "Contents weightless",
     "damageTypes": "Damage types",
@@ -1502,9 +1587,9 @@
     "conditionResult": "Condition result",
     "fillWithType": "Fill with type",
     "fill": "Fill",
-    "fillSlot": "Fill Slot",
+    "fillSlot": "Fill slot",
     "spellcastingAbilityMod": "Spellcasting ability modifier",
-    "spellSaveDc": "Spell Save DC",
+    "spellSaveDc": "Spell save DC",
     "components": "Components",
     "materialWith": "Material ({material})",
     "state": "State",
@@ -1513,7 +1598,7 @@
     "deactivatedBy": "Deactivated by:",
     "deactivatedByAncestor": "Deactivated by ancestor",
     "deactivatedBySelf": "Deactivated by own settings",
-    "libraryBehavior": "Library Behavior",
+    "libraryBehavior": "Library behavior",
     "cantView": "This property can't be viewed yet.",
     "skill": "Skill",
     "overriddenText": "Overriden by another property with the same variable name",
@@ -1523,14 +1608,14 @@
     "uses": "{count} uses",
     "selectItem": "Select item",
     "noItemsWithTag": "No active items found with the tag \"{tag}\"",
-    "spellSlots": "Spell Slots",
+    "spellSlots": "Spell slots",
     "castASpell": "Cast a spell",
-    "castASpellTitle": "Cast a Spell",
+    "castASpellTitle": "Cast a spell",
     "cast": "Cast",
     "spellsPrepared": "{prepared}/{max} spells prepared",
     "changePrepared": "Change prepared spells",
     "noCondition": "No condition specified",
-    "pointBuy": "Point Buy"
+    "pointBuy": "Point buy"
   },
   "selector": {
     "suggested": "Suggested",
@@ -1541,6 +1626,117 @@
   },
   "spells": {
     "cantrips": "Cantrips",
-    "level": "Level {level}"
+    "level": "Level {level}",
+    "useSlot": "Use a slot: {name}",
+    "restoreSlot": "Restore a slot: {name}",
+    "slotsSaving": "Saving the spell slots"
+  },
+  "dice": {
+    "critical": "Critical!",
+    "fumble": "Critical miss",
+    "announce": "{title}: {results}.",
+    "announceUntitled": "Rolled {results}."
+  },
+  "increment": {
+    "add": "Add",
+    "subtract": "Subtract",
+    "value": "Value",
+    "apply": "Apply"
+  },
+  "logs": {
+    "criticalHit": "Critical hit!",
+    "criticalMiss": "Critical miss!",
+    "hit": "Hit!",
+    "miss": "Miss!",
+    "toHit": "To hit",
+    "withAdvantage": "{name} (Advantage)",
+    "withDisadvantage": "{name} (Disadvantage)",
+    "advantage": "Advantage",
+    "disadvantage": "Disadvantage",
+    "check": "Check",
+    "roll": "Roll",
+    "dc": "DC **{dc}**",
+    "saveSucceeded": "Successful save",
+    "saveFailed": "Failed save",
+    "saveError": "Saving throw error",
+    "noSave": "No saving throw found: {stat}",
+    "shortRest": "Short rest",
+    "longRest": "Long rest",
+    "nothingRestored": "Nothing to restore",
+    "restoredUse": "{name} **{change}** use",
+    "restoredUses": "{name} **{change}** uses",
+    "usesRestored": "Restored {count} uses",
+    "usesRemoved": "Removed {count} uses",
+    "usesLeft": "Uses left",
+    "attributeDamaged": "{type} damaged",
+    "attributeRestored": "{type} restored",
+    "attributeSet": "{name} set from {from} to {to}",
+    "attributeSetTo": "{name} set to {value}",
+    "damage": "Damage",
+    "healing": "Healing",
+    "damageAmount": "**{amount}** {type} damage",
+    "criticalDamageAmount": "**{amount}** critical {type} damage",
+    "healingAmount": "**{amount}** healing",
+    "damageAmountOnSave": "**{amount}** {type} damage on a successful save",
+    "halfOnSave": "**Half damage on successful save**",
+    "noneOnSave": "**No damage on successful save**",
+    "damageOnSave": "**Damage on successful save**",
+    "immune": "Immune to {type} damage",
+    "resistant": "Resistant to {type} damage",
+    "vulnerable": "Vulnerable to {type} damage",
+    "concentration": "Concentration",
+    "concentrationCheck": "Constitution saving throw, DC **{dc}**, to keep concentrating",
+    "removed": "Removed",
+    "error": "Error",
+    "warning": "Warning",
+    "notEnoughUses": "{name} does not have enough uses left",
+    "notEnoughResources": "This creature doesn't have sufficient resources to perform this action",
+    "noArmor": "Target has no `armor`",
+    "parseError": "Parse error",
+    "calculationError": "Calculation error",
+    "listItem": "- {item}",
+    "branchError": "Branch error",
+    "toggleError": "Toggle error",
+    "castSpellError": "Error casting spell",
+    "effect": "Effect",
+    "effectEnded": "Ended: its duration ran out",
+    "untypedDamageAmount": "**{amount}** damage"
+  },
+  "health": {
+    "change": "{name}",
+    "damage": "Damage",
+    "healing": "Healing",
+    "set": "Set",
+    "amount": "Amount",
+    "newValue": "New value",
+    "damageType": "Damage type (optional)",
+    "apply": "Apply",
+    "damageHint": "Temporary hit points go first, and the character's effects on damage apply.",
+    "healingHint": "Restores hit points, up to their maximum.",
+    "setHint": "This bar only, now {value}."
+  },
+  "conditions": {
+    "add": "Condition",
+    "title": "Conditions",
+    "none": "This character's libraries have no conditions.",
+    "loading": "Loading the conditions",
+    "remove": "Remove"
+  },
+  "languages": {
+    "en": "English",
+    "fr": "French"
+  },
+  "rest": {
+    "previewIntro": "This rest will restore:",
+    "previewLoading": "Working out what the rest restores",
+    "previewFailed": "What this rest restores could not be worked out. You can rest all the same.",
+    "previewNeedsInput": "It will ask you for choices along the way: the list stops there.",
+    "confirm": "Rest"
+  },
+  "levelUp": {
+    "title": "Level {level}",
+    "changed": "{name}: {from} → {to}",
+    "gained": "New: {name}",
+    "more": "And {count} more change | And {count} more changes"
   }
 }

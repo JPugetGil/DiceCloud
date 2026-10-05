@@ -1,13 +1,14 @@
 <template>
   <v-card
+    ref="cardElement"
     class="party-member-card fill-height d-flex flex-column"
-    :class="{ 'party-member-card--turn': hasTurn }"
+    :class="{ 'party-member-card--turn': hasTurn, 'party-member-card--turn-start': turnStarted }"
     :data-id="`party-member-${creature._id}`"
   >
     <v-card-item>
       <template #prepend>
         <v-avatar
-          :color="creature.color || 'primary-container'"
+          v-bind="creature.color ? userColorProps(creature.color) : { color: 'primary-container' }"
           variant="flat"
           size="44"
         >
@@ -45,47 +46,16 @@
     </v-card-item>
 
     <v-card-text class="d-flex flex-column ga-3 pt-0">
-      <div class="d-flex flex-wrap ga-2">
-        <v-chip
-          v-for="stat in stats"
-          :key="stat.key"
-          size="small"
-          variant="tonal"
-          :prepend-icon="stat.icon"
-        >
-          <span class="text-medium-emphasis me-1">{{ stat.label }}</span>
-          <strong>{{ stat.value }}</strong>
-        </v-chip>
-      </div>
+      <!-- The sheet's combat summary, compact (D1) -->
+      <combat-summary
+        :creature-id="creature._id"
+        compact
+      />
 
-      <div v-if="hitPoints">
-        <health-bar
-          v-if="canEdit"
-          :model="hitPoints"
-          @change="({ type, value, ack }) => incrementChange(hitPoints, { type, value, ack })"
-        />
-        <div
-          v-else
-          class="d-flex align-center ga-2"
-        >
-          <span class="text-body-medium">{{ hitPoints.name }}</span>
-          <health-bar-progress
-            :model="hitPoints"
-            class="flex-1-1"
-          />
-          <span class="text-body-medium">{{ hitPoints.value }} / {{ hitPoints.total }}</span>
-        </div>
-        <div
-          v-if="tempHitPoints"
-          class="text-body-small text-medium-emphasis mt-1"
-        >
-          {{ $t('party.tempHitPoints', { value: tempHitPoints.value }) }}
-        </div>
-      </div>
-
+      <!-- Its buffs and conditions, with how long each lasts; its editors give it more (UX10) -->
       <div
-        v-if="conditions.length"
-        class="d-flex flex-wrap ga-1"
+        v-if="conditions.length || canEdit"
+        class="d-flex flex-wrap align-center ga-1"
       >
         <v-menu
           v-for="condition in conditions"
@@ -93,10 +63,11 @@
           :disabled="!canEdit"
         >
           <template #activator="{ props: menuProps }">
+            <!-- A button that opens its menu: on a span without a role, aria-expanded means nothing -->
             <v-chip
-              v-bind="menuProps"
+              v-bind="{ ...menuProps, ...userColorProps(condition.color) }"
+              role="button"
               size="small"
-              :color="condition.color || undefined"
               :variant="condition.color ? 'flat' : 'outlined'"
               :prepend-icon="roundsLeft(condition) === undefined ? 'mdi-alert-circle-outline' : 'mdi-timer-sand'"
               :data-id="`party-condition-${condition._id}`"
@@ -124,8 +95,22 @@
               :data-id="`party-condition-duration-${option.rounds || 'none'}`"
               @click="setDuration(condition, option.rounds)"
             />
+            <!-- A rule above it as a border: a list may not hold an <hr> -->
+            <v-list-item
+              class="border-t mt-1"
+              :title="$t('conditions.remove')"
+              prepend-icon="mdi-close"
+              :data-id="`party-condition-remove-${condition._id}`"
+              @click="removeCondition(condition)"
+            />
           </v-list>
         </v-menu>
+        <condition-chips
+          v-if="canEdit"
+          layout="add"
+          :creature-id="creature._id"
+          :buffs="conditions"
+        />
       </div>
       <div
         v-else
@@ -138,7 +123,7 @@
 </template>
 
 <script setup>
-import { computed, provide, reactive } from 'vue';
+import { ref, computed, watch, provide, reactive } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import { useI18n } from 'vue-i18n';
@@ -146,13 +131,11 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { buffRoundsLeft } from '/imports/api/creature/creatureFolders/buffDurations';
 import setBuffDuration from '/imports/api/creature/creatureProperties/methods/setBuffDuration';
-import numberToSignedString from '/imports/api/utility/numberToSignedString';
-import HealthBar from '/imports/ui/properties/components/attributes/HealthBar.vue';
-import HealthBarProgress from '/imports/ui/properties/components/attributes/HealthBarProgress.vue';
-import doAction from '/imports/ui/creature/actions/doAction';
-import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
+import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
+import ConditionChips from '/imports/ui/properties/components/buffs/ConditionChips.vue';
+import CombatSummary from '/imports/ui/creature/character/CombatSummary.vue';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import useUnits from '/imports/ui/composables/useUnits';
+import userColorProps from '/imports/ui/utility/userColor';
 
 /**
  * One character on a party board: who they are, the stats a table needs at
@@ -169,7 +152,21 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { formatQuantity } = useUnits();
+
+// Their turn starts: the card pulses once and comes into view. Not when the
+// board loads
+const cardElement = ref(null);
+const turnStarted = ref(false);
+watch(() => props.hasTurn, hasTurn => {
+  turnStarted.value = false;
+  if (!hasTurn) return;
+  requestAnimationFrame(() => { turnStarted.value = true; });
+  // Below lg the turn bar sticks at the top of the board, Next with it
+  cardElement.value?.$el?.scrollIntoView?.({
+    block: 'nearest',
+    behavior: document.documentElement.classList.contains('reduce-motion') ? 'auto' : 'smooth',
+  });
+});
 
 const canEdit = autorun(() => hasEditPermission(props.creature, Meteor.user())).result;
 
@@ -192,25 +189,6 @@ const activeProperties = filter => CreatureProperties.find({
   ...filter,
 }, { sort: { left: 1 } }).fetch();
 
-const byVariable = autorun(() => {
-  const found = {};
-  activeProperties({ variableName: { $in: ['armor', 'speed', 'initiative', 'perception'] } })
-    .forEach(prop => { found[prop.variableName] ??= prop; });
-  return found;
-}).result;
-
-const healthBars = autorun(() => activeProperties({
-  type: 'attribute', attributeType: 'healthBar',
-})).result;
-
-const hitPoints = computed(() => {
-  const bars = healthBars.value || [];
-  return bars.find(bar => bar.variableName === 'hitPoints') || bars[0];
-});
-
-const tempHitPoints = computed(() => (healthBars.value || []).find(bar =>
-  /^temp(HP|HitPoints)$/i.test(bar.variableName || '') && bar.value > 0
-));
 
 const classText = autorun(() => activeProperties({ type: 'class' })
   .map(cls => cls.level ? `${cls.name} ${cls.level}` : cls.name)
@@ -232,6 +210,15 @@ function durationTitle(rounds) {
   return t('combat.rounds', { count: rounds }, rounds);
 }
 
+async function removeCondition(buff) {
+  try {
+    await softRemoveProperty.callAsync({ _id: buff._id });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  }
+}
+
 async function setDuration(buff, rounds) {
   try {
     await setBuffDuration.callAsync({ _id: buff._id, rounds });
@@ -240,59 +227,34 @@ async function setDuration(buff, rounds) {
     snackbar({ text: error.reason || error.message });
   }
 }
-
-const stats = computed(() => {
-  const found = byVariable.value || {};
-  const list = [];
-  if (found.armor) {
-    list.push({ key: 'armor', icon: 'mdi-shield-outline', label: t('party.armorClass'), value: found.armor.value });
-  }
-  if (found.initiative) {
-    list.push({ key: 'initiative', icon: 'mdi-lightning-bolt-outline', label: t('party.initiative'),
-      value: numberToSignedString(found.initiative.value ?? 0) });
-  }
-  if (found.perception) {
-    list.push({ key: 'perception', icon: 'mdi-eye-outline', label: t('party.passivePerception'),
-      value: 10 + (found.perception.value || 0) + (found.perception.passiveBonus || 0) });
-  }
-  if (found.speed) {
-    list.push({ key: 'speed', icon: 'mdi-run', label: t('party.speed'),
-      value: formatQuantity(found.speed.value, 'distance') });
-  }
-  return list;
-});
-
-// Damage and healing, as the Stats tab applies them
-async function incrementChange(model, { type, value, ack }) {
-  if (type === 'increment') value = -value;
-  await doAction({
-    creatureId: model.root.id,
-    elementId: `party-member-${props.creature._id}`,
-    task: {
-      subtaskFn: 'damageProp',
-      targetIds: [model.root.id],
-      params: {
-        title: getPropertyTitle(model),
-        operation: type,
-        value,
-        targetProp: model,
-      },
-    },
-  }).then(() => {
-    ack?.();
-  }).catch((error) => {
-    if (ack) {
-      ack(error);
-    } else {
-      snackbar({ text: error.reason || error.message || error.toString() });
-      console.error(error);
-    }
-  });
-}
 </script>
 
 <style scoped>
+.party-member-card {
+  /* Clear of the turn bar that sticks at the top of the board below lg */
+  scroll-margin-top: calc(var(--v-layout-top) + 72px);
+  outline: 3px solid transparent;
+  transition: outline-color var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
 .party-member-card--turn {
-  outline: 3px solid rgb(var(--v-theme-primary));
+  outline-color: rgb(var(--v-theme-primary));
+}
+
+.party-member-card--turn-start {
+  animation: party-member-turn var(--motion-duration-long) var(--motion-easing-emphasized-decelerate);
+}
+
+.reduce-motion .party-member-card--turn-start {
+  animation: none;
+}
+
+@keyframes party-member-turn {
+  from {
+    box-shadow: 0 0 0 0 rgba(var(--v-theme-primary), 0.6);
+  }
+  to {
+    box-shadow: 0 0 0 14px rgba(var(--v-theme-primary), 0);
+  }
 }
 </style>

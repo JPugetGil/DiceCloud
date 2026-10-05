@@ -8,7 +8,7 @@
       {{ effectIcon }}
     </v-icon>
     <div
-      class="text-no-wrap text-truncate"
+      class="tree-node-text"
     >
       <template v-if="model.name">
         {{ model.name }}

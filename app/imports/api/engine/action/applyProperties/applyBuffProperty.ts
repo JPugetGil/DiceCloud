@@ -156,7 +156,7 @@ async function crystallizeVariables(
             } else {
               // Can't strip if there isn't anything in the path after ~target
               result.appendLog({
-                name: 'Error',
+                name: 'Error', i18n: { name: { key: 'logs.error' } },
                 value: 'Variable `~target` should not be used without a property: ~target.property',
                 silenced: prop.silent,
               }, task.targetIds);

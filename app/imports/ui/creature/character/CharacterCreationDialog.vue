@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ $t('newCharacter.title') }}
       </v-toolbar-title>
-      <v-spacer />
       <color-picker
         v-model="color"
         no-color-change
@@ -24,7 +23,7 @@
             :complete="step > 1"
             :value="1"
             :rules="[() => biographyAlert || true]"
-            :title="$t('newCharacter.biography')"
+            :title="$t('newCharacter.start')"
             :subtitle="biographyAlert || undefined"
           />
           <v-divider />
@@ -45,16 +44,102 @@
               class="mt-1"
               :error="!name"
             />
-            <v-text-field
-              v-model="alignment"
-              variant="outlined"
-              :label="$t('creatureForm.alignment')"
-            />
-            <v-text-field
-              v-model="gender"
-              variant="outlined"
-              :label="$t('creatureForm.gender')"
-            />
+            <!--
+              What the character starts from (UX3): a card per ruleset, the one
+              in the interface's language chosen first. Choosing one the user
+              is not subscribed to subscribes them
+            -->
+            <div
+              :id="rulesetLabelId"
+              class="text-title-small"
+            >
+              {{ $t('newCharacter.ruleset') }}
+            </div>
+            <p class="text-body-small text-medium-emphasis mt-1 mb-3">
+              {{ $t('newCharacter.rulesetHint') }}
+            </p>
+            <div
+              v-if="rulesetsLoading"
+              class="d-flex justify-center pa-4"
+            >
+              <v-progress-circular
+                indeterminate
+                color="primary"
+              />
+            </div>
+            <div
+              v-else
+              class="ruleset-grid mb-4"
+              role="radiogroup"
+              :aria-labelledby="rulesetLabelId"
+              data-id="ruleset-choices"
+            >
+              <v-card
+                v-for="option in rulesetOptions"
+                :key="option.value"
+                :variant="rulesetChoice === option.value ? 'tonal' : 'outlined'"
+                :color="rulesetChoice === option.value ? 'primary' : undefined"
+                role="radio"
+                :aria-checked="rulesetChoice === option.value"
+                :data-id="`ruleset-${option.value}`"
+                @click="rulesetChoice = option.value"
+                @keydown.space.prevent="rulesetChoice = option.value"
+              >
+                <v-card-item>
+                  <template #prepend>
+                    <v-icon>
+                      {{ rulesetChoice === option.value ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+                    </v-icon>
+                  </template>
+                  <v-card-title class="text-title-medium text-wrap">
+                    {{ option.name }}
+                  </v-card-title>
+                  <v-card-subtitle
+                    v-if="option.subtitle"
+                    class="text-wrap"
+                  >
+                    {{ option.subtitle }}
+                  </v-card-subtitle>
+                </v-card-item>
+                <v-card-text class="pt-0">
+                  <p
+                    v-if="option.summary"
+                    class="text-body-small my-0 ruleset-summary"
+                  >
+                    {{ option.summary }}
+                  </p>
+                  <div
+                    v-if="option.language || option.followed || option.recommended"
+                    class="d-flex flex-wrap ga-1 mt-2"
+                  >
+                    <v-chip
+                      v-if="option.recommended"
+                      size="x-small"
+                      variant="flat"
+                      color="primary"
+                      prepend-icon="mdi-star"
+                    >
+                      {{ $t('library.recommended') }}
+                    </v-chip>
+                    <v-chip
+                      v-if="option.language"
+                      size="x-small"
+                      variant="outlined"
+                    >
+                      {{ $t(`newCharacter.language.${option.language}`) }}
+                    </v-chip>
+                    <v-chip
+                      v-if="option.followed"
+                      size="x-small"
+                      variant="outlined"
+                      prepend-icon="mdi-check"
+                    >
+                      {{ $t('newCharacter.followed') }}
+                    </v-chip>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
             <v-text-field
               v-model.number="startingLevel"
               variant="outlined"
@@ -62,30 +147,9 @@
               type="number"
               min="0"
             />
-            <v-row density="compact">
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <smart-image-input
-                  :label="$t('creatureForm.picture')"
-                  :hint="$t('creatureForm.pictureHint')"
-                  :model-value="picture"
-                  @change="(value, ack) => { picture = value; ack(); }"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <smart-image-input
-                  :label="$t('creatureForm.avatar')"
-                  :hint="$t('creatureForm.avatarHint')"
-                  :model-value="avatarPicture"
-                  @change="(value, ack) => { avatarPicture = value; ack(); }"
-                />
-              </v-col>
-            </v-row>
+            <p class="text-body-small text-medium-emphasis mt-0">
+              {{ $t('newCharacter.biographyLater') }}
+            </p>
           </v-stepper-window-item>
           <v-stepper-window-item :value="2">
             <v-switch
@@ -143,21 +207,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, useId, onMounted } from 'vue';
+import { Meteor } from 'meteor/meteor';
 import { subscribe } from 'vue-meteor-tracker';
+import listRulesets from '/imports/api/library/methods/listRulesets';
+import { preferredRuleset } from '/imports/api/library/rulesets';
 
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { union, without } from 'lodash';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import ColorPicker from '/imports/ui/components/ColorPicker.vue';
-import SmartImageInput from '/imports/ui/components/global/SmartImageInput.vue';
 import insertCreature from '/imports/api/creature/creatures/methods/insertCreature';
 import LibraryList from '/imports/ui/library/LibraryList.vue';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const appStore = useAppStore();
 
@@ -165,11 +231,49 @@ const emit = defineEmits(['pop']);
 
 const step = ref(1);
 const name = ref(t('newCharacter.defaultName'));
-const gender = ref('');
-const alignment = ref('');
-const picture = ref(undefined);
-const avatarPicture = ref(undefined);
 const color = ref(undefined);
+
+// The rulesets on offer, and the chosen one's node id ('none': an empty sheet)
+const rulesetLabelId = useId();
+const rulesets = ref([]);
+const rulesetsLoading = ref(true);
+const rulesetChoice = ref('none');
+const rulesetOptions = computed(() => [
+  ...rulesets.value.map(ruleset => ({
+    value: ruleset.nodeId,
+    name: ruleset.name,
+    subtitle: ruleset.rulesetName !== ruleset.name ? ruleset.rulesetName : undefined,
+    summary: ruleset.summary,
+    language: ruleset.language,
+    followed: ruleset.followed,
+    recommended: ruleset.recommended,
+  })),
+  { value: 'none', name: t('newCharacter.noRuleset'), summary: t('newCharacter.noRulesetHint') },
+]);
+const chosenRuleset = computed(() => rulesets.value.find(ruleset => ruleset.nodeId === rulesetChoice.value));
+
+onMounted(async () => {
+  try {
+    rulesets.value = await listRulesets.callAsync() || [];
+    rulesetChoice.value = preferredRuleset(rulesets.value, locale.value)?.nodeId || 'none';
+  } catch (error) {
+    console.error(error);
+  } finally {
+    rulesetsLoading.value = false;
+  }
+});
+
+// Subscribes the user to the chosen ruleset's collection (or library), if needed
+async function followRuleset(ruleset) {
+  if (!ruleset || ruleset.followed) return;
+  if (ruleset.collectionId) {
+    await Meteor.users.subscribeToLibraryCollection.callAsync({
+      libraryCollectionId: ruleset.collectionId, subscribe: true,
+    });
+  } else {
+    await Meteor.users.subscribeToLibrary.callAsync({ libraryId: ruleset.libraryId, subscribe: true });
+  }
+}
 const startingLevel = ref(1);
 const librariesSelected = ref([]);
 const libraryCollectionsSelected = ref([]);
@@ -218,20 +322,24 @@ function selectLibraryCollection(libraryCollectionId, val) {
 
 async function submit(){
   creating.value = true;
+  const ruleset = chosenRuleset.value;
   let char = {
     name: name.value,
-    gender: gender.value,
-    alignment: alignment.value,
     startingLevel: startingLevel.value,
+    ...ruleset ? { rulesetId: ruleset.nodeId } : { withoutRuleset: true },
   };
-  if (picture.value) char.picture = picture.value;
-  if (avatarPicture.value) char.avatarPicture = avatarPicture.value;
   if (color.value) char.color = color.value;
   if (!allSubscribedLibraries.value) {
-    char.allowedLibraries = librariesSelected.value;
-    char.allowedLibraryCollections = libraryCollectionsSelected.value;
+    // The chosen ruleset's libraries come with it
+    char.allowedLibraries = ruleset && !ruleset.collectionId
+      ? union(librariesSelected.value, [ruleset.libraryId])
+      : librariesSelected.value;
+    char.allowedLibraryCollections = ruleset?.collectionId
+      ? union(libraryCollectionsSelected.value, [ruleset.collectionId])
+      : libraryCollectionsSelected.value;
   }
   try {
+    await followRuleset(ruleset);
     const creatureId = await insertCreature.callAsync(char);
     appStore.setTabForCharacterSheet({id: creatureId, tab: 'build'});
     // The opener goes to the new sheet: closing a dialog steps back in the
@@ -250,3 +358,19 @@ async function submit(){
   }
 }
 </script>
+
+<style scoped>
+.ruleset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
+}
+
+/* Two lines of a collection's description, at most */
+.ruleset-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

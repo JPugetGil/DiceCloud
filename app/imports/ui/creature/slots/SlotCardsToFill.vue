@@ -1,34 +1,68 @@
 <template>
   <div class="w-100">
+    <!--
+      The build in named steps, the library's (UX12): done, to do, or locked
+      until an earlier one is. A step to do scrolls to the card waiting in it
+    -->
     <div
-      v-if="progress?.total && progress.done < progress.total"
-      class="d-flex align-center ga-3 px-2 pt-2 pb-1"
+      v-if="progress?.left"
+      class="px-2 pt-2 pb-1"
       data-id="build-progress"
     >
-      <v-progress-linear
-        :model-value="progress.done / progress.total * 100"
-        :aria-label="$t('build.progress', progress)"
-        color="primary"
-        height="8"
-        rounded
-        class="flex-1-1"
-      />
-      <span class="text-body-medium text-medium-emphasis text-no-wrap">
-        {{ $t('build.progress', progress) }}
-      </span>
+      <div class="d-flex align-center ga-3">
+        <v-progress-linear
+          :model-value="progress.done / progress.total * 100"
+          :aria-label="$t('build.progress', progress)"
+          color="primary"
+          height="8"
+          rounded
+          class="flex-1-1"
+        />
+        <span class="text-body-medium text-medium-emphasis text-no-wrap">
+          {{ $t('build.progress', progress) }}
+        </span>
+      </div>
+      <ol
+        class="build-steps d-flex flex-wrap ga-2 mt-2 pa-0"
+        :aria-label="$t('build.steps')"
+        data-id="build-steps"
+      >
+        <li
+          v-for="(step, index) in progress.steps"
+          :key="step._id"
+        >
+          <v-chip
+            size="small"
+            :variant="step.done ? 'tonal' : step.locked ? 'text' : 'outlined'"
+            :color="step.done ? 'success' : step === progress.next ? 'primary' : undefined"
+            :prepend-icon="step.done ? 'mdi-check' : step.locked ? 'mdi-lock-outline' : undefined"
+            :class="{ 'text-medium-emphasis': step.locked }"
+            v-bind="step.waitingId ? { role: 'button', link: true } : {}"
+            :data-id="`build-step-${step._id}`"
+            v-on="step.waitingId ? { click: () => showCard(step.waitingId) } : {}"
+          >
+            <!-- Read as "2. Race, to do": a chip without a role may not take a label -->
+            <span aria-hidden="true">
+              <span
+                v-if="!step.done && !step.locked"
+                class="build-steps__number me-1"
+              >{{ index + 1 }}</span>{{ step.name }}
+            </span>
+            <span class="d-sr-only">{{ stepLabel(step, index) }}</span>
+          </v-chip>
+        </li>
+      </ol>
     </div>
-    <!-- A grid, not columns: cards read left to right in the library's order -->
-    <v-fade-transition
-      group
-      tag="div"
-      leave-absolute
-      hide-on-leave
-      class="slot-card-grid"
-    >
+    <!--
+      A grid, not columns: cards read left to right in the library's order.
+      No transition group, which measured every card at each server update:
+      a card that arrives once the tab has loaded fades in by itself
+    -->
+    <div class="slot-card-grid">
       <div
         v-for="pointBuy in pointBuys"
         :key="pointBuy._id"
-        style="transition: all 0.3s"
+        :class="{ 'slot-card--new': isNew(pointBuy._id) }"
       >
         <point-buy-card
           :model="pointBuy"
@@ -40,16 +74,17 @@
       <div
         v-for="slot in slots"
         :key="slot._id"
-        style="transition: all 0.3s"
+        :class="{ 'slot-card--new': isNew(slot._id) }"
+        :data-slot-card="slot._id"
       >
         <slot-card :model="slot" />
       </div>
-    </v-fade-transition>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import { inject, onMounted } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import SlotCard from '/imports/ui/creature/slots/SlotCard.vue';
@@ -59,6 +94,7 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import useBuildProgress from '/imports/ui/composables/useBuildProgress';
+import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
 
@@ -103,8 +139,25 @@ const slots = autorun(() => {
   return [...slots.filter(expectsChoice), ...slots.filter(slot => !expectsChoice(slot))];
 }).result;
 
-// The choices made so far, shown above the cards
+// The steps of the build, shown above the cards
 const progress = useBuildProgress(() => context.creatureId);
+const { t } = useI18n();
+
+function stepLabel(step, index) {
+  const name = `${index + 1}. ${step.name}`;
+  if (step.done) return t('build.stepDone', { name });
+  if (step.locked) return t('build.stepLocked', { name });
+  return t('build.stepToDo', { name });
+}
+
+// A step's card: brought into view, and its button focused
+function showCard(slotId) {
+  const card = document.querySelector(`[data-slot-card="${slotId}"]`);
+  if (!card) return;
+  const reduced = document.documentElement.classList.contains('reduce-motion');
+  card.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
+  card.querySelector('button, [tabindex="0"], a')?.focus({ preventScroll: true });
+}
 
 const pointBuys = autorun(() => {
   return CreatureProperties.find({
@@ -115,6 +168,15 @@ const pointBuys = autorun(() => {
     inactive: {$ne: true},
   }).fetch();
 }).result;
+
+// The cards shown when the tab loaded: only those that come later animate
+const loadedIds = new Set();
+let loaded = false;
+onMounted(() => {
+  [...(pointBuys.value || []), ...(slots.value || [])].forEach(doc => loadedIds.add(doc._id));
+  loaded = true;
+});
+const isNew = id => loaded && !loadedIds.has(id);
 
 async function ignoreProp(_id) {
   try {
@@ -142,6 +204,15 @@ function editPointBuy(_id) {
 </script>
 
 <style scoped>
+.build-steps {
+  list-style: none;
+}
+
+.build-steps__number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .slot-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
@@ -156,5 +227,15 @@ function editPointBuy(_id) {
 
 .slot-card-grid > div > * {
   flex: 1 1 auto;
+}
+
+.slot-card--new {
+  animation: slot-card-in var(--motion-duration-medium) var(--motion-easing-standard);
+}
+
+@keyframes slot-card-in {
+  from {
+    opacity: 0;
+  }
 }
 </style>

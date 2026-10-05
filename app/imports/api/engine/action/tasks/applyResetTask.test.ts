@@ -60,7 +60,7 @@ const multiclassCreature: TestCreature = {
   ],
 };
 
-async function rest(targetId: string, eventName: string) {
+async function rest(targetId: string, eventName: string, withMessages = false) {
   const actionId = await EngineActions.insertAsync({
     creatureId: targetId,
     results: [],
@@ -70,7 +70,7 @@ async function rest(targetId: string, eventName: string) {
   const action = await EngineActions.findOneAsync(actionId);
   if (!action) throw 'Action is expected to exist';
   await applyAction(action, inputProvider, { simulate: true });
-  return allLogContent(action);
+  return allLogContent(action, { withMessages });
 }
 
 describe('Rest summary', function () {
@@ -85,7 +85,7 @@ describe('Rest summary', function () {
 
   it('lists what a long rest restored under its title, and silences each change', async function () {
     const [title, ...changes] = await rest(creatureId, 'longRest');
-    assert.equal(title.name, 'Long Rest');
+    assert.equal(title.name, 'Long rest');
     assert.equal(title.value, [
       '- Hit Points **+12** (30/30)',
       '- Ki **+3** (3/3)',
@@ -98,7 +98,20 @@ describe('Rest summary', function () {
 
   it('says when a rest had nothing to restore', async function () {
     const contents = await rest(restedCreatureId, 'shortRest');
-    assert.deepEqual(contents, [{ name: 'Short Rest', value: 'Nothing to restore' }]);
+    assert.deepEqual(contents, [{ name: 'Short rest', value: 'Nothing to restore' }]);
+  });
+
+  it('keeps the messages that translate the summary (UX5)', async function () {
+    const [nothing] = await rest(restedCreatureId, 'shortRest', true);
+    assert.deepEqual(nothing.i18n, { name: { key: 'logs.shortRest' }, value: [{ key: 'logs.nothingRestored' }] });
+    const [title] = await rest(creatureId, 'longRest', true);
+    assert.equal(title.i18n?.name?.key, 'logs.longRest');
+    // An attribute's line stays as written (its name is the library's), a use is a message
+    const parts: any[] = title.i18n?.value || [];
+    assert.include(parts, '- Hit Points **+12** (30/30)');
+    assert.deepInclude(parts, {
+      key: 'logs.listItem', params: { item: { key: 'logs.restoredUse', params: { name: 'Second Wind', change: '+1' } } },
+    });
   });
 
   it('restores smaller hit dice when the larger ones are all there', async function () {

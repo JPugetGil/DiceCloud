@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ model && model.name }}
       </v-toolbar-title>
-      <v-spacer />
       <v-btn
         variant="text"
         icon
@@ -61,6 +60,11 @@
         :label="$t('library.showInBrowser')"
         @change="updateShowInMarket"
       />
+      <library-language-fields
+        collection="libraries"
+        :model="model"
+        :can-edit="canEdit"
+      />
     </template>
     <template v-if="removedDocs && removedDocs.length">
       <h3 class="my-0">
@@ -110,6 +114,8 @@ import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
+import LibraryLanguageFields from '/imports/ui/library/LibraryLanguageFields.vue';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import Libraries, { updateLibraryName, updateLibraryDescription, updateLibraryShowInMarket, removeLibrary } from '/imports/api/library/Libraries';
 import LibraryNodes, { restoreLibraryNode } from '/imports/api/library/LibraryNodes';
 import TreeNodeView from '/imports/ui/properties/treeNodeViews/TreeNodeView.vue';
@@ -142,6 +148,8 @@ const removedDocs = autorun(() => LibraryNodes.find({
 }, {
   sort: { left: 1 },
 })).result;
+
+const canEdit = autorun(() => !!model.value && hasEditPermission(model.value, Meteor.user())).result;
 
 const isOwner = autorun(() => {
   if (!model.value) return;

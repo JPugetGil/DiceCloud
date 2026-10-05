@@ -11,8 +11,10 @@ import '/imports/api/users/methods/setUserRole';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { DISTANCE_UNITS, WEIGHT_UNITS } from '/imports/api/utility/units';
-const defaultLibraries = process.env.DEFAULT_LIBRARIES && process.env.DEFAULT_LIBRARIES.split(',') || [];
-const defaultLibraryCollections = process.env.DEFAULT_LIBRARY_COLLECTIONS && process.env.DEFAULT_LIBRARY_COLLECTIONS.split(',') || [];
+// What a new account is subscribed to: comma-separated ids (deploy/.env.example)
+const idList = value => (value || '').split(',').map(id => id.trim()).filter(Boolean);
+const defaultLibraries = idList(process.env.DEFAULT_LIBRARIES);
+const defaultLibraryCollections = idList(process.env.DEFAULT_LIBRARY_COLLECTIONS);
 
 const userSchema = new SimpleSchema({
   username: {
@@ -109,8 +111,10 @@ const userSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
-  // No dice thrown across the sheet: the rolls stay in the log
-  'preferences.disableDiceAnimation': {
+  // Animations reduced whatever the system asks: no movement, short fades
+  // (useReducedMotion). Unset: as the system asks. Replaces
+  // `disableDiceAnimation`, moved over at startup (below)
+  'preferences.reduceMotion': {
     type: Boolean,
     optional: true,
   },
@@ -256,6 +260,19 @@ Meteor.users.setPreference = new ValidatedMethod({
 });
 
 if (Meteor.isServer) {
+  // `disableDiceAnimation` became the Animations preference: accounts that
+  // turned the dice off get reduced animations. Idempotent, there is no
+  // migration framework (the old field is no longer in the schema)
+  Meteor.startup(async () => {
+    const options = { multi: true, bypassCollection2: true };
+    await Meteor.users.updateAsync({ 'preferences.disableDiceAnimation': true }, {
+      $set: { 'preferences.reduceMotion': true },
+    }, options);
+    await Meteor.users.updateAsync({ 'preferences.disableDiceAnimation': { $exists: true } }, {
+      $unset: { 'preferences.disableDiceAnimation': 1 },
+    }, options);
+  });
+
   Accounts.onCreateUser(async (options, user) => {
     if (defaultLibraries?.length) {
       await Libraries.updateAsync({

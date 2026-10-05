@@ -1,0 +1,15 @@
+/*
+ * What Vuetify's components expose to screen readers, where Vuetify gets it
+ * wrong (checked by tests/e2e/checks/accessibility.js).
+ *
+ * A tooltip that has opened once, or was booted by its activator, keeps its
+ * overlay (role="tooltip") in the page with its text hidden: a tooltip with no
+ * name for assistive technologies. Hidden while it is closed, it is left out
+ * of the accessibility tree; its activator's aria-describedby still reads its
+ * text. It then closes without fading.
+ */
+@layer vuetify-overrides {
+  .v-tooltip.v-overlay:not(.v-overlay--active) {
+    display: none;
+  }
+}

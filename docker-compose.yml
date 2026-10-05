@@ -24,5 +24,9 @@ services:
       # SMTP server for password reset and email verification messages. Without
       # it, Meteor prints those emails in the server log instead of sending them
       # - MAIL_URL=smtps://<user>:<password>@<smtp server>:465
+      # Library collections and libraries a new account is subscribed to, so
+      # that it can build a character at once (comma-separated ids)
+      # - DEFAULT_LIBRARY_COLLECTIONS=<id>,<id>
+      # - DEFAULT_LIBRARIES=<id>
     ports:
       - '3000:3000' #The internal port should match the port set in the environmental variables

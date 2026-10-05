@@ -9,9 +9,7 @@
     <v-toolbar
       flat
       :style="`transform: none; ${hasToolbarClickListener ? 'cursor: pointer;' : ''}`"
-      :class="{}"
-      :color="transparentToolbar ? undefined : color"
-      :theme="transparentToolbar ? undefined : isDark ? 'dark' : 'light'"
+      v-bind="transparentToolbar ? {} : userSurface(color)"
       @click="$emit('toolbarclick')"
       @mouseover="hoverToolbar(true)"
       @mouseleave="hoverToolbar(false)"
@@ -27,9 +25,12 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import getThemeColor from '/imports/ui/utility/getThemeColor';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 
 defineEmits(['click', 'toolbarclick']);
@@ -57,7 +58,6 @@ const props = defineProps({
 
 const hovering = ref(false);
 
-const isDark = computed(() => isDarkColor(props.color));
 const hasClickListener = computed(() => !!props.onClick);
 const hasToolbarClickListener = computed(() => !!props.onToolbarclick);
 

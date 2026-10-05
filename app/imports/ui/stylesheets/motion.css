@@ -1,0 +1,85 @@
+/*
+ * Motion tokens (DESIGN_SYSTEM.md, "Motion"): Material 3's durations and
+ * easing curves. Every transition or animation the app writes takes its
+ * duration and curve from here; `imports/ui/utility/motion.js` holds the same
+ * values for animations started from scripts (Web Animations).
+ */
+:root {
+  /* Small things: a chip, an icon, a fade */
+  --motion-duration-short: 150ms;
+  /* Medium: a row moving, a card appearing, a value changing */
+  --motion-duration-medium: 250ms;
+  /* Large: a dialog, a sheet, a long path */
+  --motion-duration-long: 400ms;
+  /* Starts and ends on screen */
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* Enters the screen: fast, then settles */
+  --motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* Leaves the screen: slow, then gone */
+  --motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+
+/*
+ * Reduced motion: `reduce-motion` on the root (useReducedMotion, set from the
+ * account's Animations preference or the system's). Nothing moves or changes
+ * size; Vuetify's transitions become fades of at most 150ms. The app's own
+ * animations check the preference themselves.
+ */
+.reduce-motion [class*="-transition-enter-active"],
+.reduce-motion [class*="-transition-leave-active"],
+.reduce-motion [class*="-transition-move"] {
+  transition-property: opacity !important;
+  transition-duration: var(--motion-duration-short) !important;
+  transition-delay: 0ms !important;
+}
+
+.reduce-motion [class*="-transition-enter-from"],
+.reduce-motion [class*="-transition-leave-to"] {
+  transform: none !important;
+}
+
+/*
+ * A value the server recalculated (ValueChange.vue): tinted, then faded back,
+ * over 1.2s, with ▲ or ▼. Reduced animations: the tint stays still, then goes
+ */
+.value-change {
+  border-radius: 4px;
+}
+
+.value-change--active {
+  animation: value-change 1200ms var(--motion-easing-standard);
+}
+
+.value-change__arrow {
+  margin-inline-start: 2px;
+  font-size: 0.55em;
+  vertical-align: super;
+  animation: value-change-arrow 1200ms var(--motion-easing-standard) forwards;
+}
+
+.reduce-motion .value-change--active {
+  animation: none;
+  background-color: rgba(var(--v-theme-primary), 0.16);
+}
+
+.reduce-motion .value-change__arrow {
+  animation: none;
+}
+
+@keyframes value-change {
+  0%, 50% {
+    background-color: rgba(var(--v-theme-primary), 0.16);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes value-change-arrow {
+  0%, 60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

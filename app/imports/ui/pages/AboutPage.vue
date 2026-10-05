@@ -2,6 +2,7 @@
   <div>
     <section>
       <v-parallax
+        alt=""
         src="/images/paper-dice-crown.webp"
         height="300"
       >
@@ -40,6 +41,7 @@
             <template #prepend>
               <v-avatar>
                 <v-img
+                  alt=""
                   cover
                   :src="`/images/paragons/${paragon.avatar}.png`"
                 />

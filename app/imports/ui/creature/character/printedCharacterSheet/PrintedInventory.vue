@@ -1,5 +1,7 @@
 <template>
+  <!-- Nothing carried, nothing printed: no page of empty boxes (D9) -->
   <div
+    v-if="!isEmpty"
     class="inventory"
   >
     <div class="double-border my-2">
@@ -8,7 +10,7 @@
       </div>
       <div class="d-flex inventory-stat">
         <v-icon>$injustice</v-icon>
-        {{ $t('printed.weightCarried', { weight: weightCarried }) }}
+        {{ $t('printed.weightCarried', { weight: formatQuantity(weightCarried, 'weight') }) }}
       </div>
       <div class="d-flex inventory-stat">
         <v-icon>$cash</v-icon>
@@ -26,7 +28,10 @@
         {{ $t('printed.itemsAttuned', { count: variables.itemsAttuned && variables.itemsAttuned.value }) }}
       </div>
     </div>
-    <div class="double-border my-2">
+    <div
+      v-if="equippedItems?.length"
+      class="double-border my-2"
+    >
       <div class="label text-center">
         {{ $t('inventory.equipped') }}
       </div>
@@ -38,7 +43,10 @@
         />
       </column-layout>
     </div>
-    <div class="double-border my-2">
+    <div
+      v-if="carriedItems?.length"
+      class="double-border my-2"
+    >
       <div class="label text-center">
         {{ $t('inventory.carried') }}
       </div>
@@ -80,6 +88,7 @@ import PrintedItem from '/imports/ui/creature/character/printedCharacterSheet/co
 import PrintedContainer from '/imports/ui/creature/character/printedCharacterSheet/components/PrintedContainer.vue';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import useUnits from '/imports/ui/composables/useUnits';
 
 
 const props = defineProps({
@@ -154,6 +163,12 @@ const equippedItems = autorun(() => CreatureProperties.find({
 }).fetch()).result;
 
 
+
+// In the user's units, as on the sheet
+const { formatQuantity } = useUnits();
+
+const isEmpty = computed(() => !equippedItems.value?.length && !carriedItems.value?.length
+  && !containers.value?.length);
 
 const weightCarried = computed(() => {
   return stripFloatingPointOddities(

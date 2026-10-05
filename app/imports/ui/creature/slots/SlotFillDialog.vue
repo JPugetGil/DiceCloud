@@ -7,11 +7,12 @@
       <v-toolbar-title>
         {{ model?.name }}
       </v-toolbar-title>
-      <v-spacer />
       <v-text-field
+        v-if="!xs"
         v-model="searchInput"
         prepend-inner-icon="mdi-magnify"
         :placeholder="$t('common.search')"
+        :aria-label="$t('common.search')"
         clearable
         hide-details
         class="flex-grow-0"
@@ -33,6 +34,24 @@
           :text="slotFilterText"
         />
       </v-btn>
+    </template>
+    <!-- On a phone the search takes a row of its own: beside it the slot's name had no room -->
+    <template
+      v-if="xs"
+      #toolbar-extension
+    >
+      <v-text-field
+        v-model="searchInput"
+        prepend-inner-icon="mdi-magnify"
+        :placeholder="$t('common.search')"
+        :aria-label="$t('common.search')"
+        clearable
+        hide-details
+        class="mx-4"
+        :loading="searchLoading"
+        @keyup.enter="applySearch.flush()"
+        @click:clear="searchValue = undefined"
+      />
     </template>
     <property-description
       text
@@ -68,7 +87,8 @@
           >
             <v-expansion-panel-title>
               <template #default="{ open }">
-                <div class="d-flex align-center flex-grow-0 mr-2">
+                <!-- Never squeezed: the box ran into the name on phones -->
+                <div class="d-flex align-center flex-grow-0 flex-shrink-0 mr-2">
                   <v-checkbox
                     v-if="libraryNode._disabledByAlreadyAdded"
                     class="my-0 py-0"
@@ -88,7 +108,7 @@
                   />
                 </div>
                 <div class="d-flex flex-1-1 flex-column filler-text">
-                  <div class="d-flex flex-1-1 align-center ga-2 filler-text">
+                  <div class="d-flex flex-1-1 flex-wrap align-center gc-2 filler-text">
                     <tree-node-view
                       :model="libraryNode"
                       class="flex-grow-0"
@@ -100,7 +120,7 @@
                       {{ libraryNode._conditionError }}
                     </div>
                     <v-spacer />
-                    <div class="text-label-small text-medium-emphasis text-no-wrap text-truncate flex-shrink-1">
+                    <div class="filler-library text-label-small text-medium-emphasis text-no-wrap text-truncate flex-shrink-1">
                       {{ libraryNames?.[libraryNode.root.id ] }}
                     </div>
                   </div>
@@ -126,6 +146,7 @@
                     variant="text"
                     icon
                     class="flex-grow-0"
+                    :aria-label="$t('slots.openDetails')"
                     @click.stop="openPropertyDetails(libraryNode._id)"
                   >
                     <v-icon>mdi-window-restore</v-icon>
@@ -249,8 +270,10 @@ import insertPropertyFromLibraryNode from '/imports/api/creature/creaturePropert
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useI18n } from 'vue-i18n';
+import { useDisplay } from 'vuetify';
 
 const { t } = useI18n();
+const { xs } = useDisplay();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -567,6 +590,13 @@ function insertCustomFiller() {
 
 .filler-text {
   min-width: 0;
+}
+
+/* On a phone the library goes under the name, which kept two letters beside it */
+@media (max-width: 599.98px) {
+  .filler-library {
+    flex-basis: 100%;
+  }
 }
 </style>
 

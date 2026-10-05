@@ -28,7 +28,7 @@ export default async function applyCreatureTemplateProperty(
   }, []);
 
   result.appendLog({
-    name: 'Warning',
+    name: 'Warning', i18n: { name: { key: 'logs.warning' } },
     value: 'Creature summoning is not yet implemented...',
     silenced: prop.silent,
   }, []);

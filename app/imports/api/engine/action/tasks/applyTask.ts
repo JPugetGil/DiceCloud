@@ -1,5 +1,5 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import Task, { CheckTask, DamagePropTask, ItemAsAmmoTask, PropTask } from './Task';
+import Task, { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask } from './Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyDamagePropTask from '/imports/api/engine/action/tasks/applyDamagePropTask';
 import applyItemAsAmmoTask from '/imports/api/engine/action/tasks/applyItemAsAmmoTask';
@@ -9,6 +9,7 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import applyCheckTask from '/imports/api/engine/action/tasks/applyCheckTask';
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellTask';
+import applyDealDamageTask from '/imports/api/engine/action/tasks/applyDealDamageTask';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import { Meteor } from 'meteor/meteor';
 
@@ -19,7 +20,7 @@ export default async function applyTask(
 
 // Other tasks promise nothing
 export default async function applyTask(
-  action: EngineAction, task: PropTask | ItemAsAmmoTask | CheckTask, inputProvider: InputProvider
+  action: EngineAction, task: PropTask | ItemAsAmmoTask | CheckTask | DealDamageTask, inputProvider: InputProvider
 ): Promise<void>
 
 export default async function applyTask(
@@ -53,6 +54,8 @@ export default async function applyTask(
         return await applyResetTask(task, action, result, inputProvider);
       case 'castSpell':
         return await applyCastSpellTask(task, action, result, inputProvider);
+      case 'dealDamage':
+        return await applyDealDamageTask(task, action, result, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }
@@ -83,7 +86,7 @@ export default async function applyTask(
     // Apply the property
     if (!applyProperties[prop.type]) {
       result.appendLog({
-        name: 'Warning',
+        name: 'Warning', i18n: { name: { key: 'logs.warning' } },
         value: `Could not apply ${getPropertyName(prop.type)}, only certain properties can be run as part of an action`,
         silenced: false,
       }, task.targetIds);

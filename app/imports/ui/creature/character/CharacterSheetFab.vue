@@ -23,9 +23,10 @@
           size="small"
           data-id="insert-creature-property-fab"
           class="insert-creature-property-fab"
+          :aria-label="$t('sheet.addProperty')"
         >
           <v-icon
-            style="transition: transform 0.2s ease-in-out"
+            style="transition: transform var(--motion-duration-short) var(--motion-easing-standard)"
             :style="fab && 'transform: rotate(45deg)'"
           >
             mdi-plus
@@ -34,7 +35,7 @@
       </template>
       <labeled-fab
         v-for="type in speedDials"
-        :key="type"
+        :key="type || 'property'"
         color="primary"
         :data-id="`insert-creature-property-type-${type}`"
         :label="getPropertyLabel(type)"
@@ -55,6 +56,7 @@
   import PROPERTIES from '/imports/constants/PROPERTIES';
   import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
   import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
+  import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
   import { useAppStore } from '/imports/ui/stores/app';
   import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -98,25 +100,23 @@ const dialogStackStore = useDialogStackStore();
   const properties = computed(() => PROPERTIES);
 
 
+  /**
+   * On the Tree tab, a new property goes beside the selected one, or inside it
+   * when it is open. Read from the tree's markup (TreeNode's data-id and
+   * data-expanded): the Vue 2 code read the component through `__vue__`,
+   * which Vue 3 does not set, and threw
+   */
   function getParentFromSelectedTreeNode(creatureId) {
-    // find the parent based on the currently selected property
-    let el = document.querySelector('.tree-tab .tree-node-title.text-primary');
-    let selectedComponent = el && el.parentElement.__vue__.$parent;
-    let parentRef;
-    const onTreeTab = appStore.tabNameById(creatureId) === 'tree';
-    if (onTreeTab && selectedComponent) {
-      if (selectedComponent.showExpanded) {
-        parentRef = {
-          id: selectedComponent.node._id,
-          collection: 'creatureProperties',
-        };
-      } else {
-        parentRef = selectedComponent.node.parent;
-      }
-    } else {
-      parentRef = { collection: 'creatures', id: creatureId };
+    const root = { collection: 'creatures', id: creatureId };
+    if (appStore.tabNameById(creatureId) !== 'tree') return root;
+    const title = document.querySelector('.tree-tab .tree-node-title.text-primary');
+    const nodeElement = title?.closest('[data-id^="tree-node-"]');
+    const node = nodeElement && CreatureProperties.findOne(nodeElement.dataset.id.replace('tree-node-', ''));
+    if (!node) return root;
+    if (nodeElement.dataset.expanded === 'true') {
+      return { id: node._id, collection: 'creatureProperties' };
     }
-    return parentRef;
+    return node.parentId ? { id: node.parentId, collection: 'creatureProperties' } : root;
   }
 
   function hideFab() {

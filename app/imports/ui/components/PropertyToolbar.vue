@@ -1,13 +1,13 @@
 <template>
   <v-toolbar
-    :color="color || 'secondary'"
-    :theme="isDark ? 'dark' : 'light'"
+    v-bind="userSurface(color)"
     :flat="flat"
   >
     <v-btn
       v-if="!embedded"
       variant="text"
       icon
+      :aria-label="$t('common.back')"
       @click="back"
     >
       <v-icon>mdi-arrow-left</v-icon>
@@ -187,12 +187,15 @@
 
 <script setup>
 import { computed, inject } from 'vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import getThemeColor from '/imports/ui/utility/getThemeColor';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const dialogStackStore = useDialogStackStore();
 
@@ -237,7 +240,6 @@ defineEmits(['duplicate', 'copy', 'make-reference', 'move', 'copy-to-library', '
 
 const context = inject('context', {});
 
-const isDark = computed(() => isDarkColor(color.value));
 
 const color = computed(() => {
   return (props.model && props.model.color) || getThemeColor('secondary');

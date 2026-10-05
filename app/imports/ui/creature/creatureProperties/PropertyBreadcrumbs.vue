@@ -15,9 +15,11 @@
     </span>
     <a
       v-else
+      href="#"
       class="text-primary cursor-pointer"
       data-id="breadcrumb-root"
-      @click="clickRootCreature"
+      :aria-label="$t('common.character')"
+      @click.prevent="clickRootCreature"
     >
       <v-icon color="accent">
         mdi-account
@@ -40,9 +42,10 @@
       </span>
       <a
         v-else
+        href="#"
         class="text-primary cursor-pointer"
         :data-id="`breadcrumb-${prop._id}`"
-        @click="click(prop._id)"
+        @click.prevent="click(prop._id)"
       >
         <tree-node-view
           :model="prop"
@@ -161,6 +164,14 @@ function clickRootCreature() {
 .breadcrumbs {
   margin-bottom: 16px;
   opacity: 0.8;
+}
+
+/* A long name is cut short instead of running past the dialog's edge */
+.breadcrumbs > a,
+.breadcrumbs > span {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
 }
 </style>
 

@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ $t('cards.castASpellTitle') }}
       </v-toolbar-title>
-      <v-spacer />
       <text-field
         :label="$t('common.name')"
         prepend-inner-icon="mdi-magnify"

@@ -22,6 +22,10 @@ export default function useUnits() {
 
   const isNumber = value => typeof value === 'number' && Number.isFinite(value);
 
+  // A negative number is written with the minus sign (−), as wide as + and
+  // the digits, not a hyphen
+  const withMinusSign = number => String(number).replace(/^-/, '\u2212');
+
   /** The label of the unit a quantity is shown in: m, ft, kg or lb */
   function unitLabel(quantity) {
     return t(`units.${getDisplayUnit(quantity, preferences.value)}`);
@@ -29,12 +33,14 @@ export default function useUnits() {
 
   /**
    * A stored value as a number and a unit label, converted and formatted.
-   * Anything else (no unit, a string, a formula) comes back as it was.
+   * Anything else (a string, a formula) comes back as it was, and a number
+   * without a unit only gets its minus sign.
    */
   function quantityParts(value, quantity) {
-    if (!quantity || !isNumber(value)) return { value, unit: undefined };
+    if (!isNumber(value)) return { value, unit: undefined };
+    if (!quantity) return { value: value < 0 ? withMinusSign(value) : value, unit: undefined };
     return {
-      value: numberFormat.value.format(toDisplayValue(value, quantity, preferences.value)),
+      value: withMinusSign(numberFormat.value.format(toDisplayValue(value, quantity, preferences.value))),
       unit: unitLabel(quantity),
     };
   }

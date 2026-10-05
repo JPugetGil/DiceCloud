@@ -67,15 +67,19 @@
             @change="swapAbilityScoresAndModifiers"
           />
         </v-list-item>
-        <v-list-item>
-          <smart-switch
-            :label="$t('account.animateDice')"
-            :hint="$t('account.animateDiceHint')"
-            persistent-hint
-            :model-value="!user?.preferences?.disableDiceAnimation"
-            data-id="animate-dice"
-            @change="animateDice"
+        <v-list-item data-id="motion-preference">
+          <smart-toggle
+            :label="$t('account.animations')"
+            :model-value="user?.preferences?.reduceMotion ? 'reduced' : 'system'"
+            :options="[
+              {name: $t('account.animationsSystem'), value: 'system'},
+              {name: $t('account.animationsReduced'), value: 'reduced'},
+            ]"
+            @change="setMotion"
           />
+          <p class="text-body-small text-medium-emphasis mt-2 mb-0">
+            {{ $t('account.animationsHint') }}
+          </p>
         </v-list-item>
 
         <v-list-subheader>
@@ -144,6 +148,7 @@
                   variant="text"
                   icon
                   v-bind="props"
+                  :aria-label="$t('account.changeUsername')"
                   @click="changeUsername"
                 >
                   <v-icon>mdi-pencil</v-icon>
@@ -172,6 +177,7 @@
               variant="text"
               icon
               size="small"
+              :aria-label="$t('account.removeEmail', { address: email.address })"
               :loading="removeEmailLoading === email.address"
               @click="removeEmail(email.address)"
             >
@@ -182,54 +188,59 @@
             {{ email.address }}
           </v-list-item-title>
         </v-list-item>
-        <v-expand-transition>
-          <v-alert
-            v-if="removeEmailError"
-            type="error"
+        <!-- In an item: a list holds only items -->
+        <v-list-item v-if="removeEmailError || showEmailInput || !emails || emails.length < 2">
+          <v-expand-transition>
+            <v-alert
+              v-if="removeEmailError"
+              type="error"
+            >
+              {{ removeEmailError }}
+            </v-alert>
+          </v-expand-transition>
+          <v-slide-x-transition
+            hide-on-leave
           >
-            {{ removeEmailError }}
-          </v-alert>
-        </v-expand-transition>
-        <v-slide-x-transition
-          hide-on-leave
-        >
-          <v-text-field
-            v-if="showEmailInput"
-            v-model="inputEmail"
-            :label="$t('account.addEmail')"
-            :error-messages="addEmailError"
-            variant="outlined"
-          >
-            <template #prepend>
-              <v-btn
-                variant="text"
-
-                icon
-                @click="clearEmailInput"
-              >
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </template>
-            <template #append>
-              <v-btn
-                variant="text"
-                icon
-                :loading="addEmailLoading"
-                @click="addEmail"
-              >
-                <v-icon>mdi-send</v-icon>
-              </v-btn>
-            </template>
-          </v-text-field>
-          <v-btn
-            v-else-if="!emails || emails.length < 2"
-            variant="text"
-            icon
-            @click="showEmailInput = true"
-          >
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </v-slide-x-transition>
+            <v-text-field
+              v-if="showEmailInput"
+              v-model="inputEmail"
+              :label="$t('account.addEmail')"
+              :error-messages="addEmailError"
+              variant="outlined"
+            >
+              <template #prepend>
+                <v-btn
+                  variant="text"
+                  icon
+                  :aria-label="$t('common.cancel')"
+                  @click="clearEmailInput"
+                >
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </template>
+              <template #append>
+                <v-btn
+                  variant="text"
+                  icon
+                  :aria-label="$t('account.addEmail')"
+                  :loading="addEmailLoading"
+                  @click="addEmail"
+                >
+                  <v-icon>mdi-send</v-icon>
+                </v-btn>
+              </template>
+            </v-text-field>
+            <v-btn
+              v-else-if="!emails || emails.length < 2"
+              variant="text"
+              icon
+              :aria-label="$t('account.addEmail')"
+              @click="showEmailInput = true"
+            >
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </v-slide-x-transition>
+        </v-list-item>
         <v-list-item v-if="googleConfigured && user && !user.services?.google">
           <v-alert
             v-if="linkGoogleError"
@@ -404,11 +415,12 @@ async function setUnit(quantity, unit, ack) {
   }
 }
 
-async function animateDice(value, ack) {
+// Animations as the system asks, or reduced whatever it asks (useReducedMotion)
+async function setMotion(value, ack) {
   try {
     await Meteor.users.setPreference.callAsync({
-      preference: 'disableDiceAnimation',
-      value: !value,
+      preference: 'reduceMotion',
+      value: value === 'reduced',
     });
     ack();
   } catch (error) {

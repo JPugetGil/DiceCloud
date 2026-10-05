@@ -61,6 +61,7 @@
     </section>
     <section>
       <v-parallax
+        alt=""
         src="/images/crown-dice-on-ipad.webp"
         height="300"
       />
@@ -111,6 +112,50 @@
         </div>
       </div>
     </section>
+    <!-- The party board, which the screenshots below did not show (UX14) -->
+    <section
+      class="px-4 px-sm-8 pt-4"
+      data-id="home-table"
+    >
+      <v-card
+        variant="flat"
+        class="home-table mx-auto"
+      >
+        <v-row
+          no-gutters
+          class="align-center"
+        >
+          <v-col
+            cols="12"
+            md="7"
+          >
+            <v-img
+              :alt="$t('home.tableImage')"
+              src="/images/screenshots/party-board.webp"
+              :aspect-ratio="1000 / 552"
+            />
+          </v-col>
+          <v-col
+            cols="12"
+            md="5"
+            class="pa-6"
+          >
+            <v-icon
+              size="x-large"
+              class="mb-2"
+            >
+              mdi-account-group
+            </v-icon>
+            <h2 class="text-headline-small mt-0 mb-2">
+              {{ $t('home.tableTitle') }}
+            </h2>
+            <p class="text-body-large my-0">
+              {{ $t('home.tableText') }}
+            </p>
+          </v-col>
+        </v-row>
+      </v-card>
+    </section>
     <section class="pa-8">
       <v-row>
         <v-col
@@ -123,13 +168,15 @@
             :elevation="0"
           >
             <v-img
+              alt=""
               class="text-white align-end"
               :src="'/images/screenshots/' + card.img"
               gradient="to bottom, rgba(0,0,0,0), rgba(0,0,0,.5)"
               height="360px"
               cover
             >
-              <v-card-title>
+              <!-- Wrapped: a long title was cut at 1400px -->
+              <v-card-title class="text-wrap">
                 {{ $t(card.text) }}
               </v-card-title>
             </v-img>
@@ -213,5 +260,9 @@ const signedIn = autorun(() => Meteor.userId()).result;
 <style scoped>
 .selling-points>* {
   max-width: 400px;
+}
+
+.home-table {
+  max-width: 1200px;
 }
 </style>

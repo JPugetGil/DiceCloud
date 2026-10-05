@@ -3,13 +3,16 @@
     color="secondary"
     theme="dark"
   >
-    <v-app-bar-nav-icon @click="toggleDrawer" />
+    <v-app-bar-nav-icon
+      :aria-label="$t('nav.openMenu')"
+      @click="toggleDrawer"
+    />
     <v-toolbar-title>
       {{ $t('pageTitle.documentation') }}
     </v-toolbar-title>
-    <v-spacer />
     <v-app-bar-nav-icon
       v-if="editing"
+      :aria-label="$t('nav.toggleDocsTree')"
       @click="toggleRightDrawer"
     >
       <v-icon>mdi-file-tree</v-icon>

@@ -11,7 +11,7 @@
       >
         {{ icon }}
       </v-icon>
-      <div class="text-no-wrap text-truncate">
+      <div class="tree-node-text">
         {{ model.damageType === 'healing'
           ? $t('treeNodes.healing', { amount: model.amount && model.amount.value })
           : $t('treeNodes.damage', { amount: model.amount && model.amount.value, type: damageTypeName(model.damageType) }) }}

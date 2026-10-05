@@ -3,7 +3,7 @@
     class="bg-page"
     style="height: 100%"
   >
-    <v-container>
+    <v-container :class="{ 'fab-clearance': permissions.canCreateLibraries }">
       <v-row class="justify-center">
         <v-col
           cols="12"
@@ -24,11 +24,31 @@
                   size="32"
                 />
               </v-row>
+              <!-- A new account follows no library: say where they are -->
+              <v-empty-state
+                v-else-if="noLibraries"
+                icon="mdi-library-shelves"
+                :title="$t('library.emptyTitle')"
+                :text="$t('library.emptyText')"
+                data-id="library-empty"
+              >
+                <template #actions>
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    prepend-icon="mdi-earth"
+                    to="/community-libraries"
+                  >
+                    {{ $t('library.browseCommunity') }}
+                  </v-btn>
+                </template>
+              </v-empty-state>
               <library-list v-else />
             </v-fade-transition>
           </v-card>
           <div class="d-flex flex-1-1 flex-wrap justify-end mt-2">
             <v-btn
+              v-if="!noLibraries"
               variant="text"
               prepend-icon="mdi-earth"
               to="/community-libraries"
@@ -56,13 +76,6 @@
               {{ $t('library.addCollection') }}
             </v-btn>
           </div>
-          <p
-            v-if="!permissions.canCreateLibraries"
-            class="text-body-medium text-medium-emphasis text-right mt-2 mb-0"
-            data-id="players-cant-create-libraries"
-          >
-            {{ $t('library.playersCantCreate') }}
-          </p>
           <v-btn
             v-if="permissions.canCreateLibraries"
             color="accent"
@@ -72,6 +85,7 @@
             location="bottom right"
 
             data-id="insert-library-button"
+            :aria-label="$t('library.newLibrary')"
             @click="insertLibraryDialog"
           >
             <v-icon>mdi-plus</v-icon>
@@ -134,6 +148,15 @@ const libraryCollections = autorun(() => {
   });
 }).result;
 
+
+// No library or collection subscribed to, owned or shared
+const noLibraries = autorun(() => {
+  const user = Meteor.user();
+  if (!user) return false;
+  const mine = { $or: [{ owner: user._id }, { writers: user._id }, { readers: user._id }] };
+  return !user.subscribedLibraries?.length && !user.subscribedLibraryCollections?.length
+    && !Libraries.find(mine).count() && !LibraryCollections.find(mine).count();
+}).result;
 
 function insertLibraryDialog() {
   dialogStackStore.pushDialogStack({

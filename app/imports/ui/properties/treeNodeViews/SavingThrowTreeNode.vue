@@ -6,7 +6,7 @@
       :color="model.color"
       :class="selected && 'text-primary'"
     />
-    <div class="text-no-wrap text-truncate">
+    <div class="tree-node-text">
       <template v-if="model.dc && Number.isFinite(model.dc.value)">
         {{ $t('treeNodes.dc', { dc: model.dc.value }) }}
       </template>

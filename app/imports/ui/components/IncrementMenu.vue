@@ -9,6 +9,8 @@
       <v-btn
         :disabled="context.editPermission === false"
         class="bg-surface-light"
+        :aria-label="$t('increment.add')"
+        data-id="increment-add"
         @click="toggleAdd(); focusInput()"
       >
         <v-icon>mdi-plus</v-icon>
@@ -16,6 +18,8 @@
       <v-btn
         :disabled="context.editPermission === false"
         class="bg-surface-light"
+        :aria-label="$t('increment.subtract')"
+        data-id="increment-subtract"
         @click="toggleSubtract(); focusInput()"
       >
         <v-icon>mdi-minus</v-icon>
@@ -30,6 +34,8 @@
       style="max-width: 120px;"
       min="0"
       :model-value="editValue"
+      :aria-label="$t('increment.value')"
+      data-id="increment-value"
       :prepend-inner-icon="operationIcon(operation)"
       :disabled="context.editPermission === false"
       @focus="$event.target.select()"
@@ -41,6 +47,8 @@
       icon
       :variant="flat ? 'text' : undefined"
       class="mx-2 bg-surface-light"
+      :aria-label="$t('increment.apply')"
+      data-id="increment-apply"
       @click="commitEdit"
     >
       <v-icon>mdi-check</v-icon>
@@ -50,6 +58,7 @@
       icon
       :variant="flat ? 'text' : undefined"
       class="bg-surface-light"
+      :aria-label="$t('common.cancel')"
       @click="cancelEdit"
     >
       <v-icon>mdi-close</v-icon>

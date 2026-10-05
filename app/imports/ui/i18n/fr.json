@@ -42,7 +42,12 @@
     "github": "GitHub",
     "privacy": "Règles de confidentialité",
     "terms": "Conditions d'utilisation",
-    "parties": "Groupes"
+    "parties": "Groupes",
+    "openMenu": "Menu",
+    "toggleDocsTree": "Afficher ou masquer les documents",
+    "main": "Navigation principale",
+    "pages": "Pages",
+    "help": "Aide et communauté"
   },
   "roles": {
     "player": "Joueur",
@@ -57,8 +62,10 @@
     "themeLight": "Clair",
     "language": "Langue",
     "swapAbilityScores": "Inverser valeurs de caractéristique et modificateurs",
-    "animateDice": "Animer les jets de dés",
-    "animateDiceHint": "Des dés sont lancés sur la fiche à chaque jet. Le journal garde tous les jets dans tous les cas.",
+    "animations": "Animations",
+    "animationsSystem": "Système",
+    "animationsReduced": "Réduites",
+    "animationsHint": "Réduites : rien ne se déplace à l'écran et les dés n'affichent que leur résultat. Système : selon le réglage d'animations réduites de votre appareil.",
     "username": "Nom d'utilisateur",
     "changeUsername": "Changer de nom d'utilisateur",
     "email": "E-mail",
@@ -74,13 +81,14 @@
     "cantCreateLibraries": "Peut s'abonner aux bibliothèques, mais pas en créer",
     "fileStorage": "{used} utilisés sur {limit} de stockage de fichiers",
     "canManageRoles": "Peut changer les rôles des utilisateurs",
-    "askAdmin": "Demandez à un administrateur de vous passer joueur actif pour avoir plus de personnages et de stockage."
+    "askAdmin": "Demandez à un administrateur de vous passer joueur actif pour avoir plus de personnages et de stockage.",
+    "removeEmail": "Retirer {address}"
   },
   "about": {
     "intro": "DiceCloud est un projet mené par un seul développeur, lancé en 2014 dans le but d'offrir une fiche de personnage synchronisée entre le MD et ses joueurs, qui montre clairement d'où vient chaque valeur de la fiche et comment elle est calculée.",
     "specialThanks": "Remerciements",
     "samThanks": "sans son amour, DiceCloud n'aurait jamais pu voir le jour",
-    "heroes": "Les « Héros » d'Asaea",
+    "heroes": "Les « Héros » d'Asaea",
     "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
     "supporters": "Soutiens"
   },
@@ -91,12 +99,12 @@
     "webhookText": "Chaque personnage peut publier son journal (jets, actions, repos) dans un salon Discord.",
     "webhookStep1": "Dans Discord, ouvrez les paramètres du salon, puis Intégrations, Webhooks, et créez un webhook.",
     "webhookStep2": "Copiez l'URL du webhook.",
-    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord »."
+    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord »."
   },
   "legal": {
     "termsLink": "conditions d'utilisation",
     "privacyLink": "règles de confidentialité",
-    "notConfigured": "L'éditeur de cette instance et l'adresse de contact manquent : renseignez public.legal.operator et public.legal.contactEmail dans les paramètres."
+    "notConfigured": "L'éditeur de cette instance et l'adresse de contact manquent : renseignez public.legal.operator et public.legal.contactEmail dans les paramètres."
   },
   "admin": {
     "userRoles": "Rôles des utilisateurs",
@@ -109,7 +117,7 @@
     "overLimit": "Au-delà de la limite de ce rôle",
     "cantChangeOwnRole": "Vous ne pouvez pas changer votre propre rôle",
     "noUsersFound": "Aucun utilisateur trouvé",
-    "roleChanged": "{user} est maintenant : {role}",
+    "roleChanged": "{user} est maintenant : {role}",
     "refresh": "Actualiser",
     "database": {
       "title": "Stockage MongoDB",
@@ -119,16 +127,16 @@
       "documents": "Documents",
       "collection": "Collection",
       "disk": "Disque du serveur de base de données",
-      "diskUsed": "Disque du serveur de base de données : {used} utilisés sur {total}, {free} libres",
+      "diskUsed": "Disque du serveur de base de données : {used} utilisés sur {total}, {free} libres",
       "collectionsError": "La taille de certaines collections n'a pas pu être lue ({reason}).",
-      "hint": "Base {database}. Sur le disque : les documents compressés et leurs index. Données : la taille des documents non compressés. MongoDB réutilise la place des documents supprimés au lieu de la rendre au disque."
+      "hint": "Base {database}. Sur le disque : les documents compressés et leurs index. Données : la taille des documents non compressés. MongoDB réutilise la place des documents supprimés au lieu de la rendre au disque."
     },
     "s3": {
       "title": "Stockage AWS S3",
-      "notConfigured": "S3 n'est pas configuré : les fichiers sont sur le disque du serveur. Les chiffres ci-dessous sont ce qu'ils occuperaient, et coûteraient, sur S3.",
+      "notConfigured": "S3 n'est pas configuré : les fichiers sont sur le disque du serveur. Les chiffres ci-dessous sont ce qu'ils occuperaient, et coûteraient, sur S3.",
       "spaceUsed": "Espace utilisé",
       "objects": "Objets",
-      "listingDenied": "La clé d'accès ne peut pas lister le bucket : donnez-lui s3:ListBucket sur arn:aws:s3:::{bucket}. En attendant, seuls les fichiers de l'app enregistrés dans sa base sont comptés.",
+      "listingDenied": "La clé d'accès ne peut pas lister le bucket : donnez-lui s3:ListBucket sur arn:aws:s3:::{bucket}. En attendant, seuls les fichiers de l'app enregistrés dans sa base sont comptés.",
       "listingFailed": "Le bucket n'a pas pu être listé ({reason}). Seuls les fichiers de l'app enregistrés dans sa base sont comptés.",
       "folder": "Dossier",
       "size": "Taille",
@@ -158,8 +166,8 @@
     "level": "Niveau {level}",
     "levelClasses": "Niveau {level} · {classes}",
     "noClass": "Pas encore de classe",
-    "noMatch": "Aucun personnage ne correspond à « {search} »",
-    "emptyFolder": "Aucun personnage dans ce dossier : glissez-en un ici, ou utilisez le bouton dossier d'un personnage.",
+    "noMatch": "Aucun personnage ne correspond à « {search} »",
+    "emptyFolder": "Aucun personnage dans ce dossier : glissez-en un ici, ou utilisez le bouton dossier d'un personnage.",
     "moveTo": "Déplacer vers un dossier",
     "moveToFolder": "Déplacer {name} vers un dossier",
     "noFolder": "Aucun dossier",
@@ -170,7 +178,8 @@
     "folderName": "Nom du dossier",
     "renameFolder": "Renommer le dossier",
     "deleteFolder": "Supprimer le dossier",
-    "folderDeleted": "{name} supprimé : ses personnages ne sont plus dans un dossier"
+    "folderDeleted": "{name} supprimé : ses personnages ne sont plus dans un dossier",
+    "emptyTextNoLibraries": "Un personnage se crée à partir de bibliothèques : abonnez-vous d'abord à l'une de celles de la communauté, puis créez votre personnage avec le bouton Nouveau personnage."
   },
   "party": {
     "openBoard": "Tableau du groupe",
@@ -192,7 +201,7 @@
     "restDone": "{rest} terminé pour {count} personnage | {rest} terminé pour {count} personnages",
     "restFailed": "{rest} a échoué pour {names}",
     "emptyTextPlayer": "Amenez vos personnages avec Mes personnages, dans la carte Joueurs.",
-    "gmChip": "MJ : {name}",
+    "gmChip": "MJ : {name}",
     "players": "Joueurs",
     "gameMaster": "Maître du jeu",
     "unknownPlayer": "Joueur inconnu",
@@ -201,22 +210,22 @@
     "removePlayerHint": "Ses personnages quittent le groupe, et vous ne pouvez plus les modifier",
     "invitation": "Lien d'invitation",
     "invitationHint": "Toute personne qui a ce lien peut rejoindre le groupe avec ses personnages, que vous pourrez alors modifier. Créez un nouveau lien pour que l'ancien ne fonctionne plus.",
-    "noInvitation": "Invitez des joueurs avec un lien : ils rejoignent le tableau avec leurs personnages.",
+    "noInvitation": "Invitez des joueurs avec un lien : ils rejoignent le tableau avec leurs personnages.",
     "invite": "Inviter des joueurs",
     "newInvitation": "Nouveau lien",
     "turnOffInvitation": "Désactiver",
     "invitationCopied": "Lien d'invitation copié",
     "myCharacters": "Mes personnages",
-    "myCharactersHint": "Les personnages que vous amenez dans le groupe : le maître du jeu peut les modifier, et toute la table les voit sur le tableau.",
-    "noOwnCharacters": "Vous n'avez pas encore de personnage : créez-en un depuis la page Personnages.",
+    "myCharactersHint": "Les personnages que vous amenez dans le groupe : le maître du jeu peut les modifier, et toute la table les voit sur le tableau.",
+    "noOwnCharacters": "Vous n'avez pas encore de personnage : créez-en un depuis la page Personnages.",
     "leave": "Quitter le groupe",
     "leaveHint": "Vos personnages le quittent, et le maître du jeu ne peut plus les modifier",
     "left": "Vous avez quitté {name}",
     "invitationInvalid": "Cette invitation ne fonctionne plus",
-    "invitationInvalidText": "Le maître du jeu a désactivé ou remplacé ce lien : demandez-lui le nouveau.",
+    "invitationInvalidText": "Le maître du jeu a désactivé ou remplacé ce lien : demandez-lui le nouveau.",
     "joinSubtitle": "Un groupe mené par {gm}",
-    "youAreGm": "Vous êtes le maître du jeu de ce groupe : partagez ce lien avec vos joueurs.",
-    "joinHint": "Choisissez les personnages que vous amenez : le maître du jeu peut les modifier (pour donner de l'expérience, faire un repos, infliger des dégâts), et toute la table les voit sur le tableau.",
+    "youAreGm": "Vous êtes le maître du jeu de ce groupe : partagez ce lien avec vos joueurs.",
+    "joinHint": "Choisissez les personnages que vous amenez : le maître du jeu peut les modifier (pour donner de l'expérience, faire un repos, infliger des dégâts), et toute la table les voit sur le tableau.",
     "joinMoreHint": "Vous êtes déjà joueur de ce groupe. Choisissez d'autres personnages à amener, ou ouvrez le tableau.",
     "join": "Rejoindre le groupe",
     "bringCharacters": "Les amener",
@@ -229,7 +238,19 @@
     "lasts": "Dure",
     "rounds": "{count} round | {count} rounds",
     "minutes": "{count} minute ({rounds} rounds) | {count} minutes ({rounds} rounds)",
-    "untilRemoved": "Jusqu'à son retrait"
+    "untilRemoved": "Jusqu'à son retrait",
+    "tempHitPoints": "+{value} temporaires",
+    "armorClass": "CA",
+    "initiative": "Initiative",
+    "speed": "Vitesse",
+    "proficiency": "Maîtrise",
+    "passivePerception": "Perception passive",
+    "yourTurn": "C'est votre tour !",
+    "turnOf": "Tour de {name}",
+    "roundIn": "Round {round}, {party}",
+    "openBoard": "Tableau du groupe",
+    "round": "Round {round}",
+    "turnNow": "Tour de {name}"
   },
   "initiative": {
     "title": "Initiative",
@@ -242,13 +263,27 @@
     "rollDetail": "d20 ({roll}) {bonus}",
     "bonus": "Bonus {bonus}",
     "remove": "Retirer {name}",
-    "empty": "Lancez l'initiative pour commencer un combat : les personnages lancent un d20 plus leur initiative. Ajoutez monstres et autres créatures ci-dessous ; saisissez un résultat pour garder le jet d'un joueur.",
+    "empty": "Lancez l'initiative pour commencer un combat : les personnages lancent un d20 plus leur initiative. Ajoutez monstres et autres créatures ci-dessous ; saisissez un résultat pour garder le jet d'un joueur.",
     "addTitle": "Ajouter une créature",
     "name": "Nom",
     "bonusLabel": "Bonus",
     "add": "Ajouter",
     "end": "Terminer le combat",
-    "emptyPlayer": "Pas de combat pour l'instant : le maître du jeu lance l'initiative. Vous pourrez ensuite saisir votre propre jet pour vos personnages."
+    "emptyPlayer": "Pas de combat pour l'instant : le maître du jeu lance l'initiative. Vous pourrez ensuite saisir votre propre jet pour vos personnages.",
+    "count": "Nombre",
+    "hpLabel": "PV",
+    "acLabel": "CA",
+    "status": {
+      "unhurt": "Indemne",
+      "bloodied": "En péril",
+      "down": "Hors de combat"
+    },
+    "hitPoints": "PV {value}/{total}",
+    "armorClass": "CA {ac}",
+    "changeHealth": "Modifier les points de vie de {name}",
+    "outOfFight": "{name} hors de combat",
+    "showStats": "Montrer aux joueurs les points de vie et la CA des créatures",
+    "showStatsHint": "Sinon, ils ne voient que si chacune est indemne, en péril ou hors de combat."
   },
   "docs": {
     "notFound": "Documentation introuvable",
@@ -261,7 +296,8 @@
     "icon": "Icône",
     "body": "Contenu",
     "addChild": "Ajouter un enfant",
-    "newDoc": "Nouveau document"
+    "newDoc": "Nouveau document",
+    "contents": "Documents"
   },
   "email": {
     "verificationError": "Erreur de vérification de l'adresse e-mail",
@@ -275,38 +311,38 @@
     "mustBeJson": "Le fichier doit être au format .json",
     "tooLarge": "Fichier trop volumineux",
     "parseFailed": "Le fichier n'a pas pu être lu",
-    "validationFailed": "Le fichier n'est pas valide : {reason}",
+    "validationFailed": "Le fichier n'est pas valide : {reason}",
     "characterArchive": "Archive de personnage",
     "userFiles": "Fichiers utilisateur",
     "fromUrl": "Depuis une URL",
     "directLink": "Lien direct vers l'image",
     "deleteFile": "Supprimer le fichier",
     "renameFile": "Renommer le fichier",
-    "notInStorage": "Absent du stockage de fichiers : ce fichier sera perdu au redémarrage du serveur. Supprimez-le puis envoyez-le à nouveau.",
+    "notInStorage": "Absent du stockage de fichiers : ce fichier sera perdu au redémarrage du serveur. Supprimez-le puis envoyez-le à nouveau.",
     "storage": "Stockage",
     "storageUsed": "{used} utilisés sur {limit}"
   },
   "libraryFiles": {
     "importTitle": "Importer des bibliothèques",
-    "importHint": "Un fichier enregistré depuis une bibliothèque ou une collection, ici ou sur une autre instance DiceCloud. Les bibliothèques gardent leurs identifiants, ainsi les références entre elles tiennent ; celles qui sont nouvelles ici vous appartiennent.",
+    "importHint": "Un fichier enregistré depuis une bibliothèque ou une collection, ici ou sur une autre instance DiceCloud. Les bibliothèques gardent leurs identifiants, ainsi les références entre elles tiennent ; celles qui sont nouvelles ici vous appartiennent.",
     "file": "Fichier de bibliothèques (.json ou .json.gz)",
     "notALibraryFile": "Ce fichier ne contient aucune bibliothèque DiceCloud",
     "untitledCollection": "Collection sans nom",
     "nodeCount": "{count} propriété | {count} propriétés",
     "replace": "Remplacer les bibliothèques déjà présentes",
-    "replaceHint": "Leur contenu devient celui du fichier, et ce qui y a été modifié ici est perdu ; leur propriétaire, leurs partages et leurs abonnés restent. Sinon, elles sont ignorées.",
+    "replaceHint": "Leur contenu devient celui du fichier, et ce qui y a été modifié ici est perdu ; leur propriétaire, leurs partages et leurs abonnés restent. Sinon, elles sont ignorées.",
     "makePublic": "Partager les nouvelles bibliothèques avec tout le monde",
     "makePublicHint": "Publiques, et listées dans les bibliothèques de la communauté. Sinon, vous seul les voyez, jusqu'à ce que vous les partagiez.",
     "import": "Importer",
     "status": {
       "imported": "Importée",
       "replaced": "Remplacée",
-      "skipped": "Déjà présente : ignorée"
+      "skipped": "Déjà présente : ignorée"
     },
     "download": "Télécharger la bibliothèque",
     "downloadCollection": "Télécharger la collection",
     "nothingToDownload": "La copie des bibliothèques de cette collection n'est pas autorisée",
-    "someLeftOut": "{count} bibliothèque laissée de côté : sa copie n'est pas autorisée | {count} bibliothèques laissées de côté : leur copie n'est pas autorisée"
+    "someLeftOut": "{count} bibliothèque laissée de côté : sa copie n'est pas autorisée | {count} bibliothèques laissées de côté : leur copie n'est pas autorisée"
   },
   "formula": {
     "suggestions": "Variables et fonctions"
@@ -336,7 +372,10 @@
       "libraries": "Bibliothèques de contenu personnalisées",
       "discord": "Webhooks Discord",
       "printing": "Fiches de personnage imprimables"
-    }
+    },
+    "tableTitle": "Jouez à la table",
+    "tableText": "Le tableau de groupe montre au meneur les points de vie et les états de chaque personnage, l'ordre d'initiative et le tour en cours, en direct pendant que les joueurs lancent les dés.",
+    "tableImage": "Le tableau de groupe : deux personnages avec leurs points de vie et leurs états, à côté de l'ordre d'initiative"
   },
   "library": {
     "browseCommunity": "Parcourir les bibliothèques de la communauté",
@@ -364,14 +403,28 @@
     "selectLibraryProperty": "Choisir une propriété de bibliothèque",
     "subscribe": "S'abonner",
     "unsubscribe": "Se désabonner",
-    "playersCantCreate": "Tout le monde peut s'abonner aux bibliothèques. Seuls les administrateurs peuvent en créer.",
     "searchCommunity": "Rechercher des bibliothèques",
     "sortPopular": "Populaires",
     "sortName": "Nom",
     "singleLibrary": "Bibliothèque",
     "subscribed": "Abonné",
     "open": "Ouvrir",
-    "noCommunityMatch": "Aucune bibliothèque ne correspond à cette recherche"
+    "noCommunityMatch": "Aucune bibliothèque ne correspond à cette recherche",
+    "editCollection": "Modifier {name}",
+    "openCollection": "Ouvrir {name}",
+    "emptyTitle": "Aucune bibliothèque pour l'instant",
+    "emptyText": "Les bibliothèques contiennent les peuples, classes, sorts et objets avec lesquels on crée un personnage. Abonnez-vous à une bibliothèque de la communauté pour commencer.",
+    "chooseProperty": "Choisissez une propriété",
+    "choosePropertyText": "Ses détails s'affichent ici. Ouvrez les dossiers de l'arbre pour la trouver.",
+    "language": "Langue",
+    "languageAuto": "Non renseignée (semble {language})",
+    "languageUnknown": "Non renseignée",
+    "languageAutoHint": "La bibliothèque communautaire filtre par langue. Sans langue renseignée, elle la devine d'après le nom et la description.",
+    "languageFilter": "Langue",
+    "allLanguages": "Toutes les langues",
+    "recommended": "Recommandé",
+    "recommendedSwitch": "Recommandé",
+    "recommendedHint": "Réservé aux admins : un badge sur sa carte, et en tête dans la bibliothèque communautaire et à la création de personnage."
   },
   "maintenance": {
     "underMaintenance": "DiceCloud est actuellement en maintenance",
@@ -429,7 +482,7 @@
     "not": "SAUF",
     "each": "l'unité",
     "contents": "contenu",
-    "total": "Total :",
+    "total": "Total :",
     "copiedSuccessfully": "Copie réussie",
     "copy": "Copier",
     "select": "Sélectionner",
@@ -450,7 +503,8 @@
     "shortRestTitle": "Repos court",
     "longRestTitle": "Repos long",
     "edit": "Modifier",
-    "deleted": "{name} supprimé"
+    "deleted": "{name} supprimé",
+    "removeItem": "Retirer {name}"
   },
   "propertyTypes": {
     "action": {
@@ -459,7 +513,7 @@
     },
     "attribute": {
       "name": "Attribut",
-      "helpText": "Les attributs sont les statistiques chiffrées de votre personnage, hors jets auxquels vous pourriez ajouter votre bonus de maîtrise : ceux-là sont des compétences."
+      "helpText": "Les attributs sont les statistiques chiffrées de votre personnage, hors jets auxquels vous pourriez ajouter votre bonus de maîtrise : ceux-là sont des compétences."
     },
     "adjustment": {
       "name": "Dégâts d'attribut",
@@ -543,7 +597,7 @@
     },
     "savingThrow": {
       "name": "Jet de sauvegarde",
-      "helpText": "Quand un jet de sauvegarde est activé par une action, la cible doit effectuer un jet de sauvegarde ; en cas d'échec, les propriétés enfants du jet de sauvegarde sont activées."
+      "helpText": "Quand un jet de sauvegarde est activé par une action, la cible doit effectuer un jet de sauvegarde ; en cas d'échec, les propriétés enfants du jet de sauvegarde sont activées."
     },
     "skill": {
       "name": "Compétence",
@@ -600,8 +654,8 @@
     "immunity": "Immunité",
     "resistance": "Résistance",
     "vulnerability": "Vulnérabilité",
-    "for": "Pour :",
-    "except": "Sauf :"
+    "for": "Pour :",
+    "except": "Sauf :"
   },
   "attunement": {
     "attuned": "Lié",
@@ -615,14 +669,16 @@
     "features": "Aptitudes",
     "journal": "Journal",
     "build": "Création",
-    "tree": "Arbre"
+    "tree": "Arbre",
+    "more": "Plus",
+    "moreWith": "Plus : {tab}"
   },
   "emptyTabs": {
     "actionsTitle": "Aucune action pour le moment",
     "actionsText": "Les attaques et capacités que vous pouvez utiliser s'affichent ici. Votre classe, votre peuple et vos objets vous les donnent, ou ajoutez les vôtres.",
     "actionsAdd": "Ajouter une action",
     "spellsTitle": "Aucun sort pour le moment",
-    "spellsText": "Votre classe vous donne des listes de sorts : choisissez vos sorts avec le + sous chaque liste. Vous pouvez aussi ajouter une liste de sorts vous-même.",
+    "spellsText": "Votre classe vous donne des listes de sorts : choisissez vos sorts avec le + sous chaque liste. Vous pouvez aussi ajouter une liste de sorts vous-même.",
     "spellsAdd": "Ajouter une liste de sorts",
     "featuresTitle": "Aucune aptitude pour le moment",
     "featuresText": "Les aptitudes de votre peuple, de votre classe et de votre historique s'affichent ici au fil de la création du personnage.",
@@ -675,7 +731,18 @@
     "defaultName": "Nouveau personnage",
     "nameRequired": "Nom obligatoire",
     "color": "Couleur",
-    "chooseLibraries": "Choisir les bibliothèques"
+    "chooseLibraries": "Choisir les bibliothèques",
+    "start": "Personnage",
+    "ruleset": "Jeu de règles",
+    "rulesetHint": "Ce à partir de quoi le personnage se crée : sa fiche, puis son peuple, sa classe et son historique à choisir dans l'onglet Création.",
+    "noRuleset": "Sans jeu de règles",
+    "noRulesetHint": "Une fiche vide, à remplir vous-même.",
+    "followed": "Abonné",
+    "language": {
+      "en": "Anglais",
+      "fr": "Français"
+    },
+    "biographyLater": "Alignement, genre et images peuvent attendre : ils sont dans l'onglet Journal."
   },
   "deleteCharacter": {
     "deleteForever": "Supprimer définitivement"
@@ -683,7 +750,7 @@
   "importCharacter": {
     "title": "Importer un personnage",
     "text": "Importer un personnage depuis une autre instance de DiceCloud",
-    "sharingHint": "Le partage du personnage doit être réglé sur « tout le monde peut voir »",
+    "sharingHint": "Le partage du personnage doit être réglé sur « tout le monde peut voir »",
     "invalidUrl": "Ce n'est pas une URL de personnage valide",
     "notShared": "Le partage de ce personnage ne permet pas à tout le monde de le voir"
   },
@@ -691,8 +758,8 @@
     "open": "Rechercher dans le personnage",
     "placeholder": "Rechercher dans le personnage",
     "hint": "Trouvez un sort, un objet, une aptitude, une action ou une statistique par son nom ou son texte",
-    "noMatch": "Rien sur ce personnage ne correspond à « {search} »",
-    "more": "{count} autre résultat : précisez la recherche | {count} autres résultats : précisez la recherche"
+    "noMatch": "Rien sur ce personnage ne correspond à « {search} »",
+    "more": "{count} autre résultat : précisez la recherche | {count} autres résultats : précisez la recherche"
   },
   "sheet": {
     "notFound": "Personnage introuvable",
@@ -704,7 +771,12 @@
     "duplicate": "Dupliquer",
     "download": "Télécharger",
     "copyName": "{name} (copie)",
-    "duplicated": "{name} dupliqué : voici la copie"
+    "duplicated": "{name} dupliqué : voici la copie",
+    "characterMenu": "Plus d'options",
+    "toggleLog": "Afficher ou masquer le journal de jets",
+    "addProperty": "Ajouter une propriété",
+    "valuesRecalculated": "{count} valeurs recalculées",
+    "addBiography": "Ajouter un alignement, un genre, des images"
   },
   "build": {
     "slots": "Emplacements",
@@ -719,10 +791,15 @@
     "chooseCount": "En choisir {count}",
     "assignScores": "Répartir les valeurs",
     "hideCard": "Masquer cette carte",
-    "hideCardHint": "Masquer cette carte : elle reste dans le menu des cartes masquées de la carte Emplacements",
-    "progress": "{done} choix faits sur {total}",
-    "incomplete": "Ce personnage n'est pas terminé : il reste {count} choix dans l'onglet Création. | Ce personnage n'est pas terminé : il reste {count} choix dans l'onglet Création.",
-    "continueBuilding": "Continuer la création"
+    "hideCardHint": "Masquer cette carte : elle reste dans le menu des cartes masquées de la carte Emplacements",
+    "progress": "Étapes faites : {done} sur {total}",
+    "incomplete": "Ce personnage n'est pas terminé : il reste {count} étape dans l'onglet Création. | Ce personnage n'est pas terminé : il reste {count} étapes dans l'onglet Création.",
+    "continueBuilding": "Continuer la création",
+    "nextStep": "Étape suivante : {name}",
+    "steps": "Étapes de création",
+    "stepDone": "{name}, faite",
+    "stepToDo": "{name}, à faire",
+    "stepLocked": "{name}, disponible après une étape précédente"
   },
   "inventory": {
     "weightCarried": "Poids transporté",
@@ -742,45 +819,46 @@
     "tools": "Outils",
     "languages": "Langues",
     "proficiencies": "Maîtrises",
-    "spellSlots": "Emplacements de sorts"
+    "spellSlots": "Emplacements de sorts",
+    "changeHealth": "{name} : {value} sur {total}. Modifier"
   },
   "tree": {
     "organize": "Organiser"
   },
   "errors": {
     "dependencyLoop": "Le personnage contient une boucle de dépendances.",
-    "dependencyLoopText": "Certaines propriétés ont pu être mal calculées, car elles forment une boucle infinie :"
+    "dependencyLoopText": "Certaines propriétés ont pu être mal calculées, car elles forment une boucle infinie :"
   },
   "printed": {
     "levelClass": "{className} de niveau {level}",
     "levelClasses": "Niveau {level} ({classes})",
-    "weightCarried": "Poids transporté : {weight} kg",
-    "netWorth": "Fortune :",
-    "itemsAttuned": "Objets liés : {count}",
-    "totalLower": "total : {total}",
-    "totalValue": "Total : {total}",
-    "weapons": "Armes :",
-    "armor": "Armures :",
-    "tools": "Outils :",
-    "languages": "Langues :",
+    "weightCarried": "Poids transporté : {weight}",
+    "netWorth": "Fortune :",
+    "itemsAttuned": "Objets liés : {count}",
+    "totalLower": "total : {total}",
+    "totalValue": "Total : {total}",
+    "weapons": "Armes :",
+    "armor": "Armures :",
+    "tools": "Outils :",
+    "languages": "Langues :",
     "uses": "{uses} utilisations",
-    "cost": "Coût : {quantity} {stat}",
-    "usesItem": "Utilise : {quantity} {item}",
+    "cost": "Coût : {quantity} {stat}",
+    "usesItem": "Utilise : {quantity} {item}",
     "toHit": "pour toucher",
-    "toHitLabel": "Pour toucher :",
-    "castingTime": "Temps d'incantation :",
-    "range": "Portée :",
-    "components": "Composantes :",
-    "duration": "Durée :",
+    "toHitLabel": "Pour toucher :",
+    "castingTime": "Temps d'incantation :",
+    "range": "Portée :",
+    "components": "Composantes :",
+    "duration": "Durée :",
     "ritual": "(rituel)",
     "cantripOf": "tour de magie ({school})",
     "levelOf": "{school} de niveau {level}",
     "spellLevel": "niveau {level}",
-    "spellSaveDc": "DD de sauvegarde des sorts : {dc}",
-    "spellAbility": "Caractéristique d'incantation : {ability}",
-    "spellAbilityMod": "Modificateur de caractéristique d'incantation : {mod}",
-    "spellAttackBonus": "Bonus d'attaque des sorts : {bonus}",
-    "maxPrepared": "Sorts préparés maximum : {count}",
+    "spellSaveDc": "DD de sauvegarde des sorts : {dc}",
+    "spellAbility": "Caractéristique d'incantation : {ability}",
+    "spellAbilityMod": "Modificateur de caractéristique d'incantation : {mod}",
+    "spellAttackBonus": "Bonus d'attaque des sorts : {bonus}",
+    "maxPrepared": "Sorts préparés maximum : {count}",
     "castingTimeName": "Temps d'incantation"
   },
   "xp": {
@@ -803,12 +881,13 @@
   },
   "slots": {
     "slotCount": "{count} emplacements",
-    "requirementsNotMet": "{count} option masquée : ses prérequis ne sont pas remplis | {count} options masquées : leurs prérequis ne sont pas remplis",
+    "requirementsNotMet": "{count} option masquée : ses prérequis ne sont pas remplis | {count} options masquées : leurs prérequis ne sont pas remplis",
     "closeTest": "Fermer le test",
-    "withLibraryTags": "{type} avec les étiquettes de bibliothèque :",
-    "cantFind": "Vous ne trouvez pas ce que vous cherchez ?",
+    "withLibraryTags": "{type} avec les étiquettes de bibliothèque :",
+    "cantFind": "Vous ne trouvez pas ce que vous cherchez ?",
     "browseCommunity": "Parcourir les bibliothèques de la communauté",
-    "createCustom": "Créer un élément personnalisé"
+    "createCustom": "Créer un élément personnalisé",
+    "openDetails": "Afficher le détail"
   },
   "coins": {
     "gp": "{value} po",
@@ -817,7 +896,7 @@
   },
   "units": {
     "unit": "Unité",
-    "attributeHint": "Les formules calculent en mètres et en kilogrammes ; chaque joueur voit ses propres unités",
+    "attributeHint": "Les formules calculent en mètres et en kilogrammes ; chaque joueur voit ses propres unités",
     "none": "Aucune",
     "distance": "Distance",
     "weight": "Poids",
@@ -831,7 +910,7 @@
     "feet": "Pieds",
     "kilograms": "Kilogrammes",
     "pounds": "Livres",
-    "accountHint": "Les fiches sont calculées en mètres et en kilogrammes. Les pieds et les livres suivent les règles de D&D : 1,5 m = 5 ft, 1 lb = 0,5 kg. Les distances écrites dans les descriptions restent en mètres."
+    "accountHint": "Les fiches sont calculées en mètres et en kilogrammes. Les pieds et les livres suivent les règles de D&D : 1,5 m = 5 ft, 1 lb = 0,5 kg. Les distances écrites dans les descriptions restent en mètres."
   },
   "components": {
     "uploadImage": "Téléverser une image",
@@ -854,7 +933,7 @@
     "transferOwnership": "Transférer la propriété",
     "alreadyOwner": "L'utilisateur est déjà le propriétaire",
     "userNotFound": "Utilisateur introuvable",
-    "transferConfirm": "Voulez-vous vraiment transférer la propriété à {user} ?",
+    "transferConfirm": "Voulez-vous vraiment transférer la propriété à {user} ?",
     "transferUndo": "Seul le nouveau propriétaire pourra annuler ce transfert.",
     "stillEdit": "Vous conserverez le droit de modification.",
     "transfer": "Transférer",
@@ -874,26 +953,26 @@
     "text": "Texte"
   },
   "deleteConfirm": {
-    "title": "Supprimer : {type}",
+    "title": "Supprimer : {type}",
     "cantUndo": "Cette action est irréversible",
-    "typeName": "Saisissez « {name} » pour supprimer définitivement.",
+    "typeName": "Saisissez « {name} » pour supprimer définitivement.",
     "confirmation": "Confirmation"
   },
   "help": {
-    "title": "Aide : {title}"
+    "title": "Aide : {title}"
   },
   "deleteAccount": {
     "title": "Supprimer le compte utilisateur",
-    "areYouSure": "Voulez-vous vraiment supprimer votre compte ?",
+    "areYouSure": "Voulez-vous vraiment supprimer votre compte ?",
     "cantRecover": "Un compte supprimé ne peut pas être récupéré",
     "immediately": "Votre compte et toutes vos données seront supprimés immédiatement",
     "usernameAvailable": "Votre nom d'utilisateur deviendra disponible pour tous sur DiceCloud",
-    "charactersDeleted": "Ces {count} personnages seront supprimés :",
-    "characterDeleted": "Ce personnage sera supprimé :",
-    "librariesDeleted": "Ces {count} bibliothèques seront supprimées :",
-    "libraryDeleted": "Cette bibliothèque sera supprimée :",
+    "charactersDeleted": "Ces {count} personnages seront supprimés :",
+    "characterDeleted": "Ce personnage sera supprimé :",
+    "librariesDeleted": "Ces {count} bibliothèques seront supprimées :",
+    "libraryDeleted": "Cette bibliothèque sera supprimée :",
     "typeUsername": "Saisissez votre nom d'utilisateur ou votre e-mail",
-    "typePhrase": "Pour confirmer, saisissez « {phrase} »",
+    "typePhrase": "Pour confirmer, saisissez « {phrase} »",
     "phrase": "supprimer mon compte",
     "permanently": "Supprimer définitivement le compte"
   },
@@ -903,7 +982,13 @@
     "hideSilenced": "Masquer les lignes absentes du journal",
     "natural20": "20 naturel",
     "natural1": "1 naturel",
-    "droppedDie": "Non compté"
+    "droppedDie": "Non compté",
+    "entries": "Journal de jets",
+    "rollInput": "Lancer des dés",
+    "quickDice": "Dés rapides",
+    "rollDie": "Lancer un {die}",
+    "advantageToggle": "Avantage au prochain jet",
+    "rollPlaceholder": "1d20+4, 2d6…"
   },
   "icons": {
     "metadataJson": "JSON des métadonnées",
@@ -928,7 +1013,7 @@
     "uses": "Utilisations",
     "usesHint": "Nombre d'utilisations possibles avant de devoir réinitialiser l'action",
     "usesUsed": "Utilisations consommées",
-    "usesUsedHint": "Nombre d'utilisations déjà consommées : 0 dans la plupart des cas",
+    "usesUsedHint": "Nombre d'utilisations déjà consommées : 0 dans la plupart des cas",
     "resetUsesHint": "Quand remettre à zéro les utilisations consommées",
     "attackRoll": "Jet d'attaque",
     "value": "Valeur",
@@ -966,7 +1051,7 @@
       "actionType": "Type d'action",
       "eventVariableName": "Nom de variable de l'événement",
       "eventVariableNameHint": "Nom de variable de l'événement que représente cette action",
-      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action. Ce texte s'affiche dans le journal quand l'action est effectuée"
+      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action. Ce texte s'affiche dans le journal quand l'action est effectuée"
     },
     "actionTypes": {
       "action": "Action",
@@ -986,7 +1071,7 @@
       "operationHint": "L'attribut doit-il être réduit du montant, ou fixé au montant",
       "damage": "Dégâts",
       "set": "Fixer",
-      "damageHint": "Le montant de dégâts à appliquer ; une valeur négative soigne",
+      "damageHint": "Le montant de dégâts à appliquer ; une valeur négative soigne",
       "setHint": "La valeur à donner à la statistique"
     },
     "attributeConsumed": {
@@ -1074,7 +1159,7 @@
       "descriptionHint": "Une brève description de ce qu'apporte ce niveau de classe"
     },
     "constant": {
-      "valueHint": "Calcul de la valeur de la constante : 'texte' pour une chaîne, [1,2,3] pour une matrice, ou 123 pour un nombre"
+      "valueHint": "Calcul de la valeur de la constante : 'texte' pour une chaîne, [1,2,3] pour une matrice, ou 123 pour un nombre"
     },
     "container": {
       "carriedHint": "Si ce conteneur et son contenu comptent dans le poids transporté par la créature",
@@ -1228,7 +1313,7 @@
       "unlimited": "illimité",
       "conditionHint": "Un calcul qui détermine si cet emplacement est actif",
       "unique": "Unique",
-      "uniqueHint": "Les propriétés qui remplissent cet emplacement doivent-elles être uniques ?",
+      "uniqueHint": "Les propriétés qui remplissent cet emplacement doivent-elles être uniques ?",
       "allowDuplicates": "Autoriser les doublons",
       "test": "Test",
       "testSlot": "Tester l'emplacement",
@@ -1250,7 +1335,7 @@
       "duration": "Durée",
       "toHit": "Pour toucher",
       "toHitHint": "Le bonus à l'attaque si cette action a un jet d'attaque",
-      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action",
+      "summaryHint": "Apparaît sur la carte de l'action dans la fiche : résumez ce que fait l'action",
       "cantrip": "Tour de magie",
       "levelN": "Niveau {level}"
     },
@@ -1340,7 +1425,7 @@
   },
   "skillTypeHints": {
     "skill": "Une compétence habituelle de la fiche, comme Athlétisme, Tromperie ou Investigation",
-    "save": "Un jet de sauvegarde que le personnage peut faire : sauvegarde de Force, etc.",
+    "save": "Un jet de sauvegarde que le personnage peut faire : sauvegarde de Force, etc.",
     "check": "Un test de caractéristique qui pourra inclure un bonus de maîtrise, par ex. l'initiative",
     "tool": "Une maîtrise d'outil. Pensez à ajouter une maîtrise de base dans la section avancée.",
     "weapon": "Une maîtrise d'arme. Pensez à ajouter une maîtrise de base dans la section avancée.",
@@ -1510,7 +1595,7 @@
     "state": "État",
     "status": "Statut",
     "inactive": "Inactif",
-    "deactivatedBy": "Désactivé par :",
+    "deactivatedBy": "Désactivé par :",
     "deactivatedByAncestor": "Désactivé par un ancêtre",
     "deactivatedBySelf": "Désactivé par ses propres paramètres",
     "libraryBehavior": "Comportement en bibliothèque",
@@ -1522,7 +1607,7 @@
   "cards": {
     "uses": "{count} utilisations",
     "selectItem": "Choisir un objet",
-    "noItemsWithTag": "Aucun objet actif avec l'étiquette « {tag} »",
+    "noItemsWithTag": "Aucun objet actif avec l'étiquette « {tag} »",
     "spellSlots": "Emplacements de sorts",
     "castASpell": "Lancer un sort",
     "castASpellTitle": "Lancer un sort",
@@ -1541,6 +1626,117 @@
   },
   "spells": {
     "cantrips": "Tours de magie",
-    "level": "Niveau {level}"
+    "level": "Niveau {level}",
+    "useSlot": "Utiliser un emplacement : {name}",
+    "restoreSlot": "Récupérer un emplacement : {name}",
+    "slotsSaving": "Enregistrement des emplacements de sorts"
+  },
+  "dice": {
+    "critical": "Critique !",
+    "fumble": "Échec critique",
+    "announce": "{title} : {results}.",
+    "announceUntitled": "Résultat : {results}."
+  },
+  "increment": {
+    "add": "Ajouter",
+    "subtract": "Retirer",
+    "value": "Valeur",
+    "apply": "Appliquer"
+  },
+  "logs": {
+    "criticalHit": "Coup critique !",
+    "criticalMiss": "Échec critique !",
+    "hit": "Touché !",
+    "miss": "Raté !",
+    "toHit": "Attaque",
+    "withAdvantage": "{name} (avantage)",
+    "withDisadvantage": "{name} (désavantage)",
+    "advantage": "Avantage",
+    "disadvantage": "Désavantage",
+    "check": "Test",
+    "roll": "Jet",
+    "dc": "DD **{dc}**",
+    "saveSucceeded": "Sauvegarde réussie",
+    "saveFailed": "Sauvegarde ratée",
+    "saveError": "Erreur de jet de sauvegarde",
+    "noSave": "Aucun jet de sauvegarde trouvé : {stat}",
+    "shortRest": "Repos court",
+    "longRest": "Repos long",
+    "nothingRestored": "Rien à récupérer",
+    "restoredUse": "{name} **{change}** utilisation",
+    "restoredUses": "{name} **{change}** utilisations",
+    "usesRestored": "{count} utilisations récupérées",
+    "usesRemoved": "{count} utilisations retirées",
+    "usesLeft": "Utilisations restantes",
+    "attributeDamaged": "{type} : perte",
+    "attributeRestored": "{type} : gain",
+    "attributeSet": "{name} : de {from} à {to}",
+    "attributeSetTo": "{name} fixé à {value}",
+    "damage": "Dégâts",
+    "healing": "Soins",
+    "damageAmount": "**{amount}** dégâts ({type})",
+    "criticalDamageAmount": "**{amount}** dégâts critiques ({type})",
+    "healingAmount": "**{amount}** points de vie rendus",
+    "damageAmountOnSave": "**{amount}** dégâts ({type}) en cas de sauvegarde réussie",
+    "halfOnSave": "**Moitié des dégâts en cas de sauvegarde réussie**",
+    "noneOnSave": "**Aucun dégât en cas de sauvegarde réussie**",
+    "damageOnSave": "**Dégâts en cas de sauvegarde réussie**",
+    "immune": "Immunisé contre les dégâts ({type})",
+    "resistant": "Résistant aux dégâts ({type})",
+    "vulnerable": "Vulnérable aux dégâts ({type})",
+    "concentration": "Concentration",
+    "concentrationCheck": "Jet de sauvegarde de Constitution, DD **{dc}**, pour garder la concentration",
+    "removed": "Retiré",
+    "error": "Erreur",
+    "warning": "Avertissement",
+    "notEnoughUses": "{name} n'a plus assez d'utilisations",
+    "notEnoughResources": "Cette créature n'a pas assez de ressources pour cette action",
+    "noArmor": "La cible n'a pas d'`armor`",
+    "parseError": "Erreur de syntaxe",
+    "calculationError": "Erreur de calcul",
+    "listItem": "- {item}",
+    "branchError": "Erreur de branche",
+    "toggleError": "Erreur d'interrupteur",
+    "castSpellError": "Erreur au lancement du sort",
+    "effect": "Effet",
+    "effectEnded": "Terminé : sa durée est écoulée",
+    "untypedDamageAmount": "**{amount}** dégâts"
+  },
+  "health": {
+    "change": "{name}",
+    "damage": "Dégâts",
+    "healing": "Soins",
+    "set": "Fixer",
+    "amount": "Montant",
+    "newValue": "Nouvelle valeur",
+    "damageType": "Type de dégâts (facultatif)",
+    "apply": "Appliquer",
+    "damageHint": "Les PV temporaires partent en premier, et les effets du personnage sur les dégâts s'appliquent.",
+    "healingHint": "Rend des points de vie, sans dépasser le maximum.",
+    "setHint": "Cette barre seulement, {value} actuellement."
+  },
+  "conditions": {
+    "add": "État",
+    "title": "États",
+    "none": "Les bibliothèques de ce personnage n'ont aucun état.",
+    "loading": "Chargement des états",
+    "remove": "Retirer"
+  },
+  "languages": {
+    "en": "Anglais",
+    "fr": "Français"
+  },
+  "rest": {
+    "previewIntro": "Ce repos rendra :",
+    "previewLoading": "Calcul de ce que le repos rend",
+    "previewFailed": "Impossible de calculer ce que ce repos rend. Vous pouvez vous reposer quand même.",
+    "previewNeedsInput": "Il vous demandera des choix en cours de route : la liste s'arrête là.",
+    "confirm": "Se reposer"
+  },
+  "levelUp": {
+    "title": "Niveau {level}",
+    "changed": "{name} : {from} → {to}",
+    "gained": "Nouveau : {name}",
+    "more": "Et {count} autre changement | Et {count} autres changements"
   }
 }

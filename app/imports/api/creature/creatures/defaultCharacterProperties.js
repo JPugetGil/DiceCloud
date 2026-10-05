@@ -44,7 +44,8 @@ export default function defaultCharacterProperties(creatureId) {
       tags: [BUILT_IN_TAGS.carried],
       left: 6,
       right: 7,
-      parent: inventoryId,
+      // parentId: `parent` was the old schema's field, which left it at the root
+      parentId: inventoryId,
       root: creatureRef,
     },
   ];

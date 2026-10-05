@@ -37,15 +37,15 @@ meteor npm run check:contrast        # one check, by its npm script
 | Check | What it does | What it caught |
 |-------|--------------|----------------|
 | `routes` | Loads the main pages signed in and signed out (plus a public library and collection, and `E2E_EXTRA_ROUTES`); fails on a console error or warning, an empty page, "[object Promise]", or a subheader without its indent | Pages that did not mount; broken publications; card titles against the card's edge |
-| `flows` | The health bar's layout, every character sheet tab, the speed dial, creating a property, editing it, finding it through the character search, a condition chip on and off, the character list's search; then removes the property | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
+| `flows` | The hit points heading the Stats tab (combat summary), every character sheet tab, the speed dial, creating a property, editing it, finding it through the character search, a condition chip on and off, the character list's search; then removes the property | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
 | `actions` | An action may target the acting character but not one the user cannot edit; a skill check through its dialog; the Short rest button end to end; no log entry cut off | The check dialog failing as it opened; log entries clipped; guards the rule that replaced tabletop ids, under which any character id passed outside a tabletop (found in the code) |
 | `docs-navigation` | Navigates the default docs inside the app and loads one directly | Documents that showed a title and no content after navigation |
 | `property-forms` | Opens one library node of every property type in view and edit mode; checks select items, "false" values and console errors | Every select showing "false"; "[object Object]" options; a viewer that crashed |
 | `dialogs` | Opens every lazily loaded dialog listed in `DialogComponentIndex.js` | Dialogs rendered as "[object Promise]" |
 | `login-services` | Google buttons shown exactly when Google sign-in is configured | Buttons that only led to "Service not configured" |
 | `contrast` | WCAG contrast of links, the selected toggle option and app bar text, in both themes (4.5:1 text, 3:1 icons) | Links and selected options below 4.5:1 |
-| `palette` | Every theme colour role, as Vuetify applies it, against every surface of its theme and under its on- colour (see DESIGN_SYSTEM.md) | Brand red at 3.6:1 as text on dark cards |
-| `accessibility` | axe-core's WCAG AA colour-contrast rule over the main pages, in both themes | Light-theme labels and subtitles at 4.3:1 |
+| `palette` | Every theme colour role, as Vuetify applies it, against every surface of its theme and under its on- colour; then the 190 colours users pick from, under the text colour the app gives them (`onColor`, see DESIGN_SYSTEM.md) | Brand red at 3.6:1 as text on dark cards; white titles at 2.6:1 on light blue notes |
+| `accessibility` | axe-core's WCAG 2.1 A and AA rules over the main pages, in both themes, at 1400 and 390 px; the Journal's coloured notes, title against card (axe cannot measure them under the hover highlight) | Light-theme labels and subtitles at 4.3:1; icon buttons without a name; zoom disabled on phones; tooltips and lists that screen readers found empty or invalid |
 | `slot-fill` | Opens a library slot in test mode and compares the fillers listed (and the "requirements not met" count) with what the database holds; skipped when the test account can use no library | Every slot fill dialog listing nothing ("Explore the Library!"); fillers offered although their requirements failed |
 
 The server's own log can hold errors a clean browser console hides. Keep the dev

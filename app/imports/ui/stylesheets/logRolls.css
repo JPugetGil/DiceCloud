@@ -2,8 +2,23 @@
  * The dice of a roll in the log (markdownToHtml's `dice` option): a tile per
  * die, a hexagon for a d20. A natural 20 or 1 on a d20 is filled, a die that
  * advantage or a function dropped is struck out. Under `.log-fresh`, an entry
- * just written, the dice roll in one after the other, then the total shows.
+ * just written, the dice roll in one after the other, then the total shows;
+ * not when the dice tray threw them already (LogEntry, SnackbarQueue).
+ * A line's total heads it (LogContent, logTotals.js), larger than its dice.
  */
+.log-line-total {
+  margin-left: auto;
+  text-align: end;
+}
+
+/* A number in the body font: Vuetify gives text-headline-* the heading font */
+.log-line-total__value {
+  display: inline-block;
+  font-family: var(--v-font-body, "Roboto", sans-serif);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
 .log-die {
   display: inline-flex;
   align-items: center;
@@ -45,22 +60,23 @@
 }
 
 .log-fresh .log-die {
-  animation: log-die-roll 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) both;
-  animation-delay: calc(var(--i, 0) * 0.1s);
+  animation: log-die-roll var(--motion-duration-long) var(--motion-easing-emphasized-decelerate) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
 }
 
 .log-fresh .log-die--crit,
 .log-fresh .log-die--fumble {
   animation-name: log-die-roll, log-die-pop;
-  animation-duration: 0.6s, 0.5s;
-  animation-timing-function: cubic-bezier(0.3, 1.4, 0.5, 1), ease-out;
-  animation-delay: calc(var(--i, 0) * 0.1s), calc(var(--i, 0) * 0.1s + 0.6s);
+  animation-duration: var(--motion-duration-long), var(--motion-duration-medium);
+  animation-timing-function: var(--motion-easing-emphasized-decelerate), var(--motion-easing-standard);
+  animation-delay: calc(var(--i, 0) * 80ms), calc(var(--i, 0) * 80ms + var(--motion-duration-long));
 }
 
-.log-fresh .log-roll ~ strong {
+.log-fresh .log-roll ~ strong,
+.log-fresh .log-line-total__value {
   display: inline-block;
-  animation: log-total 0.3s ease-out both;
-  animation-delay: 0.5s;
+  animation: log-total var(--motion-duration-medium) var(--motion-easing-emphasized-decelerate) both;
+  animation-delay: var(--motion-duration-long);
 }
 
 @keyframes log-die-roll {
@@ -87,9 +103,9 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .log-fresh .log-die,
-  .log-fresh .log-roll ~ strong {
-    animation: none;
-  }
+/* Reduced animations (useReducedMotion): the entry fades in, nothing rolls */
+.reduce-motion .log-fresh .log-die,
+.reduce-motion .log-fresh .log-roll ~ strong,
+.reduce-motion .log-fresh .log-line-total__value {
+  animation: none;
 }

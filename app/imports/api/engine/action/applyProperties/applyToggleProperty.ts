@@ -18,7 +18,7 @@ export default async function applyToggle(
 
   if (!prop.condition) {
     result.appendLog({
-      name: 'Toggle Error',
+      name: 'Toggle error', i18n: { name: { key: 'logs.toggleError' } },
       value: 'toggle does not have a condition set',
       silenced: prop.silent,
     }, task.targetIds);

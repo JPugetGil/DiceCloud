@@ -1,7 +1,8 @@
 <template>
   <!--
     Compact, a folder's characters sit just inside it: by default they are
-    pushed in by the room of a prepend icon too (56px in all)
+    pushed in by the room of a prepend icon too (56px in all).
+    A group of links, not a list: Vuetify's role="list" may hold none
   -->
   <v-list
     v-model:opened="openFolders"
@@ -9,6 +10,8 @@
     :density="dense ? 'compact' : undefined"
     :indent="dense ? 12 : undefined"
     class="creature-folder-list"
+    role="group"
+    :aria-label="$t('nav.characters')"
   >
     <creature-list
       :creatures="creatures"
@@ -30,17 +33,17 @@
         :raw-id="`${listId}-${folder._id}`"
       >
         <template #activator="{ props: activatorProps, isOpen }">
-          <v-list-item
+          <!-- Opens its folder: a button, not the option Vuetify makes it -->
+          <creature-folder-header
             v-bind="activatorProps"
-            :density="dense ? 'compact' : undefined"
-          >
-            <creature-folder-header
-              :open="isOpen"
-              :model="folder"
-              :selection="selection"
-              :dense="dense"
-            />
-          </v-list-item>
+            role="button"
+            :aria-expanded="isOpen"
+            :aria-selected="undefined"
+            :open="isOpen"
+            :model="folder"
+            :selection="selection"
+            :dense="dense"
+          />
         </template>
         <creature-list
           :creatures="folder.creatures"

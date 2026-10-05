@@ -8,6 +8,8 @@ import { assertEditPermission } from '/imports/api/creature/creatures/creaturePe
 import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
+import rollWithAdvantage from '/imports/api/creature/log/rollWithAdvantage';
+import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
@@ -80,11 +82,15 @@ export async function trimCreatureLogs(creatureId) {
   await CreatureLogs.removeAsync({ creatureId, date: { $lt: oldestKept.date } });
 }
 
-function logToMessageData(log) {
+export function logToMessageData(log) {
+  /** @type {{ fields: { name: string, value: string, inline?: boolean }[] }} */
   let embed = {
     fields: [],
   };
-  log.content.forEach((field, index) => {
+  // Discord takes a name, a value and inline: the English text the log keeps
+  // beside its translation keys (`i18n`), which Discord would refuse
+  log.content.forEach(({ name, value, inline }, index) => {
+    const field = { name, value, ...inline !== undefined && { inline } };
     // Empty character for blank names
     if (!field.name) field.name = '\u200b';
     if (!field.value) field.value = '\u200b';
@@ -163,8 +169,14 @@ const logRoll = new ValidatedMethod({
       max: 32,
       optional: true,
     },
+    // The log's advantage toggle: 1 advantage, -1 disadvantage
+    advantage: {
+      type: SimpleSchema.Integer,
+      allowedValues: [-1, 0, 1],
+      optional: true,
+    },
   }).validator(),
-  async run({ roll, creatureId }) {
+  async run({ roll: typedRoll, creatureId, advantage }) {
     if (!creatureId) throw new Meteor.Error('no-id',
       'A creature id must be given'
     );
@@ -184,12 +196,19 @@ const logRoll = new ValidatedMethod({
     }
     const variables = await CreatureVariables.findOneAsync({ _creatureId: creatureId }) || {};
     let logContent = []
+    // With advantage, the first d20 becomes two: the log says so on the line
+    // that gives the roll as typed
+    const roll = rollWithAdvantage(typedRoll, advantage);
+    const withAdvantage = roll !== typedRoll;
+    if (withAdvantage) logContent.push(logLine({
+      value: msg(advantage > 0 ? 'logs.withAdvantage' : 'logs.withDisadvantage', { name: typedRoll }),
+    }));
     let parsedResult = undefined;
     try {
       parsedResult = parse(roll);
     } catch (e) {
       let error = prettifyParseError(e);
-      logContent.push({ name: 'Parse Error', value: error });
+      logContent.push({ name: 'Parse error', i18n: { name: { key: 'logs.parseError' } }, value: error });
     }
     if (parsedResult) try {
       let {
@@ -197,10 +216,11 @@ const logRoll = new ValidatedMethod({
         context
       } = await resolve('compile', parsedResult, variables);
       const compiledString = toString(compiled);
-      if (!equalIgnoringWhitespace(compiledString, roll)) logContent.push({
+      if (!withAdvantage && !equalIgnoringWhitespace(compiledString, roll)) logContent.push({
         value: roll
       });
-      logContent.push({
+      // dropLowest(2d20) is the advantage line's business
+      if (!withAdvantage) logContent.push({
         value: compiledString
       });
       let { result: rolled } = await resolve('roll', compiled, variables, context);
@@ -215,7 +235,7 @@ const logRoll = new ValidatedMethod({
       });
     } catch (e) {
       console.error(e);
-      logContent = [{ name: 'Calculation error' }];
+      logContent = [{ name: 'Calculation error', i18n: { name: { key: 'logs.calculationError' } } }];
     }
     const log = {
       content: logContent,

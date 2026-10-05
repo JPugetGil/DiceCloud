@@ -101,6 +101,14 @@ The database starts empty. Once the app runs:
    collection. It takes a few minutes; the database is backed up first.
    Libraries already there are skipped, so it can be run again.
 
+4. Subscribe new accounts to the rulesets, so that they can build a
+   character at once: in `.env`, set `DEFAULT_LIBRARY_COLLECTIONS` to the
+   ids of the collections, comma-separated (a collection's page,
+   `/library-collection/<id>`, gives its id: for the Libraries of Vexus,
+   its English and French collections), then `./dicecloud.sh start`.
+   Only accounts created afterwards are subscribed; `DEFAULT_LIBRARIES` does
+   the same for single libraries.
+
 To bring a whole database from another MongoDB instead, such as Atlas:
 `./dicecloud.sh import "<its URL>"`. It replaces the current database (backed
 up first); when the URL names no database, the data is in `test`, MongoDB's

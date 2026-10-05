@@ -7,6 +7,7 @@ import { loadedCreatures } from '/imports/api/engine/loadCreatures';
 import { softRemove } from '/imports/api/parenting/softRemove';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { Meteor } from 'meteor/meteor';
+import { logLine, msg } from '/imports/api/creature/log/logMessages';
 
 /**
  * A creature's turn starts in a party's initiative tracker: each of its active
@@ -54,7 +55,7 @@ export async function startCreatureTurn(creatureId, userId) {
     log: {
       creatureId,
       creatureName: creature.name,
-      content: ended.map(buff => ({ name: buff.name || 'Effect', value: 'Ended: its duration ran out' })),
+      content: ended.map(buff => logLine({ name: buff.name || msg('logs.effect'), value: msg('logs.effectEnded') })),
     },
     creature,
   });

@@ -1,6 +1,8 @@
 // The privacy policy, as markdown, in each interface language. Who runs the
 // instance and how to reach them come from the settings (public.legal): see
 // LegalPage.vue. Update LAST_UPDATED and both languages together.
+import frenchTypography from '/imports/ui/i18n/frenchTypography';
+
 const LAST_UPDATED = {
   en: 'October 5, 2026',
   fr: '5 octobre 2026',
@@ -79,7 +81,7 @@ This policy may change. The date at the top of the page shows its last update. `
 
   fr: ({ operator, contactEmail }) => {
     const contact = contactLink(contactEmail, 'l\'adresse de contact de cette instance');
-    return `# Règles de confidentialité
+    return frenchTypography(`# Règles de confidentialité
 
 *Dernière mise à jour : ${LAST_UPDATED.fr}*
 
@@ -142,6 +144,6 @@ Vous pouvez à tout moment accéder à vos données, les rectifier, les faire ef
 
 ## Modifications
 
-Ces règles peuvent évoluer. La date en haut de la page indique leur dernière mise à jour. `;
+Ces règles peuvent évoluer. La date en haut de la page indique leur dernière mise à jour. `);
   },
 };

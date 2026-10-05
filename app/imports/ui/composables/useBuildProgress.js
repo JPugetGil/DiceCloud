@@ -1,32 +1,31 @@
 import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import buildSteps from '/imports/ui/creature/slots/buildSteps';
 
 /**
- * How far a character's build is: the slots that expect a choice and are in
- * play (active, their condition met, not hidden by the player), and how many
- * of them have it. Choosing opens more slots (a race's subrace), so the total
- * grows with the build. `getCreatureId` returns the character's id.
+ * How far a character's build is, in named steps (UX12, buildSteps): the
+ * steps, how many there are (`total`), are `done`, and are `left` to do now,
+ * and the `next` one. The choices a step opens count in it, so the count
+ * does not go back as the build grows. `getCreatureId` returns the
+ * character's id.
  */
 export default function useBuildProgress(getCreatureId) {
   return autorun(() => {
     const creatureId = getCreatureId();
-    if (!creatureId) return { total: 0, done: 0 };
-    const required = CreatureProperties.find({
+    if (!creatureId) return buildSteps([]);
+    const slots = CreatureProperties.find({
       ...getFilter.descendantsOfRoot(creatureId),
       type: 'propertySlot',
       'quantityExpected.value': { $gt: 0 },
       ignored: { $ne: true },
       removed: { $ne: true },
-      inactive: { $ne: true },
-      $or: [
-        { 'slotCondition.value': { $nin: [false, 0, ''] } },
-        { 'slotCondition.value': { $exists: false } },
-      ],
-    }, { fields: { spaceLeft: 1 } }).fetch();
-    return {
-      total: required.length,
-      done: required.filter(slot => !(slot.spaceLeft > 0)).length,
-    };
+    }, {
+      fields: {
+        name: 1, left: 1, right: 1, slotTags: 1, quantityExpected: 1, spaceLeft: 1,
+        'slotCondition.value': 1, inactive: 1,
+      },
+    }).fetch();
+    return buildSteps(slots);
   }).result;
 }

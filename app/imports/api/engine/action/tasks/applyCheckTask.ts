@@ -8,6 +8,7 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { Meteor } from 'meteor/meteor';
+import { logLine, msg, withAdvantage, type LogMessage } from '/imports/api/creature/log/logMessages';
 
 /**
  * A skill property is applied as a check or a saving throw
@@ -53,30 +54,24 @@ export default async function applyCheckTask(
     const rollModifierText = numberToSignedString(totalModifier);
 
     // Get the name of the check
-    let checkName = 'Check';
+    let checkName: string | LogMessage = msg('logs.check');
     if (ability?.name && skill?.name) {
       checkName = `${ability.name} (${skill.name})`
     } else if (ability?.name || skill?.name) {
       checkName = `${ability?.name || skill?.name}`;
     }
 
-    let rollName = 'Roll'
-
-    // Append advantage/disadvantage to the check name
-    if (advantage === 1) {
-      rollName += ' (Advantage)'
-    } else if (advantage === -1) {
-      rollName += ' (Disadvantage)'
-    }
+    // Advantage/disadvantage follows the roll's name
+    const rollName = withAdvantage(msg('logs.roll'), advantage);
 
     // Print check name and DC if present
     const dc = checkParams.dc;
-    result.appendLog({
+    result.appendLog(logLine({
       name: checkName,
       inline: true,
-      ...dc !== null && { value: `DC **${dc}**` },
+      ...dc !== null && { value: msg('logs.dc', { dc }) },
       silenced: task.silent ?? false,
-    }, [targetId]);
+    }), [targetId]);
 
     // Roll the dice
     let rolledValue, resultPrefix;
@@ -114,12 +109,12 @@ export default async function applyCheckTask(
       '~checkRoll': { value: totalValue },
     };
 
-    result.appendLog({
+    result.appendLog(logLine({
       name: rollName,
       value: `${resultPrefix}\n**${totalValue}**`,
       inline: true,
       silenced: task.silent ?? false,
-    }, [targetId]);
+    }), [targetId]);
 
     // After check triggers
     if (skill) await applyTriggers(action, skill, [targetId], 'checkTriggerIds.after', userInput);

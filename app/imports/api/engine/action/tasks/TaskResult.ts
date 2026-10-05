@@ -1,5 +1,6 @@
 import Context from '../../../../parser/types/Context';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { logLine, msg, type LogI18n } from '/imports/api/creature/log/logMessages';
 
 /**
  * The result of running a task containing all the changes that need to be made to the listed
@@ -53,10 +54,10 @@ export default class TaskResult {
       latestMutation.contents = [];
     }
     context.errors?.forEach(error => {
-      latestMutation.contents?.push({
-        name: 'Error',
+      latestMutation.contents?.push(logLine({
+        name: msg('logs.error'),
         value: error.message,
-      });
+      }));
     });
   }
 }
@@ -93,4 +94,6 @@ export type LogContent = {
   inline?: boolean;
   context?: any;
   silenced?: boolean;
+  // The line's messages, to show it in the reader's language (logMessages)
+  i18n?: LogI18n;
 }

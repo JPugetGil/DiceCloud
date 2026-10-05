@@ -1,7 +1,7 @@
 <template>
   <div
     ref="stackElement"
-    class="dialog-stack pa-8"
+    class="dialog-stack pa-0 pa-sm-8"
   >
     <transition name="backdrop-fade">
       <div
@@ -64,12 +64,19 @@ import mockElement from '/imports/ui/dialogStack/mockElement';
 import DialogComponentIndex from '/imports/ui/dialogStack/DialogComponentIndex';
 import timeout from '/imports/api/utility/timeout';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import useReducedMotion from '/imports/ui/composables/useReducedMotion';
+import { DURATION, EASING } from '/imports/ui/utility/motion';
 
 const OFFSET = 16;
 // Use in combination with browser's animation speed override to do slow-mod debugging
 const animationSpeed = 1;
 
 const unsizedDialogs = new Set(['image-preview-dialog', 'action-dialog']);
+
+// The dialog grows out of the element that opened it and shrinks back into
+// it (a container transform); with reduced animations it only fades
+const reducedMotion = useReducedMotion();
+const MORPH_MS = DURATION.medium / animationSpeed;
 
 const dialogStackStore = useDialogStackStore();
 
@@ -106,7 +113,7 @@ watch(() => dialogs.value.length, async (length, previousLength) => {
       el.classList.add('lock-scroll');
     }
   } else if (!length) {
-    await timeout(400 / animationSpeed);
+    await timeout((DURATION.medium + DURATION.short) / animationSpeed);
     // a dialog may have opened while waiting
     if (dialogs.value.length) return;
     el.classList.remove('lock-scroll');
@@ -170,7 +177,27 @@ function getTopElementByDataId(elementId, offset = 0) {
   }
 }
 
+// Reduced animations: the dialog fades in or out where it is, nothing moves
+function fade(target, to, done) {
+  target.style.transition = 'none';
+  target.style.opacity = to ? '0' : '1';
+  requestAnimationFrame(() => {
+    target.style.transition = `opacity ${DURATION.short}ms ${EASING.standard}`;
+    target.style.opacity = to ? '1' : '0';
+    setTimeout(() => {
+      target.style.transition = '';
+      done();
+    }, DURATION.short);
+  });
+}
+
 async function enter(target, done) {
+  if (reducedMotion.value) {
+    // Nothing hidden: the leave that pops this restores nothing
+    hiddenElements.push(undefined);
+    fade(target, 1, done);
+    return;
+  }
   if (!target || !target.attributes['data-element-id']) {
     done();
     return;
@@ -219,7 +246,7 @@ async function enter(target, done) {
   target.style.transition = originalStyle.transition;
   target.style.boxShadow = originalStyle.boxShadow;
   source.style.transition = originalStyle.sourceTransition;
-  setTimeout(done, 300 / animationSpeed);
+  setTimeout(done, MORPH_MS);
 }
 
 async function leave(target, done) {
@@ -227,6 +254,12 @@ async function leave(target, done) {
   await new Promise(requestAnimationFrame);
   let elementId;
   let hiddenElement = hiddenElements.pop();
+  if (reducedMotion.value) {
+    if (hiddenElement) hiddenElement.style.opacity = '';
+    await dialogStackStore.currentReturnElement;
+    fade(target, 0, done);
+    return;
+  }
   let returnElementId = await dialogStackStore.currentReturnElement;
   if (returnElementId) {
     elementId = returnElementId;
@@ -242,9 +275,9 @@ async function leave(target, done) {
   if (!source || replacing) {
     if (hiddenElement) hiddenElement.style.opacity = '';
     // Just fade out gracefully
-    target.style.transition = 'all 0.3s ease';
+    target.style.transition = `opacity ${MORPH_MS}ms ${EASING.standard}`;
     target.style.opacity = '0';
-    await timeout(300 / animationSpeed);
+    await timeout(MORPH_MS);
     done();
     return;
   }
@@ -273,14 +306,14 @@ async function leave(target, done) {
   }
 
   // Wait for the mock to finish
-  await timeout(300 / animationSpeed);
+  await timeout(MORPH_MS);
 
   // reveal the source immediately
   source.style.opacity = '';
   source.style.transition = 'none';
 
   // Wait for the opacity swap to finish
-  await timeout(100 / animationSpeed);
+  await timeout(DURATION.short / animationSpeed);
 
   // Fix the transition of the source
   source.style.transition = originalSourceTransition;
@@ -303,7 +336,7 @@ async function leave(target, done) {
     opacity: 1;
   }
   .backdrop-fade-enter-active, .backdrop-fade-leave-active {
-    transition: opacity 0.3s;
+    transition: opacity var(--motion-duration-medium) var(--motion-easing-standard);
   }
   .backdrop-fade-enter-from, .backdrop-fade-leave-to {
     opacity: 0;
@@ -320,7 +353,16 @@ async function leave(target, done) {
   }
 
   .shake {
-    animation: shake 0.2s;
+    animation: shake var(--motion-duration-short) var(--motion-easing-standard);
+  }
+
+  /* Reduced animations: the top dialog dims for an instant instead */
+  .reduce-motion .shake {
+    animation-name: dim;
+  }
+
+  @keyframes dim {
+    50% { opacity: 0.8; }
   }
 
   @keyframes shake {
@@ -343,7 +385,7 @@ async function leave(target, done) {
     opacity: 0;
   }
   .dialog-list-enter-active .sized-dialog, .dialog-list-leave-active .sized-dialog {
-    transition: opacity 0.3s;
+    transition: opacity var(--motion-duration-medium) var(--motion-easing-standard);
   }
 
   /*
@@ -361,10 +403,13 @@ async function leave(target, done) {
   }
 
   .dialog.dialog-list-enter-active, .unsized-dialog.dialog-list-enter-active {
-    transition: all 0.3s, box-shadow 0.1s, opacity 0s, pointer-events 0s;
+    transition: all var(--motion-duration-medium) var(--motion-easing-standard),
+      box-shadow 0.1s, opacity 0s, pointer-events 0s;
   }
   .dialog.dialog-list-leave-active, .unsized-dialog.dialog-list-leave-active {
-    transition: all 0.3s, box-shadow 0.1s 0.3s, opacity 0.1s 0.3s, pointer-events 0s;
+    transition: all var(--motion-duration-medium) var(--motion-easing-standard),
+      box-shadow 0.1s var(--motion-duration-medium),
+      opacity var(--motion-duration-short) var(--motion-duration-medium), pointer-events 0s;
   }
 
   /**
@@ -385,10 +430,23 @@ async function leave(target, done) {
     position: absolute;
     z-index: 1;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all var(--motion-duration-medium) var(--motion-easing-standard);
     transform: translate(-50%, -50%) scale(1);
   }
-  @media only screen and  (min-width:  601px){
+  /* Reduced animations: dialogs below the top one step back without moving */
+  .reduce-motion .dialog, .reduce-motion .unsized-dialog,
+  .reduce-motion .dialog-list-enter-active .sized-dialog,
+  .reduce-motion .dialog-list-leave-active .sized-dialog {
+    transition: opacity var(--motion-duration-short) var(--motion-easing-standard),
+      filter var(--motion-duration-short) var(--motion-easing-standard);
+  }
+  /* A phone's width: dialogs take the whole screen, as Material's full-screen dialogs */
+  @media (max-width: 599.98px) {
+    .dialog {
+      max-height: none;
+      max-width: none;
+      border-radius: 0;
+    }
   }
   .dialog > .sized-dialog {
     height: 100%;

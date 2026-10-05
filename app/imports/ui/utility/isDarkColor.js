@@ -1,25 +1,12 @@
-function hexToRgb(hex) {
-    if (!hex) return null;
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-        return r + r + g + g + b + b;
-    });
+import onColor, { WHITE } from '/imports/ui/utility/onColor.mjs';
 
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : null;
-}
-
-export default function isDarkColor(hexColor){
-  let rgb = hexToRgb(hexColor);
-  if (!rgb) return null;
-  let brightness = Math.round(
-    ((rgb.r* 299) + (rgb.g * 587) + (rgb.b * 114))
-    / 1000
-  );
-  return brightness <= 125;
+/**
+ * Whether a colour takes white text, by WCAG contrast (onColor): what decides
+ * the theme (`dark` or `light`) of a component painted in a user's colour.
+ * null when the colour is not a hex colour.
+ */
+export default function isDarkColor(hexColor) {
+  const on = onColor(hexColor);
+  if (!on) return null;
+  return on === WHITE;
 }

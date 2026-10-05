@@ -120,8 +120,10 @@ const createMarked = (...extensions) => new Marked(
       codespan(token) {
         return addClass(base.codespan.call(this, token), 'code', 'v-code');
       },
+      // It scrolls sideways: focusable, so that the keyboard can scroll it
       code(token) {
-        return addClass(base.code.call(this, token), 'pre', 'v-code d-block px-3 py-2 mt-0 mb-4 overflow-x-auto');
+        return addClass(base.code.call(this, token), 'pre', 'v-code d-block px-3 py-2 mt-0 mb-4 overflow-x-auto')
+          .replace(/^<pre\b/, '<pre tabindex="0"');
       },
       link(token) {
         return addClass(base.link.call(this, token), 'a', 'text-primary');

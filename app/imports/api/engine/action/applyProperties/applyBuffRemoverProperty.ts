@@ -32,7 +32,7 @@ export default async function applyBuffRemoverProperty(
     const nearestBuff = findLast(ancestors, ancestor => ancestor.type === 'buff');
     if (!nearestBuff) {
       result.appendLog({
-        name: 'Error',
+        name: 'Error', i18n: { name: { key: 'logs.error' } },
         value: 'Buff remover does not have a parent buff to remove',
         silenced: prop.silent,
       }, task.targetIds);
@@ -84,7 +84,7 @@ function removeBuff(buff: any, prop, result: TaskResult) {
     targetIds: result.targetIds,
     removals: [{ propId: buff._id }],
     contents: [{
-      name: 'Removed',
+      name: 'Removed', i18n: { name: { key: 'logs.removed' } },
       value: `${buff.name || 'Buff'}`,
       ...prop.silent && { silenced: true },
     }],

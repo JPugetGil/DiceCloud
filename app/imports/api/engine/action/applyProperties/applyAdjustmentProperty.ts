@@ -28,7 +28,7 @@ export default async function applyAdjustmentProperty(
   // Get the operation and value and push the damage hooks to the queue
   if (!prop.amount) {
     result.appendLog({
-      name: 'Error',
+      name: 'Error', i18n: { name: { key: 'logs.error' } },
       value: 'Attribute damage does not have an amount set',
       silenced: prop.silent,
     }, damageTargetIds);
@@ -40,7 +40,7 @@ export default async function applyAdjustmentProperty(
   const value = Number(prop.amount.value ?? 0);
   if (!isFinite(value)) {
     result.appendLog({
-      name: 'Error',
+      name: 'Error', i18n: { name: { key: 'logs.error' } },
       value: 'Attribute damage does not have a finite amount set',
       silenced: prop.silent,
     }, damageTargetIds);
@@ -57,7 +57,7 @@ export default async function applyAdjustmentProperty(
     stat = statId && await getSingleProperty(targetId, statId);
     if (!stat?.type) {
       result.appendLog({
-        name: 'Error',
+        name: 'Error', i18n: { name: { key: 'logs.error' } },
         value: `Could not apply attribute damage, creature does not have \`${prop.stat}\` set`,
         silenced: prop.silent,
       }, damageTargetIds);

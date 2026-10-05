@@ -17,7 +17,12 @@
       class="pt-0 order-md-last"
     >
       <v-card class="sibling-list">
-        <v-list :density="siblingDocs.length > 5 ? 'compact' : undefined">
+        <!-- Links to the other documents: a group, Vuetify's role="list" may hold no link -->
+        <v-list
+          :density="siblingDocs.length > 5 ? 'compact' : undefined"
+          role="group"
+          :aria-label="$t('docs.contents')"
+        >
           <doc-list-item
             v-for="sibling in siblingDocs"
             :key="sibling._id"

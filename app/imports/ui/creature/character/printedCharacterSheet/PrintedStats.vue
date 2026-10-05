@@ -252,7 +252,7 @@
           </div>
         </div>
       </div>
-      <div>
+      <div v-if="weapons?.length || armors?.length || tools?.length || languages?.length">
         <div
           class="double-border"
         >

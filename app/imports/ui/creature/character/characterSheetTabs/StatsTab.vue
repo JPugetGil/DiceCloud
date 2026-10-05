@@ -7,6 +7,7 @@
       v-if="choicesLeft > 0"
       class="px-2 pt-2"
     >
+      <!-- On a phone the action goes under the text, which a button beside it squeezed into a column -->
       <v-alert
         type="info"
         variant="tonal"
@@ -15,7 +16,26 @@
         data-id="build-incomplete"
       >
         {{ $t('build.incomplete', { count: choicesLeft }, choicesLeft) }}
-        <template #append>
+        <template v-if="buildProgress?.next">
+          {{ $t('build.nextStep', { name: buildProgress.next.name }) }}
+        </template>
+        <div
+          v-if="xs"
+          class="mt-1 ms-n2"
+        >
+          <v-btn
+            variant="text"
+            size="small"
+            append-icon="mdi-arrow-right"
+            @click="appStore.setTabForCharacterSheet({ id: creatureId, tab: 'build' })"
+          >
+            {{ $t('build.continueBuilding') }}
+          </v-btn>
+        </div>
+        <template
+          v-if="!xs"
+          #append
+        >
           <v-btn
             variant="text"
             size="small"
@@ -27,16 +47,42 @@
         </template>
       </v-alert>
     </div>
+    <your-turn-banner
+      :creature-id="creatureId"
+      class="mx-2 mt-2"
+    />
+    <!--
+      The fight at a glance (D1). On a phone its first row (hit points, armor
+      class, initiative) stays under the app bar while the tab scrolls
+    -->
+    <template v-if="xs">
+      <div class="combat-summary-sticky px-2 pt-2">
+        <combat-summary
+          :creature-id="creatureId"
+          part="primary"
+        />
+      </div>
+      <combat-summary
+        :creature-id="creatureId"
+        part="secondary"
+        class="mx-2 mt-2"
+      />
+    </template>
+    <combat-summary
+      v-else
+      :creature-id="creatureId"
+      class="mx-2 mt-2"
+    />
     <div
-      v-if="properties.attribute.healthBar && properties.attribute.healthBar.length"
+      v-if="otherHealthBars.length"
       class="px-2 pt-2"
     >
       <v-card class="pa-2">
         <health-bar
-          v-for="healthBar in properties.attribute.healthBar"
+          v-for="healthBar in otherHealthBars"
           :key="healthBar._id"
           :model="healthBar"
-          @change="({ type, value }) => incrementChange(healthBar._id, { type, value })"
+          @change="change => changeHealth(healthBar, change)"
           @click="clickProperty({_id: healthBar._id})"
         />
       </v-card>
@@ -56,14 +102,17 @@
         class="character-buttons"
       >
         <v-card>
-          <v-card-text class="d-flex flex-column ga-2">
+          <!-- The rests side by side, the events under them (D5) -->
+          <v-card-text class="character-buttons__grid">
             <rest-button
               v-if="!creature.settings?.hideRestButtons"
+              class="character-buttons__rest"
               :creature-id="creatureId"
               type="shortRest"
             />
             <rest-button
               v-if="!creature.settings?.hideRestButtons"
+              class="character-buttons__rest"
               :creature-id="creatureId"
               type="longRest"
             />
@@ -97,27 +146,41 @@
       >
         <v-card>
           <!-- The chips come first: a buff added to the list must not move them under the pointer -->
-          <v-list class="pb-0">
-            <v-list-subheader>{{ $t('stats.buffsAndConditions') }}</v-list-subheader>
-          </v-list>
+          <!-- Not a list of its own: a list without items is invalid for screen readers -->
+          <v-list-subheader class="pt-2 px-4">
+            {{ $t('stats.buffsAndConditions') }}
+          </v-list-subheader>
+          <!-- From md, every condition; below, those it has and a menu for the others (UX10) -->
           <condition-chips
             v-if="conditions.length"
+            class="px-4 pt-1 pb-3"
             :creature-id="creatureId"
             :conditions="conditions"
             :buffs="properties.buff"
+            :layout="mdAndUp ? 'all' : 'active'"
           />
+          <!--
+            A buff that arrives is tinted for a moment, one that ends fades
+            out (A6). Not when the sheet loads, and nothing moves: the list is
+            in a column layout
+          -->
           <v-list
-            v-if="properties.buff && properties.buff.length"
+            v-if="buffListShown"
             class="pt-0"
           >
-            <buff-list-item
-              v-for="buff in properties.buff"
-              :key="buff._id"
-              :data-id="buff._id"
-              :model="buff"
-              @click="clickProperty({_id: buff._id})"
-              @remove="softRemove(buff._id)"
-            />
+            <transition-group
+              :name="buffsAnimated ? 'buff-change' : 'buff-still'"
+              :appear="buffsAnimated"
+            >
+              <buff-list-item
+                v-for="buff in properties.buff"
+                :key="buff._id"
+                :data-id="buff._id"
+                :model="buff"
+                @click="clickProperty({_id: buff._id})"
+                @remove="softRemove(buff._id)"
+              />
+            </transition-group>
           </v-list>
         </v-card>
       </div>
@@ -129,12 +192,9 @@
         <v-card>
           <v-list>
             <template
-              v-for="(ability, index) in properties.attribute.ability"
+              v-for="ability in properties.attribute.ability"
               :key="ability._id"
             >
-              <v-divider
-                v-if="index !== 0"
-              />
               <ability-list-tile
                 :model="ability"
                 :data-id="ability._id"
@@ -158,7 +218,7 @@
       </div>
 
       <div
-        v-for="stat in properties.attribute.stat"
+        v-for="stat in listed(properties.attribute.stat)"
         :key="stat._id"
         class="stat"
       >
@@ -170,7 +230,7 @@
       </div>
 
       <div
-        v-for="modifier in properties.attribute.modifier"
+        v-for="modifier in listed(properties.attribute.modifier)"
         :key="modifier._id"
         class="modifier"
       >
@@ -182,7 +242,7 @@
       </div>
 
       <div
-        v-for="check in properties.skill.check"
+        v-for="check in listed(properties.skill.check)"
         :key="check._id"
         class="check"
       >
@@ -202,12 +262,9 @@
           <v-list>
             <v-list-subheader>{{ $t('stats.hitDice') }}</v-list-subheader>
             <template
-              v-for="(hitDie, index) in properties.attribute.hitDice"
+              v-for="hitDie in properties.attribute.hitDice"
               :key="hitDie._id"
             >
-              <v-divider
-                v-if="index !== 0"
-              />
               <hit-dice-list-tile
                 :model="hitDie"
                 :data-id="hitDie._id"
@@ -421,7 +478,8 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch } from 'vue';
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { DURATION } from '/imports/ui/utility/motion';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
@@ -446,10 +504,15 @@ import FolderGroupCard from '/imports/ui/properties/components/folders/FolderGro
 import { get, set, uniqBy } from 'lodash';
 import { docsToForest, getFilter } from '/imports/api/parenting/parentingFunctions';
 import doAction from '/imports/ui/creature/actions/doAction';
+import applyHealthChange from '/imports/ui/creature/actions/applyHealthChange';
 import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useAppStore } from '/imports/ui/stores/app';
 import useBuildProgress from '/imports/ui/composables/useBuildProgress';
+import useCombatStats from '/imports/ui/composables/useCombatStats';
+import CombatSummary from '/imports/ui/creature/character/CombatSummary.vue';
+import YourTurnBanner from '/imports/ui/creature/character/YourTurnBanner.vue';
+import { useDisplay } from 'vuetify';
 
 const dialogStackStore = useDialogStackStore();
 const appStore = useAppStore();
@@ -467,9 +530,27 @@ const props = defineProps({
 // Only to those who can build it
 const context = inject('context', {});
 const buildProgress = useBuildProgress(() => props.creatureId);
-const choicesLeft = computed(() => context.editPermission === false
+const { xs, mdAndUp } = useDisplay();
+
+// Buffs animate in and out once the sheet has loaded them and shown them:
+// the list of the first buff then appears with it
+const settled = ref(false);
+onMounted(() => requestAnimationFrame(() => { settled.value = true; }));
+const buffsAnimated = computed(() => settled.value && appStore.loadedCharacterId === props.creatureId);
+
+// What the combat summary shows is not repeated in the cards below it
+const combatStats = useCombatStats(() => props.creatureId);
+const inSummary = computed(() => {
+  const s = combatStats.value;
+  return new Set([s.hitPoints, s.armor, s.initiative, s.speed, s.proficiencyBonus]
+    .filter(Boolean).map(prop => prop._id));
+});
+const listed = list => (list || []).filter(prop => !inSummary.value.has(prop._id));
+const otherHealthBars = computed(() => listed(properties.value?.attribute.healthBar));
+// Steps left, locked ones included, while one of them can be done now (UX12)
+const choicesLeft = computed(() => context.editPermission === false || !buildProgress.value?.left
   ? 0
-  : (buildProgress.value?.total || 0) - (buildProgress.value?.done || 0));
+  : buildProgress.value.total - buildProgress.value.done);
 
 const creature = autorun(() => {
   return Creatures.findOne(props.creatureId, { fields: { settings: 1 } });
@@ -601,6 +682,16 @@ const properties = autorun(() => {
   return propertiesObj;
 }).result;
 
+// The list outlives its last buff while that one fades out
+const buffListShown = ref(false);
+let buffListTimer;
+watch(() => properties.value?.buff?.length || 0, count => {
+  clearTimeout(buffListTimer);
+  if (count) buffListShown.value = true;
+  else buffListTimer = setTimeout(() => { buffListShown.value = false; }, DURATION.medium + 50);
+}, { immediate: true });
+onBeforeUnmount(() => clearTimeout(buffListTimer));
+
 
 const saveConditionals = computed(() => {
   const conditionals = [];
@@ -642,6 +733,14 @@ function clickTreeProperty({ _id }) {
   });
 }
 
+// Damage and healing through the engine, or the bar set (UX1)
+function changeHealth(model, change) {
+  applyHealthChange({ model, ...change }).catch(error => {
+    snackbar({ text: error.reason || error.message || error.toString() });
+    console.error(error);
+  });
+}
+
 async function incrementChange(_id, { type, value, ack }) {
   const model = CreatureProperties.findOne(_id);
   if (!model) return;
@@ -680,3 +779,61 @@ async function softRemove(_id) {
   }
 }
 </script>
+
+<style scoped>
+/* Rules between list items: a v-divider is an <hr>, which a list may not hold */
+.ability-scores .v-list-item + .v-list-item,
+.hit-dice .v-list-item + .v-list-item {
+  border-top: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+/* Rests side by side, events under them */
+.character-buttons__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.character-buttons__grid > :not(.character-buttons__rest) {
+  grid-column: 1 / -1;
+}
+
+/* A buff that arrives: tinted, then the tint fades (600ms); one that ends fades out */
+.buff-change-enter-active {
+  animation: buff-arrive 600ms var(--motion-easing-standard);
+}
+
+.buff-change-leave-active {
+  transition: opacity var(--motion-duration-medium) var(--motion-easing-emphasized-accelerate);
+}
+
+.buff-change-leave-to {
+  opacity: 0;
+}
+
+@keyframes buff-arrive {
+  0%, 40% {
+    background-color: rgba(var(--v-theme-primary), 0.16);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.reduce-motion .buff-change-enter-active {
+  animation-duration: 600ms;
+}
+
+.reduce-motion .buff-change-leave-active {
+  transition-duration: var(--motion-duration-short);
+}
+
+/* On a phone the combat summary's first row stays under the app bar */
+.combat-summary-sticky {
+  position: sticky;
+  top: var(--v-layout-top);
+  z-index: 3;
+  background: rgb(var(--v-theme-page));
+  padding-bottom: 8px;
+}
+</style>

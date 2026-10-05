@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ mode === 'archive' ? $t('common.archive') : $t('common.restore') }}
       </v-toolbar-title>
-      <v-spacer />
       <v-btn-toggle
         v-model="mode"
         mandatory

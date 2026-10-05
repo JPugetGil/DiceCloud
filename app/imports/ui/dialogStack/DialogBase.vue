@@ -9,14 +9,15 @@
     />
     <v-toolbar
       v-if="!$slots['replace-toolbar']"
-      :color="computedColor"
-      :theme="isDark ? 'dark' : 'light'"
+      v-bind="userSurface(computedColor)"
       class="base-dialog-toolbar"
       :flat="!offsetTop"
     >
       <v-btn
         variant="text"
         icon
+        :aria-label="$t('common.back')"
+        data-id="dialog-back"
         @click="close"
       >
         <v-icon>mdi-arrow-left</v-icon>
@@ -55,8 +56,11 @@
 <script setup>
 import { ref, computed } from 'vue';
 import getThemeColor from '/imports/ui/utility/getThemeColor';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const props = defineProps({
   color: {
@@ -69,10 +73,6 @@ const props = defineProps({
 const offsetTop = ref(0);
 
 const dialogStackStore = useDialogStackStore();
-
-const isDark = computed(() => {
-  return isDarkColor(computedColor.value);
-});
 
 const computedColor = computed(() => {
   return props.color || getThemeColor('secondary');

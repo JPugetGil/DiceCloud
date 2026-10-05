@@ -15,3 +15,16 @@ export default function initiativeOrder(entries = []) {
     return (a.name || '').localeCompare(b.name || '');
   });
 }
+
+/**
+ * The turn after the entries change (a result typed in, a creature added):
+ * the same creature keeps it, wherever the new order puts it. The tracker's
+ * `turn` is an index into the order, so without this a result that moved
+ * someone up gave the turn to whoever took their place
+ */
+export function turnAfterChange(entries = [], turn = 0, newEntries = []) {
+  const active = initiativeOrder(entries)[turn];
+  if (!active) return Math.min(turn, Math.max(newEntries.length - 1, 0));
+  const index = initiativeOrder(newEntries).findIndex(entry => entry._id === active._id);
+  return index === -1 ? Math.min(turn, Math.max(newEntries.length - 1, 0)) : index;
+}

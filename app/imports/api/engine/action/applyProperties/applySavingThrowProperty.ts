@@ -8,6 +8,7 @@ import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
+import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import { Meteor } from 'meteor/meteor';
 
@@ -33,7 +34,7 @@ export default async function applySavingThrowProperty(
 
   if (!isFiniteNode(prop.dc?.valueNode)) {
     result.appendLog({
-      name: 'Error',
+      name: 'Error', i18n: { name: { key: 'logs.error' } },
       value: 'Saving throw requires a DC',
       silenced: prop.silent,
     }, saveTargetIds);
@@ -41,12 +42,12 @@ export default async function applySavingThrowProperty(
   }
 
   const dc = Number(prop.dc?.value ?? 0);
-  result.appendLog({
+  result.appendLog(logLine({
     name: getPropertyTitle(prop),
-    value: `DC **${dc}**`,
+    value: msg('logs.dc', { dc }),
     inline: true,
     silenced: prop.silent,
-  }, saveTargetIds);
+  }), saveTargetIds);
 
   const targetId = saveTargetIds[0];
 
@@ -64,35 +65,39 @@ export default async function applySavingThrowProperty(
   const save = prop.stat ? await getFromScope(prop.stat, await getVariables(targetId)) : undefined;
 
   if (!save) {
-    result.appendLog({
-      name: 'Saving throw error',
-      value: 'No saving throw found: ' + prop.stat,
+    result.appendLog(logLine({
+      name: msg('logs.saveError'),
+      value: msg('logs.noSave', { stat: prop.stat }),
       silenced: prop.silent,
-    }, [targetId]);
+    }), [targetId]);
     return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
   }
 
   const rollModifierText = numberToSignedString(save.value, true);
   const rollModifier = save.value;
 
+  // The roll's lines: its advantage, if any, then its dice
   let value, resultPrefix;
+  const rollParts: LogPart[] = [];
   if (save.advantage === 1) {
     const [[a, b]] = await inputProvider.rollDice([{ number: 2, diceSize: 20 }]);
+    rollParts.push(msg('logs.advantage'));
     if (a >= b) {
       value = a;
-      resultPrefix = `Advantage\n1d20 [ ${a}, ~~${b}~~ ] ${rollModifierText}`;
+      resultPrefix = `1d20 [ ${a}, ~~${b}~~ ] ${rollModifierText}`;
     } else {
       value = b;
-      resultPrefix = `Advantage\n1d20 [ ~~${a}~~, ${b} ] ${rollModifierText}`;
+      resultPrefix = `1d20 [ ~~${a}~~, ${b} ] ${rollModifierText}`;
     }
   } else if (save.advantage === -1) {
     const [[a, b]] = await inputProvider.rollDice([{ number: 2, diceSize: 20 }]);
+    rollParts.push(msg('logs.disadvantage'));
     if (a <= b) {
       value = a;
-      resultPrefix = `Disadvantage\n1d20 [ ${a}, ~~${b}~~ ] ${rollModifierText}`;
+      resultPrefix = `1d20 [ ${a}, ~~${b}~~ ] ${rollModifierText}`;
     } else {
       value = b;
-      resultPrefix = `Disadvantage\n1d20 [ ~~${a}~~, ${b} ] ${rollModifierText}`;
+      resultPrefix = `1d20 [ ~~${a}~~, ${b} ] ${rollModifierText}`;
     }
   } else {
     const [[rolledValue]] = await inputProvider.rollDice([{ number: 1, diceSize: 20 }]);
@@ -111,11 +116,11 @@ export default async function applySavingThrowProperty(
     result.pushScope['~saveFailed'] = { value: true };
     result.pushScope['~saveSucceeded'] = { value: false };
   }
-  result.appendLog({
-    name: saveSuccess ? 'Successful save' : 'Failed save',
-    value: resultPrefix + '\n**' + resultValue + '**',
+  result.appendLog(logLine({
+    name: msg(saveSuccess ? 'logs.saveSucceeded' : 'logs.saveFailed'),
+    value: [...rollParts, resultPrefix, `**${resultValue}**`],
     inline: true,
     silenced: prop.silent,
-  }, [targetId]);
+  }), [targetId]);
   return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
 }

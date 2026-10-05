@@ -11,7 +11,7 @@
       <template #prepend>
         <v-avatar
           variant="flat"
-          :color="model.color || 'grey'"
+          v-bind="model.color ? userColorProps(model.color) : { color: 'grey' }"
           size="32"
         >
           <v-img
@@ -55,6 +55,7 @@ import { ref, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import ActionLogPreviewContent from '/imports/ui/log/ActionLogPreviewContent.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import userColorProps from '/imports/ui/utility/userColor';
 
 const props = defineProps({
   model: {

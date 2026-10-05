@@ -1,9 +1,8 @@
 <template>
   <v-card
-    :color="model.color"
+    v-bind="userSurface(model.color)"
     :data-id="model._id"
     hover
-    :theme="model.color ? (isDark ? 'dark' : 'light') : undefined"
     @click="clickProperty(model._id)"
     @mouseover="hover = true"
     @mouseleave="hover = false"
@@ -22,13 +21,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
-const props = defineProps({
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
+
+defineProps({
   model: {
     type: Object,
     required: true,
@@ -38,10 +40,6 @@ const props = defineProps({
 const hover = ref(false);
 
 const dialogStackStore = useDialogStackStore();
-
-const isDark = computed(() => {
-  return isDarkColor(props.model.color);
-});
 
 function clickProperty(_id) {
   dialogStackStore.pushDialogStack({

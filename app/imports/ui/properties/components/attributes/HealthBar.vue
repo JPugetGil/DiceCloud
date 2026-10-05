@@ -7,19 +7,30 @@
   >
     <div
       class="text-body-large text-truncate pa-2 name"
+      role="button"
+      tabindex="0"
       @mouseover="hover = true"
       @mouseleave="hover = false"
       @click="$emit('click')"
+      @keydown.enter.prevent="$emit('click')"
+      @keydown.space.prevent="$emit('click')"
     >
       {{ model.name }}
     </div>
     <div
+      ref="barElement"
       style="height: 24px; flex: 100 1 300px;"
     >
       <health-bar-progress
         :model="model"
         style="cursor: pointer;"
+        role="button"
+        tabindex="0"
+        :aria-label="$t('stats.changeHealth', { name: model.name, value: model.value, total: model.total })"
+        data-id="health-bar-value"
         @click="edit"
+        @keydown.enter.prevent="editFromKeyboard"
+        @keydown.space.prevent="editFromKeyboard"
       >
         <div
           class="value"
@@ -35,24 +46,29 @@
               top: 0;
               right: 0;
               bottom: 0;
-              text-align: center;"
+              text-align: center;
+              font-variant-numeric: tabular-nums;"
         >
-          {{ model.value }} / {{ model.total }}
+          {{ shownValue }} / {{ model.total }}
         </div>
+        <health-delta
+          :delta="delta"
+          :change-key="changeKey"
+        />
       </health-bar-progress>
+      <!-- Under the bar, which stays in view (on a phone the menu used to cover it) -->
       <v-menu
         v-model="editing"
-        transition="scale-transition"
-        origin="center center"
-        content-class="no-menu-shadow"
-        :target="[x, y]"
-        :min-width="305"
+        location="bottom center"
+        :offset="8"
+        :target="barElement"
         :close-on-content-click="false"
       >
-        <increment-menu
+        <health-change-menu
+          :name="model.name"
           :value="model.value"
           :open="editing"
-          @change="changeIncrementMenu"
+          @change="changeHealth"
           @close="cancelEdit"
         />
       </v-menu>
@@ -64,9 +80,12 @@
 import { ref, computed, nextTick} from 'vue';
 import { useTheme } from 'vuetify';
 import chroma from 'chroma-js';
-import IncrementMenu from '/imports/ui/components/IncrementMenu.vue';
+import HealthChangeMenu from '/imports/ui/properties/components/attributes/HealthChangeMenu.vue';
 import isDarkColor from '/imports/ui/utility/isDarkColor';
 import HealthBarProgress from '/imports/ui/properties/components/attributes/HealthBarProgress.vue';
+import HealthDelta from '/imports/ui/properties/components/attributes/HealthDelta.vue';
+import useHealthChange from '/imports/ui/composables/useHealthChange';
+import useTweenedNumber from '/imports/ui/composables/useTweenedNumber';
 
 const props = defineProps({
   model: {
@@ -79,10 +98,13 @@ const emit = defineEmits(['click', 'change']);
 
 const vuetifyTheme = useTheme();
 
+// The value counts to its new number; "−7" shows what changed
+const shownValue = useTweenedNumber(() => props.model.value);
+const { delta, changeKey } = useHealthChange(() => props.model);
+
 const editing = ref(false);
 const hover = ref(false);
-const x = ref(0);
-const y = ref(0);
+const barElement = ref(null);
 
 const color = computed(() => {
   return props.model.color || vuetifyTheme.current.value.colors.primary;
@@ -115,40 +137,25 @@ const isTextLight = computed(() => {
 });
 
 function edit(e) {
-  e.preventDefault();
+  e?.preventDefault?.();
   editing.value = false;
-  x.value = e.clientX - 165;
-  y.value = e.clientY - 24;
   nextTick(() => {
     editing.value = true;
   });
 }
 
+const editFromKeyboard = edit;
+
 function cancelEdit() {
   editing.value = false;
 }
 
-function changeIncrementMenu({ type, value }) {
-  if (type === 'increment') value = -value;
-  emit('change', { type, value });
+// { mode: 'damage' | 'healing' | 'set', value, damageType }: see applyHealthChange
+function changeHealth(change) {
+  emit('change', change);
   editing.value = false;
 }
 </script>
-
-<style>
-.health-bar .increment-menu {
-  margin-left: -50%;
-  margin-right: -50%;
-  width: 200%;
-  margin-top: -34px;
-  z-index: 7;
-  position: relative;
-}
-
-.no-menu-shadow {
-  box-shadow: none;
-}
-</style>
 
 <style scoped>
 .health-bar {

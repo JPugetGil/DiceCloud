@@ -14,13 +14,13 @@
         <div class="mr-3">
           <div
             v-if="model.damage !== undefined"
-            class="text-headline-large mr-3"
+            class="stat-value mr-3"
           >
             {{ formatQuantity(model.value, unit) }} / {{ formatQuantity(model.total, unit) }}
           </div>
           <div
             v-if="model.value !== undefined"
-            class="text-headline-large mr-3"
+            class="stat-value mr-3"
           >
             {{ formatQuantity(model.value, unit) }}
           </div>

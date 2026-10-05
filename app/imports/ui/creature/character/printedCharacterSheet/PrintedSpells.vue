@@ -1,5 +1,7 @@
 <template>
+  <!-- No spell and no spell list, no page of spells (D9) -->
   <div
+    v-if="spellsWithoutList?.length || spellListsWithoutAncestorSpellLists?.length"
     class="spells"
   >
     <div

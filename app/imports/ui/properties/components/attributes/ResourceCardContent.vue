@@ -23,7 +23,7 @@
       </smart-btn>
     </div>
     <div class="d-flex flex-1-1 align-center value pl-2 pr-3 flex-shrink-0 flex-grow-0">
-      <div class="text-headline-large">
+      <div class="stat-value">
         {{ optimisticValue }}
       </div>
       <div

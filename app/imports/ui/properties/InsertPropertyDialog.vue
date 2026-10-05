@@ -4,7 +4,6 @@
       <v-toolbar-title class="mr-4">
         {{ tab === 2 ? `${$t('insert.new')} ${typeName}` : typeName }}
       </v-toolbar-title>
-      <v-spacer />
       <v-slide-x-reverse-transition hide-on-leave>
         <v-switch
           v-if="tab === 0"

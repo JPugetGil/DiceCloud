@@ -18,6 +18,29 @@
           style="min-width: 220px;"
           data-id="community-search"
         />
+        <!-- In the interface's language at first: the EN and FR versions sat side by side (UX13) -->
+        <v-btn-toggle
+          v-model="languageFilter"
+          mandatory
+          divided
+          border
+          rounded="pill"
+          density="compact"
+          color="primary"
+          role="group"
+          :aria-label="$t('library.languageFilter')"
+          data-id="community-language"
+        >
+          <v-btn
+            v-for="option in languageOptions"
+            :key="option.value"
+            :value="option.value"
+            :aria-pressed="languageFilter === option.value"
+            :data-id="`community-language-${option.value}`"
+          >
+            {{ option.title }}
+          </v-btn>
+        </v-btn-toggle>
         <v-btn-toggle
           v-model="sort"
           mandatory
@@ -73,6 +96,24 @@
                     :prepend-icon="card._type === 'libraryCollection' ? 'mdi-bookshelf' : 'mdi-book-outline'"
                   >
                     {{ card._type === 'libraryCollection' ? $t('library.collection') : $t('library.singleLibrary') }}
+                  </v-chip>
+                  <v-chip
+                    v-if="card.language"
+                    size="x-small"
+                    variant="outlined"
+                    :data-id="`community-card-language-${card._id}`"
+                  >
+                    {{ $t(`languages.${card.language}`) }}
+                  </v-chip>
+                  <v-chip
+                    v-if="card.recommended"
+                    size="x-small"
+                    variant="flat"
+                    color="primary"
+                    prepend-icon="mdi-star"
+                    :data-id="`community-card-recommended-${card._id}`"
+                  >
+                    {{ $t('library.recommended') }}
                   </v-chip>
                   <span v-if="card.subscriberCount">
                     {{ $t('library.subscribers', { count: formatNumber(card.subscriberCount) }) }}
@@ -149,8 +190,9 @@ import Libraries from '/imports/api/library/Libraries';
 import firstSentence from '/imports/ui/utility/firstSentence';
 import formatter from '/imports/ui/utility/numberFormatter';
 import { useI18n } from 'vue-i18n';
+import libraryLanguage, { LIBRARY_LANGUAGES, matchesLanguage } from '/imports/api/library/libraryLanguage';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 
 const { ready: browseLibrariesReady } = subscribe('browseLibraries');
@@ -189,18 +231,31 @@ const libraries = autorun(() => {
 const search = ref('');
 const sort = ref('popular');
 
+// The interface's language first; a library whose language cannot be told shows under each
+const languageFilter = ref(LIBRARY_LANGUAGES.includes(locale.value) ? locale.value : 'all');
+const languageOptions = computed(() => [
+  ...LIBRARY_LANGUAGES.map(language => ({ title: t(`languages.${language}`), value: language })),
+  { title: t('library.allLanguages'), value: 'all' },
+]);
+
 // Searched by name and description, then sorted; each card shows the first
 // sentence of its description rather than all of it
 const libraryCards = computed(() => {
   const term = (search.value || '').trim().toLowerCase();
   const cards = [...(libraries.value || []), ...(collections.value || [])]
+    .filter(card => matchesLanguage(card, languageFilter.value))
     .filter(card => !term
       || card.name?.toLowerCase().includes(term)
       || card.description?.toLowerCase().includes(term))
-    .map(card => ({ ...card, summary: firstSentence(card.description, 200) }));
+    .map(card => ({
+      ...card,
+      language: libraryLanguage(card),
+      summary: firstSentence(card.description, 200),
+    }));
+  // The recommended ones first, unless sorted by name
   return sort.value === 'name'
     ? orderBy(cards, [card => card.name?.toLowerCase()], ['asc'])
-    : orderBy(cards, ['subscriberCount', 'name'], ['desc', 'asc']);
+    : orderBy(cards, [card => !!card.recommended, 'subscriberCount', 'name'], ['desc', 'desc', 'asc']);
 });
 
 function formatNumber(num) {

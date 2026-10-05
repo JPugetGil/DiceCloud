@@ -6,9 +6,12 @@ import { Random } from 'meteor/random';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
+import initiativeOrder, { turnAfterChange } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
+import {
+  MAX_COUNT, entryStatus, numberedNames, damageAfter,
+} from '/imports/api/creature/creatureFolders/initiativeCreatures';
 
 /*
  * The initiative tracker of a party board, stored on its character folder.
@@ -102,13 +105,22 @@ export const rollInitiative = new ValidatedMethod({
       entries.push(Number.isFinite(entry.initiative) ? entry : rolled(entry));
     }
     await CreatureFolders.updateAsync(folderId, {
-      $set: { initiative: { round: 1, turn: 0, entries } },
+      $set: {
+        initiative: {
+          round: 1, turn: 0, entries,
+          ...folder.initiative?.showStats && { showStats: true },
+        },
+      },
     });
     await startTurn(folder, entries, 0, userId);
   },
 });
 
-/** Adds a creature by hand: rolled from its bonus unless given a result */
+/**
+ * Adds creatures by hand (UX11): `count` of them, numbered ("Goblin ×4" makes
+ * Goblin 1 to 4), each rolled from its bonus unless given a result, with hit
+ * points and armor class if given, which only the game master sees
+ */
 export const addInitiativeEntry = new ValidatedMethod({
   name: 'creatureFolders.initiative.add',
   validate: new SimpleSchema({
@@ -116,18 +128,108 @@ export const addInitiativeEntry = new ValidatedMethod({
     name: { type: String, max: STORAGE_LIMITS.name },
     bonus: { type: Number, optional: true },
     initiative: { type: Number, optional: true },
+    count: { type: SimpleSchema.Integer, min: 1, max: MAX_COUNT, optional: true },
+    hp: { type: SimpleSchema.Integer, min: 1, max: 99999, optional: true },
+    ac: { type: SimpleSchema.Integer, min: 0, max: 99, optional: true },
   }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ folderId, name, bonus, initiative }) {
+  async run({ folderId, name, bonus, initiative, count = 1, hp, ac }) {
     const folder = await getOwnFolder(folderId, this.userId);
     if (Meteor.isClient) return;
-    let entry = { _id: Random.id(), name, bonus: bonus || 0 };
-    entry = Number.isFinite(initiative) ? { ...entry, initiative } : rolled(entry);
     const tracker = folder.initiative || { round: 0, turn: 0, entries: [] };
-    await CreatureFolders.updateAsync(folderId, {
-      $set: { initiative: { ...tracker, entries: [...(tracker.entries || []), entry] } },
+    const names = numberedNames(name, count, (tracker.entries || []).map(entry => entry.name));
+    const $set = {};
+    const added = names.map(entryName => {
+      let entry = { _id: Random.id(), name: entryName, bonus: bonus || 0 };
+      entry = Number.isFinite(initiative) ? { ...entry, initiative } : rolled(entry);
+      if (hp || Number.isFinite(ac)) {
+        const stats = { ...hp && { hp, damage: 0 }, ...Number.isFinite(ac) && { ac } };
+        $set[`initiativeStats.${entry._id}`] = stats;
+        const status = entryStatus(stats);
+        if (status) entry.status = status;
+      }
+      return entry;
     });
+    const entries = [...(tracker.entries || []), ...added];
+    // The creature whose turn it is keeps it, though the newcomers may come first
+    const turn = turnAfterChange(tracker.entries, tracker.turn || 0, entries);
+    await CreatureFolders.updateAsync(folderId, {
+      $set: { ...$set, initiative: { ...tracker, entries, turn } },
+    });
+  },
+});
+
+/**
+ * Damage (or healing, when negative) to a creature added by hand: its status
+ * follows, which is what the players see
+ */
+export const damageInitiativeEntry = new ValidatedMethod({
+  name: 'creatureFolders.initiative.damage',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    entryId: { type: String, max: 32 },
+    amount: { type: SimpleSchema.Integer, min: -99999, max: 99999 },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ folderId, entryId, amount }) {
+    const folder = await getOwnFolder(folderId, this.userId);
+    const entry = folder.initiative?.entries?.find(entry => entry._id === entryId);
+    if (!entry || entry.creatureId) {
+      throw new Meteor.Error('initiative.not-found', 'Only creatures added by hand take damage here');
+    }
+    const stats = folder.initiativeStats?.[entryId] || {};
+    const updated = { ...stats, damage: damageAfter(stats, amount) };
+    const status = entryStatus(updated, entry.out);
+    await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
+      $set: { [`initiativeStats.${entryId}`]: updated, ...status && { 'initiative.entries.$.status': status } },
+      ...!status && { $unset: { 'initiative.entries.$.status': 1 } },
+    });
+  },
+});
+
+/** Puts a creature added by hand out of the fight, or back in: its turns are skipped while out */
+export const setInitiativeEntryOut = new ValidatedMethod({
+  name: 'creatureFolders.initiative.setOut',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    entryId: { type: String, max: 32 },
+    out: { type: Boolean },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ folderId, entryId, out }) {
+    const folder = await getOwnFolder(folderId, this.userId);
+    const entry = folder.initiative?.entries?.find(entry => entry._id === entryId);
+    if (!entry || entry.creatureId) {
+      throw new Meteor.Error('initiative.not-found', 'Only creatures added by hand are put out of the fight here');
+    }
+    const status = entryStatus(folder.initiativeStats?.[entryId], out);
+    const $set = { 'initiative.entries.$.out': out };
+    if (status) $set['initiative.entries.$.status'] = status;
+    await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
+      $set,
+      ...!status && { $unset: { 'initiative.entries.$.status': 1 } },
+    });
+  },
+});
+
+/** Shows the players the creatures' hit points and armor class, or hides them again */
+export const setInitiativeShowStats = new ValidatedMethod({
+  name: 'creatureFolders.initiative.setShowStats',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    showStats: { type: Boolean },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ folderId, showStats }) {
+    const folder = await getOwnFolder(folderId, this.userId);
+    if (!folder.initiative) return;
+    await CreatureFolders.updateAsync(folderId, showStats
+      ? { $set: { 'initiative.showStats': true } }
+      : { $unset: { 'initiative.showStats': 1 } });
   },
 });
 
@@ -162,6 +264,20 @@ export const updateInitiativeEntry = new ValidatedMethod({
     if (initiative !== undefined) $set['initiative.entries.$.initiative'] = initiative;
     if (bonus !== undefined) $set['initiative.entries.$.bonus'] = bonus;
     if (!Object.keys($set).length) return;
+    // A result that reorders the tracker leaves the turn with the same creature
+    const entries = folder?.initiative?.entries || [];
+    const changed = entries.map(entry => {
+      if (entry._id !== entryId) return entry;
+      const { roll, ...rest } = entry; // eslint-disable-line @typescript-eslint/no-unused-vars
+      return {
+        ...rest,
+        ...initiative !== undefined && { initiative },
+        ...bonus !== undefined && { bonus },
+      };
+    });
+    if (folder?.initiative?.round) {
+      $set['initiative.turn'] = turnAfterChange(entries, folder.initiative.turn || 0, changed);
+    }
     await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
       $set, $unset: { 'initiative.entries.$.roll': 1 },
     });
@@ -193,6 +309,7 @@ export const removeInitiativeEntry = new ValidatedMethod({
         'initiative.entries': tracker.entries.filter(entry => entry._id !== entryId),
         'initiative.turn': Math.max(turn, 0),
       },
+      $unset: { [`initiativeStats.${entryId}`]: 1 },
     });
   },
 });
@@ -211,20 +328,29 @@ export const advanceInitiative = new ValidatedMethod({
     const tracker = folder.initiative;
     const count = tracker?.entries?.length || 0;
     if (!count) return;
+    const order = initiativeOrder(tracker.entries);
     let round = tracker.round || 0;
-    let turn = (tracker.turn || 0) + step;
+    let turn = tracker.turn || 0;
     if (round === 0) {
       round = 1;
       turn = 0;
-    } else if (turn >= count) {
-      turn = 0;
-      round += 1;
-    } else if (turn < 0) {
-      if (round > 1) {
-        turn = count - 1;
-        round -= 1;
-      } else {
-        turn = 0;
+    } else {
+      // A creature out of the fight has no turn: skip it, unless all are
+      for (let moved = 0; moved < count; moved += 1) {
+        turn += step;
+        if (turn >= count) {
+          turn = 0;
+          round += 1;
+        } else if (turn < 0) {
+          if (round > 1) {
+            turn = count - 1;
+            round -= 1;
+          } else {
+            turn = 0;
+            break;
+          }
+        }
+        if (!order[turn]?.out) break;
       }
     }
     await CreatureFolders.updateAsync(folderId, {
@@ -260,6 +386,6 @@ export const endInitiative = new ValidatedMethod({
   rateLimit,
   async run({ folderId }) {
     await getOwnFolder(folderId, this.userId);
-    await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1 } });
+    await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1, initiativeStats: 1 } });
   },
 });

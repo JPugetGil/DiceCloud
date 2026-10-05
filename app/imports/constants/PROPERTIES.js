@@ -30,7 +30,7 @@ const PROPERTIES = Object.freeze({
   },
   buffRemover: {
     icon: '$buffRemover',
-    name: 'Remove Buff',
+    name: 'Remove buff',
     docsPath: 'property/remove-buff',
     helpText: 'Removes a buff from the target character',
     suggestedParents: ['action', 'attack', 'savingThrow', 'spell', 'branch'],
@@ -131,7 +131,7 @@ const PROPERTIES = Object.freeze({
   },
   pointBuy: {
     icon: 'mdi-table',
-    name: 'Point Buy',
+    name: 'Point buy',
     docsPath: 'property/point-buy',
     helpText: 'A point buy table that allows the user to select an array of values that match a given cost',
     suggestedParents: [],

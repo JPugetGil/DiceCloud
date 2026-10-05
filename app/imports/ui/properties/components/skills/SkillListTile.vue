@@ -7,15 +7,19 @@
     <v-list-item-title class="d-flex align-center ga-2">
       <proficiency-icon
         :value="model.proficiency"
-        class="prof-icon flex-shrink-0"
-        size="small"
+        class="flex-shrink-0"
       />
       <check-button
         v-if="!hideModifier"
         :model="model"
         class="flex-shrink-0"
       >
-        {{ displayedModifier }}
+        <value-change
+          :value="model.value"
+          :change-key="`${model._id}.value`"
+        >
+          {{ displayedModifier }}
+        </value-change>
         <v-icon
           v-if="model.advantage > 0"
           end
@@ -53,6 +57,7 @@
 import { computed } from 'vue';
 import ProficiencyIcon from '/imports/ui/properties/shared/ProficiencyIcon.vue';
 import CheckButton from '/imports/ui/properties/shared/CheckButton.vue';
+import ValueChange from '/imports/ui/components/ValueChange.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 
 const props = defineProps({
@@ -91,9 +96,3 @@ function click(e) {
   emit('click', e);
 }
 </script>
-
-<style lang="css" scoped>
-.prof-icon {
-  min-width: 24px;
-}
-</style>

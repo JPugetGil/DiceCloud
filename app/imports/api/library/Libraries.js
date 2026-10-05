@@ -7,6 +7,7 @@ import { assertEditPermission, assertOwnership } from '/imports/api/sharing/shar
 import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { LIBRARY_LANGUAGES } from '/imports/api/library/libraryLanguage';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
@@ -42,6 +43,18 @@ let LibrarySchema = new SimpleSchema({
     type: Number,
     optional: true,
   },
+  // The language it is written in (UX13), set by its owner; without it, a
+  // guess from the name and description (libraryLanguage.js)
+  language: {
+    type: String,
+    allowedValues: LIBRARY_LANGUAGES,
+    optional: true,
+  },
+  // Recommended by the instance's admins: a badge, listed first
+  recommended: {
+    type: Boolean,
+    optional: true,
+  },
 });
 
 LibrarySchema.extend(SharingSchema);
@@ -55,7 +68,7 @@ const insertLibrary = new ValidatedMethod({
   mixins: [
     simpleSchemaMixin,
   ],
-  schema: LibrarySchema.omit('owner'),
+  schema: LibrarySchema.omit('owner', 'recommended'),
   async run(library) {
     if (!this.userId) {
       throw new Meteor.Error('Libraries.methods.insert.denied',

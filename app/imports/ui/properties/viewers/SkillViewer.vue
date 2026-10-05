@@ -76,6 +76,7 @@
             :key="ability._id"
             :model="ability"
             :attribute="model"
+            signed
             :data-id="ability._id"
             @click="clickEffect(ability._id)"
           />

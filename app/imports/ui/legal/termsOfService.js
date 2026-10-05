@@ -1,6 +1,8 @@
 // The terms of use, as markdown, in each interface language. Who runs the
 // instance and how to reach them come from the settings (public.legal): see
 // LegalPage.vue. Update LAST_UPDATED and both languages together.
+import frenchTypography from '/imports/ui/i18n/frenchTypography';
+
 const LAST_UPDATED = {
   en: 'September 29, 2026',
   fr: '29 septembre 2026',
@@ -71,7 +73,7 @@ For any question, write to ${contact}. `;
 
   fr: ({ operator, contactEmail }) => {
     const contact = contactLink(contactEmail, 'l\'adresse de contact de cette instance');
-    return `# Conditions d'utilisation
+    return frenchTypography(`# Conditions d'utilisation
 
 *Dernière mise à jour : ${LAST_UPDATED.fr}*
 
@@ -126,6 +128,6 @@ Ces conditions peuvent évoluer. La date en haut de la page indique leur derniè
 
 Ces conditions sont régies par le droit français. En cas de litige, et après une tentative de règlement amiable, les tribunaux français sont compétents.
 
-Pour toute question, écrivez à ${contact}. `;
+Pour toute question, écrivez à ${contact}. `);
   },
 };

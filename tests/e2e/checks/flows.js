@@ -20,19 +20,20 @@ main(async () => {
     await page.waitForSelector('.character-sheet-toolbar', { timeout: 60000 });
     await page.waitForTimeout(3500);
   });
-  await step('health bar spans the row (label left, bar filling the rest)', messages, async () => {
-    // The bar takes the room its label leaves; Vuetify's !important flex-1-1
-    // utility would split the row in half
+  await step('the combat summary leads with the hit points, their bar under them', messages, async () => {
+    // The character's hit points head the Stats tab (D1): the value, then a
+    // bar as wide as its block, which Vuetify's flex utilities once halved
     const r = await page.evaluate(() => {
-      const bar = document.querySelector('.health-bar');
-      if (!bar) return null;
-      const name = bar.querySelector('.name').getBoundingClientRect();
-      const track = bar.querySelector('.name').nextElementSibling.getBoundingClientRect();
-      return { name: Math.round(name.width), track: Math.round(track.width), row: Math.round(bar.getBoundingClientRect().width) };
+      const value = document.querySelector('[data-id="combat-summary-hp"]');
+      if (!value) return null;
+      const block = value.parentElement.getBoundingClientRect();
+      const bar = value.parentElement.querySelector('.bar').getBoundingClientRect();
+      return { text: value.textContent.replace(/\s+/g, ' ').trim(), bar: Math.round(bar.width), block: Math.round(block.width) };
     });
-    if (!r) throw new Error('no health bar on the character (run "npm run setup")');
-    if (r.track < r.row * 0.75) throw new Error(`the bar is ${r.track} of ${r.row} px, the label ${r.name} px`);
-    return `bar ${r.track} of ${r.row} px, label ${r.name} px`;
+    if (!r) throw new Error('no hit points in the combat summary (run "npm run setup")');
+    if (!/\d+ \/ \d+/.test(r.text)) throw new Error(`hit points read "${r.text}"`);
+    if (r.bar < r.block * 0.9) throw new Error(`the bar is ${r.bar} of ${r.block} px`);
+    return `${r.text}, bar ${r.bar} of ${r.block} px`;
   });
   for (const tab of ['Actions', 'Spells', 'Inventory', 'Features', 'Journal', 'Build', 'Stats']) {
     await step(`tab ${tab}`, messages, async () => {

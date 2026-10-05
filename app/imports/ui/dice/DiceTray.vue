@@ -7,10 +7,16 @@
       v-if="current"
       :key="current.id"
       class="dice-tray__throw"
-      :class="{ 'dice-tray__throw--leaving': leaving }"
+      :class="{
+        'dice-tray__throw--leaving': leaving,
+        'dice-tray__throw--reduced': current.reduced,
+      }"
       data-id="dice-tray"
     >
-      <div class="dice-tray__dice">
+      <div
+        v-if="!current.reduced"
+        class="dice-tray__dice"
+      >
         <div
           v-for="(die, index) in current.dice"
           :key="index"
@@ -59,7 +65,7 @@
         </div>
       </div>
       <div
-        v-if="settled && (current.title || current.totals.length)"
+        v-if="settled && (current.title || current.totals.length || current.crit || current.fumble)"
         class="dice-tray__result"
         data-id="dice-tray-result"
       >
@@ -82,6 +88,27 @@
             <span class="dice-tray__total text-display-small">{{ total.value }}</span>
           </div>
         </div>
+        <!-- Said in words as well as in colour: the d20 alone did not tell them apart -->
+        <div
+          v-if="current.crit"
+          class="d-flex align-center justify-center ga-1 text-title-medium text-success"
+          data-id="dice-tray-critical"
+        >
+          <v-icon size="small">
+            mdi-star-four-points
+          </v-icon>
+          {{ $t('dice.critical') }}
+        </div>
+        <div
+          v-if="current.fumble"
+          class="d-flex align-center justify-center ga-1 text-title-medium text-error"
+          data-id="dice-tray-fumble"
+        >
+          <v-icon size="small">
+            mdi-skull-outline
+          </v-icon>
+          {{ $t('dice.fumble') }}
+        </div>
       </div>
     </div>
   </div>
@@ -89,17 +116,23 @@
 
 <script setup>
 import { ref, reactive, watch, nextTick, onBeforeUnmount } from 'vue';
-import { Meteor } from 'meteor/meteor';
-import { autorun } from 'vue-meteor-tracker';
+import { useI18n } from 'vue-i18n';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { rollsFromLog } from '/imports/ui/dice/logDice';
+import { translateLogContent } from '/imports/ui/log/translateLog';
 import dieShape from '/imports/ui/dice/dieShapes';
+import useReducedMotion from '/imports/ui/composables/useReducedMotion';
+import { setThrowPhase, endThrows, forgetThrows } from '/imports/ui/dice/diceTrayState';
+import { announce } from '/imports/ui/components/announcer';
+import { DURATION } from '/imports/ui/utility/motion';
 
 /**
  * Dice thrown across the sheet for each roll written in the character's log,
  * whoever rolled: they tumble in, land on their result, and the result shows.
- * The log still has the roll. Off with the account's preference, or when the
- * system asks for reduced motion.
+ * Neutral dice; a natural 20 or 1 on a d20 is coloured and named on the
+ * result. The log and the snackbar wait for the dice to land
+ * (diceTrayState), and screen readers hear the result. With reduced
+ * animations, only the result shows, faded in.
  */
 const props = defineProps({
   creatureId: {
@@ -109,13 +142,14 @@ const props = defineProps({
 });
 
 const MAX_DICE = 10;
+// The dice's flight: a physical throw, the one animation longer than the
+// motion tokens (DESIGN_SYSTEM.md, "Motion")
 const FLIGHT_MS = 900;
 const STAGGER_MS = 70;
 const SHOWN_MS = 1800;
 
-const disabled = autorun(() => !!Meteor.user({ fields: { 'preferences.disableDiceAnimation': 1 } })
-  ?.preferences?.disableDiceAnimation).result;
-const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+const { t } = useI18n();
+const reducedMotion = useReducedMotion();
 
 const current = ref(undefined);
 const settled = ref(false);
@@ -133,13 +167,40 @@ function clear() {
   timers = [];
   animations.forEach(animation => animation.cancel());
   animations = [];
+  // Whatever waited for the dice shows now
+  endThrows();
 }
 
 const randomFace = size => Math.floor(Math.random() * (size || 6)) + 1;
 
-async function throwDice(log) {
-  if (disabled.value || reducedMotion?.matches) return;
-  const { title, groups } = rollsFromLog(log.content);
+// What a screen reader says: the title, the totals, a critical
+function describe({ title, totals, dice, crit, fumble }) {
+  const results = totals.length
+    ? totals.map(total => total.label && totals.length > 1 ? `${total.label} ${total.value}` : `${total.value}`)
+      .join(', ')
+    : dice.map(die => die.value).join(', ');
+  const parts = [title ? t('dice.announce', { title, results }) : t('dice.announceUntitled', { results })];
+  if (crit) parts.push(t('dice.critical'));
+  if (fumble) parts.push(t('dice.fumble'));
+  return parts.join(' ');
+}
+
+function showResult(logId) {
+  settled.value = true;
+  setThrowPhase(logId, 'showing');
+  announce(describe(current.value));
+}
+
+function leaveAfter(logId, shownFor, leaveMs) {
+  timers.push(setTimeout(() => { leaving.value = true; }, shownFor));
+  timers.push(setTimeout(() => {
+    current.value = undefined;
+    setThrowPhase(logId, 'done');
+  }, shownFor + leaveMs));
+}
+
+async function throwDice(logId, log) {
+  const { title, groups } = rollsFromLog(translateLogContent(log.content));
   if (!groups.length) return;
   clear();
   const all = groups.flatMap(group => group.dice.map(die => ({
@@ -150,6 +211,7 @@ async function throwDice(log) {
     shown: randomFace(die.size),
     landed: false,
   })));
+  const reduced = reducedMotion.value;
   dieElements.length = 0;
   settled.value = false;
   leaving.value = false;
@@ -160,7 +222,17 @@ async function throwDice(log) {
     hidden: Math.max(all.length - MAX_DICE, 0),
     totals: groups.filter(group => group.total !== undefined)
       .map(group => ({ label: group.label, value: group.total })),
+    crit: all.some(die => die.crit),
+    fumble: all.some(die => die.fumble),
+    reduced,
   };
+  // Reduced: the result alone, faded in, nothing flies
+  if (reduced) {
+    showResult(logId);
+    leaveAfter(logId, SHOWN_MS, DURATION.short);
+    return;
+  }
+  setThrowPhase(logId, 'flying');
   await nextTick();
   const dice = current.value.dice;
   dice.forEach((die, index) => {
@@ -196,9 +268,8 @@ async function throwDice(log) {
     }, FLIGHT_MS * 0.86 + index * STAGGER_MS));
   });
   const landedAt = FLIGHT_MS + (dice.length - 1) * STAGGER_MS;
-  timers.push(setTimeout(() => { settled.value = true; }, landedAt));
-  timers.push(setTimeout(() => { leaving.value = true; }, landedAt + SHOWN_MS));
-  timers.push(setTimeout(() => { current.value = undefined; }, landedAt + SHOWN_MS + 400));
+  timers.push(setTimeout(() => showResult(logId), landedAt));
+  leaveAfter(logId, landedAt + SHOWN_MS, DURATION.long);
 }
 
 // The entries written from now on: the sheet has loaded those rolled before
@@ -206,12 +277,13 @@ let observer;
 watch(() => props.creatureId, (creatureId) => {
   observer?.stop();
   clear();
+  forgetThrows();
   current.value = undefined;
   if (!creatureId) return;
   let initializing = true;
   observer = CreatureLogs.find({ creatureId }, { fields: { content: 1 } }).observeChanges({
     added(id, fields) {
-      if (!initializing) throwDice(fields);
+      if (!initializing) throwDice(id, fields);
     },
   });
   initializing = false;
@@ -238,12 +310,22 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity var(--motion-duration-long) var(--motion-easing-emphasized-accelerate),
+    transform var(--motion-duration-long) var(--motion-easing-emphasized-accelerate);
 }
 
 .dice-tray__throw--leaving {
   opacity: 0;
   transform: translateY(16px);
+}
+
+/* Reduced animations: the result fades in and out, nothing moves */
+.dice-tray__throw--reduced {
+  transition: opacity var(--motion-duration-short) var(--motion-easing-standard);
+}
+
+.dice-tray__throw--reduced.dice-tray__throw--leaving {
+  transform: none;
 }
 
 .dice-tray__dice {
@@ -268,32 +350,34 @@ onBeforeUnmount(() => {
   overflow: visible;
 }
 
+/*
+ * Dice are neutral, Material's inverse surface (the tooltips' colour): it
+ * stands out from the page in both themes, and leaves colour to the natural
+ * 20 (success) and 1 (error), which primary dice made hard to tell apart
+ */
 .dice-tray__body {
-  fill: rgb(var(--v-theme-primary));
+  fill: rgb(var(--v-theme-surface-variant));
   stroke: rgba(0, 0, 0, 0.3);
   stroke-width: 2;
   stroke-linejoin: round;
-  transition: fill 0.2s;
+  transition: fill var(--motion-duration-short) var(--motion-easing-standard);
 }
 
 .dice-tray__facet {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.28);
+  stroke: rgba(var(--v-theme-on-surface-variant), 0.28);
   stroke-width: 1.5;
   stroke-linejoin: round;
 }
 
 .dice-tray__value {
-  fill: rgb(var(--v-theme-on-primary));
+  fill: rgb(var(--v-theme-on-surface-variant));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.25);
-  stroke-width: 2;
 }
 
 .dice-tray__die--landed svg {
-  animation: dice-tray-land 0.35s ease-out;
+  animation: dice-tray-land var(--motion-duration-medium) var(--motion-easing-emphasized-decelerate);
 }
 
 .dice-tray__die--crit .dice-tray__body {
@@ -317,7 +401,8 @@ onBeforeUnmount(() => {
 }
 
 .dice-tray__die--fumble svg {
-  animation: dice-tray-land 0.35s ease-out, dice-tray-shake 0.5s 0.3s ease-in-out;
+  animation: dice-tray-land var(--motion-duration-medium) var(--motion-easing-emphasized-decelerate),
+    dice-tray-shake var(--motion-duration-long) var(--motion-duration-medium) var(--motion-easing-standard);
 }
 
 .dice-tray__die--dropped {
@@ -335,7 +420,7 @@ onBeforeUnmount(() => {
   margin: -3px;
   border-radius: 50%;
   background: rgb(var(--v-theme-success));
-  animation: dice-tray-spark 0.7s ease-out forwards;
+  animation: dice-tray-spark var(--motion-duration-long) var(--motion-easing-emphasized-decelerate) forwards;
 }
 
 .dice-tray__more {
@@ -351,13 +436,20 @@ onBeforeUnmount(() => {
   color: rgb(var(--v-theme-on-surface));
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   text-align: center;
-  animation: dice-tray-result 0.3s ease-out;
+  animation: dice-tray-result var(--motion-duration-short) var(--motion-easing-standard);
 }
 
 .dice-tray__total {
+  display: inline-block;
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  /* Grows and comes back as it lands: 1, 1.15, 1 */
+  animation: dice-tray-total var(--motion-duration-medium) var(--motion-easing-emphasized-decelerate);
+}
+
+.dice-tray__throw--reduced .dice-tray__total {
+  animation: none;
 }
 
 @keyframes dice-tray-land {
@@ -389,7 +481,12 @@ onBeforeUnmount(() => {
 @keyframes dice-tray-result {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.95);
+  }
+}
+
+@keyframes dice-tray-total {
+  50% {
+    transform: scale(1.15);
   }
 }
 </style>

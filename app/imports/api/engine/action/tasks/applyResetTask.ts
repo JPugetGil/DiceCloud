@@ -9,10 +9,12 @@ import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 
+// A rest's title, a message key (logs.shortRest)
 const REST_TITLES: Record<string, string> = {
-  shortRest: 'Short Rest',
-  longRest: 'Long Rest',
+  shortRest: 'logs.shortRest',
+  longRest: 'logs.longRest',
 };
 
 export default async function applyResetTask(
@@ -29,8 +31,10 @@ export default async function applyResetTask(
   // A rest lists what it restored under its title, which comes first, and
   // logs each change silenced; other events log each change
   const restTitle = REST_TITLES[task.eventName];
-  const restored: string[] | undefined = restTitle ? [] : undefined;
-  const title: LogContent = { name: restTitle, ...task.silent && { silenced: true } };
+  const restored: LogPart[] | undefined = restTitle ? [] : undefined;
+  const title: LogContent = restTitle
+    ? logLine({ name: msg(restTitle), ...task.silent && { silenced: true } })
+    : {};
   if (restTitle) result.mutations.push({ targetIds: task.targetIds, contents: [title] });
 
   // Reset the properties by this event name
@@ -42,7 +46,14 @@ export default async function applyResetTask(
   }
 
   if (restored) {
-    title.value = restored.length ? restored.map(line => `- ${line}`).join('\n') : 'Nothing to restore';
+    // The list of what was restored, or a sentence saying there was nothing
+    const summary = logLine({
+      value: restored.length
+        ? restored.map(line => typeof line === 'string' ? `- ${line}` : msg('logs.listItem', { item: line }))
+        : msg('logs.nothingRestored'),
+    });
+    title.value = summary.value;
+    if (summary.i18n?.value) title.i18n = { ...title.i18n, value: summary.i18n.value };
   }
 }
 
@@ -52,7 +63,7 @@ function restoredAttributeLine(title: string, prop, increment: number) {
 }
 
 export async function resetProperties(
-  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: string[]
+  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: LogPart[]
 ) {
   const creatureId = task.targetIds[0];
 
@@ -130,7 +141,9 @@ export async function resetProperties(
 
   for (const prop of actionProps) {
     const uses = Math.abs(prop.usesUsed);
-    restored?.push(`${prop.name} **${numberToSignedString(prop.usesUsed)}** ${uses === 1 ? 'use' : 'uses'}`);
+    restored?.push(msg(uses === 1 ? 'logs.restoredUse' : 'logs.restoredUses', {
+      name: prop.name, change: numberToSignedString(prop.usesUsed),
+    }));
     result.mutations.push({
       targetIds: [creatureId],
       updates: [{
@@ -138,17 +151,19 @@ export async function resetProperties(
         type: prop.type,
         set: { usesUsed: 0 },
       }],
-      contents: [{
+      contents: [logLine({
         name: prop.name,
-        value: prop.usesUsed >= 0 ? `Restored ${prop.usesUsed} uses` : `Removed ${-prop.usesUsed} uses`,
+        value: prop.usesUsed >= 0
+          ? msg('logs.usesRestored', { count: prop.usesUsed })
+          : msg('logs.usesRemoved', { count: -prop.usesUsed }),
         ...(task.silent || restored) && { silenced: true },
-      }],
+      })],
     });
   }
 }
 
 async function resetHitDice(
-  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: string[]
+  task: ResetTask, action: EngineAction, result: TaskResult, userInput: InputProvider, restored?: LogPart[]
 ) {
   const creatureId = task.targetIds[0];
 

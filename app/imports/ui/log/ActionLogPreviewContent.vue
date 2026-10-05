@@ -17,10 +17,7 @@
         >
           <div
             class="content-name text-body"
-            :class="{
-              'text-success': content.name?.startsWith('Critical Hit'),
-              'text-error': content.name?.startsWith('Critical Miss'),
-            }"
+            :class="logLineTone(content) && `text-${logLineTone(content)}`"
           >
             {{ content.name }}
           </div>
@@ -48,10 +45,9 @@
           <template #activator="{ props: activatorProps }">
             <v-avatar
               variant="flat"
-              :color="model.color || 'grey'"
               size="28"
               class="ma-2"
-              v-bind="activatorProps"
+              v-bind="{ ...activatorProps, ...(model.color ? userColorProps(model.color) : { color: 'grey' }) }"
             >
               <v-img
                 v-if="creature.avatarPicture"
@@ -77,6 +73,9 @@ import { isEqual } from 'lodash';
 import { autorun } from 'vue-meteor-tracker';
 import MarkdownText from '/imports/ui/components/MarkdownText.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import userColorProps from '/imports/ui/utility/userColor';
+import { logLineTone } from '/imports/api/creature/log/logMessages';
+import { translateLine } from '/imports/ui/log/translateLog';
 
 const props = defineProps({
   model: {
@@ -101,7 +100,9 @@ const contentByTargetId = autorun(() => {
   let currentContent = undefined;
   const filteredModel = props.model
     .filter(contentItem => !contentItem.silenced || props.showSilenced);
-  for (const contentItem of filteredModel) {
+  for (const storedItem of filteredModel) {
+    // In the reader's language (UX5)
+    const contentItem = translateLine(storedItem);
     if (!currentContent || !isEqual(currentContent.targetIds, contentItem.targetIds)) {
       if (currentContent) {
         content.push(currentContent);

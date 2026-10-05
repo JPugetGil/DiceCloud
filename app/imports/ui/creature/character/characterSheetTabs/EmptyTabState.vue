@@ -81,7 +81,7 @@ const context = inject('context', {});
 const buildProgress = useBuildProgress(() => props.creatureId);
 const choicesLeft = computed(() => context.editPermission === false
   ? 0
-  : (buildProgress.value?.total || 0) - (buildProgress.value?.done || 0));
+  : buildProgress.value?.left || 0);
 
 function add() {
   const parentRef = { id: props.creatureId, collection: 'creatures' };

@@ -15,7 +15,7 @@
       mdi-account-arrow-left
     </v-icon>
     <div
-      class="text-no-wrap text-truncate"
+      class="tree-node-text"
       :class="model.equipped && 'font-weight-medium'"
     >
       {{ title }}

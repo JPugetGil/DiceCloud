@@ -22,6 +22,17 @@
     <v-list-item-title>
       {{ model.name }}
     </v-list-item-title>
+    <v-list-item-subtitle v-if="model.language || model.recommended">
+      <template v-if="model.language">
+        {{ $t(`languages.${model.language}`) }}
+      </template>
+      <template v-if="model.language && model.recommended">
+        ·
+      </template>
+      <template v-if="model.recommended">
+        {{ $t('library.recommended') }}
+      </template>
+    </v-list-item-subtitle>
   </v-list-item>
 </template>
 

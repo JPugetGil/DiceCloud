@@ -99,7 +99,7 @@
                 class="flex-grow-0"
               >
                 <v-sheet
-                  :color="creature.color || 'surface-light'"
+                  v-bind="creature.color ? userSurface(creature.color) : { color: 'surface-light' }"
                   class="fill-height d-flex align-center justify-center text-display-medium"
                 >
                   {{ creature.initial }}
@@ -153,11 +153,15 @@ import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
 import SharedIcon from '/imports/ui/components/SharedIcon.vue';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import MoveToFolderMenu from '/imports/ui/creature/creatureList/MoveToFolderMenu.vue';
 import moveCreatureToFolder from '/imports/api/creature/creatureFolders/methods/moveCreatureToFolder';
 import updateCreatureFolderName from '/imports/api/creature/creatureFolders/methods/updateCreatureFolderName';
 import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const props = defineProps({
   creatures: {

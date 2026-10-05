@@ -11,7 +11,11 @@
         class="mr-4"
       >
         <div class="d-flex flex-column align-center">
-          <div class="text-headline-medium">
+          <value-change
+            class="stat-value"
+            :value="swapScoresAndMods ? model.value : model.modifier"
+            :change-key="`${model._id}.${swapScoresAndMods ? 'value' : 'modifier'}`"
+          >
             <span
               v-if="swapScoresAndMods"
               :class="{'text-error font-weight-bold': model.total !== model.value}"
@@ -21,8 +25,8 @@
             <template v-else>
               {{ numberToSignedString(model.modifier) }}
             </template>
-          </div>
-          <div class="text-title-small text-medium-emphasis">
+          </value-change>
+          <div class="stat-mod text-medium-emphasis">
             <template v-if="swapScoresAndMods">
               {{ numberToSignedString(model.modifier) }}
             </template>
@@ -64,6 +68,7 @@ import { computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import CheckButton from '/imports/ui/properties/shared/CheckButton.vue';
+import ValueChange from '/imports/ui/components/ValueChange.vue';
 import { Meteor } from 'meteor/meteor';
 
 const props = defineProps({

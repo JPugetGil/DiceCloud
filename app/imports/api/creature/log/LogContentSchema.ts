@@ -51,6 +51,14 @@ const LogContentSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // The line's messages, to show it in the reader's language: `name` a
+  // message ({ key, params }), `value` a list of parts, text or messages
+  // (imports/api/creature/log/logMessages). `name` and `value` stay in English
+  i18n: {
+    type: Object,
+    optional: true,
+    blackbox: true,
+  },
   targetIds: {
     type: Array,
     optional: true,

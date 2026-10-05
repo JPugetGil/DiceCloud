@@ -1,5 +1,12 @@
 <template>
-  <div class="sidebar">
+  <nav
+    class="sidebar"
+    :aria-label="$t('nav.main')"
+  >
+    <!--
+      Vuetify gives a list role="list" and its links role="link", which a list
+      may not hold: the lists here are groups of links in the navigation
+    -->
     <router-link
       to="/"
       class="d-flex align-center ga-3 px-4 pt-4 pb-2 text-decoration-none text-high-emphasis"
@@ -11,7 +18,7 @@
         height="32"
         class="flex-grow-0"
       />
-      <span class="text-title-large">DiceCloud</span>
+      <span class="text-title-large font-display">DiceCloud</span>
     </router-link>
 
     <div
@@ -33,10 +40,13 @@
       nav
       color="primary"
       class="links"
+      role="group"
+      :aria-label="$t('nav.pages')"
     >
       <v-list-item
         v-if="signedIn"
         class="mb-2"
+        role="none"
         :title="userName"
         :subtitle="$t(`roles.${userRole}`)"
       >
@@ -99,6 +109,8 @@
         density="compact"
         color="primary"
         class="links"
+        role="group"
+        :aria-label="$t('nav.parties')"
         data-id="sidebar-parties"
       >
         <v-list-item
@@ -117,6 +129,8 @@
       density="compact"
       color="primary"
       class="links"
+      role="group"
+      :aria-label="$t('nav.help')"
     >
       <v-list-item
         v-for="link in resourceLinks"
@@ -129,7 +143,7 @@
         :append-icon="link.href ? 'mdi-open-in-new' : undefined"
       />
     </v-list>
-  </div>
+  </nav>
 </template>
 
 <script setup lang="js">

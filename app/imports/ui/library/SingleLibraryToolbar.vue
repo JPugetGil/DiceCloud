@@ -3,7 +3,10 @@
     color="secondary"
     theme="dark"
   >
-    <v-app-bar-nav-icon @click="toggleDrawer" />
+    <v-app-bar-nav-icon
+      :aria-label="$t('nav.openMenu')"
+      @click="toggleDrawer"
+    />
     <v-btn
       variant="text"
       icon
@@ -14,7 +17,6 @@
     <v-toolbar-title>
       {{ library && library.name }}
     </v-toolbar-title>
-    <v-spacer />
     <div
       v-if="library && library.subscriberCount"
       class="mx-2 text-body-medium text-medium-emphasis d-none d-sm-block"

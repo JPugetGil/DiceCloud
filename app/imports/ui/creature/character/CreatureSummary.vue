@@ -15,8 +15,22 @@
       {{ creature.name }}
     </v-card-title>
     <v-card-text>
-      {{ creature.alignment }}<br>
-      {{ creature.gender }}
+      <template v-if="creature.alignment || creature.gender">
+        {{ creature.alignment }}<br>
+        {{ creature.gender }}
+      </template>
+      <!-- Creation no longer asks for them: they are filled in here -->
+      <div
+        v-if="!creature.alignment || !creature.gender || !creature.picture"
+        class="d-flex align-center ga-2 text-medium-emphasis"
+        :class="{ 'mt-2': creature.alignment || creature.gender }"
+        data-id="creature-summary-add"
+      >
+        <v-icon size="small">
+          mdi-pencil-outline
+        </v-icon>
+        {{ $t('sheet.addBiography') }}
+      </div>
     </v-card-text>
     <card-highlight :active="hover" />
   </v-card>

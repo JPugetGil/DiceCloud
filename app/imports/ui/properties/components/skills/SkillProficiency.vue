@@ -19,7 +19,7 @@
       </v-tooltip>
     </div>
     <div
-      class="text-headline-large effect-value mr-2"
+      class="stat-value effect-value mr-2"
     >
       {{ proficiencyValue }}
     </div>

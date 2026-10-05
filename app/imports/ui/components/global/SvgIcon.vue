@@ -1,8 +1,7 @@
 <template>
   <i
     ref="icon"
-    aria-hidden
-    role="img"
+    aria-hidden="true"
     class="v-icon"
     :class="themeClasses"
     :style="color && `color: ${color}`"

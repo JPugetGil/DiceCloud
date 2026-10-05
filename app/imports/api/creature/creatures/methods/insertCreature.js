@@ -30,6 +30,17 @@ const insertCreature = new ValidatedMethod({
       type: SimpleSchema.Integer,
       min: 0,
     },
+    // The ruleset chosen at creation: a library node that fills the Ruleset slot
+    'rulesetId': {
+      type: String,
+      max: 32,
+      optional: true,
+    },
+    // An empty sheet, on purpose: no ruleset, even if the user follows only one
+    'withoutRuleset': {
+      type: Boolean,
+      optional: true,
+    },
   }).validator(),
   rateLimit: {
     numRequests: 5,
@@ -37,7 +48,7 @@ const insertCreature = new ValidatedMethod({
   },
 
   async run({ name, gender, alignment, picture, avatarPicture, color, startingLevel,
-    allowedLibraries, allowedLibraryCollections }) {
+    allowedLibraries, allowedLibraryCollections, rulesetId, withoutRuleset }) {
     const userId = this.userId
     if (!userId) {
       throw new Meteor.Error('Creatures.methods.insert.denied',
@@ -92,23 +103,27 @@ const insertCreature = new ValidatedMethod({
       }
     }
 
-    // If the user only has a single ruleset subscribed, use it by default
-    if (Meteor.isServer) {
-      await insertDefaultRuleset(creatureId, baseId, userId, rulesetSlot);
+    // The ruleset chosen, or the only one the user follows
+    if (Meteor.isServer && !withoutRuleset) {
+      await insertDefaultRuleset(creatureId, baseId, userId, rulesetSlot, rulesetId);
     }
 
     return creatureId;
   },
 });
 
-// If the user only has a single ruleset subscribed, insert it by default
-async function insertDefaultRuleset(creatureId, baseId, userId, slot) {
+/**
+ * Fills the Ruleset slot: with the ruleset chosen at creation, if the
+ * character's libraries hold it; otherwise with the only ruleset they hold.
+ * With English and French rulesets followed, the slot used to stay empty
+ */
+async function insertDefaultRuleset(creatureId, baseId, userId, slot, rulesetId) {
   const libraryIds = await getCreatureLibraryIds(creatureId, userId);
   const filter = getSlotFillFilter({ slot, libraryIds });
+  const chosen = rulesetId && await LibraryNodes.findOneAsync({ ...filter, _id: rulesetId }, { fields: { _id: 1 } });
   const fillCursor = LibraryNodes.find(filter, { fields: { _id: 1 } });
-  const numRulesets = await fillCursor.countAsync();
-  if (numRulesets === 1) {
-    const ruleset = (await fillCursor.fetchAsync())[0]
+  const ruleset = chosen || (await fillCursor.countAsync() === 1 && (await fillCursor.fetchAsync())[0]);
+  if (ruleset) {
     // Awaited: the method is async, and a call left running on its own lost any
     // error and returned the new creature before its ruleset had landed
     await insertPropertyFromLibraryNode.callAsync({

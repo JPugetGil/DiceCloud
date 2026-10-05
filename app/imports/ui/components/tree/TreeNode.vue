@@ -6,6 +6,7 @@
       'found': node._matchedDocumentFilter,
     }"
     :data-id="`tree-node-${node._id}`"
+    :data-expanded="showExpanded"
   >
     <div
       class="d-flex flex-1-1 align-center justify-start tree-node-title"
@@ -29,7 +30,7 @@
       <div
         class="d-flex align-center justify-start pr-1"
         :class="{'ml-4': startExpanded}"
-        style="flex: 0 1 auto;"
+        style="flex: 0 1 auto; min-width: 0;"
       >
         <drag-handle
           v-if="organize"

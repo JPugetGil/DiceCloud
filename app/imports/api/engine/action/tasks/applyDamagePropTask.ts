@@ -10,6 +10,7 @@ import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { lowerCase, upperFirst } from 'lodash';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
+import { attributeTypeMessage, logLine, msg } from '/imports/api/creature/log/logMessages';
 
 export default async function applyDamagePropTask(
   task: DamagePropTask, action: EngineAction, result: TaskResult, userInput
@@ -72,13 +73,12 @@ export default async function applyDamagePropTask(
   if (!task.targetIds?.length) {
     // Get the locally equivalent stat with the same variable name
     const statName = getPropertyTitle(targetProp);
-    result.appendLog({
+    result.appendLog(logLine({
       name: title,
-      value: `${statName}${operation === 'set' ? ' set to' : ''}` +
-        ` ${value}`,
+      value: operation === 'set' ? msg('logs.attributeSetTo', { name: statName, value }) : `${statName} ${value}`,
       inline: true,
       silenced: task.silent ?? false,
-    }, task.targetIds);
+    }), task.targetIds);
   }
 
   let damage, newValue, increment;
@@ -106,12 +106,12 @@ export default async function applyDamagePropTask(
         set: { damage, value: newValue },
         type: targetProp.type,
       }],
-      contents: [{
+      contents: [logLine({
         name: title,
-        value: `${getPropertyTitle(targetProp)} set from ${targetProp.value} to ${value}`,
+        value: msg('logs.attributeSet', { name: getPropertyTitle(targetProp), from: targetProp.value, to: value }),
         inline: true,
         ...(task.silent || isHidden(targetProp)) && { silenced: true },
-      }]
+      })]
     });
     if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
   } else if (operation === 'increment') {
@@ -126,7 +126,9 @@ export default async function applyDamagePropTask(
     if (increment !== 0) {
       damage = currentDamage + increment;
       newValue = targetProp.total - damage;
-      const attributeTypeName = upperFirst(lowerCase(targetProp.attributeType));
+      const attributeType = attributeTypeMessage(
+        targetProp.attributeType, upperFirst(lowerCase(targetProp.attributeType))
+      );
       // Write the results
       result.mutations.push({
         targetIds: [targetId],
@@ -135,12 +137,12 @@ export default async function applyDamagePropTask(
           inc: { damage: increment, value: -increment },
           type: targetProp.type,
         }],
-        contents: [{
-          name: increment >= 0 ? `${attributeTypeName} damaged` : `${attributeTypeName} restored`,
+        contents: [logLine({
+          name: msg(increment >= 0 ? 'logs.attributeDamaged' : 'logs.attributeRestored', { type: attributeType }),
           value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
           inline: true,
           ...(task.silent || isHidden(targetProp)) && { silenced: true },
-        }]
+        })]
       });
       if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
     }

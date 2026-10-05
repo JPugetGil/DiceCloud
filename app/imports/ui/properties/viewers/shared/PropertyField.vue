@@ -21,7 +21,7 @@
           class="d-flex align-center"
           :class="{
             'text-body-large': !isLarge,
-            'text-headline-large': isLarge,
+            'stat-value': isLarge,
             'justify-center': isCenter,
             'flex-wrap': wrap,
             'text-mono': isMono,

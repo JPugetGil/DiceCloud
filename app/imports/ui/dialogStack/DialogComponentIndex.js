@@ -23,6 +23,7 @@ const ImagePreviewDialog = defineAsyncComponent(() => commonDialogs().then(m => 
 const InsertPropertyDialog = defineAsyncComponent(() => commonDialogs().then(m => m.InsertPropertyDialog));
 const LevelUpDialog = defineAsyncComponent(() => commonDialogs().then(m => m.LevelUpDialog));
 const LibraryBrowserDialog = defineAsyncComponent(() => commonDialogs().then(m => m.LibraryBrowserDialog));
+const RestDialog = defineAsyncComponent(() => commonDialogs().then(m => m.RestDialog));
 const SelectLibraryNodeDialog = defineAsyncComponent(() => commonDialogs().then(m => m.SelectLibraryNodeDialog));
 const SlotFillDialog = defineAsyncComponent(() => commonDialogs().then(m => m.SlotFillDialog));
 const TransferOwnershipDialog = defineAsyncComponent(() => commonDialogs().then(m => m.TransferOwnershipDialog));
@@ -75,6 +76,7 @@ export default {
   LibraryNodeDialog,
   MoveLibraryNodeDialog,
   PartyCharactersDialog,
+  RestDialog,
   SelectLibraryNodeDialog,
   ShareDialog,
   SlotFillDialog,

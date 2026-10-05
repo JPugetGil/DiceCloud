@@ -34,7 +34,7 @@ export default async function applyRollProperty(
   }
   errors?.forEach(error => {
     result.appendLog({
-      name: 'Error',
+      name: 'Error', i18n: { name: { key: 'logs.error' } },
       value: error.message,
       silenced: prop.silent,
     }, task.targetIds);

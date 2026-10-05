@@ -18,7 +18,7 @@
       <health-bar
         v-else-if="model.attributeType === 'healthBar'"
         :model="model"
-        @change="damageProperty"
+        @change="changeHealth"
         @click="$emit('click')"
       />
       <spell-slot-list-tile
@@ -66,6 +66,7 @@ import FolderGroupChildren from '/imports/ui/properties/components/folders/folde
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
+import applyHealthChange from '/imports/ui/creature/actions/applyHealthChange';
 
 const props = defineProps({
   model: {
@@ -81,6 +82,14 @@ const props = defineProps({
 defineEmits(['click', 'click-property', 'sub-click', 'remove']);
 
 const hover = ref(false);
+
+// Damage and healing through the engine, or the bar set (UX1)
+function changeHealth(change) {
+  applyHealthChange({ model: props.model, elementId: props.dataId, ...change }).catch(error => {
+    snackbar({ text: error.reason || error.message || error.toString() });
+    console.error(error);
+  });
+}
 
 async function damageProperty({ value, type, ack }) {
   const model = props.model;

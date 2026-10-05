@@ -14,7 +14,7 @@ export default async function applySpellProperty(
 
   if (!prop) {
     result.appendLog({
-      name: 'Error casting spell',
+      name: 'Error casting spell', i18n: { name: { key: 'logs.castSpellError' } },
       value: 'The chosen spell was not found',
       silenced: false,
     }, [action.creatureId]);
@@ -33,7 +33,7 @@ export default async function applySpellProperty(
     // Ensure the slot exists
     if (!spellSlot) {
       result.appendLog({
-        name: 'Error casting spell',
+        name: 'Error casting spell', i18n: { name: { key: 'logs.castSpellError' } },
         value: 'The chosen spell requires a spell slot to cast',
         silenced: false,
       }, [action.creatureId]);
@@ -42,7 +42,7 @@ export default async function applySpellProperty(
     // And is the right type
     if (spellSlot.type !== 'attribute' || spellSlot.attributeType !== 'spellSlot') {
       result.appendLog({
-        name: 'Error casting spell',
+        name: 'Error casting spell', i18n: { name: { key: 'logs.castSpellError' } },
         value: 'The chosen slot was not actually a spell slot',
         silenced: false,
       }, [action.creatureId]);

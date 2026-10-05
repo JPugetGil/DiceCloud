@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ model && model.name }}
       </v-toolbar-title>
-      <v-spacer />
       <v-btn
         variant="text"
         icon
@@ -61,6 +60,11 @@
         :label="$t('library.showInBrowser')"
         @change="(showInMarket, ack) => updateLibraryCollection({showInMarket}, ack)"
       />
+      <library-language-fields
+        collection="libraryCollections"
+        :model="model"
+        :can-edit="canEdit"
+      />
       <smart-select
         :label="$t('library.libraries')"
         :items="libraryOptions"
@@ -91,6 +95,8 @@ import { useRouter } from 'vue-router';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
+import LibraryLanguageFields from '/imports/ui/library/LibraryLanguageFields.vue';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import LibraryCollections, { updateLibraryCollection as updateLibraryCollectionApi, removeLibraryCollection } from '/imports/api/library/LibraryCollections';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import Libraries from '/imports/api/library/Libraries';
@@ -139,6 +145,8 @@ const isOwner = autorun(() => {
   if (!model.value) return;
   return Meteor.userId() === model.value.owner;
 }).result;
+
+const canEdit = autorun(() => !!model.value && hasEditPermission(model.value, Meteor.user())).result;
 
 const ownerName = autorun(() => {
   if (!model.value) return;

@@ -2,7 +2,8 @@
   <v-btn
     v-bind="$attrs"
     :disabled="isDisabled"
-    :loading="loading"
+    :loading="slow"
+    :aria-busy="loading || undefined"
     @click.stop.prevent="click"
   >
     <slot />
@@ -10,7 +11,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onBeforeUnmount } from 'vue';
+import { ref, computed, inject, watch, onBeforeUnmount } from 'vue';
+import { SLOW_MS } from '/imports/ui/utility/motion';
 import { debounce as _debounce } from 'lodash';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 
@@ -36,6 +38,15 @@ const context = inject('context', {});
 
 const loading = ref(false);
 const timesClicked = ref(0);
+
+// Waiting for the server: a spinner only once the wait is long (A7)
+const slow = ref(false);
+let slowTimer;
+watch(loading, isLoading => {
+  clearTimeout(slowTimer);
+  slow.value = false;
+  if (isLoading) slowTimer = setTimeout(() => { slow.value = true; }, SLOW_MS);
+});
 
 const isDisabled = computed(() => {
   return context.editPermission === false || props.disabled;
@@ -70,10 +81,13 @@ const debounceClicks = _debounce(clicks, debounceTime.value);
 
 onBeforeUnmount(() => {
   debounceClicks.flush();
+  clearTimeout(slowTimer);
 });
 
 const click = () => {
   if (props.singleClick) {
+    // One click at a time: the button only looks busy once the wait is long
+    if (loading.value) return;
     loading.value = true;
   } else {
     timesClicked.value += 1;

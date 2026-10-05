@@ -16,3 +16,31 @@ html {
 html.lock-scroll {
   overflow-y: hidden;
 }
+
+/*
+ * A page with a floating action button at its bottom right keeps room for it
+ * under its content (56px button, 16px margin, 16px gap), or the button
+ * covers the last row's actions
+ */
+.fab-clearance {
+  padding-bottom: 88px;
+}
+
+/*
+ * A tree node's name (treeNodeViews): on one line, cut with an ellipsis; on a
+ * phone it wraps instead, or the tree showed "READMETOO: YOUR FIRST CHARACT"
+ */
+.tree-node-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 599.98px) {
+  .tree-node-text {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+}

@@ -15,6 +15,7 @@ export { default as ImagePreviewDialog } from '/imports/ui/files/userImages/Imag
 export { default as InsertPropertyDialog } from '/imports/ui/properties/InsertPropertyDialog.vue';
 export { default as LevelUpDialog } from '/imports/ui/creature/slots/LevelUpDialog.vue';
 export { default as LibraryBrowserDialog } from '/imports/ui/library/LibraryBrowserDialog.vue';
+export { default as RestDialog } from '/imports/ui/creature/RestDialog.vue';
 export { default as SelectLibraryNodeDialog } from '/imports/ui/library/SelectLibraryNodeDialog.vue';
 export { default as SlotFillDialog } from '/imports/ui/creature/slots/SlotFillDialog.vue';
 export { default as TransferOwnershipDialog } from '/imports/ui/sharing/TransferOwnershipDialog.vue';

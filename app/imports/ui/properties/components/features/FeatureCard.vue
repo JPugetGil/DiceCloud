@@ -8,7 +8,6 @@
       <v-toolbar-title>
         {{ model.name }}
       </v-toolbar-title>
-      <v-spacer />
       <property-icon
         :model="model"
         :color="model.color"

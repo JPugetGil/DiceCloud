@@ -104,15 +104,22 @@ function createAction(prop: any, targetIds?: string[]) {
 /**
  * Get all the mutations in the results of an engineAction
  */
-export function allMutations(action: EngineAction) {
+export function allMutations(action: EngineAction, { withMessages = false } = {}) {
   const mutations: Mutation[] = [];
   action.results.forEach(result => {
     result.mutations.forEach(mutation => {
-      mutations.push(mutation);
+      // The log in English, as allLogContent gives it
+      mutations.push(withMessages || !mutation.contents ? mutation : {
+        ...mutation,
+        contents: mutation.contents.map(withoutMessages),
+      });
     });
   });
   return mutations;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const withoutMessages = ({ i18n, ...english }: LogContent) => english;
 
 /**
  * Get all the updates in all mutations in the result of an Engine Action
@@ -129,12 +136,31 @@ export function allUpdates(action: EngineAction) {
 /**
  * Get all the log content in all mutations in the result of an Engine Action
  */
-export function allLogContent(action: EngineAction) {
+export function allLogContent(action: EngineAction, { withMessages = false } = {}) {
   const contents: LogContent[] = [];
-  allMutations(action).forEach(mutation => {
+  allMutations(action, { withMessages: true }).forEach(mutation => {
     mutation.contents?.forEach(logContent => {
-      contents.push(logContent);
+      // The English text is what these tests read; the messages for the
+      // reader's language (`i18n`) are checked where they are made
+      contents.push(withMessages ? logContent : withoutMessages(logContent));
     });
   });
   return contents;
+}
+
+/**
+ * Creates an Engine Action that runs a task (a subtask such as dealDamage)
+ * for a creature, and applies it as runActionById does
+ */
+export async function runTask(creatureId: string, task: any, userInput = inputProvider) {
+  const actionId = await EngineActions.insertAsync({
+    creatureId,
+    results: [],
+    taskCount: 0,
+    task,
+  } as EngineAction);
+  const action = await EngineActions.findOneAsync(actionId);
+  if (!action) throw 'Action is expected to exist';
+  await applyAction(action, userInput, { simulate: true });
+  return action;
 }

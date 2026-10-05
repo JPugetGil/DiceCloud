@@ -17,6 +17,7 @@ import getEffectivePropTags from '/imports/api/engine/computation/utility/getEff
 import Context from '/imports/parser/types/Context';
 import applySavingThrowProperty from '/imports/api/engine/action/applyProperties/applySavingThrowProperty';
 import { Meteor } from 'meteor/meteor';
+import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 
 export default async function applyDamageProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -46,8 +47,8 @@ export default async function applyDamageProperty(
   });
 
   // Gather all the lines we need to log into an array
-  const logValue: string[] = [];
-  const logName = prop.damageType === 'healing' ? 'Healing' : 'Damage';
+  const logValue: LogPart[] = [];
+  const logName = msg(prop.damageType === 'healing' ? 'logs.healing' : 'logs.damage');
 
   // roll the dice only and store that string
   await recalculateCalculation(prop.amount, action, 'compile', inputProvider);
@@ -99,10 +100,13 @@ export default async function applyDamageProperty(
     scope['~lastDamageType'] = { value: prop.damageType };
   }
 
-  // Memoise the damage suffix for the log
-  const suffix = (criticalHit ? 'critical ' : '') +
-    prop.damageType +
-    (prop.damageType !== 'healing' ? ' damage' : '');
+  // The damage done, as the log says it: "**12** slashing damage"
+  const amountMessage = (amount: number, onSave = false) => {
+    if (prop.damageType === 'healing') return msg('logs.healingAmount', { amount });
+    const type = damageTypeMessage(prop.damageType);
+    if (onSave) return msg('logs.damageAmountOnSave', { amount, type });
+    return msg(criticalHit ? 'logs.criticalDamageAmount' : 'logs.damageAmount', { amount, type });
+  };
 
   // If there is a save, calculate the save damage
   let damageOnSave, saveProp, saveRoll;
@@ -163,7 +167,7 @@ export default async function applyDamageProperty(
             logValue.push(damageText);
           } else {
             logValue.push(
-              '**Damage on successful save**',
+              msg('logs.damageOnSave'),
               prop.save.damageFunction?.calculation ?? '',
               saveRoll
             );
@@ -187,63 +191,68 @@ export default async function applyDamageProperty(
     }
   } else {
     // There are no targets, just log the result
-    logValue.push(`**${damage}** ${suffix}`);
+    logValue.push(amountMessage(damage));
     if (prop.save) {
       await applySavingThrowProperty(saveProp, action, result, inputProvider);
       await applySavingThrowProperty({
         prop: saveProp,
         targetIds: task.targetIds,
       }, action, result, inputProvider);
-      logValue.push(`**${damageOnSave}** ${suffix} on a successful save`);
+      logValue.push(amountMessage(damageOnSave, true));
     }
   }
-  if (logValue.length) result.appendLog({
+  if (logValue.length) result.appendLog(logLine({
     name: logName,
-    value: logValue.join('\n'),
+    value: logValue,
     inline: true,
     silenced: prop.silent,
-  }, damageTargets);
+  }), damageTargets);
   return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
 }
 
 function damageFunctionText(save) {
   if (!save) return;
   if (!save.damageFunction) {
-    return '**Half damage on successful save**';
+    return msg('logs.halfOnSave');
   }
   if (save.damageFunction.calculation == '0' || save.damageFunction.value === 0) {
-    return '**No damage on successful save**'
+    return msg('logs.noneOnSave');
   }
 }
 
-function applyDamageMultipliers({ target, damage, damageProp, logValue }) {
+// Known bug, left for the product owner to decide: `target` is a creature id,
+// so `target?.variables` is always undefined and no immunity, resistance or
+// vulnerability ever applies (DiceCloud analysis, UX1)
+export function applyDamageMultipliers({ target, damage, damageProp, logValue }: {
+  target: any, damage: number, damageProp: any, logValue: LogPart[],
+}) {
   const damageType = damageProp?.damageType;
   if (!damageType) return damage;
 
   const multiplier = target?.variables?.[damageType];
   if (!multiplier) return damage;
 
-  const damageTypeText = damageType == 'healing' ? 'healing' : `${damageType} damage`;
+  const type = damageTypeMessage(damageType);
 
   if (
     multiplier.immunity &&
     some(multiplier.immunities, multiplierAppliesTo(damageProp, 'immunity'))
   ) {
-    logValue.push(`Immune to ${damageTypeText}`);
+    logValue.push(msg('logs.immune', { type }));
     return 0;
   } else {
     if (
       multiplier.resistance &&
       some(multiplier.resistances, multiplierAppliesTo(damageProp, 'resistance'))
     ) {
-      logValue.push(`Resistant to ${damageTypeText}`);
+      logValue.push(msg('logs.resistant', { type }));
       damage = Math.floor(damage / 2);
     }
     if (
       multiplier.vulnerability &&
       some(multiplier.vulnerabilities, multiplierAppliesTo(damageProp, 'vulnerability'))
     ) {
-      logValue.push(`Vulnerable to ${damageTypeText}`);
+      logValue.push(msg('logs.vulnerable', { type }));
       damage = Math.floor(damage * 2);
     }
   }
@@ -268,7 +277,7 @@ function multiplierAppliesTo(damageProp, multiplierType) {
   }
 }
 
-async function dealDamage(
+export async function dealDamage(
   action: EngineAction, prop: any, result: TaskResult, userInput: InputProvider,
   targetId: string, damageType: string, amount: number
 ) {

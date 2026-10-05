@@ -2,8 +2,7 @@
   <v-card
     class="resource-card"
     :class="hover ? 'elevation-3': ''"
-    :color="model.color"
-    :theme="model.color ? (isDark ? 'dark' : 'light') : undefined"
+    v-bind="userSurface(model.color)"
   >
     <resource-card-content
       :model="model"
@@ -17,12 +16,15 @@
 </template>
 
 <script setup>
-import {ref, computed } from 'vue';
+import { ref } from 'vue';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
 import ResourceCardContent from '/imports/ui/properties/components/attributes/ResourceCardContent.vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 
-const props = defineProps({
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
+
+defineProps({
   model: {
     type: Object,
     required: true,
@@ -33,11 +35,6 @@ defineEmits(['click', 'change']);
 
 
 const hover = ref(false);
-
-const isDark = computed(() => {
-  if (!props.model.color) return;
-  return isDarkColor(props.model.color);
-});
 </script>
 
 <style lang="css">

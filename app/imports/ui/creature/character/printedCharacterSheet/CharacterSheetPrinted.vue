@@ -22,58 +22,63 @@
           </h3>
         </div>
       </div>
-      <v-theme-provider
-        v-else
-        theme="light"
-        with-background
-      >
-        <div class="page pa-3">
+      <!--
+        Light, on white: with its background, the theme provider printed the
+        theme's grey on every page (D9). A div, for the transition
+      -->
+      <div v-else>
+        <v-theme-provider theme="light">
           <div
-            class="title-block px-3 d-flex align-center"
-            style="page-break-after: avoid;"
+            class="page pa-3"
+            :style="previewZoom"
           >
-            <div class="logo-background" />
-            <div class="creature-name mr-3">
-              {{ creature.name }}
+            <div
+              class="title-block px-3 d-flex align-center"
+              style="page-break-after: avoid;"
+            >
+              <div class="logo-background" />
+              <div class="creature-name mr-3">
+                {{ creature.name }}
+              </div>
+              <div class="text-right flex-1-1 mr-4">
+                <div v-if="creature.alignment || background">
+                  {{ creature.alignment }} {{ background }}
+                </div>
+                <div v-if="race || creature.gender">
+                  {{ creature.gender }} {{ race }}
+                </div>
+                <div v-if="level && classes && classes.length === 1">
+                  {{ $t('printed.levelClass', { level, className: classes[0].name }) }}
+                </div>
+                <div v-else-if="level">
+                  {{ $t('printed.levelClasses', { level, classes: classes.map(c => `${c.name} ${c.level}`).join(', ') }) }}
+                </div>
+              </div>
+              <qrcode-vue
+                style="height: 100px"
+                render-as="svg"
+                :value="creatureUrl"
+              />
             </div>
-            <div class="text-right flex-1-1 mr-4">
-              <div v-if="creature.alignment || background">
-                {{ creature.alignment }} {{ background }}
-              </div>
-              <div v-if="race || creature.gender">
-                {{ creature.gender }} {{ race }}
-              </div>
-              <div v-if="level && classes && classes.length === 1">
-                {{ $t('printed.levelClass', { level, className: classes[0].name }) }}
-              </div>
-              <div v-else-if="level">
-                {{ $t('printed.levelClasses', { level, classes: classes.map(c => `${c.name} ${c.level}`).join(', ') }) }}
-              </div>
+            <div
+              class="text-right mt-3 mr-4"
+              style="font-size: 8pt; margin-bottom: -4px; page-break-after: avoid;"
+            >
+              {{ creatureUrl }}
             </div>
-            <qrcode-vue
-              style="height: 100px"
-              render-as="svg"
-              :value="creatureUrl"
+            <printed-stats :creature-id="creatureId" />
+            <printed-inventory
+              :creature-id="creatureId"
+              class="page-break-before"
+            />
+            <printed-spells
+              v-if="!creature.settings?.hideSpellsTab"
+              class="page-break-before"
+              :creature-id="creatureId"
             />
           </div>
-          <div
-            class="text-right mt-3 mr-4"
-            style="font-size: 8pt; margin-bottom: -4px; page-break-after: avoid;"
-          >
-            {{ creatureUrl }}
-          </div>
-          <printed-stats :creature-id="creatureId" />
-          <printed-inventory
-            :creature-id="creatureId"
-            class="page-break-before"
-          />
-          <printed-spells
-            v-if="!creature.settings?.hideSpellsTab"
-            class="page-break-before"
-            :creature-id="creatureId"
-          />
-        </div>
-      </v-theme-provider>
+        </v-theme-provider>
+      </div>
     </v-fade-transition>
   </div>
 </template>
@@ -96,6 +101,7 @@ import QrcodeVue from 'qrcode.vue'
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
+import { useDisplay } from 'vuetify';
 
 const { t } = useI18n();
 
@@ -176,6 +182,13 @@ const creatureUrl = computed(() => {
 
 const level = computed(() => variables.value?.level?.value);
 
+// Below 800px the A4 page is scaled down to fit the screen, rather than cut
+const { width: screenWidth } = useDisplay();
+const A4_WIDTH = 794;
+const previewZoom = computed(() => screenWidth.value < 800
+  ? { zoom: Math.max(0.3, (screenWidth.value - 16) / A4_WIDTH) }
+  : undefined);
+
 const highestLevels = computed(() => {
   let highestLevelsMap = {};
   let highestLevelsList = [];
@@ -241,9 +254,15 @@ onBeforeUnmount(() => {
 }
 
 .character-sheet-printed * {
+  /* The logo and the frames are images the browser would otherwise leave out */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
   cursor: unset !important;
+}
+
+/* White, so that nothing else prints a background with them */
+.character-sheet-printed .page {
+  background: white;
 }
 
 .page {
@@ -397,6 +416,24 @@ onBeforeUnmount(() => {
   }
   .v-main {
     padding: 0 !important;
+  }
+  /* As tall as the content: a screen-high wrapper printed a blank last page */
+  .v-application__wrap, .v-main, .character-sheet-printed {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+  /* The preview's zoom is for the screen */
+  .character-sheet-printed .page {
+    zoom: 1 !important;
+  }
+  /*
+   * A library's highlights print as plain text: <mark>, or the HTML a
+   * description holds, with its colour inline
+   */
+  .character-sheet-printed mark,
+  .character-sheet-printed .markdown [style*="background"] {
+    background: none !important;
+    color: inherit;
   }
 }
 </style>

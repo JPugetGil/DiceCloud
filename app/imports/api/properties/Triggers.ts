@@ -20,7 +20,7 @@ const eventOptions = {
 const timingOptions = {
   before: 'Before',
   after: 'After',
-  afterChildren: 'After Children',
+  afterChildren: 'After children',
 }
 
 const actionPropertyTypeOptions = {
@@ -29,7 +29,7 @@ const actionPropertyTypeOptions = {
   adjustment: 'Trigger damage',
   branch: 'Branch',
   buff: 'Buff',
-  buffRemover: 'Buff Removed',
+  buffRemover: 'Buff removed',
   damage: 'Damage',
   note: 'Note',
   roll: 'Roll',

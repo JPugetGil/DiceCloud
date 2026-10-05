@@ -6,6 +6,7 @@ import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
 import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { LIBRARY_LANGUAGES } from '/imports/api/library/libraryLanguage';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
@@ -44,6 +45,18 @@ const LibraryCollectionSchema = new SimpleSchema({
     type: Number,
     optional: true,
   },
+  // The language it is written in (UX13), set by its owner; without it, a
+  // guess from the name and description (libraryLanguage.js)
+  language: {
+    type: String,
+    allowedValues: LIBRARY_LANGUAGES,
+    optional: true,
+  },
+  // Recommended by the instance's admins: a badge, listed first
+  recommended: {
+    type: Boolean,
+    optional: true,
+  },
 });
 
 LibraryCollectionSchema.extend(SharingSchema);
@@ -56,7 +69,7 @@ const insertLibraryCollection = new ValidatedMethod({
   mixins: [
     simpleSchemaMixin,
   ],
-  schema: LibraryCollectionSchema.omit('owner'),
+  schema: LibraryCollectionSchema.omit('owner', 'recommended'),
   async run(libraryCollection) {
     if (!this.userId) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',

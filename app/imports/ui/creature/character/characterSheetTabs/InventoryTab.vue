@@ -9,7 +9,11 @@
       type="item"
       :add-label="$t('emptyTabs.inventoryAdd')"
     />
-    <column-layout wide-columns>
+    <!-- Empty, the empty state alone: no weight of 0, no empty Equipped and Carried cards (D8) -->
+    <column-layout
+      v-else
+      wide-columns
+    >
       <folder-group-card
         v-for="folder in startFolders"
         :key="folder._id"

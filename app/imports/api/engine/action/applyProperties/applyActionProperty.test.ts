@@ -250,7 +250,7 @@ describe('Apply Action Properties', function () {
         targetIds: [],
       }, {
         contents: [{
-          name: 'To Hit',
+          name: 'To hit',
           value: '1d20 [10] + 1\n**11**',
           inline: true,
         }],

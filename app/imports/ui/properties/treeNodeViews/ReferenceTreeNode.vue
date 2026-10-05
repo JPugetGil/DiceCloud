@@ -12,7 +12,7 @@
     />
     <div
       v-else
-      class="text-no-wrap text-truncate"
+      class="tree-node-text"
     >
       {{ model.cache.node && model.cache.node.name || title }}
     </div>

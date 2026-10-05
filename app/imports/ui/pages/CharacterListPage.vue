@@ -3,9 +3,10 @@
     class="bg-page"
     style="height: 100%"
   >
-    <v-container>
+    <!-- Room under the last row for the floating button, which covered "Add folder" -->
+    <v-container class="fab-clearance">
       <v-row
-        class="mb-16 justify-center"
+        class="justify-center"
       >
         <v-col
           cols="12"
@@ -88,11 +89,27 @@
           <v-card
             v-if="!hasCharacters && ready"
           >
+            <!-- Without a library there is nothing to build a character from: say where they are -->
             <v-empty-state
               icon="mdi-account-plus-outline"
               :title="$t('characterList.emptyTitle')"
-              :text="$t('characterList.emptyText')"
-            />
+              :text="followsNoLibrary ? $t('characterList.emptyTextNoLibraries') : $t('characterList.emptyText')"
+              data-id="character-list-empty"
+            >
+              <template
+                v-if="followsNoLibrary"
+                #actions
+              >
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  prepend-icon="mdi-earth"
+                  to="/community-libraries"
+                >
+                  {{ $t('library.browseCommunity') }}
+                </v-btn>
+              </template>
+            </v-empty-state>
           </v-card>
           <v-card
             v-else-if="query && !shownCount"
@@ -242,6 +259,11 @@ const { result: CreaturesWithNoParty } = autorun(() => {
 });
 
 // Folders show even while empty: they are where characters are dropped
+const followsNoLibrary = autorun(() => {
+  const user = Meteor.user();
+  return !!user && !user.subscribedLibraries?.length && !user.subscribedLibraryCollections?.length;
+}).result;
+
 const hasCharacters = computed(() =>
   !!(CreaturesWithNoParty.value?.length || folders.value?.length)
 );

@@ -51,7 +51,6 @@ imports/api/creature/creatures/server/publications/singleCharacter.js: TS2683: '
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2769: No overload matches this call.
 imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/creature/log/CreatureLogs.test.js: TS18048: 'oldest' is possibly 'undefined'.
 imports/api/creature/log/CreatureLogs.test.js: TS2345: Argument of type '{ _id: string; creatureId: any; date: Date; content: { value: string; }[]; }[]' is not assignable to parameter of type 'OptionalId<Document>[]'.
@@ -344,8 +343,6 @@ imports/api/users/Users.js: TS2339: Property 'setUsername' does not exist on typ
 imports/api/users/Users.js: TS2339: Property 'subscribeToLibrary' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'subscribeToLibraryCollection' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
-imports/api/users/Users.js: TS2769: No overload matches this call.
-imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.

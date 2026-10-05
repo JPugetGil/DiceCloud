@@ -21,6 +21,7 @@
       <v-btn
         variant="text"
         icon
+        :aria-label="$t('common.removeItem', { name: model.name })"
         @click.stop="$emit('remove', model.id)"
       >
         <v-icon>mdi-delete</v-icon>

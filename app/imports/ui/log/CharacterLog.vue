@@ -3,12 +3,18 @@
     style="height: 100%; overflow: hidden;"
     class="character-log d-flex flex-1-1 flex-column justify-end"
   >
-    <v-slide-y-reverse-transition
-      group
-      tag="div"
-      hide-on-leave
+    <!--
+      No transition group: it measured all 100 entries at every change. A new
+      entry animates itself (LogEntry)
+    -->
+    <!-- Focusable, so that the keyboard scrolls it; not role="log": the announcer reads rolls -->
+    <div
       class="bg-raised flex-1-1 d-flex flex-column-reverse align-end pa-3"
       style="overflow: auto;"
+      tabindex="0"
+      role="region"
+      :aria-label="$t('log.entries')"
+      data-id="character-log-entries"
     >
       <log-entry
         v-for="log in logs"
@@ -16,12 +22,66 @@
         :model="log"
         :fresh="freshIds.has(log._id)"
       />
-    </v-slide-y-reverse-transition>
+    </div>
     <!-- Never shrinks: a long log scrolls, and squeezed the input instead -->
-    <v-card class="flex-shrink-0">
+    <v-card class="flex-shrink-0 pt-2">
+      <!-- Free rolls without typing (UX9): a die, with advantage or not -->
+      <div
+        class="d-flex ga-1 px-2"
+        role="group"
+        :aria-label="$t('log.quickDice')"
+      >
+        <v-btn
+          v-for="size in QUICK_DICE"
+          :key="size"
+          size="small"
+          variant="tonal"
+          min-width="0"
+          class="flex-1-1 px-0 text-none"
+          :disabled="!editPermission"
+          :aria-label="$t('log.rollDie', { die: `d${size}` })"
+          :data-id="`quick-roll-d${size}`"
+          @click="rollDie(size)"
+        >
+          d{{ size }}
+        </v-btn>
+      </div>
+      <v-btn-toggle
+        v-model="advantage"
+        color="accent"
+        density="compact"
+        variant="outlined"
+        divided
+        class="d-flex mx-2 mt-2"
+        role="group"
+        :aria-label="$t('log.advantageToggle')"
+        :disabled="!editPermission"
+        data-id="log-advantage"
+      >
+        <v-btn
+          :value="-1"
+          :aria-pressed="advantage === -1"
+          size="small"
+          class="flex-1-1 text-none"
+          prepend-icon="mdi-chevron-double-down"
+        >
+          {{ $t('common.disadvantage') }}
+        </v-btn>
+        <v-btn
+          :value="1"
+          :aria-pressed="advantage === 1"
+          size="small"
+          class="flex-1-1 text-none"
+          prepend-icon="mdi-chevron-double-up"
+        >
+          {{ $t('common.advantage') }}
+        </v-btn>
+      </v-btn-toggle>
       <v-text-field
         v-model="input"
-        class="mx-2 mb-2"
+        :aria-label="$t('log.rollInput')"
+        :placeholder="$t('log.rollPlaceholder')"
+        class="mx-2 mt-2 mb-2"
         persistent-hint
         style="flex-grow: 0"
         append-inner-icon="mdi-send"
@@ -52,6 +112,7 @@ import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
 import LogEntry from '/imports/ui/log/LogEntry.vue';
+import rollWithAdvantage from '/imports/api/creature/log/rollWithAdvantage';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
 import { Meteor } from 'meteor/meteor';
@@ -65,6 +126,10 @@ const props = defineProps({
   },
 });
 
+// The quick dice, and the advantage toggle, which lasts one roll
+const QUICK_DICE = [4, 6, 8, 10, 12, 20];
+const advantage = ref(0);
+
 const inputHint = ref(undefined);
 const inputError = ref(undefined);
 const input = ref(undefined);
@@ -76,6 +141,7 @@ watch(input, (value) => {
   input.value = value;
   recalculate();
 });
+watch(advantage, () => recalculate());
 
 watch(() => props.creatureId, () => {
   Tracker.afterFlush(() => recalculate());
@@ -109,16 +175,30 @@ watch(historyIndex, (i) => {
   }
 });
 
+async function sendRoll(roll) {
+  const log = { roll };
+  if (props.creatureId) log.creatureId = props.creatureId;
+  if (advantage.value) log.advantage = advantage.value;
+  await logRoll.callAsync(log);
+  advantage.value = 0;
+}
+
+async function rollDie(size) {
+  inputError.value = undefined;
+  try {
+    await sendRoll(`1d${size}`);
+  } catch (error) {
+    inputError.value = error.message || error.toString();
+    console.error(error);
+  }
+}
+
 async function submit() {
   if (!input.value) return;
   if (submitLoading.value) return;
-  const log = {
-    roll: input.value,
-  };
-  if (props.creatureId) log.creatureId = props.creatureId;
   submitLoading.value = true;
   try {
-    await logRoll.callAsync(log);
+    await sendRoll(input.value);
     addHistory(input.value);
     input.value = '';
     inputError.value = undefined;
@@ -157,6 +237,9 @@ async function recalculate() {
   try {
     let {result: compiled} = await resolve('compile', result, variables.value);
     inputHint.value = toString(compiled);
+    if (advantage.value && rollWithAdvantage(input.value, advantage.value) !== input.value) {
+      inputHint.value = t(advantage.value > 0 ? 'logs.withAdvantage' : 'logs.withDisadvantage', { name: inputHint.value });
+    }
     return;
   } catch (e){
     console.warn(e);

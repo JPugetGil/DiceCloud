@@ -1,7 +1,10 @@
 <template>
+  <!-- A group of links, not a list: Vuetify's role="list" may hold none -->
   <v-list
     v-model:opened="openCollections"
     class="library-list"
+    role="group"
+    :aria-label="$t('library.libraries')"
   >
     <library-list-tile
       v-for="library in librariesWithoutCollection"
@@ -22,9 +25,13 @@
       :raw-id="`${listId}-${libraryCollection._id}`"
       :data-id="`library-collection-${libraryCollection._id}`"
     >
-      <template #activator="{ props: activatorProps }">
+      <template #activator="{ props: activatorProps, isOpen }">
+        <!-- Opens its collection: a button, not the option Vuetify makes it -->
         <library-collection-header
           v-bind="activatorProps"
+          role="button"
+          :aria-expanded="isOpen"
+          :aria-selected="undefined"
           :model="libraryCollection"
           :selection="selection"
           :single-select="singleSelect"

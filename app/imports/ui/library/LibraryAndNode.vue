@@ -22,11 +22,11 @@
         height: 100%;
       "
       >
+        <!-- In the selected property's colour, its tone for the theme (D2) -->
         <v-toolbar
           flat
           class="tree-toolbar"
-          :color="selectedNode && selectedNode.color || 'secondary'"
-          :theme="isToolbarDark ? 'dark' : 'light'"
+          v-bind="selectedNode?.color ? userSurface(selectedNode.color) : { color: 'secondary', theme: 'dark' }"
         >
           <tree-search-input
             v-model="filter"
@@ -105,7 +105,16 @@
         data-id="selected-node-card"
         style="overflow: hidden; min-height: 100%;"
       >
+        <!-- Nothing chosen: say what the pane is for, rather than an empty card (D8) -->
+        <v-empty-state
+          v-if="!selectedNodeId"
+          icon="mdi-file-tree-outline"
+          :title="$t('library.chooseProperty')"
+          :text="$t('library.choosePropertyText')"
+          data-id="library-node-empty"
+        />
         <library-node-dialog
+          v-else
           :_id="selectedNodeId"
           embedded
           @removed="selectedNodeId = undefined"
@@ -118,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -130,14 +139,13 @@ import LibraryNodes from '/imports/api/library/LibraryNodes';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryContentsContainer from '/imports/ui/library/LibraryContentsContainer.vue';
 import InsertLibraryNodeButton from '/imports/ui/library/InsertLibraryNodeButton.vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
-
-import getThemeColor from '/imports/ui/utility/getThemeColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
 import TreeSearchInput from '/imports/ui/components/tree/TreeSearchInput.vue';
 import LibrarySecondTree from '/imports/ui/library/LibrarySecondTree.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const dialogStackStore = useDialogStackStore();
+const userSurface = useUserSurface();
 
 const props = defineProps({
   selection: Boolean,
@@ -183,13 +191,6 @@ const selectedNode = autorun(() => {
     removed: { $ne: true }
   });
 }).result;
-
-const isToolbarDark = computed(() => {
-  return isDarkColor(
-    (selectedNode.value && selectedNode.value.color) ||
-    getThemeColor('secondary')
-  );
-});
 
 watch(selectedNode, (val) => {
   emit('selected', val);

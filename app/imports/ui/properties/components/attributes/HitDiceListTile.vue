@@ -28,7 +28,7 @@
           </div>
 
           <div class="d-flex flex-1-1 align-end">
-            <div class="text-headline-large">
+            <div class="stat-value">
               {{ model.value }}
             </div>
             <div class="text-title-large max-value ml-2 text-medium-emphasis">

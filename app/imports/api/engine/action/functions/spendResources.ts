@@ -20,7 +20,7 @@ export default async function spendResources(
         type: prop.type,
       }],
       contents: [{
-        name: 'Uses left',
+        name: 'Uses left', i18n: { name: { key: 'logs.usesLeft' } },
         value: `${prop.usesLeft - 1}`,
         inline: true,
         silenced: prop.silent,

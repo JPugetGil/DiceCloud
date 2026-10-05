@@ -17,7 +17,6 @@
       >
         {{ $t('cards.spellsPrepared', { prepared: numPrepared, max: model.maxPrepared && model.maxPrepared.value || 0 }) }}
       </v-toolbar-title>
-      <v-spacer />
       <v-menu
         v-if="!preparingSpells"
         location="bottom left"

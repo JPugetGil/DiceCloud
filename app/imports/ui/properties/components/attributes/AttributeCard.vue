@@ -1,8 +1,7 @@
 <template>
   <v-card
     :hover="hasClickListener"
-    :color="model.color"
-    :theme="model.color ? (isDark ? 'dark' : 'light') : undefined"
+    v-bind="userSurface(model.color)"
     @click="click"
     @mouseover="hasClickListener ? hovering = true : undefined"
     @mouseleave="hasClickListener ? hovering = false : undefined"
@@ -16,7 +15,10 @@
 import { ref, computed } from 'vue';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
 import AttributeCardContent from '/imports/ui/properties/components/attributes/AttributeCardContent.vue';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const props = defineProps({
   model: {
@@ -39,11 +41,6 @@ const hovering = ref(false);
 
 const hasClickListener = computed(() => {
   return !!props.onClick
-});
-
-const isDark = computed(() => {
-  if (!props.model.color) return;
-  return isDarkColor(props.model.color);
 });
 
 function click(e) {

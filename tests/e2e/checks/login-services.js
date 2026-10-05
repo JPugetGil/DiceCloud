@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * The Google buttons (Sign In, Register, and "Link Google Account" on the
+ * The Google buttons (Sign in, Register, and "Link Google account" on the
  * Account page) must show exactly when Google sign-in is configured on the
  * server, i.e. when the login service configuration collection has an entry.
  */

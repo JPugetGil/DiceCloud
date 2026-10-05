@@ -276,7 +276,7 @@ describe('Apply Damage Properties', function () {
     }, {
       'contents': [{
         'inline': true,
-        'name': 'Critical Hit!',
+        'name': 'Critical hit!',
         'value': '1d20 [20] + 10\n**30**'
       }],
       'targetIds': [],

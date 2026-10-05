@@ -7,7 +7,6 @@
       <v-toolbar-title>
         {{ model?.name }}
       </v-toolbar-title>
-      <v-spacer />
       <v-text-field
         v-model="searchInput"
         prepend-inner-icon="mdi-magnify"

@@ -1,13 +1,15 @@
 <template>
   <v-app-bar
     class="character-sheet-printed-toolbar"
-    :color="toolbarColor"
-    :theme="isDark ? 'dark' : 'light'"
+    v-bind="toolbarProps()"
     :extended="smAndUp"
     :tabs="smAndUp"
     density="compact"
   >
-    <v-app-bar-nav-icon @click="toggleDrawer" />
+    <v-app-bar-nav-icon
+      :aria-label="$t('nav.openMenu')"
+      @click="toggleDrawer"
+    />
     <v-btn
       variant="text"
       icon
@@ -22,7 +24,6 @@
         </div>
       </v-fade-transition>
     </v-toolbar-title>
-    <v-spacer />
     <template #extension>
       <div
 
@@ -49,10 +50,14 @@ import { useRoute } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
-import isDarkColor from '/imports/ui/utility/isDarkColor';
+import useUserSurface from '/imports/ui/composables/useUserSurface';
+import userColorProps from '/imports/ui/utility/userColor';
 import getThemeColor from '/imports/ui/utility/getThemeColor';
 import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlName';
 import { useAppStore } from '/imports/ui/stores/app';
+
+// The user's colour as a large surface: its tone for the theme (D2)
+const userSurface = useUserSurface();
 
 const appStore = useAppStore();
 
@@ -63,6 +68,12 @@ const creatureId = computed(() => route.params.id);
 
 const { result: creature } = autorun(() => Creatures.findOne(creatureId.value));
 
+// The character's own colour in its tone for the theme (D2); without one,
+// the app bars' ink, as it is
+const toolbarProps = (colorProp = 'color') => creature.value?.color
+  ? userSurface(creature.value.color, colorProp)
+  : userColorProps(toolbarColor.value, colorProp);
+
 const toolbarColor = computed(() => {
   if (creature.value && creature.value.color) {
     return creature.value.color;
@@ -71,7 +82,6 @@ const toolbarColor = computed(() => {
   }
 });
 
-const isDark = computed(() => isDarkColor(toolbarColor.value));
 
 const characterUrl = computed(() => {
   if (!creature.value) return;

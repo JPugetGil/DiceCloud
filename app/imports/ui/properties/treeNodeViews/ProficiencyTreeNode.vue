@@ -6,7 +6,7 @@
       :color="model.color"
       :value="model.value"
     />
-    <div class="text-no-wrap text-truncate">
+    <div class="tree-node-text">
       <template v-if="!model.name && model.stats && model.stats.length">
         {{ model.stats.join(', ') }}
       </template>

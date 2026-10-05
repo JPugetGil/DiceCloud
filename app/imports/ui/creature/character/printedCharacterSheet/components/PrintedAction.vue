@@ -42,7 +42,14 @@
           </template>
         </div>
       </div>
-      <template v-if="model.summary">
+      <!-- An event is its name and what it does in words, not the tree that does it (D9) -->
+      <template v-if="isEvent">
+        <markdown-text
+          v-if="eventText"
+          :markdown="eventText"
+        />
+      </template>
+      <template v-else-if="model.summary">
         <markdown-text :markdown="model.summary.value || model.summary.text" />
       </template>
       <div
@@ -57,7 +64,7 @@
         </span>
       </div>
       <tree-node-list
-        v-if="children && children.length"
+        v-if="!isEvent && children && children.length"
         start-expanded
         :children="children"
         :root="{id: model._id, collection: 'creatureProperties'}"
@@ -95,6 +102,12 @@ const hovering = ref(false);
 const rollBonus = computed(() => {
   if (!props.model.attackRoll) return;
   return numberToSignedString(props.model.attackRoll.value);
+});
+
+const isEvent = computed(() => props.model.actionType === 'event');
+const eventText = computed(() => {
+  const { summary, description } = props.model;
+  return summary?.value || summary?.text || description?.value || description?.text;
 });
 
 const propertyName = computed(() => {

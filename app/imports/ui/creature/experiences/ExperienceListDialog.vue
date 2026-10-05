@@ -4,7 +4,6 @@
       <v-toolbar-title>
         {{ $t('xp.experiences') }}
       </v-toolbar-title>
-      <v-spacer />
       <v-btn
         variant="text"
         icon

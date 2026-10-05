@@ -1,5 +1,6 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { STATUSES } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 
 let CreatureFolders = new Mongo.Collection('creatureFolders');
 
@@ -111,6 +112,31 @@ let creatureFolderSchema = new SimpleSchema({
   // The d20 of the last roll, to show how the result came about
   'initiative.entries.$.roll': {
     type: SimpleSchema.Integer,
+    optional: true,
+  },
+  // A creature added by hand (UX11): what the players see of its health,
+  // unhurt, bloodied or down; its stats are in initiativeStats
+  'initiative.entries.$.status': {
+    type: String,
+    allowedValues: STATUSES,
+    optional: true,
+  },
+  // Out of the fight, which its turn then skips
+  'initiative.entries.$.out': {
+    type: Boolean,
+    optional: true,
+  },
+  // The game master shows the players the creatures' hit points and armor class
+  'initiative.showStats': {
+    type: Boolean,
+    optional: true,
+  },
+  // The game master's: by entry id, { hp, ac, damage } of the creatures added
+  // by hand. Kept out of the entries so that the publications can leave it out
+  // for the players (initiativeCreatures.js)
+  initiativeStats: {
+    type: Object,
+    blackbox: true,
     optional: true,
   },
 });

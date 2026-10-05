@@ -12,7 +12,10 @@
       color="secondary"
       theme="dark"
     >
-      <v-app-bar-nav-icon @click="toggleDrawer" />
+      <v-app-bar-nav-icon
+        :aria-label="$t('nav.openMenu')"
+        @click="toggleDrawer"
+      />
       <v-toolbar-title>
         <v-fade-transition mode="out-in">
           <div :key="appStore.pageTitle">
@@ -20,7 +23,7 @@
           </div>
         </v-fade-transition>
       </v-toolbar-title>
-      <v-spacer />
+      <!-- No spacer: Vuetify's title already grows, and a spacer halved its room -->
       <v-fade-transition mode="out-in">
         <div
           :key="route.meta.title"
@@ -46,6 +49,16 @@
       :key="appStore.loadedCharacterId"
       :creature-id="appStore.loadedCharacterId"
     />
+    <!-- Read by screen readers: rolls and what else announce() is given -->
+    <div
+      class="d-sr-only"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-id="announcer"
+    >
+      {{ announcement }}
+    </div>
   </v-app>
 </template>
 
@@ -66,6 +79,8 @@ const DiceTray = defineAsyncComponent(() => import('/imports/ui/dice/DiceTray.vu
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
 import { setLocale } from '/imports/ui/i18n';
+import useReducedMotion from '/imports/ui/composables/useReducedMotion';
+import { announcement } from '/imports/ui/components/announcer';
 
 const appStore = useAppStore();
 const { t, locale } = useI18n();
@@ -95,13 +110,21 @@ function toggleDrawer() {
 }
 
 watch(darkMode, applyTheme, { immediate: true });
+// Reduced animations (stylesheets/motion.css): Vuetify's transitions become fades
+const reducedMotion = useReducedMotion();
+watch(reducedMotion, reduced => {
+  document.documentElement.classList.toggle('reduce-motion', reduced);
+}, { immediate: true });
 // The account's language wins over this browser's last choice
 watch(language, setLocale, { immediate: true });
 // Route titles are message keys
 const routeTitle = (lang = locale.value) => route.meta?.title
   ? t(route.meta.title, {}, { locale: lang })
   : 'DiceCloud';
-watch(route, () => {
+// On a new page, the first one included (its name changes from none, though
+// "/" is also where the router starts): closing a dialog goes back in the
+// history without leaving the page, which keeps its own title (a name)
+watch(() => `${String(route.name)} ${route.path}`, () => {
   appStore.setPageTitle(routeTitle());
 });
 // Retranslate the title, unless the page set one of its own (a name...)
@@ -112,7 +135,3 @@ watch(locale, (value, oldValue) => {
 onMounted(() => colorScheme.addEventListener('change', handleColorSchemeChange));
 onUnmounted(() => colorScheme.removeEventListener('change', handleColorSchemeChange));
 </script>
-
-<style>
-
-</style>

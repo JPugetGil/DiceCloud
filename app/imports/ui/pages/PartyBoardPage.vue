@@ -30,6 +30,13 @@
             cols="12"
             lg="8"
           >
+            <!-- Below lg the tracker comes after the cards: the turn stays in view up here -->
+            <initiative-bar
+              v-if="!lgAndUp && folder.initiative?.round"
+              :folder="folder"
+              :role="role"
+              class="party-board__turn-bar mb-3"
+            />
             <div class="d-flex align-center flex-wrap ga-2 mb-3">
               <h1 class="text-headline-small my-0">
                 {{ folder.name || $t('party.untitled') }}
@@ -63,7 +70,7 @@
             />
             <v-row density="compact">
               <v-col
-                v-for="creature in creatures"
+                v-for="creature in orderedCreatures"
                 :key="creature._id"
                 cols="12"
                 sm="6"
@@ -112,6 +119,8 @@ import PartyPlayersCard from '/imports/ui/creature/party/PartyPlayersCard.vue';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import PartyMemberCard from '/imports/ui/creature/party/PartyMemberCard.vue';
 import InitiativeTracker from '/imports/ui/creature/party/InitiativeTracker.vue';
+import InitiativeBar from '/imports/ui/creature/party/InitiativeBar.vue';
+import { useDisplay } from 'vuetify';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { useAppStore } from '/imports/ui/stores/app';
 
@@ -142,6 +151,19 @@ const creatures = autorun(() => {
   return ids.map(id => found.find(creature => creature._id === id)).filter(Boolean);
 }).result;
 
+const { lgAndUp } = useDisplay();
+
+// During a fight the cards follow the initiative order, those not in it last
+const orderedCreatures = computed(() => {
+  const tracker = folder.value?.initiative;
+  const list = creatures.value || [];
+  if (!tracker?.round) return list;
+  const rank = new Map(initiativeOrder(tracker.entries)
+    .filter(entry => entry.creatureId)
+    .map((entry, index) => [entry.creatureId, index]));
+  return [...list].sort((a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity));
+});
+
 // The character whose turn it is, outlined on the board
 const activeCreatureId = computed(() => {
   const tracker = folder.value?.initiative;
@@ -159,5 +181,11 @@ watch(() => folder.value?.name, name => {
 .party-board__side {
   position: sticky;
   top: calc(var(--v-layout-top) + 16px);
+}
+
+.party-board__turn-bar {
+  position: sticky;
+  top: calc(var(--v-layout-top) + 8px);
+  z-index: 2;
 }
 </style>

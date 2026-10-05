@@ -5,6 +5,7 @@
     location="bottom left"
     variant="outlined"
     color="accent"
+    transition="snackbar-fade"
     :timeout="timeout"
   >
     <div class="d-flex flex-1-1 align-center">
@@ -13,8 +14,9 @@
           {{ snackbar.data.text }}
         </div>
         <template v-else-if="snackbar.data.content">
+          <!-- Dice the tray threw have rolled already: they do not roll in again -->
           <log-content
-            class="log-fresh"
+            :class="{ 'log-fresh': !snackbar.thrown }"
             :model="snackbar.data.content"
           />
         </template>
@@ -45,8 +47,10 @@
 <script setup>
 // Modified from https://gitlab.com/tozd/vue/snackbar-queue
 import { ref, watch } from 'vue';
+import { useDisplay } from 'vuetify';
 import { globalState } from '/imports/ui/components/snackbars/SnackbarQueue';
 import LogContent from '/imports/ui/log/LogContent.vue';
+import { throwPhase, wasThrown } from '/imports/ui/dice/diceTrayState';
 
 const props = defineProps({
   timeout: {
@@ -99,6 +103,14 @@ function waitFor(condition, effect) {
 
 const isShown = ref(false);
 const snackbar = ref(null);
+const { xs } = useDisplay();
+
+// A log entry whose dice the tray is throwing waits for them to land; on a
+// phone, where the tray covers the snackbar, for the tray to leave
+function heldByDiceTray(element) {
+  const phase = element.data?.logId && throwPhase(element.data.logId);
+  return phase === 'flying' || (phase === 'showing' && xs.value);
+}
 
 watch(isShown, (newValue) => {
   if (newValue === false && snackbar.value) {
@@ -132,11 +144,13 @@ function showNextSnackbar() {
   unwait = waitFor(function () {
     // Snackbars are enqueued from oldest to newest and "find" searches array elements in
     // same order as well, so the first one which matches is also the oldest one.
-    return globalState.queue.find((element) => element.shown === false);
+    const next = globalState.queue.find((element) => element.shown === false);
+    return next && !heldByDiceTray(next) ? next : undefined;
   }, function (newSnackbar) {
     unwait = null;
 
     newSnackbar.shown = true;
+    newSnackbar.thrown = !!newSnackbar.data?.logId && wasThrown(newSnackbar.data.logId);
 
     snackbar.value = newSnackbar;
     isShown.value = true;
@@ -161,3 +175,16 @@ function closeSnackbar() {
 
 showNextSnackbar();
 </script>
+
+<style>
+/* Snackbars fade in and out (stylesheets/motion.css) */
+.snackbar-fade-enter-active,
+.snackbar-fade-leave-active {
+  transition: opacity var(--motion-duration-short) var(--motion-easing-standard);
+}
+
+.snackbar-fade-enter-from,
+.snackbar-fade-leave-to {
+  opacity: 0;
+}
+</style>

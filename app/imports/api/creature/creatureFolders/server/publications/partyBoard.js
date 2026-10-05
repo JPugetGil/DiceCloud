@@ -9,6 +9,7 @@ import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
 import EngineActions from '/imports/api/engine/action/EngineActions';
 import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatureFolders/party';
+import { boardFolderFields } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 
 const schema = new SimpleSchema({
   folderId: { type: String, max: 32 },
@@ -73,7 +74,10 @@ Meteor.publish('partyBoard', function (folderId) {
       }
     });
     return [
-      CreatureFolders.find({ _id: folderId }, role === 'gm' ? {} : { fields: { inviteToken: 0 } }),
+      // The players get neither the invitation's token nor, unless the game
+      // master shows them, the hit points and armor class of the creatures
+      // added to the initiative tracker (UX11): only their status
+      CreatureFolders.find({ _id: folderId }, { fields: boardFolderFields(role, folder) }),
       Creatures.find({ _id: { $in: creatureIds } }, {
         fields: role === 'gm' ? CREATURE_FIELDS : MEMBER_CREATURE_FIELDS,
       }),
