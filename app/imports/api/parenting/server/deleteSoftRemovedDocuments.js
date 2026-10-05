@@ -1,6 +1,5 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
-import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import { SyncedCron } from 'meteor/quave:synced-cron';
 import { Meteor } from 'meteor/meteor';
 
@@ -38,13 +37,4 @@ Meteor.startup(() => {
   });
 
   SyncedCron.start();
-
-  // Add a method to manually trigger removal
-  Meteor.methods({
-    async deleteOldSoftRemovedDocs() {
-      await assertAdmin(this.userId);
-      this.unblock();
-      await deleteOldSoftRemovedDocs();
-    },
-  });
 });

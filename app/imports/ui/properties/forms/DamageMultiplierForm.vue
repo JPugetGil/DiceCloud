@@ -34,7 +34,6 @@
           :model-value="model.damageTypes"
           :error-messages="errors.damageTypes"
           :menu-props="{auto: true, lazy: true}"
-          @update:error="error"
           @change="(value, ack) => change('damageTypes', value, ack)"
         />
       </v-col>
@@ -114,11 +113,6 @@ const damageTypeRules = [
     }
   }
 ];
-
-// The damage type field's `update:error` handler
-function error(e) {
-  console.error(e);
-}
 
 function change(path, value, ack) {
   if (!Array.isArray(path)) {

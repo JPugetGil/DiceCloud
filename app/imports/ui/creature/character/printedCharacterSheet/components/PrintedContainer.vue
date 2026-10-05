@@ -98,9 +98,6 @@ defineProps({
     type: Object,
     default: () => ({}),
   },
-  selected: Boolean,
-  hideIcon: Boolean,
-  preparingSpells: Boolean,
 });
 
 

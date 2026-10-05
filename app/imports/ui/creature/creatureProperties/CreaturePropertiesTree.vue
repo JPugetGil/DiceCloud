@@ -2,10 +2,9 @@
   <tree-node-list
     v-if="root"
     :children="children"
-    :group="group"
+    group="creatureProperties"
     :organize="organize"
     :selected-node="selectedNode"
-    :start-expanded="expanded"
     :root="root"
     @selected="e => $emit('selected', e)"
     @move-within-root="moveWithinRoot"
@@ -33,23 +32,16 @@ const props = defineProps({
     type: Object,
     default: undefined,
   },
-  group: {
-    type: String,
-    default: 'creatureProperties'
-  },
-  collection: {
-    type: String,
-    default: 'creatureProperties'
-  },
-  expanded: Boolean,
 });
 
-const emit = defineEmits(['selected', 'length']);
+defineEmits(['selected']);
+
+const collection = 'creatureProperties';
 
 const { result: children } = autorun(() => {
   if (!props.root) return [];
-  const result = filterToForest?.(
-    getCollectionByName(props.collection),
+  return filterToForest?.(
+    getCollectionByName(collection),
     props.root.id,
     props.filter,
     {
@@ -57,8 +49,6 @@ const { result: children } = autorun(() => {
       includeFilteredDocDescendants: true,
     }
   ) || [];
-  emit('length', result.length);
-  return result;
 });
 
 async function moveWithinRoot({ doc, newPosition }) {
@@ -66,7 +56,7 @@ async function moveWithinRoot({ doc, newPosition }) {
     await apiMoveWithinRoot.callAsync({
       docRef: {
         id: doc._id,
-        collection: props.collection,
+        collection,
       },
       newPosition,
     });
@@ -80,7 +70,7 @@ async function moveBetweenRoots({ doc, newPosition, newRootRef }) {
     await apiMoveBetweenRoots.callAsync({
       docRef: {
         id: doc._id,
-        collection: props.collection,
+        collection,
       },
       newPosition,
       newRootRef,

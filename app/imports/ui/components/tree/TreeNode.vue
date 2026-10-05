@@ -19,10 +19,10 @@
         size="small"
         icon
         :class="showExpanded ? 'rotate-90' : null"
-        :disabled="!hasChildren && !organize || !canExpand"
+        :disabled="!hasChildren && !organize"
         @click.stop="expanded = !expanded"
       >
-        <v-icon v-if="canExpand && (hasChildren || organize)">
+        <v-icon v-if="hasChildren || organize">
           mdi-chevron-right
         </v-icon>
       </v-btn>
@@ -101,10 +101,6 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  getChildren: {
-    type: Function,
-    default: undefined,
-  },
   selectedNode: {
     type: Object,
     default: undefined,
@@ -134,14 +130,7 @@ const computedChildren = computed(() => {
   if (props.children) {
     children.push(...props.children);
   }
-  if (props.getChildren) {
-    children.push(...props.getChildren());
-  }
   return children;
-});
-
-const canExpand = computed(() => {
-  return true;
 });
 
 watch(() => props.node?._ancestorOfMatchedDocument, (value) => {

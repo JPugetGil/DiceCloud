@@ -18,7 +18,6 @@
           @click.stop="doAction"
         >
           <property-icon
-            right
             :model="model"
           />
         </v-btn>
@@ -139,7 +138,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  attack: Boolean,
 });
 
 const context = inject('context', {});

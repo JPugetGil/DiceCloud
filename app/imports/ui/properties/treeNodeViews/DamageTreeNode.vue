@@ -5,7 +5,6 @@
       style="height:40px;"
     >
       <v-icon
-        v-if="!hideIcon"
         class="mr-2"
         :color="model.color"
         :class="selected && 'text-primary'"
@@ -33,7 +32,6 @@ const props = defineProps({
     default: () => ({}),
   },
   selected: Boolean,
-  hideIcon: Boolean,
 });
 
 const icon = computed(() => {

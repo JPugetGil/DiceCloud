@@ -22,10 +22,9 @@
       :raw-id="`${listId}-${libraryCollection._id}`"
       :data-id="`library-collection-${libraryCollection._id}`"
     >
-      <template #activator="{ props: activatorProps, isOpen }">
+      <template #activator="{ props: activatorProps }">
         <library-collection-header
           v-bind="activatorProps"
-          :open="isOpen"
           :model="libraryCollection"
           :selection="selection"
           :single-select="singleSelect"
@@ -60,18 +59,13 @@
 
 <script setup>
 import { ref, useId } from 'vue';
-import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { union } from 'lodash';
-import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import LibraryCollections, { insertLibraryCollection as insertLibraryCollectionApi } from '/imports/api/library/LibraryCollections';
-import Libraries, { insertLibrary as insertLibraryApi } from '/imports/api/library/Libraries';
+import LibraryCollections from '/imports/api/library/LibraryCollections';
+import Libraries from '/imports/api/library/Libraries';
 import LibraryListTile from '/imports/ui/library/LibraryListTile.vue';
 import LibraryCollectionHeader from '/imports/ui/library/LibraryCollectionHeader.vue';
-import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { Meteor } from 'meteor/meteor';
-
-const dialogStackStore = useDialogStackStore();
 
 defineProps({
   selection: Boolean,
@@ -92,8 +86,6 @@ defineProps({
 });
 
 defineEmits(['select-library', 'select-library-collection']);
-
-const router = useRouter();
 
 // Ids of the open collections: Vuetify keeps a group's open state on its list
 const openCollections = ref([]);
@@ -153,51 +145,4 @@ const librariesWithoutCollection = autorun(() => {
     {sort: {name: 1}}
   ).fetch();
 }).result;
-
-const insertLibrary = () => {
-  dialogStackStore.pushDialogStack({
-    component: 'library-creation-dialog',
-    elementId: 'insert-library-button',
-    async callback(library) {
-      if (!library) return;
-      try {
-        const libraryId = await insertLibraryApi.callAsync(library);
-        await router.push({
-          name: 'singleLibrary',
-          params: { id: libraryId }
-        });
-        return `library-${libraryId}`;
-      } catch (error) {
-        console.error(error);
-        snackbar({
-          text: error.reason,
-        });
-      }
-    }
-  });
-};
-
-const insertLibraryCollection = () => {
-  dialogStackStore.pushDialogStack({
-    component: 'library-collection-creation-dialog',
-    elementId: 'insert-library-collection-button',
-    async callback(libraryCollection) {
-      if (!libraryCollection) return;
-      try {
-        const id = await insertLibraryCollectionApi.callAsync(libraryCollection);
-        return `library-collection-${id}`;
-      } catch (error) {
-        console.error(error);
-        snackbar({
-          text: error.reason,
-        });
-      }
-    }
-  });
-};
-
-defineExpose({
-  insertLibrary,
-  insertLibraryCollection
-});
 </script>

@@ -12,7 +12,6 @@
         @remove="remove"
         @make-reference="makeReference"
         @toggle-editing="editing = !editing"
-        @color-changed="value => change({path: ['color'], value})"
       />
     </template>
     <v-fade-transition>
@@ -53,7 +52,6 @@
         class="library-node-form"
         collection="libraryNodes"
         :model="model"
-        :embedded="embedded"
         @change="change"
         @push="push"
         @pull="pull"

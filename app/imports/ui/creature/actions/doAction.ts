@@ -88,7 +88,6 @@ export default async function doAction({
         elementId,
         data: {
           actionId,
-          task,
           actionFinishedCallback: resolve,
         },
         callback(action: any) {

@@ -172,6 +172,7 @@
               variant="text"
               icon
               size="small"
+              :loading="removeEmailLoading === email.address"
               @click="removeEmail(email.address)"
             >
               <v-icon>mdi-delete</v-icon>
@@ -212,8 +213,8 @@
             <template #append>
               <v-btn
                 variant="text"
-
                 icon
+                :loading="addEmailLoading"
                 @click="addEmail"
               >
                 <v-icon>mdi-send</v-icon>
@@ -230,6 +231,15 @@
           </v-btn>
         </v-slide-x-transition>
         <v-list-item v-if="googleConfigured && user && !user.services?.google">
+          <v-alert
+            v-if="linkGoogleError"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mb-2"
+            data-id="link-google-error"
+            :text="linkGoogleError"
+          />
           <v-btn
             color="primary"
             @click="linkWithGoogle"
@@ -241,6 +251,7 @@
       <div class="d-flex flex-1-1 justify-end">
         <v-btn
           color="accent"
+          :loading="signOutBusy"
           @click="signOut"
         >
           {{ $t('account.signOut') }}
@@ -422,7 +433,7 @@ async function swapAbilityScoresAndModifiers(value, ack) {
 function linkWithGoogle() {
   linkGoogleError.value = '';
   Meteor.linkWithGoogle(error => {
-    if (error) linkGoogleError.value = error;
+    if (error) linkGoogleError.value = error.reason || error.message || String(error);
   });
 }
 

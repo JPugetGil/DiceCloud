@@ -9,7 +9,6 @@
     <action-conditions-list-form
       :model="model.conditions"
       @change="({path, value, ack}) => $emit('change', {path: ['conditions', ...path], value, ack})"
-      @push="({path, value, ack}) => $emit('push', {path: ['conditions', ...path], value, ack})"
       @pull="({path, ack}) => $emit('pull', {path: ['conditions', ...path], ack})"
     />
     <div
@@ -21,7 +20,6 @@
     <attributes-consumed-list-form
       :model="model.attributesConsumed"
       @change="({path, value, ack}) => $emit('change', {path: ['attributesConsumed', ...path], value, ack})"
-      @push="({path, value, ack}) => $emit('push', {path: ['attributesConsumed', ...path], value, ack})"
       @pull="({path, ack}) => $emit('pull', {path: ['attributesConsumed', ...path], ack})"
     />
     <div
@@ -33,7 +31,6 @@
     <items-consumed-list-form
       :model="model.itemsConsumed"
       @change="({path, value, ack}) => $emit('change', {path: ['itemsConsumed', ...path], value, ack})"
-      @push="({path, value, ack}) => $emit('push', {path: ['itemsConsumed', ...path], value, ack})"
       @pull="({path, ack}) => $emit('pull', {path: ['itemsConsumed', ...path], ack})"
     />
     <v-menu
@@ -79,17 +76,6 @@ defineProps({
   model: {
     type: [Object, Array],
     default: () => ({}),
-  },
-  errors: {
-    type: Object,
-    default: () => ({}),
-  },
-  parentTarget: {
-    type: String,
-    default: undefined,
-  },
-  buffsStored: {
-    type: Boolean,
   },
 });
 

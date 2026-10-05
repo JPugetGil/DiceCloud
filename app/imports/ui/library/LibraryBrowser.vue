@@ -27,7 +27,6 @@
             <insert-library-node-button
               v-if="editPermission(library)"
               :library-id="library._id"
-              :selected-node-id="selectedNode && selectedNode._id"
               @selected="e => $emit('selected', e)"
             />
             <v-btn

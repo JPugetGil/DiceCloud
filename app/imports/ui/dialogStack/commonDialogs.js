@@ -6,7 +6,6 @@ export { default as ActionDialog } from '/imports/ui/creature/actions/ActionDial
 export { default as CharacterCreationDialog } from '/imports/ui/creature/character/CharacterCreationDialog.vue';
 export { default as CreatureFormDialog } from '/imports/ui/creature/CreatureFormDialog.vue';
 export { default as CreaturePropertyDialog } from '/imports/ui/creature/creatureProperties/CreaturePropertyDialog.vue';
-export { default as CreaturePropertyFromLibraryDialog } from '/imports/ui/creature/creatureProperties/CreaturePropertyFromLibraryDialog.vue';
 export { default as CreatureRootDialog } from '/imports/ui/creature/character/CreatureRootDialog.vue';
 export { default as DeleteConfirmationDialog } from '/imports/ui/dialogStack/DeleteConfirmationDialog.vue';
 export { default as ExperienceInsertDialog } from '/imports/ui/creature/experiences/ExperienceInsertDialog.vue';

@@ -31,12 +31,9 @@
       <v-divider class="my-4" />
     </template>
     <experience-form
-      :start-as-milestone="startAsMilestone"
       :model="model"
       :errors="errors"
       @change="change"
-      @push="push"
-      @pull="pull"
     />
     <template v-if="members && !isMilestone && selectedIds.length > 1">
       <v-switch
@@ -70,7 +67,7 @@
 
 <script setup>
 import { ref, computed, provide, reactive } from 'vue';
-import { get, toPath } from 'lodash';
+import { toPath } from 'lodash';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import ExperienceForm from '/imports/ui/creature/experiences/ExperienceForm.vue';
 import { useI18n } from 'vue-i18n';
@@ -94,9 +91,6 @@ const props = defineProps({
   members: {
     type: Array,
     default: undefined,
-  },
-  startAsMilestone: {
-    type: Boolean,
   },
 });
 
@@ -131,12 +125,7 @@ provide('context', reactive({
 const schema = ExperienceSchema.omit('creatureId');
 const validationContext = schema.newContext();
 
-let startingModel = {};
-if (props.startAsMilestone) {
-  startingModel.levels = 1;
-}
-
-const model = ref(schema.clean(startingModel));
+const model = ref(schema.clean({}));
 
 // Computed Properties
 const errors = computed(() => {
@@ -191,28 +180,6 @@ function resolvePath(modelObj, path) {
 function change({ path, value, ack }) {
   let { object, key } = resolvePath(model.value, path);
   object[key] = value;
-  if (ack) ack();
-}
-
-function push({ path, value, ack }) {
-  let array = get(model.value, path);
-  if (array === undefined) {
-    let { object, key } = resolvePath(model.value, path);
-    object[key] = [value];
-  } else if (!array.push) {
-    throw `${path.join('.')} is ${array}, doesn't have "push"`;
-  } else {
-    array.push(value);
-  }
-  if (ack) ack();
-}
-
-function pull({ path, ack }) {
-  let { object, key } = resolvePath(model.value, path);
-  if (!object || !object.splice) {
-    throw `${path.join('.')} is ${object}, doesnt have "splice"`;
-  }
-  object.splice(key, 1);
   if (ack) ack();
 }
 

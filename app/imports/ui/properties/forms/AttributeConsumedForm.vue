@@ -10,7 +10,6 @@
         style="flex-basis: 300px;"
         :items="attributeList"
         :model-value="model.variableName"
-        :error-messages="errors.variableName"
         @change="(value, ack) => change('variableName', value, ack)"
       />
     </v-col>
@@ -22,7 +21,6 @@
         :label="$t('forms.quantity')"
         :hint="$t('forms.attributeConsumed.quantityHint')"
         :model="model.quantity"
-        :error-messages="errors.quantity"
         @change="({path, value, ack}) =>
           $emit('change', {path: ['quantity', ...path], value, ack})"
       />
@@ -38,10 +36,6 @@ defineProps({
   model: {
     type: Object,
     required: true,
-  },
-  errors: {
-    type: Object,
-    default: () => ({}),
   },
 });
 

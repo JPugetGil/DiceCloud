@@ -14,7 +14,7 @@
           :data-id="`${model._id}-do-action-button`"
           :color="model.color || 'primary'"
           :loading="doActionLoading"
-          :disabled="model.insufficientResources || !context.editPermission || !!targetingError"
+          :disabled="model.insufficientResources || !context.editPermission"
           @click.stop="handleDoAction"
         >
           <template v-if="rollBonus && !rollBonusTooLong">
@@ -37,20 +37,12 @@
           {{ model.name || propertyName }}
         </div>
         <div class="action-sub-title d-flex flex-1-1 align-center text-body-small text-medium-emphasis text-no-wrap overflow-hidden w-100">
-          <div
-            v-if="targetingError"
-            class="flex-1-1 text-error"
-          >
-            {{ targetingError }}
+          <div class="flex-1-1">
+            {{ model.actionType }}
           </div>
-          <template v-else>
-            <div class="flex-1-1">
-              {{ model.actionType }}
-            </div>
-            <div v-if="Number.isFinite(model.usesLeft)">
-              {{ $t('cards.uses', { count: model.usesLeft }) }}
-            </div>
-          </template>
+          <div v-if="Number.isFinite(model.usesLeft)">
+            {{ $t('cards.uses', { count: model.usesLeft }) }}
+          </div>
         </div>
       </div>
     </div>
@@ -115,18 +107,11 @@ import TreeNodeList from '/imports/ui/components/tree/TreeNodeList.vue';
 import { getFilter, docsToForest as nodeArrayToTree } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
 
 const props = defineProps({
   model: {
     type: Object,
     required: true,
-  },
-  targets: {
-    type: Array,
-    default: undefined,
   },
 });
 
@@ -166,17 +151,6 @@ const cardClasses = computed(() => {
   }
 });
 
-
-const targetingError = computed(() => {
-  // Can always do an action without a target
-  if (!props.targets || !props.targets.length) return undefined;
-  if (props.targets.length > 1 && props.model.target !== 'multipleTargets'){
-    return t('targets.singleTarget');
-  } else if (props.model.target === 'self' && props.targets[0] !== props.model.ancestors[0]._id){
-    return t('targets.canOnlyTargetSelf');
-  }
-  return undefined;
-});
 
 const children = autorun(() => {
   const rangesToExclude = [];
@@ -238,11 +212,5 @@ async function handleDoAction() {
 
 .action-child {
   height: 32px;
-}
-</style>
-
-<style lang="css">
-.action-card .property-description>p:last-of-type {
-  margin-bottom: 0;
 }
 </style>

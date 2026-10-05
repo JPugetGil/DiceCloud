@@ -91,7 +91,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  dark: Boolean,
   viewOnly: Boolean,
   disabled: Boolean,
   // The parent's @click listener, declared so that the tile knows whether it is

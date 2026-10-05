@@ -53,10 +53,6 @@ const props = defineProps({
     type: Number,
     default: undefined,
   },
-  rules: {
-    type: Array,
-    default: undefined,
-  },
   // The parent's @change listener, declared as a prop so that the field can
   // tell whether anyone will acknowledge its changes: Vue keeps the listeners
   // of declared events out of $attrs. `emit('change')` still calls it.
@@ -74,20 +70,15 @@ const context = inject('context', {});
 
 const error = ref(false);
 const ackErrors = ref(null);
-const rulesErrors = ref(null);
 const focused = ref(false);
 const loading = ref(false);
 const dirty = ref(false);
 const safeValue = ref(model.value);
-const inputValue = ref(model.value);
 
 const inputRef = ref(null);
 
 const errors = computed(() => {
   let errs = ackErrors.value ? [ackErrors.value] : [];
-  if (Array.isArray(rulesErrors.value)) {
-    errs.push(...rulesErrors.value);
-  }
   if (Array.isArray(props.errorMessages)) {
     errs.push(...props.errorMessages);
   } else if (typeof props.errorMessages === 'string' && props.errorMessages) {
@@ -151,23 +142,7 @@ const onInput = (val) => {
   // value on every render: unless safeValue follows the typing, the next render
   // (a validation message appearing, say) wipes out what was typed
   safeValue.value = val;
-  inputValue.value = val;
   dirty.value = true;
-
-  rulesErrors.value = null;
-  if (props.rules && props.rules.length) {
-    props.rules.forEach(rule => {
-      const result = rule(val);
-      if (typeof result === 'string') {
-        if (!rulesErrors.value) rulesErrors.value = [];
-        rulesErrors.value.push(result);
-      }
-    });
-  }
-  if (rulesErrors.value) {
-    return;
-  }
-
   debouncedChange(val);
 };
 
@@ -183,11 +158,7 @@ watch(focused, (newFocus) => {
   if (!newFocus && !dirty.value && !error.value) {
     forceSafeValueUpdate();
   }
-  if (
-    !newFocus &&
-    dirty.value &&
-    !(rulesErrors.value && rulesErrors.value.length)
-  ) {
+  if (!newFocus && dirty.value) {
     if (hasChangeListener()) loading.value = true;
   }
 });
@@ -199,10 +170,7 @@ watch(dirty, (newDirty) => {
 });
 
 watch(model, (newValue) => {
-  if (
-    !focused.value &&
-    !(rulesErrors.value && rulesErrors.value.length)
-  ) {
+  if (!focused.value) {
     safeValue.value = newValue;
   }
 });

@@ -391,7 +391,8 @@ onBeforeUnmount(() => {
   html {
     background-color: white !important;
   }
-  header, nav, .v-snack, .dialog-stack {
+  /* Unscoped on purpose: the snackbar is teleported out of this component */
+  header, nav, .v-snackbar, .dialog-stack {
     display: none !important;
   }
   .v-main {

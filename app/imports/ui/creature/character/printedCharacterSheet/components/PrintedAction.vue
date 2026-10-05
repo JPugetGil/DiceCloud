@@ -61,7 +61,6 @@
         start-expanded
         :children="children"
         :root="{id: model._id, collection: 'creatureProperties'}"
-        @selected="e => $emit('sub-click', e)"
       />
     </div>
     <div class="action-subtitle text-center">
@@ -89,8 +88,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-defineEmits(['sub-click']);
 
 const activated = ref(undefined);
 const hovering = ref(false);
@@ -180,11 +177,5 @@ const children = autorun(() => {
 
 .resources {
   font-size: 10pt;
-}
-</style>
-
-<style lang="css">
-.action-card .property-description>p:last-of-type {
-  margin-bottom: 0;
 }
 </style>

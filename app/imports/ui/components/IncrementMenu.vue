@@ -77,7 +77,6 @@ const emit = defineEmits(['close', 'change']);
 const editInput = ref(null);
 const editValue = ref(props.value);
 const operation = ref('set');
-const editing = ref(false);
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) resetData();
@@ -99,7 +98,6 @@ function cancelEdit() {
 }
 
 function commitEdit() {
-  editing.value = false;
   // Use editValue which is synced via the input event
   let value = +editValue.value;
   if (operation.value === 'add') {

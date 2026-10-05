@@ -61,10 +61,6 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  parentTarget: {
-    type: String,
-    default: undefined,
-  },
 });
 
 const emit = defineEmits(['change']);

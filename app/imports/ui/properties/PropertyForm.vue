@@ -171,7 +171,6 @@
             style="width: 100%;"
             organize
             :model="model"
-            :root="model.root"
             :collection="collection"
             @selected="e => $emit('select-sub-property', e)"
           />
@@ -231,9 +230,6 @@ import { getSuggestedChildren } from '/imports/constants/PROPERTIES';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
-import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
-
-const dialogStackStore = useDialogStackStore();
 
 const props = defineProps({
   model: {
@@ -248,7 +244,6 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  embedded: Boolean, // This dialog is embedded in a page
   noChildInsert: Boolean, // Don't allow inserting of children in this form
 });
 
@@ -270,20 +265,5 @@ const schemaHasName = computed(() => {
   if (!props.model?.type) return true;
   const schema = propertySchemasIndex[props.model.type];
   return schema ? schema.allowsKey('name') : true;
-});
-
-function selectSubProperty(_id) {
-  dialogStackStore.pushDialogStack({
-    component: 'creature-property-dialog',
-    elementId: `tree-node-${_id}`,
-    data: {
-      _id,
-      startInEditTab: undefined,
-    },
-  });
-}
-
-defineExpose({
-  selectSubProperty,
 });
 </script>

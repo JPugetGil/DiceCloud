@@ -17,7 +17,6 @@
     <div>
       <creature-form
         :model="model"
-        :disabled="editPermission === false"
         @change="change"
       />
     </div>
@@ -35,8 +34,6 @@
 
 <script setup>
 import { autorun } from 'vue-meteor-tracker';
-import { Meteor } from 'meteor/meteor';
-import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import updateCreature from '/imports/api/creature/creatures/methods/updateCreature';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
@@ -51,12 +48,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  startInEditTab: Boolean,
 });
 
 
 const model = autorun(() => Creatures.findOne(props._id)).result;
-const editPermission = autorun(() => hasEditPermission(model.value, Meteor.user())).result;
 
 async function change({ path, value, ack }) {
   try {

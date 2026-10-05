@@ -23,7 +23,7 @@
     </template>
     <property-description
       text
-      :string="model?.description"
+      :model="model?.description"
     />
     <p class="my-0">
       <property-tags
@@ -155,7 +155,7 @@
       <v-btn
         variant="text"
         color="primary"
-        :disabled="!dummySlot && !selectedNodeIds.length"
+        :disabled="!selectedNodeIds.length"
         @click="dialogStackStore.popDialogStack(selectedNodeIds)"
       >
         <template v-if="model?.spaceLeft">
@@ -187,7 +187,7 @@ import evaluateSlotFillerConditions from '/imports/ui/creature/slots/slotFillerC
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/ui/library/LibraryNodeExpansionContent.vue';
 import PropertyTags from '/imports/ui/properties/viewers/shared/PropertyTags.vue';
-import { clone, difference, isEqual, debounce } from 'lodash';
+import { difference, isEqual, debounce } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
@@ -201,10 +201,6 @@ const props = defineProps({
   },
   creatureId: {
     type: String,
-    default: undefined,
-  },
-  dummySlot: {
-    type: Object,
     default: undefined,
   },
 });
@@ -237,12 +233,6 @@ watch(searchInput, applySearch);
 const model = autorun(() => {
   if (props.classId) {
     return CreatureProperties.findOne(props.classId);
-  } else if (props.dummySlot) {
-    let m = clone(props.dummySlot);
-    if (!m.quantityExpected) m.quantityExpected = {};
-    m.quantityExpected.value = +m.quantityExpected.calculation;
-    m.spaceLeft = m.quantityExpected.value;
-    return m;
   }
 }).result;
 

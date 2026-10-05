@@ -10,7 +10,6 @@ export const useAppStore = defineStore('app', {
     rightDrawer: undefined,
     pageTitle: undefined,
     characterSheetTabs: {},
-    showDetailsDialog: false,
     formExpansions: {},
     // Docs writers switch the documentation pages between reading and editing
     editingDocs: false,
@@ -68,9 +67,6 @@ export const useAppStore = defineStore('app', {
         }
       }
       this.characterSheetTabs[id] = tab;
-    },
-    setShowDetailsDialog(value) {
-      this.showDetailsDialog = value;
     },
     setFormExpansion({ type, value }) {
       this.formExpansions[type] = value;

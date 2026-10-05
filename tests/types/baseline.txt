@@ -44,8 +44,6 @@ imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2339: Proper
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/creature/creatures/methods/insertCreature.js: TS2339: Property 'pick' does not exist on type 'TypedSimpleSchema<any>'.
-imports/api/creature/creatures/server/publications/characterList.js: TS2339: Property 'subscribedCharacters' does not exist on type 'User'.
-imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
@@ -336,11 +334,8 @@ imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not 
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
 imports/api/sharing/sharing.js: TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
-imports/api/users/Users.js: TS2339: Property 'apiKey' does not exist on type 'User'.
 imports/api/users/Users.js: TS2339: Property 'canPickUsername' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'findUserByUsernameOrEmail' does not exist on type 'Collection<User, User>'.
-imports/api/users/Users.js: TS2339: Property 'generateApiKey' does not exist on type 'Collection<User, User>'.
-imports/api/users/Users.js: TS2339: Property 'sendVerificationEmail' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'setDarkMode' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'setLanguage' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'setPreference' does not exist on type 'Collection<User, User>'.
@@ -349,8 +344,6 @@ imports/api/users/Users.js: TS2339: Property 'setUsername' does not exist on typ
 imports/api/users/Users.js: TS2339: Property 'subscribeToLibrary' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2339: Property 'subscribeToLibraryCollection' does not exist on type 'Collection<User, User>'.
 imports/api/users/Users.js: TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
-imports/api/users/Users.js: TS2769: No overload matches this call.
-imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.
 imports/api/users/Users.js: TS2769: No overload matches this call.

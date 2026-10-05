@@ -54,9 +54,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  hover: {
-    type: Boolean,
-  },
 });
 
 const emit = defineEmits(['mouseover', 'mouseleave', 'click', 'change']);

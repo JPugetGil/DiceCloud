@@ -7,8 +7,8 @@
       <v-avatar class="item-avatar">
         <property-icon
           class="mr-2"
-          :model="model"
-          :color="model?.color"
+          :model="item"
+          :color="item?.color"
         />
       </v-avatar>
     </template>
@@ -19,18 +19,18 @@
 
     <template #append>
       <div
-        v-if="model?.attuned"
+        v-if="item?.attuned"
         style="min-width: 40px;"
       >
         <v-icon>$spell</v-icon>
       </div>
       <div style="min-width: 40px;">
         <increment-button
-          v-if="context.creatureId && model?.showIncrement"
+          v-if="context.creatureId && item?.showIncrement"
           icon
           color="primary"
           :disabled="context.editPermission === false"
-          :value="model?.quantity"
+          :value="item?.quantity"
           :loading="incrementLoading"
           @change="changeQuantity"
         />
@@ -55,14 +55,17 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 
+// ItemList passes the item's id (its draggable list holds ids); the folder
+// group components pass the document itself, as for every property they show
 const props = defineProps({
   itemId: {
     type: String,
-    required: true,
+    default: undefined,
   },
-  selected: Boolean,
-  hideIcon: Boolean,
-  preparingSpells: Boolean,
+  model: {
+    type: Object,
+    default: undefined,
+  },
   // The parent's @click listener, declared so that the tile knows whether it is
   // clickable: Vue keeps a declared event's listener out of $attrs.
   // `emit('click')` still calls it.
@@ -78,14 +81,15 @@ const context = inject('context', {});
 
 const incrementLoading = ref(false);
 
-const model = autorun(() => CreatureProperties.findOne(props.itemId)).result;
+const fetchedItem = autorun(() => props.itemId && CreatureProperties.findOne(props.itemId)).result;
+const item = computed(() => props.model || fetchedItem.value);
 
 const hasClickListener = computed(() => {
   return !!props.onClick;
 });
 
 const title = computed(() => {
-  const mod = model.value;
+  const mod = item.value;
   if (!mod) return;
   if (mod.quantity !== 1) {
     if (mod.plural) {
@@ -108,7 +112,7 @@ async function changeQuantity({ type, value }) {
   incrementLoading.value = true;
   try {
     await adjustQuantity.callAsync({
-      _id: model.value._id,
+      _id: item.value._id,
       operation: type,
       value: value
     });

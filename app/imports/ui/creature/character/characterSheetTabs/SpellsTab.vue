@@ -42,7 +42,6 @@
       >
         <spellList-card
           :model="spellList"
-          :organize="organize"
         />
       </div>
       <folder-group-card
@@ -77,7 +76,6 @@ const props = defineProps({
   }
 });
 
-const organize = ref(false);
 const tabName = ref('spells');
 
 const {

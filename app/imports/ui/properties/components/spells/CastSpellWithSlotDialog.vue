@@ -204,10 +204,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  slotId: {
-    type: String,
-    default: undefined,
-  },
   spellId: {
     type: String,
     default: undefined,
@@ -216,7 +212,7 @@ const props = defineProps({
 
 const goTo = useGoTo();
 
-const selectedSlotId = ref(props.slotId);
+const selectedSlotId = ref(undefined);
 const selectedSpellId = ref(props.spellId);
 const selectedSlot = ref(undefined);
 const selectedSpell = ref(undefined);

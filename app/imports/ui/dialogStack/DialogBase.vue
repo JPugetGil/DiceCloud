@@ -17,7 +17,7 @@
       <v-btn
         variant="text"
         icon
-        @click="back"
+        @click="close"
       >
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
@@ -63,10 +63,6 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  overrideBackButton: {
-    type: Function,
-    default: undefined,
-  },
   darkBody: Boolean,
 });
 
@@ -84,14 +80,6 @@ const computedColor = computed(() => {
 
 function onScroll(e) {
   offsetTop.value = e.target.scrollTop
-}
-
-function back() {
-  if (props.overrideBackButton) {
-    props.overrideBackButton();
-  } else {
-    close();
-  }
 }
 
 function close() {

@@ -23,7 +23,7 @@
       >
         {{ model.name }}
       </div>
-      <template v-if="!selection && !dense">
+      <template v-if="!selection">
         <v-spacer />
         <v-btn
           v-if="canEdit"
@@ -67,10 +67,8 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  open: Boolean,
   selection: Boolean,
   singleSelect: Boolean,
-  dense: Boolean,
   isSelected: Boolean,
   disabled: Boolean,
 });

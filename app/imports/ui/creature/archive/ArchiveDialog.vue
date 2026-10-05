@@ -131,7 +131,6 @@ const archiveAction = async () => {
   }
 };
 
-subscribe('archivedCreatures');
 subscribe('archiveCreatureFiles');
 subscribe('characterList');
 

@@ -52,14 +52,14 @@
       </div>
     </v-fade-transition>
     <character-sheet-fab
-      v-if="!embedded && xs"
+      v-if="xs"
       direction="top"
       fixed
       class="character-sheet-bottom-fab"
       :edit-permission="editPermission"
     />
     <v-bottom-navigation
-      v-if="!embedded && xs && creature && creature.settings"
+      v-if="xs && creature && creature.settings"
       mode="shift"
       grow
       mandatory
@@ -138,7 +138,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  embedded: Boolean,
 });
 
 const route = useRoute();

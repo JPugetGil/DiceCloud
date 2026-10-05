@@ -3,10 +3,7 @@
     class="printed-skill pl-0 d-flex align-center"
   >
     <div class="d-flex align-center">
-      <div
-        v-if="!hideModifier"
-        class="d-flex align-center"
-      >
+      <div class="d-flex align-center">
         <proficiency-icon
           :value="model.proficiency"
           class="prof-icon"
@@ -27,11 +24,6 @@
           mdi-chevron-double-down
         </v-icon>
       </div>
-      <proficiency-icon
-        v-else
-        :value="model.proficiency"
-        class="prof-icon mr-2"
-      />
       <div class="text-truncate">
         {{ model.name }}
         <template v-if="model.conditionalBenefits && model.conditionalBenefits.length">
@@ -56,7 +48,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  hideModifier: Boolean,
 });
 
 

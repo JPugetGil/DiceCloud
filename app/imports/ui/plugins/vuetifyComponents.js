@@ -32,7 +32,6 @@ export {
   VCol,
   VCombobox,
   VContainer,
-  VDatePicker,
   VDefaultsProvider,
   VDivider,
   VEmptyState,

@@ -67,7 +67,6 @@ defineProps({
     type: Object,
     default: () => ({}),
   },
-  classForm: Boolean,
 });
 
 const emit = defineEmits(['change', 'push', 'pull']);

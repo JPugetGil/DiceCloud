@@ -384,9 +384,3 @@ function change(path, value, ack) {
   emit('change', { path, value, ack });
 }
 </script>
-
-<style lang="css" scoped>
-.v-input--checkbox {
-  margin-top: 0;
-}
-</style>

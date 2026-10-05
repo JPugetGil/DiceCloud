@@ -144,7 +144,6 @@
     "emptyText": "Create your first character with the New character button.",
     "importCharacter": "Import character",
     "addFolder": "Add folder",
-    "archiveCharacters": "Archive Characters",
     "moved": "Moved {item} to {target}",
     "item": "item",
     "anotherCharacter": "another character",
@@ -344,7 +343,6 @@
     "addCollection": "Add Collection",
     "subscribers": "{count} subscribers",
     "notFound": "Library or Library Collection not found",
-    "addFromLibrary": "Add from library",
     "showSecondTree": "Show second library tree",
     "newLibrary": "New library",
     "communityLibraries": "Community Libraries",
@@ -411,7 +409,6 @@
     "done": "Done",
     "insert": "Insert",
     "delete": "Delete",
-    "next": "Next",
     "back": "Back",
     "create": "Create",
     "clear": "Clear",
@@ -1448,8 +1445,7 @@
   "targets": {
     "self": "Self",
     "singleTarget": "Single target",
-    "multipleTargets": "Multiple targets",
-    "canOnlyTargetSelf": "Can only target self"
+    "multipleTargets": "Multiple targets"
   },
   "viewers": {
     "resetShortRest": "Reset on a short rest",

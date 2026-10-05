@@ -136,7 +136,6 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import restoreProperty from '/imports/api/creature/creatureProperties/methods/restoreProperty';
 import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
-import { isAncestor } from '/imports/api/parenting/parentingFunctions';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -146,8 +145,6 @@ defineOptions({
 });
 
 const props = defineProps({
-  // Children load on demand, so a collapsed node may still have some
-  lazy: Boolean,
   depth: {
     type: Number,
     default: 0,
@@ -162,10 +159,6 @@ const props = defineProps({
   },
   parentSlotId: {
     type: String,
-    default: undefined,
-  },
-  selectedNode: {
-    type: Object,
     default: undefined,
   },
 });
@@ -239,7 +232,7 @@ const canExpand = computed(() => {
 });
 
 const hasChildren = computed(() => {
-  return !!props.children && !!computedChildren.value.length || props.lazy && !expanded.value;
+  return !!props.children && !!computedChildren.value.length;
 });
 
 const showExpanded = computed(() => {
@@ -247,11 +240,7 @@ const showExpanded = computed(() => {
 });
 
 watch(() => props.doc?._ancestorOfMatchedDocument, (value) => {
-  expanded.value = !!value || isAncestor(props.doc, props.selectedNode);
-});
-
-watch(() => props.selectedNode?.parentId, () => {
-  expanded.value = isAncestor(props.doc, props.selectedNode) || expanded.value;
+  expanded.value = !!value;
 });
 
 async function remove(model) {

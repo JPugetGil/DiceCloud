@@ -66,7 +66,7 @@ const props = defineProps({
 
 const model = defineModel(smartInputModel);
 
-const emit = defineEmits([...smartInputEmits, 'keyup']);
+const emit = defineEmits(smartInputEmits);
 
 const { change, errors, isDisabled } = useSmartInput(props, model, emit);
 

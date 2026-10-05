@@ -1,8 +1,8 @@
 <template>
   <div
-    v-if="dark || theme.isDark"
+    v-if="theme.isDark"
     class="overlay"
-    :class="{active, 'extra-bright': dark && !theme.isDark}"
+    :class="{active}"
   />
 </template>
 
@@ -11,7 +11,6 @@ import useThemeState from '/imports/ui/composables/useThemeState';
 
 defineProps({
   active: Boolean,
-  dark: Boolean,
 });
 
 const theme = useThemeState();
@@ -31,8 +30,5 @@ const theme = useThemeState();
   }
   .overlay.active {
     opacity: 0.08;
-  }
-  .overlay.active.extra-bright {
-    opacity: 0.3;
   }
 </style>

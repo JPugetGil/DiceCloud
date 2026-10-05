@@ -1,7 +1,6 @@
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * DamageMultipliers are multipliers that affect how much damage is taken from
@@ -54,8 +53,4 @@ const DamageMultiplierSchema = createPropertySchema({
 
 const ComputedOnlyDamageMultiplierSchema = createPropertySchema({});
 
-const ComputedDamageMultiplierSchema = TypedSimpleSchema.from({})
-  .extend(DamageMultiplierSchema)
-  .extend(ComputedOnlyDamageMultiplierSchema);
-
-export { DamageMultiplierSchema, ComputedOnlyDamageMultiplierSchema, ComputedDamageMultiplierSchema };
+export { DamageMultiplierSchema, ComputedOnlyDamageMultiplierSchema };

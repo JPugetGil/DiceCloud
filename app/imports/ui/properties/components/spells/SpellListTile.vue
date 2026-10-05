@@ -62,8 +62,6 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  selected: Boolean,
-  hideIcon: Boolean,
   preparingSpells: Boolean,
   showInfoButton: Boolean,
   disabled: Boolean,

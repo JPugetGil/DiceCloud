@@ -4,21 +4,18 @@
       :label="$t('common.name')"
       :disabled="!editPermission"
       :model-value="model.name"
-      :error-messages="errors.name"
       @change="(value, ack) => emit('change', {path: ['name'], value, ack})"
     />
     <text-field
       :label="$t('creatureForm.alignment')"
       :disabled="!editPermission"
       :model-value="model.alignment"
-      :error-messages="errors.alignment"
       @change="(value, ack) => emit('change', {path: ['alignment'], value, ack})"
     />
     <text-field
       :label="$t('creatureForm.gender')"
       :disabled="!editPermission"
       :model-value="model.gender"
-      :error-messages="errors.gender"
       @change="(value, ack) => emit('change', {path: ['gender'], value, ack})"
     />
     <v-row>
@@ -31,7 +28,6 @@
           :hint="$t('creatureForm.pictureHint')"
           :disabled="!editPermission"
           :model-value="model.picture"
-          :error-messages="errors.picture"
           @change="(value, ack) => emit('change', {path: ['picture'], value, ack})"
         />
       </v-col>
@@ -44,7 +40,6 @@
           :hint="$t('creatureForm.avatarHint')"
           :disabled="!editPermission"
           :model-value="model.avatarPicture"
-          :error-messages="errors.avatarPicture"
           @change="(value, ack) => emit('change', {path: ['avatarPicture'], value, ack})"
         />
       </v-col>
@@ -160,21 +155,10 @@ const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
 
 const props = defineProps({
-  stored: {
-    type: Boolean,
-  },
   model: {
     type: Object,
     default: () => ({}),
   },
-  errors: {
-    type: Object,
-    default: () => ({}),
-  },
-  attackForm: {
-    type: Boolean,
-  },
-  disabled: Boolean,
 });
 
 const emit = defineEmits(['change']);

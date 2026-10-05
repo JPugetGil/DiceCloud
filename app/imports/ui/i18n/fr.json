@@ -144,7 +144,6 @@
     "emptyText": "Créez votre premier personnage avec le bouton Nouveau personnage.",
     "importCharacter": "Importer un personnage",
     "addFolder": "Ajouter un dossier",
-    "archiveCharacters": "Archiver des personnages",
     "moved": "{item} déplacé vers {target}",
     "item": "l'objet",
     "anotherCharacter": "un autre personnage",
@@ -344,7 +343,6 @@
     "addCollection": "Ajouter une collection",
     "subscribers": "{count} abonnés",
     "notFound": "Bibliothèque ou collection introuvable",
-    "addFromLibrary": "Ajouter depuis une bibliothèque",
     "showSecondTree": "Afficher un second arbre de bibliothèque",
     "newLibrary": "Nouvelle bibliothèque",
     "communityLibraries": "Bibliothèques de la communauté",
@@ -411,7 +409,6 @@
     "done": "Terminé",
     "insert": "Insérer",
     "delete": "Supprimer",
-    "next": "Suivant",
     "back": "Retour",
     "create": "Créer",
     "clear": "Effacer",
@@ -1448,8 +1445,7 @@
   "targets": {
     "self": "Soi-même",
     "singleTarget": "Cible unique",
-    "multipleTargets": "Cibles multiples",
-    "canOnlyTargetSelf": "Ne peut cibler que soi-même"
+    "multipleTargets": "Cibles multiples"
   },
   "viewers": {
     "resetShortRest": "Réinitialisé lors d'un repos court",

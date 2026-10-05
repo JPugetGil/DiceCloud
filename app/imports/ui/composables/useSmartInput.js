@@ -41,7 +41,6 @@ export function useSmartInput(props, model, emit, options = {}) {
   const loading = ref(false);
   const dirty = ref(false);
   const safeValue = ref(model.value);
-  const inputValue = ref(model.value);
 
   const debounceTime = computed(() => {
     if (Number.isFinite(props.debounce)) {
@@ -117,7 +116,6 @@ export function useSmartInput(props, model, emit, options = {}) {
     // value on every render: safeValue must follow the user's input, or the next
     // render undoes it
     safeValue.value = val;
-    inputValue.value = val;
     dirty.value = true;
 
     rulesErrors.value = null;
@@ -170,20 +168,12 @@ export function useSmartInput(props, model, emit, options = {}) {
   });
 
   return {
-    error,
-    ackErrors,
-    rulesErrors,
     focused,
     loading,
-    dirty,
     safeValue,
-    inputValue,
-    debounceTime,
     isDisabled,
     errors,
     input,
     change,
-    acknowledgeChange,
-    forceSafeValueUpdate
   };
 }

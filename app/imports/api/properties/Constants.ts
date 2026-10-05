@@ -7,7 +7,6 @@ import {
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import Context from '/imports/parser/types/Context';
-import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Constants are primitive values that can be used elsewhere in computations
@@ -73,8 +72,4 @@ function parseString(string) {
 
 const ComputedOnlyConstantSchema = createPropertySchema({});
 
-const ComputedConstantSchema = TypedSimpleSchema.from({})
-  .extend(ConstantSchema)
-  .extend(ComputedOnlyConstantSchema);
-
-export { ConstantSchema, ComputedOnlyConstantSchema, ComputedConstantSchema };
+export { ConstantSchema, ComputedOnlyConstantSchema };

@@ -1,6 +1,5 @@
 <template>
   <v-slider
-    ref="inputRef"
     v-bind="$attrs"
     class="dc-text-field"
     :hide-details="!(errors && errors.length)"
@@ -30,7 +29,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
 const props = defineProps({
@@ -50,12 +48,4 @@ const {
   focused,
   change,
 } = useSmartInput(props, model, emit);
-
-const inputRef = ref(null);
-
-function focus() {
-  inputRef.value?.focus();
-}
-
-defineExpose({ focus });
 </script>

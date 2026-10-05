@@ -12,7 +12,6 @@
       hide-details
       no-hover
       content-class="px-3 pt-3 pb-2 d-flex flex-column align-start h-100"
-      @click="$emit('click', $event)"
     >
       <div
         class="flex-grow-1 d-flex align-center flex-wrap"
@@ -24,7 +23,6 @@
             'text-body-large': !isLarge,
             'text-headline-large': isLarge,
             'justify-center': isCenter,
-            'justify-end': end,
             'flex-wrap': wrap,
             'text-mono': isMono,
             'flex-grow-0': hasEffectsOrProficiencies,
@@ -98,7 +96,6 @@ const props = defineProps({
     default: undefined,
   },
   center: Boolean,
-  end: Boolean,
   large: Boolean,
   mono: Boolean,
   signed: Boolean,
@@ -108,8 +105,6 @@ const props = defineProps({
     default: () => ({cols: 12, sm: 6, md: 4}),
   },
 });
-
-defineEmits(['click']);
 
 const dialogStackStore = useDialogStackStore();
 

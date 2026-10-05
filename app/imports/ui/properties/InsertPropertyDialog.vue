@@ -133,7 +133,7 @@
                 </template>
               </v-expansion-panel-title>
               <v-expansion-panel-text>
-                <library-node-expansion-content :model="libraryNode" />
+                <library-node-expansion-content :id="libraryNode._id" />
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
@@ -226,10 +226,6 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  suggestedTypes: {
-    type: Array,
-    default: undefined,
-  },
   collection: {
     type: String,
     default: undefined,
@@ -245,10 +241,6 @@ const props = defineProps({
   prop: {
     type: Object,
     default: undefined,
-  },
-  children: {
-    type: Array,
-    default: () => [],
   },
   hideLibraryTab: Boolean,
   showLibraryOnlyProps: Boolean,
@@ -275,7 +267,6 @@ const model = ref(props.prop || {
   children: [],
 });
 const searchValue = ref(undefined);
-const selectedNode = ref(undefined);
 const tab = ref(0);
 
 const schema = shallowRef(null);
@@ -449,7 +440,6 @@ function helpDialog() {
 function searchChanged(val, ack) {
   searchLibraryNodesSubscription.sub?.setData('searchTerm', val);
   searchLibraryNodesSubscription.sub?.setData('limit', undefined);
-  selectedNode.value = undefined;
   searchValue.value = val;
   setTimeout(ack, 200);
 }

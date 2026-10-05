@@ -19,9 +19,7 @@
         :group="group"
         :selected-node="selectedNode"
         :selected="selectedNode && selectedNode._id === child.doc._id"
-        :ancestors-of-selected-node="ancestorsOfSelectedNode"
         :organize="organize"
-        :lazy="lazy"
         :start-expanded="startExpanded"
         @selected="e => $emit('selected', e)"
         @move-within-root="e => $emit('move-within-root', e)"
@@ -50,7 +48,6 @@ const props = defineProps({
     default: undefined,
   },
   organize: Boolean,
-  lazy: Boolean,
   children: {
     type: Array,
     default: () => [],
@@ -58,10 +55,6 @@ const props = defineProps({
   selectedNode: {
     type: Object,
     default: undefined,
-  },
-  ancestorsOfSelectedNode: {
-    type: Array,
-    default: () => [],
   },
   startExpanded: Boolean,
 });

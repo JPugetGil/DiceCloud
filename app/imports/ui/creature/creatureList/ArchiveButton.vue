@@ -1,15 +1,12 @@
 <template>
   <v-btn
     variant="text"
-    :icon="!text"
+    icon
     :data-id="randomId"
     v-bind="$attrs"
     @click="openArchive"
   >
-    <template v-if="text">
-      {{ $t('characterList.archiveCharacters') }}
-    </template>
-    <v-icon :end="text">
+    <v-icon>
       mdi-archive
     </v-icon>
   </v-btn>
@@ -20,10 +17,6 @@ import { Random } from 'meteor/random';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const dialogStackStore = useDialogStackStore();
-
-defineProps({
-  text: Boolean,
-});
 
 const randomId = Random.id();
 

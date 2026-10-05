@@ -38,9 +38,9 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
-const props = defineProps({
+defineProps({
   model: {
     type: [Object, Array],
     default: () => ({}),
@@ -49,22 +49,11 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  startAsMilestone: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(['change']);
 
-const milestone = ref(props.startAsMilestone);
-
-watch(
-  () => props.startAsMilestone,
-  (val) => {
-    milestone.value = val;
-  }
-);
+const milestone = ref(false);
 
 function change(path, value, ack) {
   if (!Array.isArray(path)) {

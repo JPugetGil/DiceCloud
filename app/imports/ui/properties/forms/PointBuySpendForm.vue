@@ -47,7 +47,6 @@
           :max="max(row)"
           :step="1"
           :model-value="row.value"
-          :error-messages="errors.values && errors.values[i] && errors.values[i].value"
           @change="(value, ack) => releaseSlider(i, value, ack)"
           @update:model-value="value => dragSlider(row, value)"
           @end="endSlider"
@@ -102,10 +101,6 @@ import toPrimitiveOrString from '/imports/parser/toPrimitiveOrString';
 const props = defineProps({
   model: {
     type: [Object, Array],
-    default: () => ({}),
-  },
-  errors: {
-    type: Object,
     default: () => ({}),
   },
 });

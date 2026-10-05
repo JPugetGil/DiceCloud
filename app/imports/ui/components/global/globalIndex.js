@@ -1,5 +1,4 @@
 // Global components
-import DatePicker from '/imports/ui/components/global/DatePicker.vue';
 import DragHandle from '/imports/ui/components/global/DragHandle.vue';
 import IconPicker from '/imports/ui/components/global/IconPicker.vue';
 import TextField from '/imports/ui/components/global/TextField.vue';
@@ -14,7 +13,6 @@ import SvgIcon from '/imports/ui/components/global/SvgIcon.vue';
 import SmartSlider from '/imports/ui/components/global/SmartSlider.vue';
 
 export default function registerGlobalComponents(app) {
-	app.component('DatePicker', DatePicker);
 	app.component('DragHandle', DragHandle);
 	app.component('IconPicker', IconPicker);
 	app.component('TextField', TextField);

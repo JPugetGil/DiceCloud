@@ -13,7 +13,6 @@
     </div>
     <character-sheet
       v-else
-      show-menu-button
       :creature-id="route.params.id"
     />
   </v-fade-transition>

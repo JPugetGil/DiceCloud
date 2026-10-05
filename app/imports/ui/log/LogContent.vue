@@ -38,14 +38,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  showSilenced: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const filteredModel = computed(() => {
-  return props.model.filter(content => !content.silenced || props.showSilenced);
+  return props.model.filter(content => !content.silenced);
 });
 </script>
 

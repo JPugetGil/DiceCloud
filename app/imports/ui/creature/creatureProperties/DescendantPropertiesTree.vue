@@ -2,9 +2,8 @@
   <tree-node-list
     v-if="model && model.root"
     :children="children"
-    :group="group"
+    group="creatureProperties"
     :organize="organize"
-    :start-expanded="expanded"
     :root="model.root"
     @selected="e => $emit('selected', e)"
     @move-within-root="moveWithinRoot"
@@ -25,15 +24,10 @@ const props = defineProps({
     default: undefined,
   },
   organize: Boolean,
-  group: {
-    type: String,
-    default: 'creatureProperties'
-  },
   collection: {
     type: String,
     default: 'creatureProperties'
   },
-  expanded: Boolean,
 });
 
 const emit = defineEmits(['selected', 'length']);

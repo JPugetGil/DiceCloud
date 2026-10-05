@@ -14,7 +14,6 @@ const ActionDialog = defineAsyncComponent(() => commonDialogs().then(m => m.Acti
 const CharacterCreationDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CharacterCreationDialog));
 const CreatureFormDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreatureFormDialog));
 const CreaturePropertyDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreaturePropertyDialog));
-const CreaturePropertyFromLibraryDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreaturePropertyFromLibraryDialog));
 const CreatureRootDialog = defineAsyncComponent(() => commonDialogs().then(m => m.CreatureRootDialog));
 const DeleteConfirmationDialog = defineAsyncComponent(() => commonDialogs().then(m => m.DeleteConfirmationDialog));
 const ExperienceInsertDialog = defineAsyncComponent(() => commonDialogs().then(m => m.ExperienceInsertDialog));
@@ -56,7 +55,6 @@ export default {
   CharacterSearchDialog,
   CreatureFormDialog,
   CreaturePropertyDialog,
-  CreaturePropertyFromLibraryDialog,
   CreatureRootDialog,
   DeleteConfirmationDialog,
   DeleteUserAccountDialog,

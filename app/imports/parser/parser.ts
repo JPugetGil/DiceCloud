@@ -5,10 +5,6 @@ import { Meteor } from 'meteor/meteor';
 
 const nearleyGrammar = Grammar.fromCompiled(grammar);
 
-export default function parser() {
-  return new Parser(nearleyGrammar);
-}
-
 export function parse(string: string): ParseNode {
   const parser = new Parser(nearleyGrammar);
   parser.feed(string);

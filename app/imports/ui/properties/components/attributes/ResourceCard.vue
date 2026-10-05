@@ -7,7 +7,6 @@
   >
     <resource-card-content
       :model="model"
-      :hover="hover"
       @mouseover="hover = true"
       @mouseleave="hover = false"
       @click="$emit('click')"

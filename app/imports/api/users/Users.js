@@ -8,10 +8,8 @@ import '/imports/api/users/methods/addEmail';
 import '/imports/api/users/methods/removeEmail';
 import '/imports/api/users/methods/searchUsers';
 import '/imports/api/users/methods/setUserRole';
-import { some } from 'lodash';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
-import { Random } from 'meteor/random';
 import { DISTANCE_UNITS, WEIGHT_UNITS } from '/imports/api/utility/units';
 const defaultLibraries = process.env.DEFAULT_LIBRARIES && process.env.DEFAULT_LIBRARIES.split(',') || [];
 const defaultLibraryCollections = process.env.DEFAULT_LIBRARY_COLLECTIONS && process.env.DEFAULT_LIBRARY_COLLECTIONS.split(',') || [];
@@ -67,11 +65,6 @@ const userSchema = new SimpleSchema({
     type: Date,
     optional: true,
   },
-  apiKey: {
-    type: String,
-    index: 1,
-    optional: true,
-  },
   darkMode: {
     type: Boolean,
     optional: true,
@@ -91,15 +84,6 @@ const userSchema = new SimpleSchema({
     maxCount: 100,
   },
   'subscribedLibraryCollections.$': {
-    type: String,
-    max: 32,
-  },
-  subscribedCharacters: {
-    type: Array,
-    defaultValue: [],
-    max: 100,
-  },
-  'subscribedCharacters.$': {
     type: String,
     max: 32,
   },
@@ -151,24 +135,6 @@ const userSchema = new SimpleSchema({
 });
 
 Meteor.users.attachSchema(userSchema);
-
-Meteor.users.generateApiKey = new ValidatedMethod({
-  name: 'users.generateApiKey',
-  validate: null,
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run() {
-    if (Meteor.isClient) return;
-    var user = await Meteor.users.findOneAsync(this.userId);
-    if (!user) return;
-    if (user && user.apiKey) return;
-    var apiKey = Random.id(30);
-    await Meteor.users.updateAsync(this.userId, { $set: { apiKey } });
-  },
-});
 
 Meteor.users.setDarkMode = new ValidatedMethod({
   name: 'users.setDarkMode',
@@ -223,37 +189,6 @@ Meteor.users.setUnitPreference = new ValidatedMethod({
       $set: { [`preferences.${quantity}Unit`]: unit },
     });
   },
-});
-
-Meteor.users.sendVerificationEmail = new ValidatedMethod({
-  name: 'users.sendVerificationEmail',
-  validate: new SimpleSchema({
-    userId: {
-      type: String,
-      optional: true,
-    },
-    address: {
-      type: String,
-    },
-  }).validator(),
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run({ userId, address }) {
-    userId = this.userId || userId;
-    let user = await Meteor.users.findOneAsync(userId);
-    if (!user) {
-      throw new Meteor.Error('User not found',
-        'Can\'t send a validation email to a user that does not exist');
-    }
-    if (!some(user.emails, email => email.address === address)) {
-      throw new Meteor.Error('Email address not found',
-        'The specified email address wasn\'t found on this user account');
-    }
-    await Accounts.sendVerificationEmail(userId, address);
-  }
 });
 
 Meteor.users.canPickUsername = new ValidatedMethod({

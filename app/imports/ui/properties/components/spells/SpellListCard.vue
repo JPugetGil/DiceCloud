@@ -77,7 +77,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  organize: Boolean,
 });
 
 

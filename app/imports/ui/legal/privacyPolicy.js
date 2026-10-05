@@ -2,8 +2,8 @@
 // instance and how to reach them come from the settings (public.legal): see
 // LegalPage.vue. Update LAST_UPDATED and both languages together.
 const LAST_UPDATED = {
-  en: 'October 4, 2026',
-  fr: '4 octobre 2026',
+  en: 'October 5, 2026',
+  fr: '5 octobre 2026',
 };
 
 const contactLink = (email, missing) => email ? `[${email}](mailto:${email})` : missing;
@@ -25,7 +25,7 @@ DiceCloud is free software. This instance is independent of dicecloud.com and it
 
 ## Data we process
 
-- **Your account**: username, email address and whether it is verified, password (stored only as an irreversible hash, never in clear), creation date, role, preferences (language, theme, display options), library subscriptions, file storage used, the API key if you create one, and login tokens.
+- **Your account**: username, email address and whether it is verified, password (stored only as an irreversible hash, never in clear), creation date, role, preferences (language, theme, display options), library subscriptions, file storage used, and login tokens.
 - **Sign-in with Google**, if you use it: your Google account identifier, email address, name and profile picture as Google sends them, and the access tokens Google provides. We ask for no access to your other Google data.
 - **Your content**: your characters and their properties, their roll logs (the 100 most recent per character), experience, folders, tabletops and libraries.
 - **Your files**: the images you upload and the archives of your characters.
@@ -93,7 +93,7 @@ DiceCloud est un logiciel libre. Cette instance est indépendante du site dicecl
 
 ## Données que nous traitons
 
-- **Votre compte** : nom d'utilisateur, adresse e-mail et si elle est vérifiée, mot de passe (conservé uniquement sous une forme chiffrée irréversible, jamais en clair), date de création, rôle, préférences (langue, thème, options d'affichage), abonnements aux bibliothèques, espace de stockage utilisé, clé d'API si vous en créez une, et jetons de connexion.
+- **Votre compte** : nom d'utilisateur, adresse e-mail et si elle est vérifiée, mot de passe (conservé uniquement sous une forme chiffrée irréversible, jamais en clair), date de création, rôle, préférences (langue, thème, options d'affichage), abonnements aux bibliothèques, espace de stockage utilisé, et jetons de connexion.
 - **Connexion avec Google**, si vous l'utilisez : l'identifiant de votre compte Google, votre adresse e-mail, votre nom et votre photo de profil tels que Google nous les transmet, ainsi que les jetons d'accès fournis par Google. Nous ne demandons l'accès à aucune autre de vos données Google.
 - **Votre contenu** : vos personnages et leurs propriétés, leurs journaux de jets (les 100 plus récents par personnage), leur expérience, vos dossiers, tables de jeu et bibliothèques.
 - **Vos fichiers** : les images que vous envoyez et les archives de vos personnages.

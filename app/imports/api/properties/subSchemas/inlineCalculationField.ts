@@ -105,14 +105,7 @@ function computedOnlyInlineCalculationField(field) {
   });
 }
 
-function computedInlineCalculationField(field) {
-  return inlineCalculationFieldToCompute(field).extend(
-    computedOnlyInlineCalculationField(field)
-  )
-}
-
 export {
   inlineCalculationFieldToCompute,
   computedOnlyInlineCalculationField,
-  computedInlineCalculationField,
 };

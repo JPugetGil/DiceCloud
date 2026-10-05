@@ -42,11 +42,7 @@
         :key="slot._id"
         style="transition: all 0.3s"
       >
-        <slot-card
-          :model="slot"
-          hover
-          @ignore="ignoreProp(slot._id)"
-        />
+        <slot-card :model="slot" />
       </div>
     </v-fade-transition>
   </div>

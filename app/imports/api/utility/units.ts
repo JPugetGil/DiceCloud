@@ -17,7 +17,6 @@ export type Quantity = 'distance' | 'weight';
 // What an attribute's `unit` field holds: `none` opts an attribute out of the
 // unit its variable name would otherwise give it
 export const ATTRIBUTE_UNITS = ['none', 'distance', 'weight'] as const;
-export type AttributeUnit = typeof ATTRIBUTE_UNITS[number];
 
 export const DISTANCE_UNITS = ['m', 'ft'] as const;
 export const WEIGHT_UNITS = ['kg', 'lb'] as const;

@@ -8,7 +8,6 @@
         :label="$t('forms.condition')"
         :hint="$t('forms.actionCondition.hint')"
         :model="model.condition"
-        :error-messages="errors.condition"
         @change="({path, value, ack}) =>
           $emit('change', {path: ['condition', ...path], value, ack})"
       />
@@ -20,7 +19,6 @@
       <text-field
         :label="$t('forms.actionCondition.errorText')"
         :model-value="model.conditionNote"
-        :error-messages="errors.conditionNote"
         @change="(value, ack) => $emit('change', {path: ['conditionNote'], value, ack})"
       />
     </v-col>
@@ -33,10 +31,6 @@ import ComputedField from '/imports/ui/properties/forms/shared/ComputedField.vue
 defineProps({
   model: {
     type: [Object, Array],
-    default: () => ({}),
-  },
-  errors: {
-    type: Object,
     default: () => ({}),
   },
 });

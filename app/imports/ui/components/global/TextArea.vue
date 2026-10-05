@@ -5,7 +5,6 @@
     :error-messages="errors"
     :model-value="safeValue"
     :disabled="isDisabled"
-    :auto-grow="autoGrow"
     variant="outlined"
     @update:model-value="input"
     @focus="focused = true"
@@ -21,10 +20,6 @@ defineOptions({
 });
 
 const props = defineProps({
-  autoGrow: {
-    type: Boolean,
-    default: false,
-  },
   ...smartInputProps,
 });
 

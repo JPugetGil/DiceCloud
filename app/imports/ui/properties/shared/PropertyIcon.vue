@@ -36,7 +36,6 @@ const icon = computed(() => {
 </script>
 
 <style lang="css" scoped>
-.svg-icon.disabled,
 .v-icon.disabled {
   opacity: 0.2;
 }

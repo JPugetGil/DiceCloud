@@ -1,6 +1,7 @@
 <template>
   <v-btn
     :disabled="context.editPermission === false"
+    :loading="loading"
     :data-id="`event-btn-${model._id}`"
     :variant="model.color ? 'flat' : 'tonal'"
     class="event-button"

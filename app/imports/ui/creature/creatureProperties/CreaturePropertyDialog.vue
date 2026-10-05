@@ -36,7 +36,6 @@
             :key="_id"
             class="creature-property-form"
             :model="model"
-            :embedded="embedded"
             @change="change"
             @push="push"
             @pull="pull"

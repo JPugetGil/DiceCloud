@@ -17,10 +17,7 @@
         :model="model.summary"
       />
     </v-card-text>
-    <card-highlight
-      :active="hover"
-      :theme="theme.isDark ? 'dark' : 'light'"
-    />
+    <card-highlight :active="hover" />
   </v-card>
 </template>
 
@@ -30,7 +27,6 @@ import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyD
 import isDarkColor from '/imports/ui/utility/isDarkColor';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
-import useThemeState from '/imports/ui/composables/useThemeState';
 
 const props = defineProps({
   model: {
@@ -38,8 +34,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-const theme = useThemeState();
 
 const hover = ref(false);
 

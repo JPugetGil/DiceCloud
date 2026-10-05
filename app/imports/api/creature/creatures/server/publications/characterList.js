@@ -9,17 +9,12 @@ Meteor.publish('characterList', function () {
     if (!userId) {
       return [];
     }
-    const user = await Meteor.users.findOneAsync(this.userId, {
-      fields: { subscribedCharacters: 1 }
-    });
-    const subs = user && user.subscribedCharacters || [];
     return [
       Creatures.find({
         $or: [
           { readers: userId },
           { writers: userId },
           { owner: userId },
-          { _id: { $in: subs } },
         ],
         type: 'pc',
       }, {

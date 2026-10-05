@@ -35,10 +35,6 @@ defineProps({
     type: [Object, Array],
     default: () => ({}),
   },
-  errors: {
-    type: Object,
-    default: () => ({}),
-  },
 });
 
 const emit = defineEmits(['change', 'pull']);

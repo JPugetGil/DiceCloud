@@ -21,10 +21,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  selectedNodeId: {
-    type: String,
-    default: undefined,
-  },
   fab: Boolean,
 });
 

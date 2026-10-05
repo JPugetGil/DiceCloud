@@ -1,14 +1,13 @@
 <template>
   <div class="d-flex flex-1-1 align-center justify-start">
     <property-icon
-      v-if="!hideIcon"
       class="mr-2"
       :model="model"
       :color="model.color"
       :class="selected && 'text-primary'"
     />
     <v-icon
-      v-if="model.equipped && !hideIcon"
+      v-if="model.equipped"
       class="mr-2"
       :class="selected && 'text-primary'"
       size="small"
@@ -35,7 +34,6 @@ const props = defineProps({
     default: () => ({}),
   },
   selected: Boolean,
-  hideIcon: Boolean,
 });
 
 const title = computed(() => {

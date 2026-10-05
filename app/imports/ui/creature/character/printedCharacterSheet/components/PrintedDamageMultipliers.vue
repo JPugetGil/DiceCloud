@@ -4,7 +4,6 @@
       v-for="(multiplier, multiplierIndex) in multipliers"
       :key="multiplier._id"
       :data-id="multiplier._id"
-      @click="$emit('click-multiplier', {_id: multiplier._id})"
     >
       <v-divider v-if="multiplierIndex" />
       <div>
@@ -53,8 +52,6 @@ defineProps({
     required: true,
   },
 });
-
-defineEmits(['click-multiplier']);
 
 function title(prop) {
   switch (prop.value) {

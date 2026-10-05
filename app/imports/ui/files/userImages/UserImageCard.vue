@@ -65,6 +65,7 @@
           <v-btn
             variant="text"
             icon
+            :loading="removeLoading"
             v-bind="activatorProps"
           >
             <v-icon>mdi-delete</v-icon>

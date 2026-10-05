@@ -31,24 +31,10 @@ const props = defineProps({
     type: Array,
     default: undefined,
   },
-  calculations: {
-    type: Array,
-    default: undefined,
-  },
 });
 
 const computedErrors = computed(() => {
-  if (props.errors) {
-    return props.errors;
-  } else if (props.calculations){
-    let errors = [];
-    props.calculations.forEach(calc => {
-      if (calc.errors) errors.push(...calc.errors)
-    });
-    return errors;
-  } else {
-    return [];
-  }
+  return props.errors || [];
 });
 
 function errorIcon(type) {

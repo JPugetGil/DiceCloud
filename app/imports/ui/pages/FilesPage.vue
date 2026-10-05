@@ -149,7 +149,6 @@ const storagePercent = computed(() => Math.min(
 const archiveFileInput = ref(null);
 
 const archiveFileError = ref(undefined);
-const archiveFile = ref(undefined);
 const archiveUploadInProgress = ref(false);
 const archiveUploadProgress = ref(0);
 const archiveUploadIndeterminate = ref(true);
@@ -200,7 +199,6 @@ watch(archiveUploadInProgress, (val) => {
 });
 
 function inputArchiveFile() {
-  archiveFile.value = undefined;
   archiveFileError.value = undefined;
   const file = archiveFileInput.value.files[0];
   // Reset the file input
@@ -214,7 +212,6 @@ function inputArchiveFile() {
     archiveFileError.value = t('files.tooLarge');
     return;
   }
-  archiveFile.value = file;
   archiveUploadIndeterminate.value = true;
   archiveUploadInProgress.value = true;
   archiveUploadProgress.value = undefined;
@@ -263,9 +260,6 @@ function inputArchiveFile() {
     });
 
     uploadInstance.on('uploaded', function () {
-      // Remove the file from the input box
-      archiveFile.value = undefined;
-
       // Reset our state for the next file
       archiveUploadInProgress.value = false;
     });

@@ -26,7 +26,6 @@
         {{ label }}
         <svg-icon
           v-if="safeValue && safeValue.shape"
-          right
           :class="{'ml-2': !!label}"
           :shape="safeValue.shape"
         />

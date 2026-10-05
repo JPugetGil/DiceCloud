@@ -1,8 +1,7 @@
 <template>
   <div
     v-if="tags.length"
-    class="tags"
-    :class="{'ma-2': !noMargin}"
+    class="tags ma-2"
   >
     <span
       v-if="prefix"
@@ -26,7 +25,6 @@ defineProps({
     type: Array,
     default: () => [],
   },
-  noMargin: Boolean,
   prefix: {
     type: String,
     default: undefined,

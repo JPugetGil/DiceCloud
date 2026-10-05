@@ -48,7 +48,6 @@ const props = defineProps({
     type: Object,
     default: () => undefined,
   },
-  preparingSpells: Boolean,
   equipment: Boolean,
 });
 

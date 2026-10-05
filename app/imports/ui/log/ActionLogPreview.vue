@@ -61,7 +61,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  showName: Boolean,
 });
 
 // Silenced lines are hidden, but can be shown, dimmed

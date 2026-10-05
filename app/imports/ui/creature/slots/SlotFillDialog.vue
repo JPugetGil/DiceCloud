@@ -36,7 +36,7 @@
     </template>
     <property-description
       text
-      :string="model?.description"
+      :model="model?.description"
     />
     <v-fade-transition>
       <div

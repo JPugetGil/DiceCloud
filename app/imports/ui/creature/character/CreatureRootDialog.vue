@@ -5,7 +5,6 @@
         :model="creature"
         :editing="editing"
         :flat="flat"
-        :embedded="embedded"
         style="flex-grow: 0;"
         @toggle-editing="editing = !editing"
       />
@@ -20,7 +19,6 @@
             class="mb-2"
             organize
             :root="{collection: 'creatures', id: _id}"
-            @length="childrenLength = $event"
             @selected="selectSubProperty"
           />
           <v-btn
@@ -39,16 +37,12 @@
           <creature-properties-tree
             style="width: 100%;"
             :root="{collection: 'creatures', id: _id}"
-            @length="childrenLength = $event"
             @selected="selectSubProperty"
           />
         </div>
       </v-fade-transition>
     </template>
-    <template
-      v-if="!embedded"
-      #actions
-    >
+    <template #actions>
       <div
         class="d-flex flex-1-1"
       >
@@ -66,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, provide, reactive } from 'vue';
+import { ref, computed, provide, reactive } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
@@ -86,16 +80,11 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  embedded: Boolean, // This dialog is embedded in a page
   startInEditTab: Boolean,
 });
 
 
 const editing = ref(!!props.startInEditTab);
-// CurrentId lags behind Id by one tick so that events fired by destroying
-// forms keyed to the old ID are applied before the new ID overwrites it
-const currentId = ref(undefined);
-const childrenLength = ref(0);
 
 const creature = computed(() => Creatures.findOne(props._id));
 const creatureId = computed(() => props._id);
@@ -106,12 +95,6 @@ provide('context', reactive({
   get creatureId() { return creatureId.value; },
   get editPermission() { return editPermission.value; },
 }));
-
-watch(() => props._id, (newId) => {
-  nextTick(() => {
-    currentId.value = newId;
-  });
-}, { immediate: true });
 
 function selectSubProperty(_id) {
   dialogStackStore.pushDialogStack({

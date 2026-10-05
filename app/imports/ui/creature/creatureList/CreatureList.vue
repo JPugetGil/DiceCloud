@@ -28,7 +28,7 @@
         class="creature"
         :model="creature"
         :selection="selection"
-        :is-selected="selectedCreature === creature._id || selectedCreatures.has(creature._id)"
+        :is-selected="selectedCreature === creature._id"
         v-bind="selection ? {} : {to: creature.url}"
         :dense="dense"
         :data-id="dense ? undefined : creature._id"
@@ -75,10 +75,6 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  selectedCreatures: {
-    type: Set,
-    default: () => new Set(),
-  },
   dense: Boolean,
   // Shows where a character dragged out of its folder is dropped
   dropHint: Boolean,
@@ -86,7 +82,7 @@ const props = defineProps({
 
 // dragging: the folder of the character being dragged (null for none), then
 // undefined once it is dropped
-const emit = defineEmits(['creature-selected', 'creatureSelected', 'dragging']);
+const emit = defineEmits(['creature-selected', 'dragging']);
 
 const dataCreatures = ref(props.creatures || []);
 
@@ -116,14 +112,6 @@ async function draggableChange({ added, moved }) {
     }
   }
 }
-
-function selectionChange(index) {
-  emit('creatureSelected', dataCreatures.value[index]._id);
-}
-
-defineExpose({
-  selectionChange,
-});
 </script>
 
 <style lang="css" scoped>

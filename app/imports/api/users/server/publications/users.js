@@ -7,7 +7,6 @@ Meteor.publish('user', function () {
     fields: {
       roles: 1,
       username: 1,
-      apiKey: 1,
       darkMode: 1,
       subscribedLibraries: 1,
       subscribedLibraryCollections: 1,

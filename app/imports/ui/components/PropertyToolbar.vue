@@ -233,7 +233,7 @@ const props = defineProps({
   },
 });
 
-defineEmits(['color-changed', 'duplicate', 'copy', 'make-reference', 'move', 'copy-to-library', 'remove', 'toggle-editing']);
+defineEmits(['duplicate', 'copy', 'make-reference', 'move', 'copy-to-library', 'remove', 'toggle-editing']);
 
 const context = inject('context', {});
 

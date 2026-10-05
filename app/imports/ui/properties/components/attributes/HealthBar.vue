@@ -73,10 +73,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  _id: {
-    type: String,
-    default: undefined,
-  },
 });
 
 const emit = defineEmits(['click', 'change']);

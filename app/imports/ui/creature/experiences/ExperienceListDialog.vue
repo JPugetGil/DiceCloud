@@ -16,6 +16,7 @@
       <v-btn
         variant="text"
         icon
+        :loading="recomputeLoading"
         @click="recompute"
       >
         <v-icon>mdi-refresh</v-icon>
@@ -104,9 +105,6 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  startAsMilestone: {
-    type: Boolean,
-  },
 });
 
 const experiencesRemovalLoading = ref(new Set());
@@ -166,7 +164,6 @@ function addExperience(){
     elementId: 'experience-add-button',
     data: {
       creatureIds: [props.creatureId],
-      startAsMilestone: props.startAsMilestone,
     },
     callback(id){
       return id;

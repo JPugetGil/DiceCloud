@@ -72,10 +72,6 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  suggestedTypes: {
-    type: Array,
-    default: undefined,
-  },
   currentType: {
     type: String,
     default: undefined,
@@ -87,18 +83,7 @@ defineEmits(['select']);
 const properties = computed(() => {
   let suggested;
   let more = {};
-  if (props.suggestedTypes) {
-    for (const key in PROPERTIES) {
-      let prop = PROPERTIES[key];
-      if (props.suggestedTypes.includes(prop.type)) {
-        if (!suggested) suggested = {};
-        suggested[key] = prop;
-      } else {
-        more[key] = prop;
-      }
-    }
-    return { suggested, more };
-  } else if (props.parentType) {
+  if (props.parentType) {
     for (const key in PROPERTIES) {
       let prop = PROPERTIES[key];
       if (prop.suggestedParents.includes(props.parentType)) {

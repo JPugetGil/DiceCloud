@@ -15,7 +15,6 @@
             style="flex-grow: 0;"
           >
             <tree-search-input
-              ref="searchBox"
               v-model="filter"
               class="mx-4"
             />

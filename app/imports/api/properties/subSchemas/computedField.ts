@@ -168,14 +168,7 @@ function includeParentFields(field, schemaObj) {
   });
 }
 
-// This should rarely be used, since the other two will merge correctly when
-// uncomputed and computedOnly schemas are merged
-function computedField(field) {
-  return fieldToCompute(field).extend(computedOnlyField(field));
-}
-
 export {
   fieldToCompute,
   computedOnlyField,
-  computedField,
 };

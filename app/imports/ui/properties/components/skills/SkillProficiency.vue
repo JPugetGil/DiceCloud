@@ -1,7 +1,7 @@
 <template>
   <v-list-item
     class="proficiency-viewer d-flex flex-1-1 align-center"
-    v-on="!hideBreadcrumbs ? {click} : {}"
+    @click="click"
   >
     <div class="effect-icon">
       <v-tooltip location="bottom">
@@ -27,7 +27,7 @@
       <div class="text-body-large mb-1">
         {{ model.name || proficiencyText }}
       </div>
-      <div v-if="!hideBreadcrumbs">
+      <div>
         <property-breadcrumbs
           :model="model"
           class="text-body-small"
@@ -54,7 +54,6 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  hideBreadcrumbs: Boolean,
   proficiencyBonus: {
     type: Number,
     default: 0,

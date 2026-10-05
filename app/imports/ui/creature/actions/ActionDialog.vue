@@ -14,7 +14,6 @@
           v-bind="activeInputParams"
           @continue="continueAction"
           @cancel="dialogStackStore.popDialogStack()"
-          @set-input-ready="setInputReady"
         />
         <div
           v-else
@@ -29,6 +28,7 @@
           color="accent"
           style="width: 100%"
           class="done-button"
+          :loading="actionBusy"
           @click="finishAction"
         >
           {{ $t('common.done') }}
@@ -61,18 +61,15 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
-  task: {
-    type: Object,
-    default: undefined,
-  },
   actionFinishedCallback: {
     type: Function,
     default: undefined,
   }
 });
 
+// True from the start of the simulation until the server has applied the
+// action: Done waits for it, so the sheet is up to date when the dialog closes
 const actionBusy = ref(false);
-const actionDone = ref(false);
 // The engine updates the action it is given through its own references, which
 // Vue's reactive proxies do not see, so a deep ref would keep only the log
 // preview's first line. A shallow ref, refreshed whenever the engine pauses or
@@ -82,7 +79,6 @@ const resumeActionFn = ref(undefined);
 const activeInput = ref(undefined);
 const activeInputParams = ref({});
 const userInput = ref(undefined);
-const userInputReady = ref(true);
 let deterministicDiceRoller = undefined;
 
 const action = autorun(() => EngineActions.findOne(props.actionId)).result;
@@ -110,10 +106,6 @@ const activeInputComponent = computed(() => {
   }
 });
 
-const setInputReady = (val) => {
-  userInputReady.value = val;
-};
-
 const promiseInput = () => {
   triggerRef(actionResult);
   return new Promise(resolve => {
@@ -123,7 +115,6 @@ const promiseInput = () => {
       userInput.value = undefined;
       activeInput.value = undefined;
       activeInputParams.value = {};
-      userInputReady.value = false;
       resolve(savedInput);
     };
   });
@@ -149,7 +140,6 @@ const inputProvider = {
   async advantage(suggestedAdvantage) {
     userInput.value = suggestedAdvantage;
     activeInput.value = 'advantage-input';
-    userInputReady.value = true;
     return promiseInput();
   },
   async check(suggestedParams) {
@@ -161,22 +151,25 @@ const inputProvider = {
 
 const startAction = async ({ stepThrough }) => {
   actionBusy.value = true;
-  actionResult.value = {
-    ...action.value,
-    _stepThrough: undefined,
-    _isSimulation: undefined,
-    taskCount: undefined,
-  };
-  await applyAction(actionResult.value, inputProvider, { simulate: true, stepThrough });
-  triggerRef(actionResult);
-  const finalActionResult = await runAction.callAsync({
-    actionId: actionResult.value._id,
-    decisions: actionResult.value._decisions
-  });
-  actionDone.value = true;
-  actionBusy.value = false;
-  activeInput.value = undefined;
-  if (props.actionFinishedCallback) props.actionFinishedCallback(finalActionResult);
+  try {
+    actionResult.value = {
+      ...action.value,
+      _stepThrough: undefined,
+      _isSimulation: undefined,
+      taskCount: undefined,
+    };
+    await applyAction(actionResult.value, inputProvider, { simulate: true, stepThrough });
+    triggerRef(actionResult);
+    const finalActionResult = await runAction.callAsync({
+      actionId: actionResult.value._id,
+      decisions: actionResult.value._decisions
+    });
+    activeInput.value = undefined;
+    if (props.actionFinishedCallback) props.actionFinishedCallback(finalActionResult);
+  } finally {
+    // A failed action must not leave Done spinning and unclickable
+    actionBusy.value = false;
+  }
 };
 
 const continueAction = () => {

@@ -2,7 +2,7 @@
   <v-list-item
     class="effect-viewer d-flex flex-1-1 align-center"
     density="compact"
-    v-on="!hideBreadcrumbs ? {click} : {}"
+    @click="click"
   >
     <div class="effect-icon">
       <v-tooltip location="bottom">
@@ -42,7 +42,6 @@ import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
 const { t } = useI18n();
 
 const props = defineProps({
-  hideBreadcrumbs: Boolean,
   effectId: {
     type: String,
     required: true,

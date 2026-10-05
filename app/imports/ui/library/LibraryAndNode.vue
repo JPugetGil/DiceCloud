@@ -29,7 +29,6 @@
           :theme="isToolbarDark ? 'dark' : 'light'"
         >
           <tree-search-input
-            ref="searchBox"
             v-model="filter"
             class="mx-4"
             :is-library="true"
@@ -72,7 +71,6 @@
             style="bottom: -24px"
             fab
             :library-id="libraryId"
-            :selected-node-id="selectedNodeId"
             @selected="id => {if (mdAndUp) selectedNodeId = id}"
           />
         </v-toolbar>
@@ -158,8 +156,6 @@ const selectedNodeId = ref(undefined);
 const filter = ref(undefined);
 const extraFields = ref([]);
 const showSecondTree = ref(false);
-
-const searchBox = ref(null);
 
 subscribe(() => {
   if (props.libraryId) {
