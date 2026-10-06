@@ -9,8 +9,9 @@ import {
   TestCreature
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import { concentrationDc } from '/imports/api/engine/action/tasks/applyDealDamageTask';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 
-const [creatureId, hitPointsId, tempId, concentratingId, concentratingHpId] = getRandomIds(5);
+const [creatureId, hitPointsId, tempId, concentratingId, concentratingHpId, resistantId, resistantHpId] = getRandomIds(7);
 
 // Temporary hit points take damage first, as the health bars' order says
 const creature: TestCreature = {
@@ -52,6 +53,27 @@ const concentrating: TestCreature = {
   ],
 };
 
+// Resists fire, is immune to cold and vulnerable to lightning, and resists
+// slashing unless it is magical
+const resistant: TestCreature = {
+  _id: resistantId,
+  props: [
+    {
+      _id: resistantHpId,
+      type: 'attribute',
+      name: 'Hit Points',
+      attributeType: 'healthBar',
+      variableName: 'hitPoints',
+      baseValue: { calculation: '100' },
+    },
+    { type: 'damageMultiplier', damageTypes: ['fire'], value: 0.5 },
+    { type: 'damageMultiplier', damageTypes: ['cold'], value: 0 },
+    { type: 'damageMultiplier', damageTypes: ['lightning'], value: 2 },
+    { type: 'damageMultiplier', damageTypes: ['slashing'], value: 0.5, excludeTags: ['magical'] },
+    { type: 'damageMultiplier', damageTypes: ['radiant'], value: 2, includeTags: ['sunlight'] },
+  ],
+};
+
 const dealDamage = (target: string, amount: number, damageType?: string) => runTask(target, {
   subtaskFn: 'dealDamage',
   targetIds: [target],
@@ -65,6 +87,7 @@ describe('Apply Deal Damage Task (the health bar\'s Damage and Healing)', functi
     await removeAllCreaturesAndProps();
     await createTestCreature(creature);
     await createTestCreature(concentrating);
+    await createTestCreature(resistant);
   });
 
   it('Damages temporary hit points first', async function () {
@@ -106,5 +129,42 @@ describe('Apply Deal Damage Task (the health bar\'s Damage and Healing)', functi
     assert.equal(reminder.name, 'Concentration');
     assert.include(reminder.value, 'DC **13**');
     assert.equal(concentrationDc(5), 10);
+  });
+
+  describe('Immunities, resistances and vulnerabilities', function () {
+    const damageDealt = (action: EngineAction) => allUpdates(action)
+      .reduce((total, update) => total + (update.inc?.damage || 0), 0);
+
+    it('halves damage the creature resists, rounding down, and says so', async function () {
+      const action = await dealDamage(resistantId, 9, 'fire');
+      assert.equal(allLogContent(action)[0].value, '**4** fire damage\nResistant to fire damage');
+      assert.deepEqual(allUpdates(action).map(update => [update.propId, update.inc]), [
+        [resistantHpId, { damage: 4, value: -4 }],
+      ]);
+    });
+
+    it('deals no damage the creature is immune to', async function () {
+      const action = await dealDamage(resistantId, 9, 'cold');
+      assert.equal(allLogContent(action)[0].value, '**0** cold damage\nImmune to cold damage');
+      assert.deepEqual(allUpdates(action), []);
+    });
+
+    it('doubles damage the creature is vulnerable to', async function () {
+      const action = await dealDamage(resistantId, 9, 'lightning');
+      assert.equal(allLogContent(action)[0].value, '**18** lightning damage\nVulnerable to lightning damage');
+      assert.equal(damageDealt(action), 18);
+    });
+
+    it('applies a multiplier that excludes tags, not one that requires them: typed damage has none', async function () {
+      assert.equal(damageDealt(await dealDamage(resistantId, 9, 'slashing')), 4);
+      assert.equal(damageDealt(await dealDamage(resistantId, 9, 'radiant')), 9);
+    });
+
+    it('leaves other types, untyped damage and healing alone', async function () {
+      const acid = await dealDamage(resistantId, 9, 'acid');
+      assert.equal(allLogContent(acid)[0].value, '**9** acid damage');
+      assert.equal(damageDealt(acid), 9);
+      assert.equal(damageDealt(await dealDamage(resistantId, 9)), 9);
+    });
   });
 });

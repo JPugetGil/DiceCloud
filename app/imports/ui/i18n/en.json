@@ -1705,7 +1705,8 @@
     "castSpellError": "Error casting spell",
     "effect": "Effect",
     "effectEnded": "Ended: its duration ran out",
-    "untypedDamageAmount": "**{amount}** damage"
+    "untypedDamageAmount": "**{amount}** damage",
+    "actionAbandoned": "Action abandoned after its dice were rolled: {name}"
   },
   "health": {
     "change": "{name}",

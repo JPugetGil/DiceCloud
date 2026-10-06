@@ -43,7 +43,7 @@ import { ref, shallowRef, triggerRef, computed, onMounted } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 
 import applyAction from '/imports/api/engine/action/functions/applyAction';
-import getDeterministicDiceRoller from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';
 
 import AdvantageInput from '/imports/ui/creature/actions/input/AdvantageInput.vue';
 import CheckInput from '/imports/ui/creature/actions/input/CheckInput.vue';
@@ -79,7 +79,10 @@ const resumeActionFn = ref(undefined);
 const activeInput = ref(undefined);
 const activeInputParams = ref({});
 const userInput = ref(undefined);
-let deterministicDiceRoller = undefined;
+// The action's dice, drawn by the server from a seed the client never sees,
+// in the order the action asks for them: the same dice as doAction's first
+// simulation, and as the server's when it applies the action
+let serverDiceRoller = undefined;
 
 const action = autorun(() => EngineActions.findOne(props.actionId)).result;
 
@@ -122,8 +125,9 @@ const promiseInput = () => {
 
 const inputProvider = {
   async rollDice(dice) {
-    // Dice are rolled straight away: there is no dice animation to show
-    return Promise.resolve(deterministicDiceRoller(dice));
+    // No dice animation here: the dice tray throws them once the server has
+    // logged the action
+    return serverDiceRoller(dice);
   },
   async nextStep() {
     return promiseInput();
@@ -184,7 +188,7 @@ const finishAction = async () => {
 };
 
 onMounted(() => {
-  deterministicDiceRoller = getDeterministicDiceRoller(props.actionId);
+  serverDiceRoller = getServerDiceRoller(props.actionId);
   startAction({ stepThrough: false });
 });
 

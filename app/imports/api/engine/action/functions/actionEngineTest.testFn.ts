@@ -40,7 +40,7 @@ export async function createTestCreature(creature: TestCreature) {
   await Creatures.insertAsync({
     _id: creature._id,
     name: creature.name || 'Test Creature',
-    owner: Random.id(),
+    owner: creature.owner || Random.id(),
     dirty: true,
   } as any);
   const propsInserted = propsFromForest(creature.props, creature._id).map(prop => {
@@ -59,6 +59,8 @@ export async function createTestCreature(creature: TestCreature) {
 export type TestCreature = {
   _id: string;
   name?: string;
+  // A random user by default, which nobody signs in as
+  owner?: string;
   props: ForestProp[];
 }
 

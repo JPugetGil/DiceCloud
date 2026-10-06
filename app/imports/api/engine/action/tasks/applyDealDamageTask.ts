@@ -17,10 +17,8 @@ export const concentrationDc = (damage: number) => Math.max(10, Math.floor(damag
  * health bars in their damage order, temporary hit points first, running
  * their damage triggers. A creature that concentrates (a `concentration`
  * toggle or constant that is on) is reminded of its saving throw.
- *
- * Its weaknesses, resistances and immunities go through
- * applyDamageMultipliers, which applies none of them (a known bug of the
- * engine, left for the product owner to decide).
+ * Its immunities, resistances and vulnerabilities to the damage's type
+ * apply, as they do to a damage property's.
  */
 export default async function applyDealDamageTask(
   task: DealDamageTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -36,8 +34,8 @@ export default async function applyDealDamageTask(
 
   const logValue: LogPart[] = [];
   if (damageType && !healing) {
-    amount = applyDamageMultipliers({
-      target: targetId, damage: amount, damageProp: { damageType, tags: [] }, logValue,
+    amount = await applyDamageMultipliers({
+      targetId, damage: amount, damageProp: { type: 'damage', damageType, tags: [] }, logValue,
     });
   }
   let amountMessage;

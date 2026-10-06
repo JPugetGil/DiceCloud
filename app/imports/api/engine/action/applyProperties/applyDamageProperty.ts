@@ -1,6 +1,6 @@
 import { some, includes, difference, intersection } from 'lodash';
 
-import { getConstantValueFromScope } from '/imports/api/creature/creatures/CreatureVariables';
+import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
@@ -10,7 +10,7 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
-import { getPropertiesOfType } from '/imports/api/engine/loadCreatures';
+import { getPropertiesOfType, getVariables } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import getEffectivePropTags from '/imports/api/engine/computation/utility/getEffectivePropTags';
@@ -177,8 +177,8 @@ export default async function applyDamageProperty(
       }
 
       // Apply weaknesses/resistances/immunities
-      damageToApply = applyDamageMultipliers({
-        target,
+      damageToApply = await applyDamageMultipliers({
+        targetId: target,
         damage: damageToApply,
         damageProp: prop,
         logValue
@@ -220,16 +220,20 @@ function damageFunctionText(save) {
   }
 }
 
-// Known bug, left for the product owner to decide: `target` is a creature id,
-// so `target?.variables` is always undefined and no immunity, resistance or
-// vulnerability ever applies (DiceCloud analysis, UX1)
-export function applyDamageMultipliers({ target, damage, damageProp, logValue }: {
-  target: any, damage: number, damageProp: any, logValue: LogPart[],
-}) {
+/**
+ * The damage a creature takes once its immunities, resistances and
+ * vulnerabilities to the damage's type apply. They are on the creature's
+ * variable named after the damage type (a damage multiplier links to it, see
+ * aggregateDamageMultiplier), each with the tags it requires or excludes.
+ * Pushes "Resistant to fire damage" and the like to `logValue`.
+ */
+export async function applyDamageMultipliers({ targetId, damage, damageProp, logValue }: {
+  targetId: string, damage: number, damageProp: any, logValue: LogPart[],
+}): Promise<number> {
   const damageType = damageProp?.damageType;
-  if (!damageType) return damage;
+  if (!damageType || !targetId) return damage;
 
-  const multiplier = target?.variables?.[damageType];
+  const multiplier = await getFromScope(damageType, await getVariables(targetId));
   if (!multiplier) return damage;
 
   const type = damageTypeMessage(damageType);

@@ -5,7 +5,7 @@ import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineAc
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
-import getDeterministicDiceRoller from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';
 import { getSingleProperty } from '../../../api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
 
@@ -33,6 +33,9 @@ type DoActionParams = BaseDoActionParams & {
  * simulates the action, opening the action dialog if necessary to get input from the user, saving
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
+ *
+ * The simulation's dice come from the server, one roll at a time (drawDice), from a seed that the
+ * client never sees; the server replays them from that seed when it applies the action.
  */
 export default async function doAction({
   propId, creatureId, elementId, task, targetIds, callback, replaceDialog
@@ -108,10 +111,13 @@ const throwInputRequestedError = () => {
   throw 'input-requested';
 }
 
+// The dice come from the server, which alone knows the action's seed: each
+// roll waits for it. The dialog's simulation, if one is needed, gets the same
+// dice again
 function getErrorOnInputRequestProvider(actionId: string) {
   const errorOnInputRequest: InputProvider = {
     nextStep: throwInputRequestedError,
-    rollDice: getDeterministicDiceRoller(actionId),
+    rollDice: getServerDiceRoller(actionId),
     choose: throwInputRequestedError,
     advantage: throwInputRequestedError,
     check: throwInputRequestedError,

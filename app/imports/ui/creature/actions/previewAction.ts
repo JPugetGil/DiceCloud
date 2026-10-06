@@ -26,6 +26,9 @@ export default async function previewAction({ creatureId, task }: { creatureId: 
   };
   const provider: InputProvider = {
     nextStep: inputRequested,
+    // Local dice, from a made-up seed: nothing is inserted, so the server
+    // draws nothing, and these numbers are never saved. The action itself,
+    // once confirmed, rolls its own dice through doAction
     rollDice: getDeterministicDiceRoller(action._id),
     choose: inputRequested,
     advantage: inputRequested,

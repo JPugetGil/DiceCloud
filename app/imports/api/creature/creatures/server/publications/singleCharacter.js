@@ -10,7 +10,7 @@ import computeCreature from '/imports/api/engine/computeCreature';
 import VERSION from '/imports/constants/VERSION';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
 import { rebuildCreatureNestedSets } from '/imports/api/parenting/parentingFunctions';
-import EngineActions from '/imports/api/engine/action/EngineActions';
+import EngineActions, { WITHOUT_SEED } from '/imports/api/engine/action/EngineActions';
 import { Meteor } from 'meteor/meteor';
 
 let schema = new SimpleSchema({
@@ -72,9 +72,10 @@ Meteor.publish('singleCharacter', function (creatureId) {
         limit: 20,
         sort: { date: -1 },
       }),
+      // Never the dice's secret seed (EngineActions.ts)
       EngineActions.find({
         creatureId,
-      }),
+      }, { fields: WITHOUT_SEED }),
       // Also publish the owner's username
       Meteor.users.find(permissionCreature.owner, {
         fields: {

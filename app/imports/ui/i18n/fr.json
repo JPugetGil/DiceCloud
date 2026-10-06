@@ -1705,7 +1705,8 @@
     "castSpellError": "Erreur au lancement du sort",
     "effect": "Effet",
     "effectEnded": "Terminé : sa durée est écoulée",
-    "untypedDamageAmount": "**{amount}** dégâts"
+    "untypedDamageAmount": "**{amount}** dégâts",
+    "actionAbandoned": "Action abandonnée après le jet des dés : {name}"
   },
   "health": {
     "change": "{name}",

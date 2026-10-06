@@ -7,7 +7,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
-import EngineActions from '/imports/api/engine/action/EngineActions';
+import EngineActions, { WITHOUT_SEED } from '/imports/api/engine/action/EngineActions';
 import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatureFolders/party';
 import { boardFolderFields } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 import { settingsFieldsWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
@@ -89,8 +89,9 @@ Meteor.publish('partyBoard', function (folderId) {
         { _id: { $in: [folder.owner, ...(folder.members || [])] } }, { fields: { username: 1 } },
       ),
       CreatureVariables.find({ _creatureId: { $in: creatureIds } }),
-      // The actions in progress, which doAction reads back once it inserts one
-      EngineActions.find({ creatureId: { $in: creatureIds } }),
+      // The actions in progress, which doAction reads back once it inserts one;
+      // never the dice's secret seed (EngineActions.ts)
+      EngineActions.find({ creatureId: { $in: creatureIds } }, { fields: WITHOUT_SEED }),
       CreatureProperties.find({
         'root.id': { $in: creatureIds },
         removed: { $ne: true },

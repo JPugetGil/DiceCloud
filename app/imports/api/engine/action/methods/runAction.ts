@@ -30,8 +30,14 @@ export const runAction = new ValidatedMethod({
     // Permissions
     await assertEditPermission(await getCreature(action.creatureId), this.userId);
 
-    // Replay the user's decisions as user input
-    const userInput = getReplayChoicesInputProvider(actionId, decisions);
+    // Replay the user's decisions as user input, and the dice from the
+    // action's secret seed: the dice the server gave the client (drawDice),
+    // in the same order. An action inserted before actions had a seed rolls
+    // from its id, as it did. The client's simulation has no seed: it shows
+    // the dice it was given until the server's results replace them
+    const userInput = getReplayChoicesInputProvider(action.seed ?? actionId, decisions, {
+      replayDice: !!this.isSimulation,
+    });
 
     // Apply the action
     await applyAction(action, userInput);
