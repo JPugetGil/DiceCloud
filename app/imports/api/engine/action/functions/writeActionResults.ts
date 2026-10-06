@@ -2,7 +2,7 @@ import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineAc
 import mutationToPropUpdates from './mutationToPropUpdates';
 import mutationToLogUpdates from '/imports/api/engine/action/functions/mutationToLogUpdates';
 import { union, uniq } from 'lodash';
-import CreatureLogs, { trimCreatureLogs } from '/imports/api/creature/log/CreatureLogs';
+import CreatureLogs, { postLogToDiscord, trimCreatureLogs } from '/imports/api/creature/log/CreatureLogs';
 import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { softRemove } from '/imports/api/parenting/softRemove';
@@ -33,14 +33,20 @@ export default async function writeActionResults(action: EngineAction) {
   const allTargetIds: string[] = union(...logContents.map(c => c.targetIds));
 
   // Write the log
-  const logPromise = CreatureLogs.insertAsync({
+  const log = {
     _id: logId,
     content: logContents,
     creatureId: action.creatureId,
     actionId: action._id,
-  }).then(() => {
+    date: new Date(),
+  };
+  const logPromise = CreatureLogs.insertAsync(log).then(() => {
     // Not in the client's simulation of the method: the server's result replaces it
-    if (Meteor.isServer) return trimCreatureLogs(action.creatureId);
+    if (!Meteor.isServer) return;
+    // Attacks, spells, checks, rests, damage: on Discord once written, as rolls
+    // typed in the log are
+    postLogToDiscord(log);
+    return trimCreatureLogs(action.creatureId);
   });
 
   // Write the bulk updates, force them to sequential mode means we immediately get the results

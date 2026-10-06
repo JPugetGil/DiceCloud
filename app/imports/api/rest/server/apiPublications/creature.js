@@ -6,6 +6,8 @@ import VERSION from '/imports/constants/VERSION';
 import { getCreature, getProperties, getVariables } from '/imports/api/engine/loadCreatures';
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
 import { Meteor } from 'meteor/meteor';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { creatureWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
 
 JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
   const creatureId = req.params.id;
@@ -45,13 +47,18 @@ JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
     }
   }
 
+  // The Discord webhook only for those who may edit the character: a public
+  // character is read here without any token
+  const user = userId && await Meteor.users.findOneAsync(userId, { fields: { roles: 1 } });
+  const sentCreature = hasEditPermission(creature, user) ? creature : creatureWithoutWebhook(creature);
+
   // Send the results
   JsonRoutes.sendResult(res, {
     data: {
       meta: {
         schemaVersion: SCHEMA_VERSION,
       },
-      creatures: [creature],
+      creatures: [sentCreature],
       creatureProperties: await getProperties(creatureId),
       creatureVariables: await getVariables(creatureId),
     },

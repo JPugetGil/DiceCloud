@@ -87,6 +87,15 @@ module.exports = defineConfig(Meteor => {
     ],
     module: {
       rules: [
+        // The icon font's legacy formats: every browser the app targets takes
+        // the woff2 that its @font-face lists first, so these are not written
+        // to the bundle (the eot and the ttf, about 1 MB each, were over the
+        // budget above)
+        {
+          test: /@mdi[\\/]font[\\/]fonts[\\/].*\.(eot|ttf|woff)$/,
+          type: 'asset/resource',
+          generator: { emit: false },
+        },
         {
           test: /\.vue$/,
           loader: 'rspack-vue-loader',

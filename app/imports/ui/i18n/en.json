@@ -101,7 +101,10 @@
     "webhookText": "Each character can post its log (rolls, actions, rests) to a Discord channel.",
     "webhookStep1": "In Discord, open the channel settings, then Integrations, Webhooks, and create a webhook.",
     "webhookStep2": "Copy its webhook URL.",
-    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord webhook URL” field."
+    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord webhook URL” field.",
+    "webhookLanguage": "Messages are written in the language of the character's owner. Lines hidden in the log are not sent.",
+    "webhookPrivacy": "Only those who can edit the character see its webhook URL. If the webhook is deleted in Discord, the character forgets it.",
+    "typedRoll": "Roll: {roll}"
   },
   "legal": {
     "termsLink": "terms of use",

@@ -144,6 +144,15 @@ describe('Duplicating a character', function () {
     assert.exists(error, 'a reader who may not copy it can\'t download it');
   });
 
+  it('keeps the Discord webhook out of the archive of a reader allowed to copy', async function () {
+    const archive = await as(getCreatureArchive, ownerId, { creatureId: originalId });
+    assert.equal(archive.creature.settings.discordWebhook, 'https://discord.com/api/webhooks/1/secret');
+    await Creatures.updateAsync(originalId, { $set: { readersCanCopy: true } });
+    const copy = await as(getCreatureArchive, readerId, { creatureId: originalId });
+    assert.notProperty(copy.creature.settings, 'discordWebhook');
+    assert.isTrue(copy.creature.settings.hideSpellsTab);
+  });
+
   it('restores an archive of a character that still exists as a copy, log included', async function () {
     const archive = JSON.parse(JSON.stringify(await as(getCreatureArchive, ownerId, { creatureId: originalId })));
     const copyId = await insertCreatureCopy(archive, { owner: ownerId });

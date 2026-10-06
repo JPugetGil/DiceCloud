@@ -24,7 +24,8 @@ meteor npm run setup                 # creates the e2e-tester accounts and their
 `setup` registers two accounts through the app, the way the Register page does,
 and creates a character for each with the app's own method: `e2e-tester`, which
 the checks use, and `e2e-tester-other`, whose character the `actions` check must
-fail to target. Re-running it keeps them.
+fail to target, and which the `discord-webhook` check signs in as, to read the
+test character as someone who may not edit it. Re-running it keeps them.
 
 ## Running
 
@@ -48,6 +49,7 @@ meteor npm run check:contrast        # one check, by its npm script
 | `accessibility` | axe-core's WCAG 2.1 A and AA rules over the main pages, in both themes, at 1400 and 390 px; the Journal's coloured notes, title against card (axe cannot measure them under the hover highlight) | Light-theme labels and subtitles at 4.3:1; icon buttons without a name; zoom disabled on phones; tooltips and lists that screen readers found empty or invalid |
 | `slot-fill` | Opens a library slot in test mode and compares the fillers listed (and the "requirements not met" count) with what the database holds; skipped when the test account can use no library | Every slot fill dialog listing nothing ("Explore the Library!"); fillers offered although their requirements failed |
 | `print-cards` | Gives the test character a prepared spell and an item from a public library, then: the sheet's menu opens `/print-cards` with the spell among the default cards, the page lays out a spell card and an item card, no card shows a brace or overflows its body, the cards keep their title in print, the PDF has one A4 page per sheet, each card has its library's language, with backs every back sits opposite its front; removes them again; skipped without a public library holding both | Built with the printable cards: their header hidden in print by the app bar's `header { display: none }`; a layout run while printing (the character recomputed) that measured nothing and gave 28 pages for 8 sheets; a page opened from the menu that laid out no card |
+| `discord-webhook` | Gives the test character a made-up Discord webhook (never called: its id is not a number), shares it with `e2e-tester-other` as a reader and makes it public; then searches every DDP frame the reader's browser and a signed-out visitor's receive, and the REST API's answer without a token, for the webhook's token, which the editor's own frames must hold; puts the character back | The webhook URL published whole to every reader and, for a public character, to anyone through the REST API: with it, anyone could post in the channel or delete the webhook |
 
 The server's own log can hold errors a clean browser console hides. Keep the dev
 server's output (`meteor 2>&1 | tee /tmp/dicecloud-dev.log`) and run
@@ -86,4 +88,6 @@ meteor node tools/dom.js /account '.theme-preference'
   and gives the test character a condition and takes it away;
   `actions` takes a short rest with the test character; `contrast` sets the test
   account's theme preference to "Match device theme"; `print-cards` gives the
-  test character a library spell and item, and removes them again.
+  test character a library spell and item, and removes them again;
+  `discord-webhook` gives the test character a made-up webhook, shares it with
+  `e2e-tester-other` and makes it public, then takes all three back.

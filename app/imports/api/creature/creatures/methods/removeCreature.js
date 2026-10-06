@@ -8,12 +8,25 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { Meteor } from 'meteor/meteor';
 
 async function removeRelatedDocuments(creatureId) {
   await CreatureVariables.removeAsync({ _creatureId: creatureId });
   await CreatureProperties.removeAsync(getFilter.descendantsOfRoot(creatureId));
   await CreatureLogs.removeAsync({ creatureId });
   await Experiences.removeAsync({ creatureId });
+  // Server only, and imported when called: CreatureFolders loads its methods,
+  // which reach this module, so importing it at the top is a load-order cycle
+  if (Meteor.isServer) {
+    const [{ removeFromAllFolders }, { default: EngineActions }] = await Promise.all([
+      import('/imports/api/creature/creatureFolders/removeFromFolders'),
+      import('/imports/api/engine/action/EngineActions'),
+    ]);
+    // Off every folder and initiative tracker, its owner's or another game master's
+    await removeFromAllFolders([creatureId]);
+    // The actions it started and never ran
+    await EngineActions.removeAsync({ creatureId });
+  }
 }
 
 const removeCreature = new ValidatedMethod({

@@ -17,7 +17,7 @@ import { logLine, msg } from '/imports/api/creature/log/logMessages';
  */
 export async function startCreatureTurn(creatureId, userId) {
   const creature = await Creatures.findOneAsync(creatureId, {
-    fields: { name: 1, owner: 1, writers: 1, avatarPicture: 1, 'settings.discordWebhook': 1 },
+    fields: { name: 1, owner: 1, writers: 1 },
   });
   const user = await Meteor.users.findOneAsync(userId, { fields: { roles: 1 } });
   if (!creature || !hasEditPermission(creature, user)) return [];
@@ -57,7 +57,6 @@ export async function startCreatureTurn(creatureId, userId) {
       creatureName: creature.name,
       content: ended.map(buff => logLine({ name: buff.name || msg('logs.effect'), value: msg('logs.effectEnded') })),
     },
-    creature,
   });
   // A sheet or board showing the creature recomputes it on its own
   if (!loadedCreatures.has(creatureId)) await computeCreature(creatureId);

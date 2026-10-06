@@ -14,7 +14,13 @@ function normalize(text) {
     .slice(0, 300);
 }
 
-async function openPage({ signedIn = true, colorScheme = 'dark', viewport = { width: 1400, height: 900 } } = {}) {
+/**
+ * `username` signs in as another test account than E2E_USERNAME (its name
+ * must start with "e2e-" too; same password)
+ */
+async function openPage({
+  signedIn = true, colorScheme = 'dark', viewport = { width: 1400, height: 900 }, username = USERNAME,
+} = {}) {
   assertSafeTarget();
   const browser = await chromium.launch();
   // E2E_LOCALE=fr runs a check in French: the app follows the browser language
@@ -26,19 +32,20 @@ async function openPage({ signedIn = true, colorScheme = 'dark', viewport = { wi
   });
   page.on('pageerror', e => messages.push(`pageerror: ${normalize(e.message)}`));
   if (signedIn) {
-    await signIn(page);
+    await signIn(page, username);
     messages.length = 0;
   }
   return { browser, context, page, messages };
 }
 
-async function signIn(page) {
+async function signIn(page, username = USERNAME) {
+  if (!username.startsWith('e2e-')) throw new Error(`${username} is not a test account`);
   await page.goto(BASE_URL + '/sign-in', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.Meteor && window.Meteor.loginWithPassword, null, { timeout: 60000 });
   const error = await page.evaluate(({ username, password }) => new Promise(resolve => {
     window.Meteor.loginWithPassword(username, password, e => resolve(e ? (e.reason || e.message) : null));
-  }), { username: USERNAME, password: PASSWORD });
-  if (error) throw new Error(`Could not sign in as ${USERNAME}: ${error}. Run "npm run setup" first.`);
+  }), { username, password: PASSWORD });
+  if (error) throw new Error(`Could not sign in as ${username}: ${error}. Run "npm run setup" first.`);
 }
 
 /** Navigate and give subscriptions and rendering time to settle */

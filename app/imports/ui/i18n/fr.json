@@ -101,7 +101,10 @@
     "webhookText": "Chaque personnage peut publier son journal (jets, actions, repos) dans un salon Discord.",
     "webhookStep1": "Dans Discord, ouvrez les paramètres du salon, puis Intégrations, Webhooks, et créez un webhook.",
     "webhookStep2": "Copiez l'URL du webhook.",
-    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord »."
+    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord ».",
+    "webhookLanguage": "Les messages sont rédigés dans la langue du propriétaire du personnage. Les lignes masquées du journal ne sont pas envoyées.",
+    "webhookPrivacy": "Seules les personnes qui peuvent modifier le personnage voient l'URL de son webhook. Si le webhook est supprimé dans Discord, le personnage l'oublie.",
+    "typedRoll": "Jet : {roll}"
   },
   "legal": {
     "termsLink": "conditions d'utilisation",

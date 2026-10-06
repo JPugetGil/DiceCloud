@@ -54,12 +54,6 @@ imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitl
 imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/creature/log/CreatureLogs.test.js: TS18048: 'oldest' is possibly 'undefined'.
 imports/api/creature/log/CreatureLogs.test.js: TS2345: Argument of type '{ _id: string; creatureId: any; date: Date; content: { value: string; }[]; }[]' is not assignable to parameter of type 'OptionalId<Document>[]'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'avatarURL' does not exist on type '{}'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'avatarURL' does not exist on type '{}'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'content' does not exist on type '{}'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'embeds' does not exist on type '{}'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'username' does not exist on type '{}'.
-imports/api/creature/log/server/sendWebhook.js: TS2339: Property 'username' does not exist on type '{}'.
 imports/api/docs/Docs.ts: TS2339: Property 'getTextAsync' does not exist on type 'typeof Assets'.
 imports/api/docs/Docs.ts: TS2339: Property 'getTextAsync' does not exist on type 'typeof Assets'.
 imports/api/docs/Docs.ts: TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.

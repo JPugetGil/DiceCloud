@@ -2,7 +2,6 @@ import { assert } from 'chai';
 import {
   damageTypeMessage, englishMessage, logLine, logLineTone, msg, renderMessage, translateLogLine, withAdvantage,
 } from '/imports/api/creature/log/logMessages';
-import { logToMessageData } from '/imports/api/creature/log/CreatureLogs';
 
 // A French reader, for a few keys: undefined for the others, as vue-i18n's te
 const french = {
@@ -62,14 +61,5 @@ describe('Log lines in the reader\'s language (logMessages)', function () {
     assert.equal(logLineTone(logLine({ name: msg('logs.criticalMiss') })), 'error');
     assert.isUndefined(logLineTone(logLine({ name: msg('logs.hit') })));
     assert.equal(logLineTone({ name: 'Critical Hit!' }), 'success');
-  });
-
-  it('sends Discord the English name and value only', function () {
-    const line = logLine({ name: msg('logs.shortRest'), value: msg('logs.nothingRestored'), inline: true });
-    const { embeds: [embed] } = logToMessageData({ content: [line, { value: 'text' }] });
-    assert.deepEqual(embed.fields, [
-      { name: 'Short rest', value: 'Nothing to restore', inline: true },
-      { name: '​', value: 'text' },
-    ]);
   });
 });

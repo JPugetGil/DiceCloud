@@ -20,7 +20,7 @@ if (Meteor.isServer) {
   // require(), not import: this module is only pulled in on one side of the
   // wire, and a static import would bundle it into both
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  var sendWebhookAsCreature = require('/imports/api/creature/log/server/sendWebhook').sendWebhookAsCreature;
+  var sendLogToDiscord = require('/imports/api/creature/log/server/discordWebhooks').sendLogToDiscord;
 }
 
 let CreatureLogs = new Mongo.Collection('creatureLogs');
@@ -82,47 +82,20 @@ export async function trimCreatureLogs(creatureId) {
   await CreatureLogs.removeAsync({ creatureId, date: { $lt: oldestKept.date } });
 }
 
-export function logToMessageData(log) {
-  /** @type {{ fields: { name: string, value: string, inline?: boolean }[] }} */
-  let embed = {
-    fields: [],
-  };
-  // Discord takes a name, a value and inline: the English text the log keeps
-  // beside its translation keys (`i18n`), which Discord would refuse
-  log.content.forEach(({ name, value, inline }, index) => {
-    const field = { name, value, ...inline !== undefined && { inline } };
-    // Empty character for blank names
-    if (!field.name) field.name = '\u200b';
-    if (!field.value) field.value = '\u200b';
-    // Enforce Discord field character limits
-    if (field.name?.length > 256) {
-      field.name = field.name.substring(0, 255);
-    }
-    if (field.value?.length > 1024) {
-      field.value = field.value.substring(0, 1024 - 3) + '...';
-    }
-    // Enforce Discord 25 field limit
-    if (index < 25) {
-      embed.fields.push(field);
-    }
-  });
-  return { embeds: [embed] };
-}
-
-function logWebhook({ log, creature }) {
-  if (Meteor.isServer) {
-    sendWebhookAsCreature({
-      creature,
-      data: logToMessageData(log),
-    });
-  }
+/**
+ * Posts a log entry, once written, to its creature's Discord webhook if it has
+ * one (server/discordWebhooks.ts). On the server only, and without waiting:
+ * a method's simulation posts nothing, and a log never waits on Discord.
+ */
+export function postLogToDiscord(log) {
+  if (Meteor.isServer) sendLogToDiscord(log);
 }
 
 /**
- * @param {{ log: any, creature?: any, method?: { unblock: () => void } }} args
+ * @param {{ log: any, method?: { unblock: () => void } }} args
  * The method writing it, if any, is unblocked once the log is in
  */
-export async function insertCreatureLogWork({ log, creature, method }) {
+export async function insertCreatureLogWork({ log, method }) {
   // Build the new log
   if (typeof log === 'string') {
     log = { content: [{ value: log }] };
@@ -140,9 +113,7 @@ export async function insertCreatureLogWork({ log, creature, method }) {
   let id = await CreatureLogs.insertAsync(log);
   if (Meteor.isServer) {
     method?.unblock();
-    if (creature) {
-      logWebhook({ log, creature });
-    }
+    postLogToDiscord(log);
     await trimCreatureLogs(log.creatureId);
   }
   return id;
@@ -187,9 +158,6 @@ const logRoll = new ValidatedMethod({
           readers: 1,
           writers: 1,
           owner: 1,
-          'settings.discordWebhook': 1,
-          name: 1,
-          avatarPicture: 1,
         }
       });
       await assertEditPermission(creature, this.userId);
@@ -243,7 +211,7 @@ const logRoll = new ValidatedMethod({
       date: new Date(),
     };
 
-    let id = await insertCreatureLogWork({ log, creature, method: this });
+    let id = await insertCreatureLogWork({ log, method: this });
 
     return id;
   },

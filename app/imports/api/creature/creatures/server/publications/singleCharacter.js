@@ -4,6 +4,8 @@ import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
+import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { WITHOUT_WEBHOOK } from '/imports/api/creature/creatures/webhookVisibility';
 import computeCreature from '/imports/api/engine/computeCreature';
 import VERSION from '/imports/constants/VERSION';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
@@ -40,6 +42,10 @@ Meteor.publish('singleCharacter', function (creatureId) {
     });
     try { await assertViewPermission(permissionCreature, userId) }
     catch { return [] }
+    // The Discord webhook only for those who may edit the character: anyone
+    // else who has it could post in the channel, or delete the webhook
+    const user = userId && await Meteor.users.findOneAsync(userId, { fields: { roles: 1 } });
+    const canEdit = hasEditPermission(permissionCreature, user);
     loadCreature(creatureId, self);
     if (permissionCreature?.computeVersion !== VERSION && computation.firstRun) {
       // Not awaited, as before Meteor 3: the results reach the client through
@@ -53,7 +59,7 @@ Meteor.publish('singleCharacter', function (creatureId) {
     return [
       Creatures.find({
         _id: creatureId,
-      }),
+      }, canEdit ? {} : { fields: WITHOUT_WEBHOOK }),
       CreatureVariables.find({
         _creatureId: creatureId,
       }),

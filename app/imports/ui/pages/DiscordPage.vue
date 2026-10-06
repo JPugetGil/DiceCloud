@@ -48,6 +48,12 @@
               <li>{{ $t('discord.webhookStep2') }}</li>
               <li>{{ $t('discord.webhookStep3') }}</li>
             </ol>
+            <p class="mt-4 mb-2">
+              {{ $t('discord.webhookLanguage') }}
+            </p>
+            <p class="mb-0">
+              {{ $t('discord.webhookPrivacy') }}
+            </p>
           </v-card-text>
         </v-card>
       </v-col>

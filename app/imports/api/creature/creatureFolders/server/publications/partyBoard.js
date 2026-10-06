@@ -10,6 +10,7 @@ import VERSION from '/imports/constants/VERSION';
 import EngineActions from '/imports/api/engine/action/EngineActions';
 import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatureFolders/party';
 import { boardFolderFields } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import { settingsFieldsWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
 
 const schema = new SimpleSchema({
   folderId: { type: String, max: 32 },
@@ -18,9 +19,12 @@ const schema = new SimpleSchema({
 // The stats a party board shows, by variable name
 const BOARD_VARIABLES = ['armor', 'speed', 'initiative', 'perception'];
 
+// What the game master sees of the party's characters: their settings, which
+// a rest started from the board reads, but not the Discord webhook. The game
+// master may only read some of them, and one cursor cannot tell them apart
 const CREATURE_FIELDS = {
   name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, readers: 1, writers: 1,
-  public: 1, type: 1, settings: 1, computeVersion: 1,
+  public: 1, type: 1, computeVersion: 1, ...settingsFieldsWithoutWebhook(),
 };
 
 // What players see of the party's characters: no settings, which hold the

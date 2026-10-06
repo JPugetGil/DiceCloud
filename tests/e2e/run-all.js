@@ -7,7 +7,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const CHECKS = ['routes', 'flows', 'actions', 'docs-navigation', 'property-forms', 'dialogs', 'login-services', 'contrast',
-  'palette', 'accessibility', 'slot-fill', 'print-cards'];
+  'palette', 'accessibility', 'slot-fill', 'print-cards', 'discord-webhook'];
 
 const selected = process.argv.slice(2).length ? process.argv.slice(2) : CHECKS;
 const unknown = selected.filter(name => !CHECKS.includes(name));

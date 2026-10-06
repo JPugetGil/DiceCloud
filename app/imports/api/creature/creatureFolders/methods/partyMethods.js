@@ -6,7 +6,7 @@ import { Random } from 'meteor/random';
 import CreatureFolders, { MAX_PARTY_MEMBERS } from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
-import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
+import { removeCharacters } from '/imports/api/creature/creatureFolders/removeFromFolders';
 
 /*
  * Parties: a game master invites players to their folder's party board with a
@@ -56,33 +56,6 @@ async function getOwnCharacterIds(creatureIds, userId) {
     throw new Meteor.Error('party.denied', 'You can only bring your own characters to a party');
   }
   return owned;
-}
-
-/**
- * Takes a player's characters out of the party: out of the folder and its
- * initiative tracker, and no longer editable or readable by the game master
- */
-async function removeCharacters(folder, creatureIds) {
-  if (!creatureIds.length) return;
-  const update = { $pullAll: { creatures: creatureIds } };
-  const tracker = folder.initiative;
-  if (tracker?.entries?.length) {
-    // The turn stays with the creature whose turn it is, or the next one
-    const order = initiativeOrder(tracker.entries);
-    const kept = order.filter(entry => !creatureIds.includes(entry.creatureId));
-    const current = order.slice(tracker.turn || 0).find(entry => kept.includes(entry));
-    const turn = current ? kept.indexOf(current) : 0;
-    update.$set = {
-      'initiative.entries': tracker.entries.filter(entry => !creatureIds.includes(entry.creatureId)),
-      'initiative.turn': turn,
-    };
-  }
-  await CreatureFolders.updateAsync(folder._id, update);
-  await Creatures.updateAsync(
-    { _id: { $in: creatureIds } },
-    { $pull: { writers: folder.owner, readers: folder.owner } },
-    { multi: true },
-  );
 }
 
 async function memberCharacterIds(folder, userId) {

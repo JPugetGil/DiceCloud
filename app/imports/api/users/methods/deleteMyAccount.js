@@ -14,7 +14,7 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run() {
-    let userId = Meteor.userId();
+    const userId = this.userId;
     if (!userId) throw new Meteor.Error('No user',
       'You must be logged in to delete your account');
 
@@ -63,7 +63,10 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
     });
 
     // Delete the user's library collections, character folders, uploaded
-    // images and character archives (from S3 too). Server only: the client's
+    // images and character archives (from S3 too), and take the user out of
+    // the collections shared with them and of the parties they joined (their
+    // characters already left every board, with removeCreatureWork). Server
+    // only: the client's
     // simulation cannot remove files. Imported here, not at the top: Users.js
     // loads this module, and UserImages loading that early is an import cycle
     // (UserImages -> updateFileStorageUsed -> UserImages) that crashes startup.
@@ -79,8 +82,20 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
         import('/imports/api/files/userImages/UserImages'),
         import('/imports/api/creature/archive/ArchiveCreatureFiles'),
       ]);
+      // any: Meteor's modifier types refuse a typed value in $pull on an untyped collection
+      const pulled = /** @type {any} */ (userId);
       await LibraryCollections.removeAsync({ owner: userId });
+      await LibraryCollections.updateAsync(
+        { $or: [{ writers: userId }, { readers: userId }] },
+        { $pull: { writers: pulled, readers: pulled } },
+        { multi: true },
+      );
       await CreatureFolders.removeAsync({ owner: userId });
+      await CreatureFolders.updateAsync(
+        { members: userId },
+        { $pull: { members: pulled } },
+        { multi: true },
+      );
       await UserImages.removeAsync({ userId });
       await ArchiveCreatureFiles.removeAsync({ userId });
     }

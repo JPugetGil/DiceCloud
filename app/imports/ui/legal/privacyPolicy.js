@@ -4,8 +4,8 @@
 import frenchTypography from '/imports/ui/i18n/frenchTypography';
 
 const LAST_UPDATED = {
-  en: 'October 5, 2026',
-  fr: '5 octobre 2026',
+  en: 'October 6, 2026',
+  fr: '6 octobre 2026',
 };
 
 const contactLink = (email, missing) => email ? `[${email}](mailto:${email})` : missing;
@@ -25,32 +25,40 @@ This DiceCloud instance is run by **${operator || 'the administrator of this ins
 
 DiceCloud is free software. This instance is independent of dicecloud.com and its authors.
 
+## Where your data is kept
+
+The application and its database run on a server that the controller operates in France. The files you upload are stored by Amazon Web Services (S3) in Paris (France). The database is not reachable from the internet: only the application can read it.
+
 ## Data we process
 
-- **Your account**: username, email address and whether it is verified, password (stored only as an irreversible hash, never in clear), creation date, role, preferences (language, theme, display options), library subscriptions, file storage used, and login tokens.
+- **Your account**: username, email address and whether it is verified, password (stored only as an irreversible hash, never in clear), creation date, role, preferences (language, theme, units of measurement, animations, display options), library subscriptions, file storage used, and login tokens.
 - **Sign-in with Google**, if you use it: your Google account identifier, email address, name and profile picture as Google sends them, and the access tokens Google provides. We ask for no access to your other Google data.
-- **Your content**: your characters and their properties, their roll logs (the 100 most recent per character), experience, folders, tabletops and libraries.
+- **Your content**: your characters and their properties, their logs of rolls and actions (the 100 most recent per character), experience, folders, party boards (their members and initiative tracker), libraries, and the Discord webhook address you may set on a character.
 - **Your files**: the images you upload and the archives of your characters.
-- **Technical data**: the host keeps technical logs, including IP addresses, to run and secure the service.
+- **Technical data**: the server and Cloudflare, which publishes the service, process IP addresses and keep technical logs to run and secure the service.
 
 We use no audience measurement, advertising or profiling tools, and we neither sell nor rent your data.
 
 ## Why, and on what legal basis
 
-- **Providing the service**: creating and managing your account, saving and showing your content, sending the email address verification and password reset emails. This is necessary to perform the [terms of use](/terms) you accept (GDPR article 6.1.b).
-- **Securing the service and preventing abuse**: request rate limits and technical logs. This is our legitimate interest (GDPR article 6.1.f).
+- **Providing the service**: creating and managing your account, saving and showing your content, sharing it and running party boards, sending the email address verification and password reset emails, and posting a character's log to Discord when you set a webhook on it. This is necessary to perform the [terms of use](/terms) you accept (GDPR article 6.1.b).
+- **Securing the service and preventing abuse**: request rate limits, technical logs and database backups. This is our legitimate interest (GDPR article 6.1.f).
 
 ## Who can see your data
 
-- **Other users** see what you share: your username is shown to the people you share a character or a library with, and anyone with its link can view a character or library you make public.
+- **Other users** see what you share:
+  - your username is shown to the people you share a character or a library with;
+  - anyone with its link can view a character or a library you make public, including through the application's programming interface (API);
+  - when you join a party board with characters, its game master can view and modify those characters for as long as they stay on the board, and the other members see their name, hit points, conditions and turn; the members of a board see each other's usernames.
 - **Our providers**, who process the data on our behalf only:
-  - Meteor Software (Galaxy), which hosts the application;
-  - MongoDB (Atlas), which hosts the database;
+  - Cloudflare, which publishes the service on the internet: every connection goes through its network, which handles their encryption (HTTPS);
   - Amazon Web Services (S3), which stores the files, in Paris (France);
-  - the provider that sends the service's emails;
+  - Brevo, which sends the service's emails;
   - Google, only if you sign in with Google.
-- **Discord**, only if you set a Discord webhook on a character: that character's log entries are then sent there.
-- **Other websites**: some library images are hosted on other sites. Your browser downloads them directly from those sites, which then see your IP address.
+- **Services your browser contacts directly**, which see your IP address and the kind of browser you use (the fonts and icons are served by the application itself):
+  - Discord, on the Discord page, which shows a widget of the community's Discord server;
+  - other websites that host some library images.
+- **Discord**, only if you set a Discord webhook on a character: that character's log entries (rolls, actions, rests and their results), its name, its picture and a link to its sheet are then posted to that Discord channel, under Discord's own privacy policy. Lines hidden in the application are not sent, and only the people who can edit the character can see the webhook's address.
 
 Some of these providers are based outside the European Union, notably in the United States. Those transfers are covered by the safeguards the GDPR provides for: an adequacy decision or the European Commission's standard contractual clauses.
 
@@ -58,17 +66,18 @@ Some of these providers are based outside the European Union, notably in the Uni
 
 - Your account and your content are kept for as long as your account exists.
 - Character properties and library entries you delete can be restored for about a day, then are erased for good.
-- Only the 100 most recent roll logs of each character are kept.
-- Deleting your account (on the Account page) immediately erases your account, characters, libraries, folders, images and archives.
-- The host keeps its technical logs for a limited time.
+- Only the 100 most recent log entries of each character are kept.
+- Deleting your account (on the Account page) immediately erases your account, characters, libraries, library collections, folders, images and archives. It also removes you from the characters, libraries and collections shared with you and from the party boards you joined, and takes your characters off every board and initiative tracker.
+- The database is backed up every day, and each backup is kept for 7 days: data you delete disappears from the backups within that time.
+- The server's technical logs are rotated once they reach a few tens of megabytes. Cloudflare keeps its own logs under its policy.
 
 ## Cookies and browser storage
 
-The application sets no advertising or audience measurement cookies. It keeps your login token (so that you stay signed in) and your choice of language in your browser's local storage. These are strictly necessary for the service to work, so they do not require your consent.
+The application sets no advertising or audience measurement cookies. It keeps in your browser's local storage your login token (so that you stay signed in), your choice of language and how you display your character list. They are either strictly necessary for the service to work or only remember choices you made, so they do not require your consent.
 
 ## Security
 
-Connections are encrypted (HTTPS), passwords are never stored in clear, and files are kept in private storage that is only reachable through the application.
+Connections are encrypted (HTTPS) up to Cloudflare, then through an encrypted tunnel up to the server. Passwords are never stored in clear, files are kept in private storage that is only reachable through the application, and the database is backed up every day.
 
 ## Your rights
 
@@ -93,32 +102,40 @@ Cette instance de DiceCloud est exploitée par **${operator || 'l\'administrateu
 
 DiceCloud est un logiciel libre. Cette instance est indépendante du site dicecloud.com et de ses auteurs.
 
+## Où sont conservées vos données
+
+L'application et sa base de données fonctionnent sur un serveur que le responsable du traitement exploite en France. Les fichiers que vous envoyez sont stockés par Amazon Web Services (S3), à Paris (France). La base de données n'est pas accessible depuis Internet : seule l'application peut la lire.
+
 ## Données que nous traitons
 
-- **Votre compte** : nom d'utilisateur, adresse e-mail et si elle est vérifiée, mot de passe (conservé uniquement sous une forme chiffrée irréversible, jamais en clair), date de création, rôle, préférences (langue, thème, options d'affichage), abonnements aux bibliothèques, espace de stockage utilisé, et jetons de connexion.
+- **Votre compte** : nom d'utilisateur, adresse e-mail et si elle est vérifiée, mot de passe (conservé uniquement sous une forme chiffrée irréversible, jamais en clair), date de création, rôle, préférences (langue, thème, unités de mesure, animations, options d'affichage), abonnements aux bibliothèques, espace de stockage utilisé, et jetons de connexion.
 - **Connexion avec Google**, si vous l'utilisez : l'identifiant de votre compte Google, votre adresse e-mail, votre nom et votre photo de profil tels que Google nous les transmet, ainsi que les jetons d'accès fournis par Google. Nous ne demandons l'accès à aucune autre de vos données Google.
-- **Votre contenu** : vos personnages et leurs propriétés, leurs journaux de jets (les 100 plus récents par personnage), leur expérience, vos dossiers, tables de jeu et bibliothèques.
+- **Votre contenu** : vos personnages et leurs propriétés, leurs journaux de jets et d'actions (les 100 plus récents par personnage), leur expérience, vos dossiers, vos tableaux de groupe (leurs membres et leur suivi d'initiative), vos bibliothèques, et l'adresse du webhook Discord que vous pouvez renseigner sur un personnage.
 - **Vos fichiers** : les images que vous envoyez et les archives de vos personnages.
-- **Données techniques** : l'hébergeur conserve des journaux techniques, dont les adresses IP, pour faire fonctionner et sécuriser le service.
+- **Données techniques** : le serveur et Cloudflare, qui publie le service, traitent les adresses IP et conservent des journaux techniques pour faire fonctionner et sécuriser le service.
 
 Nous n'utilisons aucun outil de mesure d'audience, de publicité ou de profilage, et nous ne vendons ni ne louons vos données.
 
 ## Pourquoi, et sur quelle base légale
 
-- **Fournir le service** : créer et gérer votre compte, enregistrer et afficher votre contenu, envoyer les e-mails de vérification d'adresse et de réinitialisation du mot de passe. C'est nécessaire à l'exécution des [conditions d'utilisation](/terms) que vous acceptez (article 6.1.b du RGPD).
-- **Sécuriser le service et prévenir les abus** : limitation du nombre de requêtes et journaux techniques. C'est notre intérêt légitime (article 6.1.f du RGPD).
+- **Fournir le service** : créer et gérer votre compte, enregistrer et afficher votre contenu, le partager et faire fonctionner les tableaux de groupe, envoyer les e-mails de vérification d'adresse et de réinitialisation du mot de passe, et publier le journal d'un personnage sur Discord quand vous y renseignez un webhook. C'est nécessaire à l'exécution des [conditions d'utilisation](/terms) que vous acceptez (article 6.1.b du RGPD).
+- **Sécuriser le service et prévenir les abus** : limitation du nombre de requêtes, journaux techniques et sauvegardes de la base de données. C'est notre intérêt légitime (article 6.1.f du RGPD).
 
 ## Qui peut voir vos données
 
-- **Les autres utilisateurs** voient ce que vous partagez : votre nom d'utilisateur apparaît auprès des personnes avec qui vous partagez un personnage ou une bibliothèque, et toute personne qui en a le lien peut consulter un personnage ou une bibliothèque que vous rendez public.
+- **Les autres utilisateurs** voient ce que vous partagez :
+  - votre nom d'utilisateur apparaît auprès des personnes avec qui vous partagez un personnage ou une bibliothèque ;
+  - toute personne qui en a le lien peut consulter un personnage ou une bibliothèque que vous rendez public, y compris par l'interface de programmation (API) de l'application ;
+  - quand vous rejoignez un tableau de groupe avec des personnages, son meneur de jeu peut consulter et modifier ces personnages tant qu'ils restent sur le tableau, et les autres membres voient leur nom, leurs points de vie, leurs états et leur tour ; les membres d'un tableau voient les noms d'utilisateur les uns des autres.
 - **Nos prestataires**, qui traitent les données pour notre compte uniquement :
-  - Meteor Software (Galaxy), qui héberge l'application ;
-  - MongoDB (Atlas), qui héberge la base de données ;
+  - Cloudflare, qui publie le service sur Internet : toutes les connexions passent par son réseau, qui en assure le chiffrement (HTTPS) ;
   - Amazon Web Services (S3), qui stocke les fichiers, à Paris (France) ;
-  - le prestataire qui envoie les e-mails du service ;
+  - Brevo, qui envoie les e-mails du service ;
   - Google, uniquement si vous vous connectez avec Google.
-- **Discord**, uniquement si vous renseignez un webhook Discord sur un personnage : les entrées de son journal y sont alors envoyées.
-- **D'autres sites** : certaines images des bibliothèques sont hébergées sur d'autres sites. Votre navigateur les télécharge directement auprès de ces sites, qui voient alors votre adresse IP.
+- **Les services que votre navigateur contacte directement**, qui voient votre adresse IP et le type de navigateur que vous utilisez (les polices et les icônes sont servies par l'application elle-même) :
+  - Discord, sur la page Discord, qui affiche un module du serveur Discord de la communauté ;
+  - d'autres sites qui hébergent certaines images des bibliothèques.
+- **Discord**, uniquement si vous renseignez un webhook Discord sur un personnage : les entrées de son journal (jets, actions, repos et leurs résultats), son nom, son image et un lien vers sa fiche sont alors publiés sur ce salon Discord, selon les règles de confidentialité de Discord. Les lignes masquées dans l'application ne sont pas envoyées, et seules les personnes qui peuvent modifier le personnage voient l'adresse du webhook.
 
 Certains de ces prestataires sont établis hors de l'Union européenne, notamment aux États-Unis. Ces transferts sont encadrés par les garanties prévues par le RGPD : une décision d'adéquation ou les clauses contractuelles types de la Commission européenne.
 
@@ -126,17 +143,18 @@ Certains de ces prestataires sont établis hors de l'Union européenne, notammen
 
 - Votre compte et votre contenu sont conservés tant que votre compte existe.
 - Les propriétés de personnage et les entrées de bibliothèque que vous supprimez restent restaurables environ un jour, puis sont effacées définitivement.
-- Seuls les 100 journaux de jets les plus récents de chaque personnage sont conservés.
-- Supprimer votre compte (page Compte) efface immédiatement votre compte, vos personnages, vos bibliothèques, vos dossiers, vos images et vos archives.
-- L'hébergeur conserve ses journaux techniques pendant une durée limitée.
+- Seules les 100 entrées les plus récentes du journal de chaque personnage sont conservées.
+- Supprimer votre compte (page Compte) efface immédiatement votre compte, vos personnages, vos bibliothèques, vos collections de bibliothèques, vos dossiers, vos images et vos archives. Il vous retire aussi des personnages, des bibliothèques et des collections partagés avec vous et des tableaux de groupe que vous avez rejoints, et retire vos personnages de tous les tableaux et suivis d'initiative.
+- La base de données est sauvegardée chaque jour, et chaque sauvegarde est conservée 7 jours : les données que vous supprimez disparaissent des sauvegardes dans ce délai.
+- Les journaux techniques du serveur sont renouvelés dès qu'ils atteignent quelques dizaines de mégaoctets. Cloudflare conserve ses propres journaux selon ses règles.
 
 ## Cookies et stockage dans votre navigateur
 
-L'application ne dépose aucun cookie publicitaire ou de mesure d'audience. Elle enregistre dans le stockage local de votre navigateur votre jeton de connexion (pour que vous restiez connecté) et votre choix de langue. Ces éléments sont strictement nécessaires au fonctionnement du service et ne requièrent donc pas votre consentement.
+L'application ne dépose aucun cookie publicitaire ou de mesure d'audience. Elle enregistre dans le stockage local de votre navigateur votre jeton de connexion (pour que vous restiez connecté), votre choix de langue et l'affichage de votre liste de personnages. Ces éléments sont soit strictement nécessaires au fonctionnement du service, soit limités à mémoriser vos choix, et ne requièrent donc pas votre consentement.
 
 ## Sécurité
 
-Les échanges sont chiffrés (HTTPS), les mots de passe ne sont jamais stockés en clair, et les fichiers sont conservés dans un espace privé accessible uniquement au travers de l'application.
+Les échanges sont chiffrés (HTTPS) jusqu'à Cloudflare, puis par un tunnel chiffré jusqu'au serveur. Les mots de passe ne sont jamais stockés en clair, les fichiers sont conservés dans un espace privé accessible uniquement au travers de l'application, et la base de données est sauvegardée chaque jour.
 
 ## Vos droits
 

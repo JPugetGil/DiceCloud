@@ -32,6 +32,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.1143.0",
     "@babel/runtime": "^7.29.7",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/roboto": "^5.3.0",
+    "@mdi/font": "^5.9.55",
     "@swc/helpers": "^0.5.17",
     "alea": "^1.0.1",
     "chroma-js": "^3.2.0",
