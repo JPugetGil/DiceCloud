@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import libraryLanguage, { matchesLanguage } from '/imports/api/library/libraryLanguage';
+import libraryLanguage, { matchesLanguage, nodeLanguages } from '/imports/api/library/libraryLanguage';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import { setLibraryLanguage, setLibraryRecommended } from '/imports/api/library/methods/libraryLanguageMethods';
@@ -73,5 +73,22 @@ describe('Setting a library\'s language and recommendation', function () {
     assert.isTrue((await Libraries.findOneAsync(libraryId))?.recommended);
     await as(setLibraryRecommended, adminId, { collection: 'libraries', _id: libraryId, recommended: false });
     assert.notProperty(await Libraries.findOneAsync(libraryId), 'recommended');
+  });
+});
+
+describe('Library node languages', function () {
+  it('gives each node its library\'s language, field or guess, and leaves the unknown out', function () {
+    const libraries = new Map([
+      ['fr', { name: 'La Forge de Reliques de Khourdaet' }],
+      ['set', { language: 'en', name: 'Bibliothèque' }],
+      ['vexus', { name: 'Vexus' }],
+    ]);
+    const nodes = [
+      { _id: 'a', root: { id: 'fr' } },
+      { _id: 'b', root: { id: 'set' } },
+      { _id: 'c', root: { id: 'vexus' } },
+      { _id: 'd', root: { id: 'hidden' } },
+    ];
+    assert.deepEqual(nodeLanguages(nodes, libraries), { a: 'fr', b: 'en' });
   });
 });

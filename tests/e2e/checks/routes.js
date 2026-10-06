@@ -42,7 +42,8 @@ main(async () => {
     const collection = await db.collection('libraryCollections').findOne({ public: true }, { projection: { _id: 1 } });
     return [library && `/library/${library._id}`, collection && `/library-collection/${collection._id}`].filter(Boolean);
   });
-  const signedIn = [...SIGNED_IN, `/character/${creatureId}`, `/print-character/${creatureId}`, ...extra,
+  const signedIn = [...SIGNED_IN, `/character/${creatureId}`, `/print-character/${creatureId}`,
+    `/print-character/${creatureId}?layout=official`, `/print-cards/${creatureId}`, ...extra,
     ...(process.env.E2E_EXTRA_ROUTES ? process.env.E2E_EXTRA_ROUTES.split(',') : [])];
   const first = await checkRoutes('signed in', signedIn, true);
   const second = await checkRoutes('signed out', SIGNED_OUT, false);

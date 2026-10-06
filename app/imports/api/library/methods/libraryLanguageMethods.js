@@ -4,7 +4,8 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
-import { LIBRARY_LANGUAGES } from '/imports/api/library/libraryLanguage';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { LIBRARY_LANGUAGES, nodeLanguages } from '/imports/api/library/libraryLanguage';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { assertCanManageRoles } from '/imports/api/users/assertRolePermissions';
 
@@ -61,5 +62,36 @@ export const setLibraryRecommended = new ValidatedMethod({
     await collectionOf(collection).updateAsync(_id, recommended
       ? { $set: { recommended: true } }
       : { $unset: { recommended: 1 } });
+  },
+});
+
+/**
+ * The language of the library each node comes from, for the nodes of the
+ * libraries the user can see: the printed cards set it as their text's
+ * `lang`, so that words break by the text's rules (a French library read in
+ * an English interface). { nodeId: 'en' | 'fr' }; unknown nodes are left out.
+ */
+export const libraryNodeLanguages = new ValidatedMethod({
+  name: 'libraries.nodeLanguages',
+  validate: new SimpleSchema({
+    nodeIds: { type: Array, maxCount: 2000 },
+    'nodeIds.$': { type: String, max: 32 },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: { numRequests: 5, timeInterval: 5000 },
+  async run({ nodeIds }) {
+    // The client has neither the nodes nor every library
+    if (Meteor.isClient) return {};
+    // LibraryNodes is read when called (import cycle), as listRulesets does
+    const nodes = await LibraryNodes.find(
+      { _id: { $in: nodeIds } }, { fields: { root: 1 } },
+    ).fetchAsync();
+    const libraryIds = [...new Set(nodes.map(node => node.root?.id).filter(Boolean))];
+    const userId = this.userId;
+    const libraries = await Libraries.find({
+      _id: { $in: libraryIds },
+      $or: [{ public: true }, ...userId ? [{ owner: userId }, { readers: userId }, { writers: userId }] : []],
+    }, { fields: { name: 1, description: 1, language: 1 } }).fetchAsync();
+    return nodeLanguages(nodes, new Map(libraries.map(library => [library._id, library])));
   },
 });

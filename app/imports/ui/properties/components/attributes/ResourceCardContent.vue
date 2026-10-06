@@ -5,6 +5,7 @@
         variant="text"
         icon
         size="small"
+        :aria-label="`${$t('increment.add')} (${model.name})`"
         :disabled="(optimisticValue >= model.total && !model.ignoreUpperLimit) || context.editPermission === false"
         @clicks="(times, ack) => increment(times, ack)"
         @click="optimisticIncrement += 1"
@@ -15,6 +16,7 @@
         variant="text"
         icon
         size="small"
+        :aria-label="`${$t('increment.subtract')} (${model.name})`"
         :disabled="(optimisticValue <= 0 && !model.ignoreLowerLimit) || context.editPermission === false"
         @clicks="(times, ack) => increment(-1 * times, ack)"
         @click="optimisticIncrement -= 1"

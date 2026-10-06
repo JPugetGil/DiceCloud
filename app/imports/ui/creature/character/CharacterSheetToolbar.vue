@@ -109,6 +109,16 @@
                   </v-icon> {{ $t('common.print') }}
                 </v-list-item-title>
               </v-list-item>
+              <v-list-item
+                :to="printCardsUrl"
+                data-id="print-cards-menu-item"
+              >
+                <v-list-item-title>
+                  <v-icon start>
+                    mdi-cards-outline
+                  </v-icon> {{ $t('printCards.menu') }}
+                </v-list-item-title>
+              </v-list-item>
               <v-list-item @click="showCharacterForm">
                 <v-list-item-title>
                   <v-icon start>
@@ -310,6 +320,11 @@ const toolbarColor = computed(() => {
 const printUrl = computed(() => {
   if (!creature.value) return '';
   return `/print-character/${creature.value._id}/${getCreatureUrlName(creature.value)}`;
+});
+
+const printCardsUrl = computed(() => {
+  if (!creature.value) return '';
+  return `/print-cards/${creature.value._id}/${getCreatureUrlName(creature.value)}`;
 });
 
 function toggleDrawer() {

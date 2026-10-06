@@ -36,7 +36,7 @@ meteor npm run check:contrast        # one check, by its npm script
 
 | Check | What it does | What it caught |
 |-------|--------------|----------------|
-| `routes` | Loads the main pages signed in and signed out (plus a public library and collection, and `E2E_EXTRA_ROUTES`); fails on a console error or warning, an empty page, "[object Promise]", or a subheader without its indent | Pages that did not mount; broken publications; card titles against the card's edge |
+| `routes` | Loads the main pages signed in and signed out (plus a public library and collection, the printed sheet in both layouts, the printed cards, and `E2E_EXTRA_ROUTES`); fails on a console error or warning, an empty page, "[object Promise]", or a subheader without its indent | Pages that did not mount; broken publications; card titles against the card's edge |
 | `flows` | The hit points heading the Stats tab (combat summary), every character sheet tab, the speed dial, creating a property, editing it, finding it through the character search, a condition chip on and off, the character list's search; then removes the property | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
 | `actions` | An action may target the acting character but not one the user cannot edit; a skill check through its dialog; the Short rest button end to end; no log entry cut off | The check dialog failing as it opened; log entries clipped; guards the rule that replaced tabletop ids, under which any character id passed outside a tabletop (found in the code) |
 | `docs-navigation` | Navigates the default docs inside the app and loads one directly | Documents that showed a title and no content after navigation |
@@ -47,6 +47,7 @@ meteor npm run check:contrast        # one check, by its npm script
 | `palette` | Every theme colour role, as Vuetify applies it, against every surface of its theme and under its on- colour; then the 190 colours users pick from, under the text colour the app gives them (`onColor`, see DESIGN_SYSTEM.md) | Brand red at 3.6:1 as text on dark cards; white titles at 2.6:1 on light blue notes |
 | `accessibility` | axe-core's WCAG 2.1 A and AA rules over the main pages, in both themes, at 1400 and 390 px; the Journal's coloured notes, title against card (axe cannot measure them under the hover highlight) | Light-theme labels and subtitles at 4.3:1; icon buttons without a name; zoom disabled on phones; tooltips and lists that screen readers found empty or invalid |
 | `slot-fill` | Opens a library slot in test mode and compares the fillers listed (and the "requirements not met" count) with what the database holds; skipped when the test account can use no library | Every slot fill dialog listing nothing ("Explore the Library!"); fillers offered although their requirements failed |
+| `print-cards` | Gives the test character a prepared spell and an item from a public library, then: the sheet's menu opens `/print-cards` with the spell among the default cards, the page lays out a spell card and an item card, no card shows a brace or overflows its body, the cards keep their title in print, the PDF has one A4 page per sheet, each card has its library's language, with backs every back sits opposite its front; removes them again; skipped without a public library holding both | Built with the printable cards: their header hidden in print by the app bar's `header { display: none }`; a layout run while printing (the character recomputed) that measured nothing and gave 28 pages for 8 sheets; a page opened from the menu that laid out no card |
 
 The server's own log can hold errors a clean browser console hides. Keep the dev
 server's output (`meteor 2>&1 | tee /tmp/dicecloud-dev.log`) and run
@@ -84,4 +85,5 @@ meteor node tools/dom.js /account '.theme-preference'
   account and a character; `flows` creates a property and removes it again,
   and gives the test character a condition and takes it away;
   `actions` takes a short rest with the test character; `contrast` sets the test
-  account's theme preference to "Match device theme".
+  account's theme preference to "Match device theme"; `print-cards` gives the
+  test character a library spell and item, and removes them again.

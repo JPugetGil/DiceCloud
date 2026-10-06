@@ -24,3 +24,17 @@ export function matchesLanguage(doc, filter) {
   const language = libraryLanguage(doc);
   return !language || language === filter;
 }
+
+/**
+ * The language each library node is written in, from its library's
+ * (`libraries` by id): for the printed cards, whose words then break by the
+ * text's own rules (hyphens), whatever the interface's language
+ */
+export function nodeLanguages(nodes, librariesById) {
+  const languages = {};
+  for (const node of nodes || []) {
+    const language = libraryLanguage(librariesById.get?.(node.root?.id) ?? librariesById[node.root?.id]);
+    if (language) languages[node._id] = language;
+  }
+  return languages;
+}

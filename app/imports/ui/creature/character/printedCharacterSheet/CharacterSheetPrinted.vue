@@ -27,7 +27,59 @@
         theme's grey on every page (D9). A div, for the transition
       -->
       <div v-else>
-        <v-theme-provider theme="light">
+        <!-- On screen only: the layout, and the paper of the official one -->
+        <div class="print-layout-controls no-print d-flex flex-wrap ga-4 align-center justify-center pa-3">
+          <v-btn-toggle
+            :model-value="layout"
+            mandatory
+            density="comfortable"
+            variant="outlined"
+            divided
+            :aria-label="$t('officialSheet.layout')"
+            data-id="print-layout"
+            @update:model-value="value => setQuery('layout', value === 'official' ? 'official' : undefined)"
+          >
+            <v-btn value="classic">
+              {{ $t('officialSheet.layoutClassic') }}
+            </v-btn>
+            <v-btn value="official">
+              {{ $t('officialSheet.layoutOfficial') }}
+            </v-btn>
+          </v-btn-toggle>
+          <v-btn-toggle
+            v-if="layout === 'official'"
+            :model-value="paper"
+            mandatory
+            density="comfortable"
+            variant="outlined"
+            divided
+            :aria-label="$t('printCards.paper')"
+            @update:model-value="value => setQuery('paper', value)"
+          >
+            <v-btn value="a4">
+              {{ $t('printCards.a4') }}
+            </v-btn>
+            <v-btn value="letter">
+              {{ $t('printCards.letter') }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+        <v-theme-provider
+          v-if="layout === 'official'"
+          theme="light"
+        >
+          <div :style="officialZoom">
+            <official-sheet
+              :creature-id="creatureId"
+              :header="officialHeader"
+              :paper="paper"
+            />
+          </div>
+        </v-theme-provider>
+        <v-theme-provider
+          v-else
+          theme="light"
+        >
           <div
             class="page pa-3"
             :style="previewZoom"
@@ -84,7 +136,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount, provide, reactive } from 'vue';
+import { computed, watch, onMounted, onBeforeUnmount, provide, reactive, defineAsyncComponent } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -98,6 +150,10 @@ import PrintedSpells from '/imports/ui/creature/character/printedCharacterSheet/
 
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import QrcodeVue from 'qrcode.vue'
+import { defaultPaper } from '/imports/ui/creature/character/printedCards/cardLogic';
+import { PAGE_SIZES } from '/imports/ui/creature/character/printedOfficial/officialLogic';
+// The official-looking layout loads only when chosen
+const OfficialSheet = defineAsyncComponent(() => import('/imports/ui/creature/character/printedOfficial/OfficialSheet.vue'));
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
@@ -119,7 +175,15 @@ const variables = autorun(() => CreatureVariables.findOne({ _creatureId: creatur
 
 const race = autorun(() => {
   if (typeof variables.value?.race?.value?.value === 'string') return variables.value.race.value.value;
+  // A subrace says more ("High Elf"); the Libraries of Vexus tag only it,
+  // their race being a linked constant ("elf")
   const prop = CreatureProperties.findOne({
+    ...getFilter.descendantsOfRoot(creatureId.value),
+    tags: 'subrace',
+    removed: { $ne: true },
+    inactive: { $ne: true },
+    overridden: { $ne: true },
+  }) || CreatureProperties.findOne({
     ...getFilter.descendantsOfRoot(creatureId.value),
     tags: 'race',
     removed: { $ne: true },
@@ -182,12 +246,33 @@ const creatureUrl = computed(() => {
 
 const level = computed(() => variables.value?.level?.value);
 
+// ?layout=official: the official-looking sheet (step 4); the classic one stays
+// the default, with its full descriptions in columns
+const layout = computed(() => route.query.layout === 'official' ? 'official' : 'classic');
+const paper = computed(() => route.query.paper in PAGE_SIZES ? route.query.paper : defaultPaper(navigator.language));
+function setQuery(key, value) {
+  router.replace({ query: { ...route.query, [key]: value || undefined } });
+}
+const officialHeader = computed(() => ({
+  name: creature.value?.name,
+  classes: (classes.value || []).map(c => `${c.name} ${c.level ?? ''}`.trim()).join(', '),
+  race: race.value,
+  background: background.value,
+  alignment: creature.value?.alignment,
+  level: level.value,
+  gender: creature.value?.gender,
+}));
+
 // Below 800px the A4 page is scaled down to fit the screen, rather than cut
 const { width: screenWidth } = useDisplay();
 const A4_WIDTH = 794;
 const previewZoom = computed(() => screenWidth.value < 800
   ? { zoom: Math.max(0.3, (screenWidth.value - 16) / A4_WIDTH) }
   : undefined);
+const officialZoom = computed(() => {
+  const pagePx = (PAGE_SIZES[paper.value]?.width || 210) * 96 / 25.4 + 16;
+  return screenWidth.value < pagePx ? { zoom: Math.max(0.3, (screenWidth.value - 16) / pagePx) } : undefined;
+});
 
 const highestLevels = computed(() => {
   let highestLevelsMap = {};
@@ -411,8 +496,13 @@ onBeforeUnmount(() => {
     background-color: white !important;
   }
   /* Unscoped on purpose: the snackbar is teleported out of this component */
-  header, nav, .v-snackbar, .dialog-stack {
+  header, nav, .v-snackbar, .dialog-stack, .character-sheet-printed .no-print {
     display: none !important;
+  }
+  /* The official layout prints at its own size */
+  .character-sheet-printed .official-sheet,
+  .character-sheet-printed .official-sheet * {
+    zoom: 1 !important;
   }
   .v-main {
     padding: 0 !important;

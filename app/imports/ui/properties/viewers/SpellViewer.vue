@@ -5,7 +5,7 @@
   >
     <property-field
       :name="$t('forms.spell.school')"
-      :value="model.school"
+      :value="school"
     />
     <property-field
       :name="$t('forms.level')"
@@ -35,6 +35,7 @@ import { computed } from 'vue';
 import ActionViewer from './ActionViewer.vue';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import { useI18n } from 'vue-i18n';
+import { translateOr } from '/imports/ui/i18n';
 
 const { t } = useI18n();
 
@@ -45,8 +46,14 @@ const props = defineProps({
   },
 });
 
+// Spell schools are stored in English, lower case
+const school = computed(() => props.model.school
+  && translateOr(`spellSchools.${props.model.school}`, props.model.school));
+
 const levelText = computed(() => {
-  return levelText[props.model.level]
+  const level = props.model.level;
+  if (level === undefined || level === null) return undefined;
+  return level === 0 ? t('forms.spell.cantrip') : t('forms.spell.levelN', { level });
 });
 
 const spellComponents = computed(() => {

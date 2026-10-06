@@ -68,6 +68,7 @@ const CharacterSheetToolbar = () => import('/imports/ui/creature/character/Chara
 const CharacterSheetRightDrawer = () => import('/imports/ui/creature/character/CharacterSheetRightDrawer.vue');
 const CharacterSheetPrinted = () => import('/imports/ui/creature/character/printedCharacterSheet/CharacterSheetPrinted.vue');
 const CharacterSheetPrintedToolbar = () => import('/imports/ui/creature/character/printedCharacterSheet/CharacterSheetPrintedToolbar.vue');
+const CharacterCardsPrinted = () => import('/imports/ui/creature/character/printedCards/CharacterCardsPrinted.vue');
 const SignInPage = () => import('/imports/ui/pages/SignInPage.vue');
 const RegisterPage = () => import('/imports/ui/pages/RegisterPage.vue');
 const IconAdmin = () => import('/imports/ui/icons/IconAdmin.vue');
@@ -235,6 +236,16 @@ const routes = [{
     },
     meta: {
       title: 'pageTitle.printCharacterSheet',
+    },
+  }, {
+    name: 'printCharacterCards',
+    path: '/print-cards/:id/:urlName?',
+    components: {
+      default: CharacterCardsPrinted,
+      toolbar: CharacterSheetPrintedToolbar,
+    },
+    meta: {
+      title: 'pageTitle.printCards',
     },
   }, {
     name: 'signIn',

@@ -24,6 +24,16 @@
         </div>
       </v-fade-transition>
     </v-toolbar-title>
+    <!-- The sheet and the cards print from the same toolbar: a link to the other -->
+    <v-btn
+      v-if="creature"
+      variant="text"
+      :to="otherPrintUrl"
+      :prepend-icon="onCards ? 'mdi-file-document-outline' : 'mdi-cards-outline'"
+      data-id="print-switch"
+    >
+      {{ onCards ? $t('printCards.openSheet') : $t('printCards.openFromSheet') }}
+    </v-btn>
     <template #extension>
       <div
 
@@ -82,6 +92,14 @@ const toolbarColor = computed(() => {
   }
 });
 
+
+// The same toolbar serves the printed sheet and the printed cards
+const onCards = computed(() => route.name === 'printCharacterCards');
+const otherPrintUrl = computed(() => {
+  if (!creature.value) return;
+  const page = onCards.value ? 'print-character' : 'print-cards';
+  return `/${page}/${creature.value._id}/${getCreatureUrlName(creature.value)}`;
+});
 
 const characterUrl = computed(() => {
   if (!creature.value) return;
