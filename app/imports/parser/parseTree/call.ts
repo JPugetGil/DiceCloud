@@ -106,10 +106,13 @@ const call: CallFactory = {
     });
 
     try {
-      // Run the function
+      // Run the function. Functions that roll dice (reroll, explode, resolve)
+      // roll them through the input provider, as a roll node does: in an
+      // action, the action's own dice
       const value = await func.fn.apply({
         scope,
         context,
+        inputProvider,
       }, mappedArgs);
 
       const valueType = typeof value;

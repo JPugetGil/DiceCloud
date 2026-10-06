@@ -19,6 +19,8 @@ export interface EngineAction {
   seed?: string;
   // How many dice the server has revealed to the client (drawDice)
   revealedCursor?: number;
+  // When the server inserted it: removeAbandonedActions removes it after a while
+  insertedAt?: Date;
 }
 
 /*
@@ -63,6 +65,14 @@ const ActionSchema = new SimpleSchema({
   revealedCursor: {
     type: SimpleSchema.Integer,
     min: 0,
+    optional: true,
+  },
+  // Set by the server when it inserts the action: one left in progress (no
+  // action replaced it, it never ran) is removed after a while, and logged as
+  // abandoned if its dice were revealed (removeAbandonedActions). An action
+  // inserted before this field counts as old
+  insertedAt: {
+    type: Date,
     optional: true,
   },
   // Applied properties

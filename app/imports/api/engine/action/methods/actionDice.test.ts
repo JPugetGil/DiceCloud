@@ -13,19 +13,27 @@ import { drawDice } from '/imports/api/engine/action/methods/drawDice';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';
-import getDeterministicDiceRoller, { drawDiceAt } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+import { drawDiceAt } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
 import inputProviderForTests from '/imports/api/engine/action/functions/userInput/inputProviderForTests.testFn';
 import {
   allLogContent, createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
+// The server's dice: node:crypto, which the client's bundle of the tests has not
+let actionDice: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice');
+let createHmac: typeof import('node:crypto').createHmac;
 if (Meteor.isServer) {
   // Unit tests load no entry point: the publications register here
   /* eslint-disable @typescript-eslint/no-require-imports */
   require('/imports/api/creature/creatures/server/publications/singleCharacter');
   require('/imports/api/creature/creatureFolders/server/publications/partyBoard');
+  actionDice = require('/imports/api/engine/action/functions/userInput/server/actionDice');
+  ({ createHmac } = require('node:crypto'));
   /* eslint-enable @typescript-eslint/no-require-imports */
 }
+// The dice a seed gives from a position on (HMAC-SHA256)
+const drawSeededDiceAt = (seed: string, cursor: number, dice: { number: number, diceSize: number }[]) =>
+  actionDice.drawSeededDiceAt(seed, cursor, dice);
 
 /*
  * The dice of an action come from a seed only the server knows: the client
@@ -36,7 +44,7 @@ if (Meteor.isServer) {
 if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server', function () {
   this.timeout(30000);
 
-  const [ownerId, strangerId, creatureId, attackId, damageId, hitPointsId, folderId] = getRandomIds(7);
+  const [ownerId, strangerId, creatureId, attackId, damageId, hitPointsId, folderId, surgeId] = getRandomIds(8);
   const userIds = [ownerId, strangerId];
   const creature: TestCreature = {
     _id: creatureId,
@@ -63,6 +71,23 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
         attributeType: 'healthBar',
         variableName: 'hitPoints',
         baseValue: { calculation: '200' },
+      },
+      // Dice that functions roll: every d6 rerolled once, every d6 exploded once
+      {
+        _id: surgeId,
+        type: 'action',
+        name: 'Wild surge',
+        children: [{
+          type: 'roll',
+          name: 'Rerolled',
+          variableName: 'rerolled',
+          roll: { calculation: 'reroll(20d6, 6, true)' },
+        }, {
+          type: 'roll',
+          name: 'Exploded',
+          variableName: 'exploded',
+          roll: { calculation: 'explode(20d6, 1, 1)' },
+        }],
       },
     ],
   };
@@ -136,10 +161,10 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
       await draw(actionId, 0, [{ number: 1, diceSize: 20 }, { number: 2, diceSize: 6 }]), [d20[0], twoD6[0]],
     );
     // Exactly what runAction's roller gives, from the start
-    const roller = getDeterministicDiceRoller(seed!);
+    const roller = actionDice.getActionDiceRoller({ _id: actionId, seed });
     assert.deepEqual([...await roller([{ number: 1, diceSize: 20 }]), ...await roller([{ number: 2, diceSize: 6 }])],
       [d20[0], twoD6[0]]);
-    assert.deepEqual(drawDiceAt(seed!, 1, [{ number: 2, diceSize: 6 }]), twoD6);
+    assert.deepEqual(drawSeededDiceAt(seed!, 1, [{ number: 2, diceSize: 6 }]), twoD6);
     assert.equal((await EngineActions.findOneAsync(actionId))?.revealedCursor, 3);
     // Going back does not lower it
     await draw(actionId, 0, [{ number: 1, diceSize: 20 }]);
@@ -192,8 +217,8 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     assert.lengthOf(damageDice, d20 === 20 ? 8 : 4);
     const { seed } = await EngineActions.findOneAsync(actionId) as EngineAction;
     assert.deepEqual(dice, [
-      drawDiceAt(seed!, 0, [{ number: 1, diceSize: 20 }]),
-      drawDiceAt(seed!, 1, [{ number: damageDice.length, diceSize: 10 }]),
+      drawSeededDiceAt(seed!, 0, [{ number: 1, diceSize: 20 }]),
+      drawSeededDiceAt(seed!, 1, [{ number: damageDice.length, diceSize: 10 }]),
     ]);
     // A client that changes the dice it sends back gains nothing
     const decisions = played._decisions!.map(decision => Array.isArray(decision) ? decision.map(roll => roll.map(() => 20)) : decision);
@@ -208,6 +233,58 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     const hitPoints = await CreatureProperties.findOneAsync(hitPointsId);
     assert.equal(hitPoints?.damage, damage);
     assert.isUndefined(await EngineActions.findOneAsync(actionId), 'the action is done');
+  });
+
+  it('rolls the dice of reroll() and explode() as the action\'s: the same on the client and in runAction, whatever the call\'s random seed', async function () {
+    const actionId = await newAction({
+      task: { prop: await CreatureProperties.findOneAsync(surgeId), targetIds: [] },
+    });
+    const played = await playOnClient(actionId);
+    const shown = allLogContent(played).map(({ name, value }) => ({ name, value }));
+    // 20d6, then their 20 new rolls at once; 20d6, then their 20 explosions
+    const dice = played._decisions?.filter(Array.isArray) as number[][][];
+    assert.deepEqual(dice.map(roll => roll[0].length), [20, 20, 20, 20]);
+    // The action's sequence, drawn by the server
+    const { seed } = await EngineActions.findOneAsync(actionId) as EngineAction;
+    assert.deepEqual(dice.flat(2), drawSeededDiceAt(seed!, 0, [{ number: 80, diceSize: 6 }])[0]);
+    assert.equal((await EngineActions.findOneAsync(actionId))?.revealedCursor, 80);
+
+    // runAction called with a random seed the client chose: the method's
+    // random stream follows it, the action's dice do not
+    const invocation = { randomSeed: 'chosen-by-the-client', userId: ownerId, isSimulation: false };
+    await (DDP as any)._CurrentMethodInvocation.withValue(invocation, () => execute(runAction, ownerId, {
+      actionId, decisions: played._decisions,
+    }));
+    const log = await CreatureLogs.findOneAsync({ creatureId, actionId });
+    assert.exists(log, 'the server logged the action');
+    assert.deepEqual(log!.content.map(({ name, value }: any) => ({ name, value })), shown);
+    assert.include(log!.content.map((line: any) => line.value).join('\n'), `[~~${dice[0][0][0]}~~, ${dice[1][0][0]},`);
+  });
+
+  it('waits out drawDice\'s rate limit on the client, rather than fail the action', async function () {
+    const calls: number[] = [];
+    let limited = 2;
+    const roller = getServerDiceRoller(Random.id(), async ({ cursor }) => {
+      calls.push(cursor);
+      // As DDPRateLimiter refuses a call: the wait in milliseconds in its details
+      if (limited-- > 0) throw Object.assign(new Meteor.Error('too-many-requests', 'Error, too many requests'), {
+        details: { timeToReset: 20 },
+      });
+      return [[4]];
+    });
+    assert.deepEqual(await roller([{ number: 1, diceSize: 6 }]), [[4]]);
+    assert.deepEqual(calls, [0, 0, 0], 'asked again after each wait');
+    // Any other error is the action's
+    const failing = getServerDiceRoller(Random.id(), async () => {
+      throw new Meteor.Error('not-found', 'Action not found');
+    });
+    let error: any;
+    try {
+      await failing([{ number: 1, diceSize: 6 }]);
+    } catch (e) {
+      error = e;
+    }
+    assert.equal(error?.error, 'not-found');
   });
 
   it('logs an action abandoned after its dice were drawn, and none abandoned before', async function () {
@@ -279,7 +356,7 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
       }) as number[][];
       const { seed } = await EngineActions.findOneAsync(actionId) as EngineAction;
       assert.isString(seed);
-      assert.deepEqual(values, drawDiceAt(seed!, 0, [{ number: 1, diceSize: 20 }])[0]);
+      assert.deepEqual(values, drawSeededDiceAt(seed!, 0, [{ number: 1, diceSize: 20 }])[0]);
       // The client's copy of the action, once the server's update has arrived
       for (let i = 0; i < 50 && (await actions.findOneAsync(actionId))?.revealedCursor !== 1; i += 1) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -293,5 +370,64 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     } finally {
       connection.disconnect();
     }
+  });
+});
+
+/*
+ * Die number `position` of an action with a seed is HMAC-SHA256(seed,
+ * position), brought down to 1..faces by rejection: no die can be told from
+ * the others without the seed, and each is computed on its own.
+ */
+if (Meteor.isServer) describe('Action dice: HMAC-SHA256 of the seed and the position', function () {
+  const seed = 'a secret seed, as Random.secret() draws one';
+
+  it('is the HMAC of the seed and the position, read as a 64-bit number', function () {
+    for (let position = 0; position < 50; position += 1) {
+      const word = createHmac('sha256', seed).update(String(position)).digest().readBigUInt64BE(0);
+      // The first word is kept but once in 10^18 times for a d20
+      assert.equal(actionDice.seededDie(seed, position, 20), Number(word % BigInt(20)) + 1, `position ${position}`);
+    }
+  });
+
+  it('gives the same die for the same seed and position, any position directly', function () {
+    const sequence = drawSeededDiceAt(seed, 0, [{ number: 100, diceSize: 12 }])[0];
+    assert.deepEqual(drawSeededDiceAt(seed, 0, [{ number: 100, diceSize: 12 }])[0], sequence);
+    assert.deepEqual(drawSeededDiceAt(seed, 40, [{ number: 3, diceSize: 12 }, { number: 2, diceSize: 12 }]),
+      [sequence.slice(40, 43), sequence.slice(43, 45)]);
+    // A far position, without the dice before it
+    assert.equal(drawSeededDiceAt(seed, 99999, [{ number: 1, diceSize: 12 }])[0][0], actionDice.seededDie(seed, 99999, 12));
+    assert.notDeepEqual(drawSeededDiceAt('another seed', 0, [{ number: 100, diceSize: 12 }])[0], sequence);
+  });
+
+  it('rolls every face of a d20 about as often (chi-square over 6000 dice)', function () {
+    const counts = new Array(20).fill(0);
+    for (const value of drawSeededDiceAt(seed, 0, Array.from({ length: 60 }, () => ({ number: 100, diceSize: 20 }))).flat()) {
+      counts[value - 1] += 1;
+    }
+    const expected = 6000 / 20;
+    const chiSquare = counts.reduce((total, count) => total + (count - expected) ** 2 / expected, 0);
+    // 19 degrees of freedom: a fair die stays under 43.8 999 times in 1000
+    assert.isBelow(chiSquare, 43.8, JSON.stringify(counts));
+    assert.isTrue(counts.every(count => count > 0));
+  });
+
+  it('rolls any number of faces the engine allows, and 1 for a die without two', function () {
+    for (const faces of [2, 3, 100, 2 ** 32 + 1, Number.MAX_SAFE_INTEGER]) {
+      for (let position = 0; position < 20; position += 1) {
+        const value = actionDice.seededDie(seed, position, faces);
+        assert.isTrue(Number.isInteger(value) && value >= 1 && value <= faces, `d${faces}: ${value}`);
+      }
+    }
+    assert.deepEqual([1, 0, -6].map(faces => actionDice.seededDie(seed, 0, faces)), [1, 1, 1]);
+    // Each die takes its position, whatever its faces
+    assert.deepEqual(drawSeededDiceAt(seed, 0, [{ number: 2, diceSize: 1 }, { number: 1, diceSize: 20 }])[1],
+      [actionDice.seededDie(seed, 2, 20)]);
+  });
+
+  it('rolls an action without a seed from its id, with Alea, as before', async function () {
+    const roller = actionDice.getActionDiceRoller({ _id: 'an action id' });
+    assert.deepEqual(await roller([{ number: 3, diceSize: 20 }]), drawDiceAt('an action id', 0, [{ number: 3, diceSize: 20 }]));
+    assert.deepEqual(actionDice.drawActionDiceAt({ _id: 'an action id' }, 3, [{ number: 1, diceSize: 6 }]),
+      drawDiceAt('an action id', 3, [{ number: 1, diceSize: 6 }]));
   });
 });

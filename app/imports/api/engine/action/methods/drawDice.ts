@@ -5,10 +5,19 @@ import { Meteor } from 'meteor/meteor';
 import EngineActions from '/imports/api/engine/action/EngineActions';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
-import { diceCount, drawDiceAt, type DiceRequest } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+import { diceCount, type DiceRequest } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+
+let drawActionDiceAt: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').drawActionDiceAt;
+if (Meteor.isServer) {
+  // require(), not import: the client calls this method, and a static import
+  // would bundle node:crypto into it
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  ({ drawActionDiceAt } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
+}
 
 // The furthest an action's dice can go: far beyond any real action (100
-// properties at most), and short enough to replay on every call
+// properties at most), and short enough to replay on every call for an action
+// that rolls from its id (Alea)
 export const MAX_DICE_CURSOR = 100000;
 // The engine asks for one roll at a time; a roll is at most 100 dice
 const MAX_ROLLS_PER_CALL = 10;
@@ -57,8 +66,9 @@ export const drawDice = new ValidatedMethod({
     if (!action) throw new Meteor.Error('not-found', 'Action not found');
     await assertEditPermission(await getCreature(action.creatureId), this.userId);
 
-    // An action inserted before actions had a seed rolls from its id, as it did
-    const values = drawDiceAt(action.seed ?? actionId, cursor, dice);
+    // HMAC-SHA256 of the seed and each die's position. An action inserted
+    // before actions had a seed rolls from its id, as it did
+    const values = drawActionDiceAt({ _id: actionId, seed: action.seed }, cursor, dice);
 
     // Record the dice as revealed before revealing them. If the action has
     // gone (another action replaced it), nothing is revealed

@@ -148,6 +148,10 @@ const logRoll = new ValidatedMethod({
     },
   }).validator(),
   async run({ roll: typedRoll, creatureId, advantage }) {
+    // The server alone rolls the dice, which the client cannot choose
+    // (rollDice): a line simulated here would show other dice until the
+    // server's replaced it, and the dice tray would throw those
+    if (this.isSimulation) return;
     if (!creatureId) throw new Meteor.Error('no-id',
       'A creature id must be given'
     );

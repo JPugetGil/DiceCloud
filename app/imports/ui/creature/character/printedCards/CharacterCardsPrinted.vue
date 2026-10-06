@@ -161,6 +161,28 @@
           >
             {{ $t('printCards.scaleReminder') }}
           </v-alert>
+          <!-- On screen only, with the controls: the cards are the user's to
+            print, and the About page holds the full credit -->
+          <i18n-t
+            keypath="printCards.iconCredit"
+            scope="global"
+            tag="p"
+            class="text-body-small text-medium-emphasis mt-2 mb-0"
+            data-id="print-cards-icon-credit"
+          >
+            <template #site>
+              <a
+                href="https://game-icons.net/"
+                target="_blank"
+                rel="noopener"
+              >game-icons.net</a>
+            </template>
+            <template #about>
+              <router-link to="/about">
+                {{ $t('pageTitle.about') }}
+              </router-link>
+            </template>
+          </i18n-t>
         </v-card-text>
       </v-card>
 

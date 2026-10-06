@@ -189,6 +189,16 @@ describe('Document tree filters can fetch other documents based on their positio
     assert.sameMembers(parentIds['MongoDB'], ['Databases']);
     assert.sameMembers(parentIds['dbm'], ['Databases']);
   });
+
+  it('Can filter the documents of several roots, and of none', async function () {
+    const ids = async (rootIds: string[]) => (await treeCollection.find(
+      getFilter.descendantsOfAllRoots(rootIds)
+    ).fetchAsync()).map(doc => doc._id);
+    assert.lengthOf(await ids(['root', 'another root']), 6);
+    // A user who can see no library searched them all, or made the
+    // searchLibraryNodes publication throw
+    assert.isEmpty(await ids([]), 'no root, no document');
+  });
 });
 
 describe('Document can be moved withing root without breaking the tree', function () {

@@ -7,11 +7,12 @@ export type DiceRequest = { number: number, diceSize: number }[];
  * Return a function that can be be used as InputProvider.rollDice
  * this function instance must be used for the entire action
  *
- * The dice come from a random number generator seeded with `seed`, one value
- * per die, in the order they are asked for: the same seed gives the same dice
- * in the same order. An action's seed is a secret only the server knows
- * (insertAction); the client gets its dice from the server one roll at a time
- * (drawDice), and runAction replays them from the start with the same seed.
+ * The dice come from Alea, a random number generator seeded with `seed`, one
+ * value per die, in the order they are asked for: the same seed gives the same
+ * dice in the same order. Alea is no cryptographic generator: an action with a
+ * secret seed rolls with HMAC-SHA256 on the server instead (server/actionDice).
+ * This one rolls the dice of an action inserted before actions had a seed,
+ * from its id, and those of a preview (previewAction), which nothing records.
  */
 export default function getDeterministicDiceRoller(
   seed: string
@@ -30,7 +31,7 @@ export default function getDeterministicDiceRoller(
 
 /**
  * The dice a seed gives at a position: the dice drawn after the first
- * `cursor` values of the sequence, as getDeterministicDiceRoller would roll
+ * `cursor` values of Alea's sequence, as getDeterministicDiceRoller would roll
  * them once `cursor` dice have been rolled before
  */
 export function drawDiceAt(seed: string, cursor: number, dice: DiceRequest): number[][] {

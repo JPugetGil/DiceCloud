@@ -109,7 +109,9 @@ const props = defineProps({
 const experiencesRemovalLoading = ref(new Set());
 const recomputeLoading = ref(false);
 
-const { ready: experiencesReady } = subscribe(() => ['experiences', props.creatureId]);
+// Opened without a creature (the e2e check opens every dialog without its
+// data), there is nothing to ask the server for: false subscribes to nothing
+const { ready: experiencesReady } = subscribe(() => props.creatureId ? ['experiences', props.creatureId] : false);
 
 const { result: experiences } = autorun(() => Experiences.find({
   creatureId: props.creatureId

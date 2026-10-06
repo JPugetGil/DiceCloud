@@ -5,17 +5,15 @@ export default function getSlotFillFilter({ slot, libraryIds }) {
   if (!slot) throw 'Slot is required for getSlotFillFilter';
   if (!libraryIds) throw 'LibraryIds is required for getSlotFillFilter';
 
+  // Only the libraries given: with none, no filler. Skipping the filter for an
+  // empty list offered the fillers of every library, private ones included
+  /** @type {Record<string, any>} a MongoDB selector */
   let filter = {
     fillSlots: true,
     removed: { $ne: true },
     $and: [],
+    ...getFilter.descendantsOfAllRoots(libraryIds),
   };
-  if (libraryIds.length) {
-    Object.assign(
-      filter,
-      getFilter.descendantsOfAllRoots(libraryIds)
-    );
-  }
   if (slot.slotType) {
     filter.$and.push({
       $or: [{

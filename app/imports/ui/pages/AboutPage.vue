@@ -56,6 +56,32 @@
             </v-list-item-subtitle>
           </v-list-item>
         </v-list>
+        <h3 class="text-title-large my-0">
+          {{ $t('about.credits') }}
+        </h3>
+        <!-- CC BY 3.0 asks for the authors, the source and the license -->
+        <i18n-t
+          keypath="about.iconsCredit"
+          scope="global"
+          tag="p"
+          class="my-2"
+          data-id="icons-credit"
+        >
+          <template #site>
+            <a
+              href="https://game-icons.net/"
+              target="_blank"
+              rel="noopener"
+            >game-icons.net</a>
+          </template>
+          <template #license>
+            <a
+              :href="$t('about.iconsLicenseUrl')"
+              target="_blank"
+              rel="noopener license"
+            >{{ $t('about.iconsLicense') }}</a>
+          </template>
+        </i18n-t>
       </div>
     </section>
   </div>

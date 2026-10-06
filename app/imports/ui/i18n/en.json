@@ -92,7 +92,11 @@
     "samThanks": "without her love, DiceCloud could not hope to exist",
     "heroes": "The \"Heroes\" of Asaea",
     "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
-    "supporters": "Supporters"
+    "supporters": "Supporters",
+    "credits": "Credits",
+    "iconsCredit": "The icons of the properties and of the printed cards come from {site}, by Lorc, Delapouite, Skoll, sbed, Willdabeast and other contributors, under the {license} license.",
+    "iconsLicense": "CC BY 3.0",
+    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/"
   },
   "discord": {
     "communityTitle": "DiceCloud on Discord",
@@ -1765,6 +1769,7 @@
     "container": "Container",
     "anywhere": "Anywhere",
     "scaleReminder": "For 63 × 88 mm cards, print at 100% scale (\"Actual size\"), without \"Fit to page\". Cut along the marks in the margins.",
+    "iconCredit": "Icons from {site} (CC BY 3.0), credited on the {about} page.",
     "cardCount": "no cards | {count} card | {count} cards",
     "sheetCount": "no sheets | on {count} sheet | on {count} sheets",
     "empty": "No card for this selection: choose other spells or items above.",

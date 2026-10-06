@@ -22,6 +22,16 @@ describe('Slot fill filter', function () {
     );
   });
 
+  it('offers no filler when no library is given', function () {
+    // Not every library: a user who can see none, or a character whose
+    // libraries the user cannot see, used to be offered all of them
+    const filter = getSlotFillFilter({
+      slot: { slotType: 'feature' },
+      libraryIds: [],
+    });
+    assert.deepStrictEqual(filter['root.id'], { $in: [] });
+  });
+
   it('filters using basic slot tags', function () {
     const filter = getSlotFillFilter({
       slot: {

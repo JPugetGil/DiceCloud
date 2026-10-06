@@ -23,6 +23,22 @@ function cacheOf(actionId: string) {
 
 type DrawFn = (args: { actionId: string, cursor: number, dice: DiceRequest }) => Promise<number[][]>;
 
+// A long chain of rerolls or explosions asks for its rolls one round after
+// the other: past drawDice's rate limit, wait for it a few times rather than
+// fail the action
+const MAX_RATE_LIMIT_WAITS = 10;
+
+async function drawWhenAllowed(draw: DrawFn, args: Parameters<DrawFn>[0]) {
+  for (let waits = 0; ; waits += 1) {
+    try {
+      return await draw(args);
+    } catch (error: any) {
+      if (error?.error !== 'too-many-requests' || waits >= MAX_RATE_LIMIT_WAITS) throw error;
+      await new Promise(resolve => setTimeout(resolve, error.details?.timeToReset ?? 1000));
+    }
+  }
+}
+
 /**
  * InputProvider.rollDice for the client's simulation of an action: the dice
  * come from the server (drawDice), which alone knows the action's seed, in the
@@ -53,7 +69,7 @@ export default function getServerDiceRoller(
     const key = `${start}:${JSON.stringify(request)}`;
     let values = cache.get(key);
     if (!values) {
-      values = await draw({ actionId, cursor: start, dice: request });
+      values = await drawWhenAllowed(draw, { actionId, cursor: start, dice: request });
       cache.set(key, values);
     }
     // Copies: the engine may change what it is given

@@ -261,10 +261,11 @@ export const getFilter = {
     }
   },
   /**
-   * @param rootIds a non-empty array of ids
+   * The documents under any of the roots. Under no root, none: a user who can
+   * see no library searches an empty list (searchLibraryNodes), rather than
+   * every library or an exception
    */
   descendantsOfAllRoots(rootIds: string[]) {
-    if (!rootIds.length) throw 'rootIds can\'t be empty';
     return {
       'root.id': { $in: rootIds },
     };

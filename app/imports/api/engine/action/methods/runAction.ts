@@ -8,6 +8,15 @@ import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
+import getDeterministicDiceRoller from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+
+let getActionDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getActionDiceRoller;
+if (Meteor.isServer) {
+  // require(), not import: the client calls this method, and a static import
+  // would bundle node:crypto into it
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  ({ getActionDiceRoller } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
+}
 
 export const runAction = new ValidatedMethod({
   name: 'actions.runAction',
@@ -35,7 +44,10 @@ export const runAction = new ValidatedMethod({
     // in the same order. An action inserted before actions had a seed rolls
     // from its id, as it did. The client's simulation has no seed: it shows
     // the dice it was given until the server's results replace them
-    const userInput = getReplayChoicesInputProvider(action.seed ?? actionId, decisions, {
+    const rollDice = this.isSimulation
+      ? getDeterministicDiceRoller(actionId)
+      : getActionDiceRoller({ _id: actionId, seed: action.seed });
+    const userInput = getReplayChoicesInputProvider(rollDice, decisions, {
       replayDice: !!this.isSimulation,
     });
 

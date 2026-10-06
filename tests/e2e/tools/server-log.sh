@@ -9,4 +9,4 @@
 LOG="${1:?usage: server-log.sh <dev-server-log> [from-line]}"
 FROM="${2:-0}"
 tail -n +"$FROM" "$LOG" | grep -aE 'Exception|TypeError|ReferenceError|Error:|Unhandled|ERROR' \
-  | grep -av 'Exception from sub searchLibraryNodes id' | sort | uniq -c | sort -rn | head -20
+  | sort | uniq -c | sort -rn | head -20

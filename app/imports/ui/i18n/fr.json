@@ -92,7 +92,11 @@
     "samThanks": "sans son amour, DiceCloud n'aurait jamais pu voir le jour",
     "heroes": "Les « Héros » d'Asaea",
     "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
-    "supporters": "Soutiens"
+    "supporters": "Soutiens",
+    "credits": "Crédits",
+    "iconsCredit": "Les icônes des propriétés et des cartes imprimées viennent de {site}, par Lorc, Delapouite, Skoll, sbed, Willdabeast et d'autres contributeurs, sous licence {license}.",
+    "iconsLicense": "CC BY 3.0",
+    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/deed.fr"
   },
   "discord": {
     "communityTitle": "DiceCloud sur Discord",
@@ -1765,6 +1769,7 @@
     "container": "Conteneur",
     "anywhere": "Partout",
     "scaleReminder": "Pour des cartes de 63 × 88 mm, imprimez à l'échelle 100 % (« Taille réelle »), sans « Ajuster à la page ». Découpez le long des repères dans les marges.",
+    "iconCredit": "Icônes de {site} (CC BY 3.0), créditées sur la page {about}.",
     "cardCount": "aucune carte | {count} carte | {count} cartes",
     "sheetCount": "aucune feuille | sur {count} feuille | sur {count} feuilles",
     "empty": "Aucune carte pour cette sélection : choisissez d'autres sorts ou objets ci-dessus.",

@@ -17,13 +17,7 @@ imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2769: 
 imports/api/creature/creatureProperties/CreatureProperties.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; optional: true; max: 10000; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/creature/creatureProperties/methods/adjustQuantity.js: TS2339: Property 'allowsKey' does not exist on type 'TypedSimpleSchema<any>'.
 imports/api/creature/creatureProperties/methods/equipItem.test.js: TS2554: Expected 1 arguments, but got 2.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2345: Argument of type '{ $or: ({ type: any; } | { slotFillerType: any; })[]; }' is not assignable to parameter of type 'never'.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2345: Argument of type '{ $or: ({ type: string; } | { slotFillerType: string; })[]; }' is not assignable to parameter of type 'never'.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2345: Argument of type '{ libraryTags: { $nin: any[]; }; }' is not assignable to parameter of type 'never'.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.js: TS2790: The operand of a 'delete' operator must be optional.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2322: Type '{ libraryTags: { $nin: string[]; }; }' is not assignable to type 'never'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type 'undefined' is not assignable to parameter of type '{ slot: any; libraryIds: any; }'.
-imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ $or: { libraryTags: { $all: string[]; }; }[]; 'root.id': { $in: string[]; }; removed: { $ne: true; }; fillSlots: true; }' is not assignable to parameter of type '{ fillSlots: boolean; removed: { $ne: boolean; }; $and: never[]; }'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ libraryIds: string[]; }' is not assignable to parameter of type '{ slot: any; libraryIds: any; }'.
 imports/api/creature/creatureProperties/methods/getSlotFillFilter.test.js: TS2345: Argument of type '{ slot: { slotTags: string[]; }; }' is not assignable to parameter of type '{ slot: any; libraryIds: any; }'.
 imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js: TS18046: 'e' is of type 'unknown'.
@@ -141,7 +135,6 @@ imports/api/library/server/publications/searchLibraryNodes.js: TS2683: 'this' im
 imports/api/library/server/publications/searchLibraryNodes.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2339: Property 'limit' does not exist on type '{ fields: { 'summary.text': number; 'description.text': number; _id: number; name: number; type: number; icon: number; color: number; order: number; parent: number; ancestors: number; parentId: number; left: number; right: number; root: number; removed: number; removedAt: number; actionType: number; libraryTags: number; slotQuantityFilled: number; slotFillerType: number; slotFillerConditionNote: number; slotFillerCondition: number; fillSlots: number; searchable: number; slotFillImage: number; operation: number; targetTags: number; stats: number; quantity: number; plural: number; equipped: number; branchType: number; damageType: number; stat: number; amount: number; level: number; variableName: number; value: number; cache: number; dc: number; }; sort: { 'cache.node.name': number; name: number; order: number; }; }'.
-imports/api/library/server/publications/slotFillers.js: TS2345: Argument of type '{ $or: ({ name: { $regex: any; $options: string; }; } | { libraryTags: any; })[]; }' is not assignable to parameter of type 'never'.
 imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
@@ -380,10 +373,6 @@ imports/migrations/archive/migrateArchiveTo1.js: TS18046: 'e' is of type 'unknow
 imports/migrations/archive/migrateArchiveTo1.js: TS18046: 'e' is of type 'unknown'.
 imports/migrations/archive/migrateArchiveTo1.js: TS2339: Property 'computedFields' does not exist on type 'TypedSimpleSchema<any>'.
 imports/migrations/archive/migrateArchiveTo1.js: TS2339: Property 'inlineCalculationFields' does not exist on type 'TypedSimpleSchema<any>'.
-imports/parser/functions.ts: TS2339: Property 'context' does not exist on type 'ParserFunction'.
-imports/parser/functions.ts: TS2339: Property 'context' does not exist on type 'ParserFunction'.
-imports/parser/functions.ts: TS2339: Property 'context' does not exist on type 'ParserFunction'.
-imports/parser/functions.ts: TS2339: Property 'scope' does not exist on type 'ParserFunction'.
 imports/parser/grammar.js: TS2304: Cannot find name 'additiveOperator'.
 imports/parser/grammar.js: TS2304: Cannot find name 'additiveOperator'.
 imports/parser/grammar.js: TS2304: Cannot find name 'equalityOperator'.

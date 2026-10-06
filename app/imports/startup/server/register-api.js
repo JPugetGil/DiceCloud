@@ -21,6 +21,7 @@ import '/imports/api/docs/server/publications';
 
 // Cron jobs
 import '/imports/api/parenting/server/deleteSoftRemovedDocuments';
+import '/imports/api/engine/action/server/removeAbandonedActions';
 
 // Methods
 import '/imports/api/parenting/organizeMethods';

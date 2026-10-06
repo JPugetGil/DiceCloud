@@ -1,7 +1,16 @@
 import type ResolveLevel from '/imports/parser/types/ResolveLevel';
+import type Context from '/imports/parser/types/Context';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import resolve from '/imports/parser/resolve'
-import rollDice from '/imports/parser/rollDice';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
+/**
+ * A function of the formulas. It runs with `this` holding the resolution's
+ * scope, context and input provider (call.ts): a function that rolls dice
+ * rolls them with `this.inputProvider.rollDice`, like a roll node, so that in
+ * an action they are the action's dice, which the server draws from the
+ * action's secret seed and replays in runAction (doAction, drawDice)
+ */
 export type ParserFunction = {
   comment: string;
   examples: { input: string, result: string }[];
@@ -10,8 +19,17 @@ export type ParserFunction = {
   minArguments?: number,
   maxArguments?: number,
   resultType: string;
-  fn: (...args: any[]) => any;
+  fn: (this: ParserFunctionThis, ...args: any[]) => any;
 }
+
+type ParserFunctionThis = {
+  scope: Record<string, any>;
+  context: Context;
+  inputProvider: InputProvider;
+}
+
+// The most dice a roll can hold, rerolled and exploded dice included
+const MAX_ROLL_VALUES = STORAGE_LIMITS.diceRollValuesCount;
 
 const parserFunctions: { [name: string]: ParserFunction } = {
   'abs': {
@@ -133,7 +151,7 @@ const parserFunctions: { [name: string]: ParserFunction } = {
     arguments: ['parseNode'],
     resultType: 'parseNode',
     fn: async function resolveFn(node) {
-      const { result } = await resolve('reduce', node, this.scope, this.context);
+      const { result } = await resolve('reduce', node, this.scope, this.context, this.inputProvider);
       return result;
     }
   },
@@ -192,28 +210,29 @@ const parserFunctions: { [name: string]: ParserFunction } = {
     minArguments: 1,
     maxArguments: 3,
     resultType: 'rollArray',
-    fn: function rerollFn(rollArray, numberToReroll = 1, keepNewRoll = false) {
-      const rollValues = rollArray.values
-      // Iterate through the roll values
-      for (let i = 0; i < rollValues.length; i += 1) {
-        // If the number is less than the reroll limit
-        if (rollValues[i].value <= numberToReroll) {
-          // Disable it
-          rollValues[i].disabled = true;
-          rollValues[i].disabledBy = 'reroll';
-          // Roll it again, insert the new roll into the list at the next index
-          rollValues.splice(i + 1, 0, {
-            value: rollDice(1, rollArray.diceSize)[0],
-          });
-          // Skip iterating the inserted roll if we are forced to keep it
-          if (keepNewRoll) {
-            i += 1;
-          }
-        }
-        if (i >= 100) {
-          this.context.error('Can\'t roll more than 100 dice at once');
+    fn: async function rerollFn(rollArray, numberToReroll = 1, keepNewRoll = false) {
+      const rollValues = rollArray.values;
+      // Every die at or under the limit is disabled and rolled again, its new
+      // roll inserted right after it. Unless the new rolls are kept, a new
+      // roll at or under the limit is rolled again in turn. The dice of each
+      // round are rolled at once: in an action, one request to the server
+      let toReroll = rollValues.filter(roll => roll.value <= numberToReroll);
+      while (toReroll.length) {
+        if (rollValues.length + toReroll.length > MAX_ROLL_VALUES) {
+          this.context.error(`Can't roll more than ${MAX_ROLL_VALUES} dice at once`);
           return rollArray;
         }
+        const [values] = await this.inputProvider.rollDice([{
+          number: toReroll.length, diceSize: rollArray.diceSize,
+        }]);
+        const newRolls = values.map(value => ({ value }));
+        toReroll.forEach((roll, i) => {
+          roll.disabled = true;
+          roll.disabledBy = 'reroll';
+          rollValues.splice(rollValues.indexOf(roll) + 1, 0, newRolls[i]);
+        });
+        if (keepNewRoll) break;
+        toReroll = newRolls.filter(roll => roll.value <= numberToReroll);
       }
       return rollArray;
     },
@@ -227,39 +246,44 @@ const parserFunctions: { [name: string]: ParserFunction } = {
     minArguments: 1,
     maxArguments: 3,
     resultType: 'rollArray',
-    fn: function explodeFn(rollArray, depth = 1, numberToReroll = rollArray.diceSize) {
+    fn: async function explodeFn(rollArray, depth = 1, numberToReroll = rollArray.diceSize) {
       let overflowErrored = false;
       if (depth > 99) depth = 99;
-      const rollValues = rollArray.values
-      // Iterate through the roll values
-      for (let i = 0; i < rollValues.length; i += 1) {
-        // If the number is greater than or equal to the reroll limit
-        // And there is space to reroll it
-        if (rollValues[i].value >= numberToReroll) {
-          rollValues[i].bold = true;
-          let explodeDepth = 1;
-          let explodeRoll;
-          do {
-            // Before inserting this roll, make sure the total dice in the roll
-            // Doesn't exceed 100
-            if (rollValues.length >= 100) {
-              if (!overflowErrored) {
-                this.context.error('Can\'t roll more than 100 dice at once');
-                overflowErrored = true;
-              }
-              break;
-            }
-            explodeDepth += 1;
-            explodeRoll = rollDice(1, rollArray.diceSize)[0];
-            const rollObj = {
-              value: explodeRoll,
-              italics: true,
-            };
-            // Insert the roll
-            rollValues.splice(i + 1, 0, rollObj);
-            i += 1;
-          } while (explodeDepth <= depth && explodeRoll >= numberToReroll)
+      const rollValues = rollArray.values;
+      // Every die at or over the limit explodes: a new die is rolled and
+      // inserted after it, and while the new die is at or over the limit too,
+      // another, up to `depth` new dice. The new dice of each round are rolled
+      // at once: in an action, one request to the server
+      let exploding = rollValues
+        .filter(roll => roll.value >= numberToReroll)
+        .map(roll => {
+          roll.bold = true;
+          return { last: roll, added: 0 };
+        });
+      while (exploding.length) {
+        // The roll never holds more than 100 dice
+        const room = MAX_ROLL_VALUES - rollValues.length;
+        if (exploding.length > room) {
+          if (!overflowErrored) {
+            this.context.error(`Can't roll more than ${MAX_ROLL_VALUES} dice at once`);
+            overflowErrored = true;
+          }
+          exploding = exploding.slice(0, Math.max(room, 0));
+          if (!exploding.length) break;
         }
+        const [values] = await this.inputProvider.rollDice([{
+          number: exploding.length, diceSize: rollArray.diceSize,
+        }]);
+        exploding.forEach((chain, i) => {
+          const rollObj = {
+            value: values[i],
+            italics: true,
+          };
+          rollValues.splice(rollValues.indexOf(chain.last) + 1, 0, rollObj);
+          chain.last = rollObj;
+          chain.added += 1;
+        });
+        exploding = exploding.filter(chain => chain.added < depth && chain.last.value >= numberToReroll);
       }
       return rollArray;
     },
