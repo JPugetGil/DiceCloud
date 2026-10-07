@@ -5,10 +5,12 @@
  * tabletops were removed, the server only compared tabletop ids, which are
  * both empty outside a tabletop, so any character id was accepted. Also runs a
  * skill check through its dialog (it once failed as it opened, and its result
- * preview kept only the first line) and the Short rest button end to end, and
- * checks that no log entry is cut off (Vuetify 3's cards shrank in the log).
+ * preview kept only the first line) and the Short rest button end to end,
+ * chooses a cantrip in the spell slot dialog (a spell tile ignored clicks, so
+ * no spell could be cast from it), and checks that no log entry is cut off
+ * (Vuetify 3's cards shrank in the log).
  */
-const { openPage, visit } = require('../lib/browser');
+const { openPage, visit, pushDialog } = require('../lib/browser');
 const { withDb, getTestUser } = require('../lib/db');
 const { USERNAME } = require('../lib/config');
 const { createChecker, main } = require('../lib/check');
@@ -60,6 +62,32 @@ main(async () => {
     await page.waitForTimeout(2000);
     const open = await page.locator('.dialog-transition-group > *').count();
     if (open) throw new Error(`${open} dialog(s) left open after Done`);
+  });
+  await step('a cantrip is chosen in the spell slot dialog', messages, async () => {
+    // Vue 3 keeps a declared event's listener out of $attrs: the spell tiles
+    // looked for it there, did not listen to clicks, and Cast stayed disabled
+    const spellId = await page.evaluate(creatureId => window.Meteor.callAsync('creatureProperties.insert', {
+      creatureProperty: { type: 'spell', name: 'E2E cantrip', level: 0, alwaysPrepared: true },
+      parentRef: { collection: 'creatures', id: creatureId },
+    }), creatureId);
+    try {
+      await page.waitForTimeout(2000);
+      await pushDialog(page, 'cast-spell-with-slot-dialog', { creatureId });
+      const dialog = page.locator('.dialog-transition-group > *').last();
+      // The first slot of the list: "Cast without a spell slot"
+      await dialog.locator('.spell-slot-list-tile').first().click();
+      await dialog.locator('.v-list-item', { hasText: 'E2E cantrip' }).first().click();
+      await page.waitForTimeout(500);
+      if (await dialog.locator('[data-id="cast-spell-dialog-btn"]').isDisabled()) {
+        throw new Error('Cast stays disabled with the cantrip and "without a spell slot" chosen');
+      }
+    } finally {
+      // Closed as its Cancel button does
+      await page.evaluate(() => document.querySelector('#app').__vue_app__.config.globalProperties.$pinia
+        ._s.get('dialogStack').popDialogStack());
+      await page.waitForTimeout(1000);
+      await page.evaluate(_id => window.Meteor.callAsync('creatureProperties.softRemove', { _id }), spellId);
+    }
   });
   await step('the Short rest button runs', messages, async () => {
     await page.locator('[data-id="rest-btn-shortRest"]').first().click();

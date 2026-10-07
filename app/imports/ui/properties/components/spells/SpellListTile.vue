@@ -50,12 +50,10 @@
 </template>
 
 <script setup>
-import { inject, computed, useAttrs } from 'vue';
+import { inject, computed } from 'vue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
-
-const attrs = useAttrs();
 
 const props = defineProps({
   model: {
@@ -65,15 +63,20 @@ const props = defineProps({
   preparingSpells: Boolean,
   showInfoButton: Boolean,
   disabled: Boolean,
+  // The parent's @click listener, declared so that the tile knows whether it is
+  // clickable: Vue keeps a declared event's listener out of $attrs.
+  // `emit('click')` still calls it.
+  onClick: {
+    type: Function,
+    default: undefined,
+  },
 });
 
 const emit = defineEmits(['show-info', 'click']);
 
 const context = inject('context', {});
 
-const hasClickListener = computed(() => {
-  return !!attrs.onClick;
-});
+const hasClickListener = computed(() => !!props.onClick);
 
 const spellComponents = computed(() => {
   let components = [];
