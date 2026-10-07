@@ -2,6 +2,9 @@ import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { EJSON } from 'meteor/ejson';
 
+// MongoDB's error code for a write that breaks a unique index
+const DUPLICATE_KEY = 11000;
+
 export default async function writeScope(creatureId, computation) {
   if (!creatureId) throw 'creatureId is required';
   const scope = computation.scope;
@@ -12,11 +15,17 @@ export default async function writeScope(creatureId, computation) {
       _creatureId: creatureId
     });
   }
-  // Otherwise create a new variables document
+  // Otherwise create a new variables document. Two computations of a new
+  // creature can both find none: the second insert then fails on the unique
+  // index on _creatureId, and writes to the document the first one made
   if (!variables) {
-    await CreatureVariables.insertAsync({
-      _creatureId: creatureId
-    });
+    try {
+      await CreatureVariables.insertAsync({
+        _creatureId: creatureId
+      });
+    } catch (e) {
+      if (/** @type {{ code?: number }} */ (e)?.code !== DUPLICATE_KEY) throw e;
+    }
     variables = {};
   }
   delete variables._id;
