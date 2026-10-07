@@ -79,3 +79,46 @@ export const endEncounter = new ValidatedMethod({
     }
   },
 });
+
+// The picker searches as the game master types
+const searchRateLimit = { numRequests: 20, timeInterval: 5000 };
+
+/** The bestiaries the user reads: libraries with monsters, their language and how many */
+export const listBestiaries = new ValidatedMethod({
+  name: 'creatureFolders.monsters.bestiaries',
+  validate: null,
+  mixins: [RateLimiterMixin],
+  rateLimit: searchRateLimit,
+  async run() {
+    if (!this.userId) return [];
+    if (Meteor.isServer) {
+      const { listBestiaries } = await import('/imports/api/creature/creatureFolders/server/boardMonsters');
+      return listBestiaries(this.userId);
+    }
+  },
+});
+
+/**
+ * The monsters of some of the user's bestiaries, by name and tags (challenge
+ * rating `cr-1/4`, size, type): `{ total, monsters }`
+ */
+export const searchMonsters = new ValidatedMethod({
+  name: 'creatureFolders.monsters.search',
+  validate: new SimpleSchema({
+    libraryIds: { type: Array, maxCount: 50 },
+    'libraryIds.$': { type: String, max: 32 },
+    text: { type: String, optional: true, max: 64 },
+    tags: { type: Array, optional: true, maxCount: 5 },
+    'tags.$': { type: String, max: 32 },
+    limit: { type: SimpleSchema.Integer, min: 1, max: 200, optional: true },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: searchRateLimit,
+  async run({ libraryIds, text, tags, limit }) {
+    if (!this.userId) return { total: 0, monsters: [] };
+    if (Meteor.isServer) {
+      const { searchMonsters } = await import('/imports/api/creature/creatureFolders/server/boardMonsters');
+      return searchMonsters(this.userId, { libraryIds, text, tags, limit });
+    }
+  },
+});

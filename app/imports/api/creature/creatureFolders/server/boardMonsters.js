@@ -3,6 +3,8 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
+import Libraries from '/imports/api/library/Libraries';
+import escapeRegex from '/imports/api/utility/escapeRegex';
 import getUserLibraryIds from '/imports/api/library/getUserLibraryIds';
 import computeCreature from '/imports/api/engine/computeCreature';
 import {
@@ -13,7 +15,9 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import { removeCharacters } from '/imports/api/creature/creatureFolders/removeFromFolders';
 import { addCreaturesToTracker } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 import { numberedNames } from '/imports/api/creature/creatureFolders/initiativeCreatures';
-import { MAX_BOARD_MONSTERS, MAX_OWNED_MONSTERS, boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
+import {
+  MAX_BOARD_MONSTERS, MAX_OWNED_MONSTERS, boardError, monsterTags,
+} from '/imports/api/creature/creatureFolders/boardMonsters';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
 import rollDice from '/imports/parser/rollDice';
 
@@ -71,6 +75,7 @@ export async function addMonstersToBoard({
         owner: userId,
         name,
         type: 'monster',
+        templateId: template._id,
         picture: template.picture,
         avatarPicture: template.avatarPicture,
         settings: {},
@@ -107,6 +112,79 @@ export async function addMonstersToBoard({
     await addCreaturesToTracker(updated, creatureIds, userId, { sharedRoll: sharedInitiative });
   }
   return creatureIds;
+}
+
+/**
+ * The libraries the user reads that hold monsters (creature templates), with
+ * their language and how many, for the bestiary picker
+ */
+export async function listBestiaries(userId) {
+  const libraryIds = await getUserLibraryIds(userId);
+  const counts = await LibraryNodes.rawCollection().aggregate([
+    { $match: { 'root.id': { $in: libraryIds }, type: 'creature', removed: { $ne: true } } },
+    { $group: { _id: '$root.id', count: { $sum: 1 } } },
+  ]).toArray();
+  const libraries = await Libraries.find(
+    { _id: { $in: counts.map(library => library._id) } }, { fields: { name: 1, language: 1 } },
+  ).fetchAsync();
+  return libraries.map(library => ({
+    _id: library._id,
+    name: library.name,
+    language: library.language,
+    count: counts.find(entry => entry._id === library._id)?.count || 0,
+  })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+}
+
+/**
+ * The monsters of those of `libraryIds` the user reads whose name holds
+ * `text` and which carry every one of `tags`, sorted by name: at most `limit`,
+ * and how many match. Each with what the picker shows: its type line, its
+ * challenge rating, size and type, its average hit points and hit dice
+ */
+export async function searchMonsters(userId, { libraryIds, text = '', tags = [], limit = 50 }) {
+  const readable = await getUserLibraryIds(userId);
+  const rootIds = libraryIds.filter(id => readable.includes(id));
+  const filter = {
+    'root.id': { $in: rootIds },
+    type: 'creature',
+    removed: { $ne: true },
+    ...text.trim() && { name: { $regex: escapeRegex(text.trim()), $options: 'i' } },
+    ...tags.length && { libraryTags: { $all: tags } },
+  };
+  // At most a few hundred per bestiary: sorted here, where names sort by language
+  const matches = await LibraryNodes.find(filter, {
+    fields: { name: 1, description: 1, libraryTags: 1, picture: 1, root: 1, left: 1, right: 1 },
+  }).fetchAsync();
+  matches.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const templates = matches.slice(0, limit);
+  const stats = templates.length ? await LibraryNodes.find({
+    variableName: { $in: ['hitPoints', 'hitDice'] },
+    removed: { $ne: true },
+    $or: templates.map(template => ({
+      'root.id': template.root.id, left: { $gt: template.left }, right: { $lt: template.right },
+    })),
+  }, { fields: { variableName: 1, baseValue: 1, hitDiceSize: 1, root: 1, left: 1 } }).fetchAsync() : [];
+  const statOf = (template, variableName) => stats.find(stat => stat.variableName === variableName
+    && stat.root.id === template.root.id && stat.left > template.left && stat.left < template.right);
+  // A stat block's figures are literal numbers: a formula has no figure to show
+  const literal = prop => /^\d+$/.test(prop?.baseValue?.calculation?.trim() || '')
+    ? Number(prop.baseValue.calculation) : undefined;
+  return {
+    total: matches.length,
+    monsters: templates.map(template => {
+      const hitDice = statOf(template, 'hitDice');
+      return {
+        _id: template._id,
+        libraryId: template.root.id,
+        name: template.name,
+        picture: template.picture,
+        typeLine: template.description?.text?.split('\n')[0],
+        ...monsterTags(template.libraryTags),
+        hitPoints: literal(statOf(template, 'hitPoints')),
+        hitDice: literal(hitDice) && hitDice.hitDiceSize ? `${literal(hitDice)}${hitDice.hitDiceSize}` : undefined,
+      };
+    }),
+  };
 }
 
 /**

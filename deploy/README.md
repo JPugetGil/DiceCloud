@@ -126,6 +126,31 @@ Then:
   that receiving servers check signatures with.
 - Once everything works, stop Galaxy and the Atlas cluster.
 
+### The import kit on S3
+
+The import kit and its snapshots are not in git. Keep them in the backups'
+bucket (`BACKUP_S3_*`, section 6), under `SNAPSHOTS_S3_PREFIX`
+(`library-snapshots` by default). The bucket must stay private: the Vexus
+snapshots hold text outside the SRD.
+
+- After changing a snapshot, copy the folder to the server (step 2), then
+  `./dicecloud.sh snapshots push ~/libraryImport`. Only its scripts,
+  `data/*.gz` and manifests are sent, not its `backups/`.
+- To work on them again, or to import only some of them:
+  `./dicecloud.sh snapshots pull ~/kit 'srd51-bestiary*'`, then
+  `./dicecloud.sh libraries ~/kit <username>`. Without a pattern, everything
+  comes back.
+- The whole `tools/` folder (the bestiary's generator, the SRD's PDFs): on
+  your computer, `tar -czf ~/dicecloud-tools-$(date +%F).tar.gz
+  --exclude='tools/monsters/work/pylib' --exclude='__pycache__' tools`, copy
+  the archive to the server, then `./dicecloud.sh snapshots tools <archive>`.
+- `./dicecloud.sh snapshots list` shows what the bucket holds of them.
+
+Turn the bucket's versioning on to keep the earlier snapshots when new ones
+are pushed. A key limited to the backups' prefix needs the snapshots' prefix
+too: `s3:ListBucket` on the bucket for both prefixes, `s3:GetObject` and
+`s3:PutObject` on `library-snapshots/*`.
+
 ## 6. Backups
 
 Every day at 03:30 (`BACKUP_TIME`), a systemd timer runs

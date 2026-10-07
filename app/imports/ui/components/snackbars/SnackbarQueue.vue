@@ -36,6 +36,7 @@
         variant="text"
         icon
         v-bind="attrs"
+        :aria-label="$t('common.close')"
         @click="closeSnackbar"
       >
         <v-icon>mdi-close</v-icon>

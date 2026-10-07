@@ -144,6 +144,14 @@ const CreatureSchema = TypedSimpleSchema.from({
     defaultValue: 'pc',
     allowedValues: ['pc', 'npc', 'monster'],
   },
+  // A party board's monster: the bestiary's creature template it was copied
+  // from, a library node. Its type line and lore, which the game master's
+  // card shows, and its library, which holds its licence
+  templateId: {
+    type: String,
+    optional: true,
+    max: 32,
+  },
   computeErrors: {
     type: Array,
     optional: true,

@@ -5,6 +5,7 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
 import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
@@ -30,7 +31,7 @@ const BOARD_VARIABLES = ['armor', 'speed', 'initiative', 'perception'];
 // master may only read some of them, and one cursor cannot tell them apart
 const CREATURE_FIELDS = {
   name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, readers: 1, writers: 1,
-  public: 1, type: 1, computeVersion: 1, ...settingsFieldsWithoutWebhook(),
+  public: 1, type: 1, computeVersion: 1, templateId: 1, ...settingsFieldsWithoutWebhook(),
 };
 
 // What players see of the party's characters: no settings, which hold the
@@ -60,7 +61,8 @@ const PROPERTY_FIELDS = {
  * the game master's alone.
  *
  * Of the game master's monsters and non-player characters (boardMonsters.js),
- * the players get the name, picture and type, and the conditions: no hit
+ * the game master also gets the bestiary templates the monsters were copied
+ * from; the players get the name, picture and type, and the conditions: no hit
  * points, no other property, no variables, no action in progress. Each of
  * those is a document of its own, which a cursor sends or doesn't: the
  * mergebox merges by top-level field, and could not hide part of one.
@@ -85,13 +87,17 @@ Meteor.publish('partyBoard', function (folderId) {
       { _id: folderId, 'initiative.showStats': true }, { fields: { _id: 1 } },
     );
     const creatures = await Creatures.find(
-      partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1, type: 1 } },
+      partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1, type: 1, templateId: 1 } },
     ).fetchAsync();
     const creatureIds = creatures.map(creature => creature._id);
     // Those whose stats the viewer sees: all of them for the game master
     const shown = role === 'gm' ? creatures : creatures.filter(creature => !hidesStatsFromPlayers(creature));
     const shownIds = shown.map(creature => creature._id);
     const conditionsOnlyIds = creatureIds.filter(id => !shownIds.includes(id));
+    // The bestiary templates of the game master's monsters: their type line and lore
+    const templateIds = role === 'gm'
+      ? [...new Set(creatures.map(creature => creature.templateId).filter(Boolean))]
+      : [];
     shown.forEach(creature => {
       loadCreature(creature._id, self);
       // Not awaited, as in singleCharacter: the results arrive through the cursors
@@ -141,6 +147,9 @@ Meteor.publish('partyBoard', function (folderId) {
           inactive: { $ne: true },
         }],
       }, { fields: PROPERTY_FIELDS }),
+      LibraryNodes.find({ _id: { $in: templateIds } }, {
+        fields: { type: 1, name: 1, description: 1, libraryTags: 1, root: 1 },
+      }),
     ]);
   });
 });

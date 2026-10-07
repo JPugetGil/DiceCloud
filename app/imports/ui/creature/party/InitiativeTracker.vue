@@ -119,7 +119,9 @@
               </span>
             </template>
             <v-list-item-title>{{ entryName(entry) }}</v-list-item-title>
-            <v-list-item-subtitle>
+            <!-- A monster's roll and bonus are its game master's, those of a
+              creature added by hand too: the players see its place -->
+            <v-list-item-subtitle v-if="isGm || isCharacter(entry)">
               <template v-if="Number.isFinite(entry.roll)">
                 {{ $t('initiative.rollDetail', { roll: entry.roll, bonus: signed(entry.bonus) }) }}
               </template>
@@ -358,6 +360,7 @@ import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { SLOW_MS } from '/imports/ui/utility/motion';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
+import { useI18n } from 'vue-i18n';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import {
   rollInitiative, addInitiativeEntry, updateInitiativeEntry, removeInitiativeEntry,
@@ -365,6 +368,7 @@ import {
   damageInitiativeEntry, setInitiativeEntryOut, setInitiativeShowStats,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 import { MAX_COUNT, entryStatus } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import HealthChangeMenu from '/imports/ui/properties/components/attributes/HealthChangeMenu.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -391,6 +395,8 @@ const props = defineProps({
     default: 'gm',
   },
 });
+
+const { t } = useI18n();
 
 const isGm = computed(() => props.role === 'gm');
 const userId = autorun(() => Meteor.userId()).result;
@@ -438,6 +444,10 @@ function changeHealth(entry, { mode, value }) {
 
 const signed = value => numberToSignedString(value || 0);
 
+// A character of the party: not a game master's monster, nor a creature added by hand
+const isCharacter = entry => !!entry.creatureId
+  && props.creatures.find(creature => creature._id === entry.creatureId)?.type !== 'monster';
+
 // A character's current name, which may have changed since it rolled
 function entryName(entry) {
   if (!entry.creatureId) return entry.name;
@@ -451,7 +461,7 @@ async function run(name, call) {
     await call();
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: boardErrorText(error, t) });
   } finally {
     clearTimeout(slowTimer);
     busy.value = null;

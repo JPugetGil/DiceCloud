@@ -24,6 +24,30 @@ export const MAX_BOARD_MONSTERS = 30;
 // boards, 3 MB of average monsters
 export const MAX_OWNED_MONSTERS = 100;
 
+// What the bestiary picker filters on: the SRD bestiary tags each monster
+// with its challenge rating (`cr-1/4`), its size and its creature type, in
+// English whatever its language
+export const MONSTER_SIZES = Object.freeze(['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan']);
+export const MONSTER_TYPES = Object.freeze([
+  'aberration', 'beast', 'celestial', 'construct', 'dragon', 'elemental', 'fey', 'fiend', 'giant',
+  'humanoid', 'monstrosity', 'ooze', 'plant', 'undead',
+]);
+export const CHALLENGE_RATINGS = Object.freeze([
+  '0', '1/8', '1/4', '1/2', ...Array.from({ length: 30 }, (_, i) => String(i + 1)),
+]);
+
+/**
+ * A monster's challenge rating, size and type, from its library tags; those
+ * it lacks are undefined
+ */
+export function monsterTags(libraryTags = []) {
+  return {
+    cr: libraryTags.find(tag => tag.startsWith('cr-'))?.slice(3),
+    size: MONSTER_SIZES.find(size => libraryTags.includes(size)),
+    type: MONSTER_TYPES.find(type => libraryTags.includes(type)),
+  };
+}
+
 /**
  * A refusal of the board's methods: its reason in English, from en.json, and
  * in its details the message the board shows in the reader's language,

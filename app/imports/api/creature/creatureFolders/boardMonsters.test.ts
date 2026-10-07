@@ -11,7 +11,9 @@ import EngineActions from '/imports/api/engine/action/EngineActions';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import VERSION from '/imports/constants/VERSION';
-import { addBoardMonsters, endEncounter } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
+import {
+  addBoardMonsters, endEncounter, listBestiaries, searchMonsters,
+} from '/imports/api/creature/creatureFolders/methods/monsterMethods';
 import { rollInitiative } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
@@ -95,7 +97,9 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       _id, createdAt: new Date(), username: `monsters-test-${i}-${_id}`,
     })) as any[]);
     // The game master's library, and someone else's private one
-    await Libraries.rawCollection().insertOne({ _id: libraryId, name: 'Bestiary', owner: gmId, readers: [], writers: [] } as any);
+    await Libraries.rawCollection().insertOne({
+      _id: libraryId, name: 'Bestiary', language: 'en', owner: gmId, readers: [], writers: [],
+    } as any);
     await Libraries.rawCollection().insertOne({
       _id: privateLibraryId, name: 'Secret', owner: strangerId, readers: [], writers: [], public: false,
     } as any);
@@ -103,7 +107,8 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
     await LibraryNodes.rawCollection().insertMany([
       {
         _id: templateId, type: 'creature', name: 'Goblin', picture: 'https://example.invalid/goblin.png',
-        description: { text: 'Small humanoid' }, root, left: 1, right: 16,
+        description: { text: 'Small humanoid\n\n**Goblins** are small.' }, root, left: 1, right: 16,
+        libraryTags: ['monster', 'cr-1/4', 'humanoid', 'small'],
       },
       { _id: statisticsId, type: 'folder', name: 'Statistics', root, parentId: templateId, left: 2, right: 11 },
       {
@@ -194,6 +199,36 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
     assert.include(await hitPoints(ids[0]), { value: 50, total: 50 });
     assert.equal(copied[1].modifier, 2);
     assert.exists(await CreatureVariables.findOneAsync({ _creatureId: ids[0] }));
+  });
+
+  it('records the template each copy comes from', async function () {
+    const [goblin] = await add();
+    assert.equal((await Creatures.findOneAsync(goblin))?.templateId, templateId);
+  });
+
+  it('lists the bestiaries a user reads, with how many monsters each holds', async function () {
+    assert.deepEqual(await as(listBestiaries, gmId, {}), [
+      { _id: libraryId, name: 'Bestiary', language: 'en', count: 1 },
+    ]);
+    // Someone else's private library is the stranger's alone
+    assert.deepEqual((await as(listBestiaries, strangerId, {})).map(library => library._id), [privateLibraryId]);
+    assert.deepEqual(await as(listBestiaries, null, {}), []);
+  });
+
+  it('searches a bestiary by name, challenge rating, size and type', async function () {
+    const search = (args: object, userId = gmId) =>
+      as(searchMonsters, userId, { libraryIds: [libraryId, privateLibraryId], ...args });
+    const { total, monsters } = await search({ text: 'gob' });
+    assert.equal(total, 1, 'not the dragon of a library the game master can\'t read');
+    assert.deepEqual(monsters[0], {
+      _id: templateId, libraryId, name: 'Goblin', picture: 'https://example.invalid/goblin.png',
+      typeLine: 'Small humanoid', cr: '1/4', size: 'small', type: 'humanoid', hitPoints: 50, hitDice: '2d8',
+    });
+    assert.equal((await search({ tags: ['cr-1/4', 'small', 'humanoid'] })).total, 1);
+    assert.equal((await search({ tags: ['cr-1/4', 'large'] })).total, 0);
+    assert.equal((await search({ text: 'dragon' })).total, 0);
+    assert.equal((await search({ text: '(.*' })).total, 0, 'a name, not a pattern');
+    assert.equal((await search({ text: 'dragon' }, strangerId)).total, 1);
   });
 
   it('names one of a kind alone, and numbers it after those of the board', async function () {
@@ -438,6 +473,10 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       assert.isNotEmpty(about(gm.messages, 'creatureVariables', goblinVariables._id), 'the game master gets them');
       assert.isNotEmpty(about(gm.messages, 'creatureProperties', blessId));
       assert.isNotEmpty(about(gm.messages, 'actions', actionId));
+      // Its bestiary entry, for the game master's card, and for them alone
+      assert.isNotEmpty(about(gm.messages, 'libraryNodes', templateId), 'the game master gets the template');
+      assert.isFalse(player.messages.some(message => message.collection === 'libraryNodes'), 'not the players');
+      assert.notInclude(fieldsOf(player.messages, 'creatures', goblinId), 'templateId');
     } finally {
       player.connection.disconnect();
       gm.connection.disconnect();

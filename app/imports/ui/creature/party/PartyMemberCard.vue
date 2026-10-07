@@ -4,11 +4,12 @@
     class="party-member-card fill-height d-flex flex-column"
     :class="{ 'party-member-card--turn': hasTurn, 'party-member-card--turn-start': turnStarted }"
     :data-id="`party-member-${creature._id}`"
+    :data-monster="isMonster || undefined"
   >
     <v-card-item>
       <template #prepend>
         <v-avatar
-          v-bind="creature.color ? userColorProps(creature.color) : { color: 'primary-container' }"
+          v-bind="creature.color ? userColorProps(creature.color) : { color: isMonster ? 'surface-variant' : 'primary-container' }"
           variant="flat"
           size="44"
         >
@@ -23,10 +24,37 @@
       <v-card-title class="text-wrap">
         {{ creature.name }}
       </v-card-title>
-      <v-card-subtitle v-if="classText">
-        {{ classText }}
+      <v-card-subtitle
+        v-if="subtitle"
+        class="text-wrap"
+        data-id="party-member-subtitle"
+      >
+        {{ subtitle }}
       </v-card-subtitle>
       <template #append>
+        <!-- A monster's lore, from its bestiary entry: the game master's -->
+        <v-menu
+          v-if="lore"
+          max-width="420"
+        >
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              v-bind="menuProps"
+              variant="text"
+              icon
+              size="small"
+              :aria-label="$t('monsters.description', { name: creature.name })"
+              data-id="party-monster-lore"
+            >
+              <v-icon>mdi-text-box-outline</v-icon>
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <markdown-text :markdown="lore" />
+            </v-card-text>
+          </v-card>
+        </v-menu>
         <v-btn
           v-if="canOpenSheet"
           variant="text"
@@ -42,12 +70,38 @@
             :text="$t('party.openSheet')"
           />
         </v-btn>
+        <!-- A monster that leaves the fight before the encounter ends -->
+        <v-menu v-if="isMonster && isOwner">
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              v-bind="menuProps"
+              variant="text"
+              icon
+              size="small"
+              :aria-label="$t('monsters.menu', { name: creature.name })"
+              data-id="party-monster-menu"
+            >
+              <v-icon>mdi-dots-vertical</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+              prepend-icon="mdi-delete-outline"
+              :title="$t('monsters.remove', { name: creature.name })"
+              :subtitle="$t('monsters.removeHint')"
+              data-id="party-monster-remove"
+              @click="removeMonster"
+            />
+          </v-list>
+        </v-menu>
       </template>
     </v-card-item>
 
     <v-card-text class="d-flex flex-column ga-3 pt-0">
-      <!-- The sheet's combat summary, compact (D1) -->
+      <!-- The sheet's combat summary, compact (D1). Not a monster's for the
+        players: they never get its stats, hit points least of all -->
       <combat-summary
+        v-if="!isMonster || canEdit"
         :creature-id="creature._id"
         compact
       />
@@ -134,6 +188,10 @@ import setBuffDuration from '/imports/api/creature/creatureProperties/methods/se
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import ConditionChips from '/imports/ui/properties/components/buffs/ConditionChips.vue';
 import CombatSummary from '/imports/ui/creature/character/CombatSummary.vue';
+import MarkdownText from '/imports/ui/components/MarkdownText.vue';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
+import { monsterTags } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import userColorProps from '/imports/ui/utility/userColor';
 
@@ -141,6 +199,10 @@ import userColorProps from '/imports/ui/utility/userColor';
  * One character on a party board: who they are, the stats a table needs at
  * a glance, their hit points (damage and healing when the viewer can edit
  * the character) and their buffs and conditions. Live, as the sheet is.
+ *
+ * A game master's monster shows its game master all that, its bestiary
+ * entry's type line, challenge rating and lore, and a way to remove it; the
+ * players see its name, picture and conditions, which is all they receive.
  */
 const props = defineProps({
   creature: {
@@ -172,6 +234,16 @@ const canEdit = autorun(() => hasEditPermission(props.creature, Meteor.user())).
 
 // A player sees the other players' characters on the board, not their sheets
 const userId = autorun(() => Meteor.userId()).result;
+const isOwner = computed(() => props.creature.owner === userId.value);
+
+const isMonster = computed(() => props.creature.type === 'monster');
+// The bestiary entry it was copied from, which the board publishes to the game master
+const monsterTemplate = autorun(() => isMonster.value && props.creature.templateId
+  && LibraryNodes.findOne(props.creature.templateId, { fields: { description: 1, libraryTags: 1 } })).result;
+const monsterInfo = computed(() => monsterTags(monsterTemplate.value?.libraryTags));
+// "Small humanoid (goblinoid), neutral evil", then its lore
+const descriptionLines = computed(() => (monsterTemplate.value?.description?.text || '').split('\n'));
+const lore = computed(() => descriptionLines.value.slice(1).join('\n').trim());
 const canOpenSheet = computed(() => canEdit.value || !!props.creature.public
   || [props.creature.owner, ...(props.creature.readers || [])].includes(userId.value));
 
@@ -194,6 +266,13 @@ const classText = autorun(() => activeProperties({ type: 'class' })
   .map(cls => cls.level ? `${cls.name} ${cls.level}` : cls.name)
   .join(' / ')).result;
 
+// A monster's challenge rating and type line, from its bestiary entry
+const subtitle = computed(() => {
+  if (!isMonster.value) return classText.value;
+  const cr = monsterInfo.value.cr && t('monsters.crValue', { cr: monsterInfo.value.cr });
+  return [cr, descriptionLines.value[0]].filter(Boolean).join(' · ');
+});
+
 const conditions = autorun(() => activeProperties({ type: 'buff' })).result;
 
 // How long an effect lasts, counted down by the initiative tracker
@@ -208,6 +287,16 @@ function durationTitle(rounds) {
     return t('combat.minutes', { count: rounds / 10, rounds }, rounds / 10);
   }
   return t('combat.rounds', { count: rounds }, rounds);
+}
+
+async function removeMonster() {
+  try {
+    await removeCreature.callAsync({ charId: props.creature._id });
+    snackbar({ text: t('monsters.removed', { name: props.creature.name }) });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: error.reason || error.message });
+  }
 }
 
 async function removeCondition(buff) {

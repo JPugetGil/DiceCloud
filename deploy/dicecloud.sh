@@ -14,6 +14,17 @@
 #                                   imports the libraries of tools/libraryImport
 #                                   (its data/*.gz and manifests), owned by that
 #                                   account, which must exist
+#   ./dicecloud.sh snapshots push <folder>
+#                                   sends a tools/libraryImport folder (its
+#                                   scripts, data/*.gz and manifests) to the
+#                                   backups' S3 bucket
+#   ./dicecloud.sh snapshots pull <folder> [pattern]
+#                                   gets it back into <folder>, ready for
+#                                   `libraries`; a pattern ('srd51-bestiary*')
+#                                   keeps only the matching snapshots
+#   ./dicecloud.sh snapshots tools <archive>
+#                                   keeps an archive of the tools/ folder there
+#   ./dicecloud.sh snapshots list   lists what the bucket holds of them
 #   ./dicecloud.sh admin <username> makes that account an administrator
 #   ./dicecloud.sh import <url> [database]
 #                                   replaces the database with another MongoDB's,
@@ -61,6 +72,7 @@ load_env() {
   : "${BACKUP_DIR:=/srv/dicecloud/backups}" "${BACKUP_KEEP_DAYS:=7}" "${BACKUP_TIME:=*-*-* 03:30:00}"
   : "${BACKUP_S3_BUCKET:=}" "${BACKUP_S3_PREFIX:=dicecloud-backups}" "${BACKUP_S3_REGION:=eu-west-3}"
   : "${BACKUP_S3_ACCESS_KEY_ID:=}" "${BACKUP_S3_SECRET_ACCESS_KEY:=}" "${BACKUP_S3_ENDPOINT:=}"
+  : "${SNAPSHOTS_S3_PREFIX:=library-snapshots}"
   : "${APP_LOCAL_PORT:=3000}"
 }
 
@@ -438,6 +450,72 @@ cmd_libraries() {
   log "Libraries imported: they are in $owner's library, and in the community libraries"
 }
 
+# The AWS CLI in a container, with the backups' S3 credentials. $1: a folder
+# mounted at /work ("" for none), $2: its mode (ro or rw); the rest goes to
+# `aws`. It runs as this user, so that what it writes is not root's
+aws_() {
+  local dir="$1" mode="$2"
+  shift 2
+  export AWS_ACCESS_KEY_ID="$BACKUP_S3_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$BACKUP_S3_SECRET_ACCESS_KEY"
+  export AWS_DEFAULT_REGION="$BACKUP_S3_REGION"
+  local run=(--rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_DEFAULT_REGION
+    -e HOME=/tmp --user "$(id -u):$(id -g)")
+  if [ -n "$dir" ]; then run+=(-v "$dir:/work:$mode"); fi
+  local endpoint=()
+  if [ -n "$BACKUP_S3_ENDPOINT" ]; then endpoint=(--endpoint-url "$BACKUP_S3_ENDPOINT"); fi
+  docker_ run "${run[@]}" amazon/aws-cli "${endpoint[@]}" "$@"
+}
+
+# The library snapshots and the tools that import them are not in git: they
+# are kept in the backups' bucket, under SNAPSHOTS_S3_PREFIX. The Vexus
+# snapshots hold text outside the SRD: the bucket must stay private
+cmd_snapshots() {
+  load_env
+  [ -n "$BACKUP_S3_BUCKET" ] || die "BACKUP_S3_BUCKET is empty in $ENV_FILE: the snapshots go to the backups' bucket"
+  local action="${1:-}" target="${2:-}" pattern="${3:-}" dir file
+  local base="s3://$BACKUP_S3_BUCKET/$SNAPSHOTS_S3_PREFIX"
+  case "$action" in
+    push)
+      [ -n "$target" ] || die "usage: ./dicecloud.sh snapshots push <tools/libraryImport folder>"
+      for file in import.js createCollection.js lib.js; do
+        [ -f "$target/$file" ] || die "$target/$file not found"
+      done
+      compgen -G "$target/data/*.gz" >/dev/null || die "no snapshot (*.gz) in $target/data"
+      dir="$(cd "$target" && pwd)"
+      log "Sending $dir to $base/kit/"
+      # The folder's own scripts and settings, its snapshots and manifests:
+      # not its backups/ nor any other subfolder. The last matching filter wins
+      aws_ "$dir" ro s3 sync /work "$base/kit/" --only-show-errors \
+        --exclude '*' --include '*.js' --include '*.json' --include 'README.md' \
+        --exclude '*/*' --include 'data/*.gz' --include 'data/manifest*.json'
+      log "Sent: ./dicecloud.sh snapshots list"
+      ;;
+    pull)
+      [ -n "$target" ] || die "usage: ./dicecloud.sh snapshots pull <folder> [pattern, e.g. 'srd51-bestiary*']"
+      mkdir -p "$target/data"
+      dir="$(cd "$target" && pwd)"
+      local only=()
+      if [ -n "$pattern" ]; then only=(--exclude 'data/*' --include "data/$pattern"); fi
+      log "Getting $base/kit/ into $dir"
+      aws_ "$dir" rw s3 sync "$base/kit/" /work --only-show-errors "${only[@]}"
+      compgen -G "$dir/data/*.gz" >/dev/null || die "no snapshot came: check the pattern, or ./dicecloud.sh snapshots list"
+      log "Ready: ./dicecloud.sh libraries $target <username>"
+      ;;
+    tools)
+      [ -f "$target" ] || die "usage: ./dicecloud.sh snapshots tools <archive of the tools/ folder>"
+      dir="$(cd "$(dirname "$target")" && pwd)"
+      file="$(basename "$target")"
+      log "Sending $file to $base/tools/"
+      aws_ "$dir" ro s3 cp "/work/$file" "$base/tools/$file" --only-show-errors
+      ;;
+    list)
+      aws_ "" ro s3 ls "$base/" --recursive --human-readable
+      ;;
+    *)
+      die "usage: ./dicecloud.sh snapshots push|pull|tools|list (see ./dicecloud.sh)" ;;
+  esac
+}
+
 # A new database has no administrator: the first one is made here
 cmd_admin() {
   load_env
@@ -465,6 +543,7 @@ main() {
     restore) cmd_restore "$@" ;;
     import) cmd_import "$@" ;;
     libraries) cmd_libraries "$@" ;;
+    snapshots) cmd_snapshots "$@" ;;
     admin) cmd_admin "$@" ;;
     *) awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "${BASH_SOURCE[0]}"
       [ -z "$command" ] || exit 1 ;;

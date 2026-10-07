@@ -45,8 +45,9 @@
                 size="small"
                 variant="tonal"
                 prepend-icon="mdi-account-group-outline"
+                data-id="party-character-count"
               >
-                {{ $t('party.memberCount', { count: creatures.length }, creatures.length) }}
+                {{ $t('party.memberCount', { count: characters.length }, characters.length) }}
               </v-chip>
               <v-chip
                 v-if="role === 'member'"
@@ -57,20 +58,21 @@
                 {{ $t('party.gmChip', { name: gmName }) }}
               </v-chip>
               <v-spacer />
+              <!-- The party's characters: the monsters neither rest nor gain experience -->
               <party-actions
-                v-if="role === 'gm' && creatures.length"
-                :creatures="creatures"
+                v-if="role === 'gm' && characters.length"
+                :creatures="characters"
               />
             </div>
             <v-empty-state
-              v-if="!creatures.length"
+              v-if="!characters.length"
               icon="mdi-account-group-outline"
               :title="$t('party.emptyTitle')"
               :text="role === 'gm' ? $t('party.emptyText') : $t('party.emptyTextPlayer')"
             />
             <v-row density="compact">
               <v-col
-                v-for="creature in orderedCreatures"
+                v-for="creature in ordered(characters)"
                 :key="creature._id"
                 cols="12"
                 sm="6"
@@ -82,6 +84,77 @@
                 />
               </v-col>
             </v-row>
+
+            <!-- The game master's monsters, from their bestiaries -->
+            <section
+              v-if="role === 'gm' || monsters.length"
+              class="mt-6"
+              data-id="party-monsters"
+            >
+              <div class="d-flex align-center flex-wrap ga-2 mb-3">
+                <h2 class="text-title-large my-0">
+                  {{ $t('monsters.title') }}
+                </h2>
+                <v-chip
+                  v-if="role === 'gm'"
+                  size="small"
+                  variant="tonal"
+                  prepend-icon="mdi-paw"
+                  :aria-label="$t('monsters.countLabel', { count: monsters.length, limit: MAX_BOARD_MONSTERS })"
+                  data-id="party-monster-count"
+                >
+                  {{ $t('monsters.count', { count: monsters.length, limit: MAX_BOARD_MONSTERS }) }}
+                </v-chip>
+                <v-spacer />
+                <template v-if="role === 'gm'">
+                  <v-menu v-if="monsters.length">
+                    <template #activator="{ props: menuProps }">
+                      <v-btn
+                        v-bind="menuProps"
+                        variant="text"
+                        prepend-icon="mdi-flag-checkered"
+                        :loading="ending"
+                        data-id="party-end-encounter"
+                      >
+                        {{ $t('monsters.endEncounter') }}
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item
+                        prepend-icon="mdi-flag-checkered"
+                        :title="$t('monsters.endEncounter')"
+                        :subtitle="$t('monsters.endEncounterHint', { count: monsters.length }, monsters.length)"
+                        data-id="party-end-encounter-confirm"
+                        @click="endTheEncounter"
+                      />
+                    </v-list>
+                  </v-menu>
+                  <v-btn
+                    variant="tonal"
+                    color="primary"
+                    prepend-icon="mdi-plus"
+                    data-id="party-add-monsters"
+                    @click="addMonsters"
+                  >
+                    {{ $t('monsters.add') }}
+                  </v-btn>
+                </template>
+              </div>
+              <v-row density="compact">
+                <v-col
+                  v-for="creature in ordered(monsters)"
+                  :key="creature._id"
+                  cols="12"
+                  sm="6"
+                  xl="4"
+                >
+                  <party-member-card
+                    :creature="creature"
+                    :has-turn="creature._id === activeCreatureId"
+                  />
+                </v-col>
+              </v-row>
+            </section>
           </v-col>
           <v-col
             cols="12"
@@ -107,7 +180,7 @@
 </template>
 
 <script setup>
-import { computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { useI18n } from 'vue-i18n';
@@ -123,6 +196,11 @@ import InitiativeBar from '/imports/ui/creature/party/InitiativeBar.vue';
 import { useDisplay } from 'vuetify';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { useAppStore } from '/imports/ui/stores/app';
+import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { endEncounter } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
+import { MAX_BOARD_MONSTERS } from '/imports/api/creature/creatureFolders/boardMonsters';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 
 /**
  * A character folder as a live board for the table: one card per character
@@ -151,18 +229,54 @@ const creatures = autorun(() => {
   return ids.map(id => found.find(creature => creature._id === id)).filter(Boolean);
 }).result;
 
+// The party's characters, and the game master's monsters (type 'monster')
+const characters = computed(() => (creatures.value || []).filter(creature => creature.type !== 'monster'));
+const monsters = computed(() => (creatures.value || []).filter(creature => creature.type === 'monster'));
+
 const { lgAndUp } = useDisplay();
 
 // During a fight the cards follow the initiative order, those not in it last
-const orderedCreatures = computed(() => {
+const initiativeRank = computed(() => {
   const tracker = folder.value?.initiative;
-  const list = creatures.value || [];
-  if (!tracker?.round) return list;
-  const rank = new Map(initiativeOrder(tracker.entries)
+  if (!tracker?.round) return undefined;
+  return new Map(initiativeOrder(tracker.entries)
     .filter(entry => entry.creatureId)
     .map((entry, index) => [entry.creatureId, index]));
-  return [...list].sort((a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity));
 });
+function ordered(list) {
+  const rank = initiativeRank.value;
+  if (!rank) return list;
+  return [...list].sort((a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity));
+}
+
+const dialogStackStore = useDialogStackStore();
+
+function addMonsters() {
+  dialogStackStore.pushDialogStack({
+    component: 'monster-picker-dialog',
+    elementId: 'party-add-monsters',
+    data: {
+      folderId: folderId.value,
+      monsterCount: monsters.value.length,
+      inFight: !!folder.value?.initiative?.round,
+    },
+  });
+}
+
+// The monsters go, and the combat ends with them (the user's choice, 2026-10-07)
+const ending = ref(false);
+async function endTheEncounter() {
+  ending.value = true;
+  try {
+    const removed = await endEncounter.callAsync({ folderId: folderId.value, endCombat: true });
+    snackbar({ text: t('monsters.encounterEnded', { count: removed }, removed) });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  } finally {
+    ending.value = false;
+  }
+}
 
 // The character whose turn it is, outlined on the board
 const activeCreatureId = computed(() => {
