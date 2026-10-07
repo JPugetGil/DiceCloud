@@ -128,9 +128,9 @@ describe('Role permission assertions', function () {
 
   // Raw inserts: the user and creature schemas are not what is tested, so the
   // documents only hold the fields that matter here
-  function addCharacters(owner: string, count: number) {
+  function addCharacters(owner: string, count: number, type = 'pc') {
     return Creatures.rawCollection().insertMany(Array.from({ length: count }, () => ({
-      _id: Random.id(), owner, name: 'Role test character', type: 'pc', readers: [], writers: [],
+      _id: Random.id(), owner, name: 'Role test character', type, readers: [], writers: [],
     })) as any[]);
   }
 
@@ -170,6 +170,15 @@ describe('Role permission assertions', function () {
     await addCharacters(playerId, 1);
     await addCharacters(activePlayerId, 5);
     await assertCanCreateCharacter(playerId);
+  });
+
+  it('only counts player characters: a game master\'s monsters and NPCs are not', async function () {
+    await addCharacters(playerId, 1);
+    await addCharacters(playerId, 30, 'monster');
+    await addCharacters(playerId, 2, 'npc');
+    await assertCanCreateCharacter(playerId);
+    await addCharacters(playerId, 1);
+    await assertRejects(assertCanCreateCharacter(playerId), 'a third player character is refused');
   });
 
   it('stops an active player at 10 owned characters', async function () {

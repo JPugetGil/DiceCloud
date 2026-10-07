@@ -18,15 +18,16 @@ async function getUserRoles(userId: string | null | undefined) {
 }
 
 /**
- * Assert that the user's role lets them own one more character. Every character
- * the user owns counts, however it was made: created, restored from an archive
- * or imported.
+ * Assert that the user's role lets them own one more character. Every player
+ * character the user owns counts, however it was made: created, restored from
+ * an archive or imported. A game master's monsters don't: a party board caps
+ * them (MAX_BOARD_MONSTERS), and those methods make player characters only.
  */
 export async function assertCanCreateCharacter(userId: string | null | undefined): Promise<void> {
   const user = await getUserRoles(userId);
   // Roles without a limit don't need the count
   if (getUserPermissions(user).characterLimit === Infinity) return;
-  const ownedCharacterCount = await Creatures.find({ owner: user._id }).countAsync();
+  const ownedCharacterCount = await Creatures.find({ owner: user._id, type: 'pc' }).countAsync();
   const error = getCharacterLimitError(user, ownedCharacterCount);
   if (error) throw new Meteor.Error('Character limit reached', error);
 }

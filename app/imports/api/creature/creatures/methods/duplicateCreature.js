@@ -28,7 +28,9 @@ if (Meteor.isServer) {
  * Insert a character archive ({ creature, properties, experiences, logs }) as
  * a new character owned by `owner`: every document gets a new id, and the
  * references between them follow. The copy is shared with nobody and keeps no
- * Discord webhook, which would post its rolls to the original's channel.
+ * Discord webhook, which would post its rolls to the original's channel. It is
+ * a player character, which counts towards the owner's limit, even the copy of
+ * a party board's monster.
  * Returns the new character's id.
  */
 export async function insertCreatureCopy(archive, { owner, name = undefined }) {
@@ -51,6 +53,7 @@ export async function insertCreatureCopy(archive, { owner, name = undefined }) {
     ...omit(archive.creature, ['computeVersion', 'lastComputedAt']),
     _id: creatureId,
     owner,
+    type: 'pc',
     readers: [],
     writers: [],
     public: false,

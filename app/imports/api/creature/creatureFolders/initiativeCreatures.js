@@ -3,8 +3,9 @@
  * light entries, not the bestiary. Their hit points and armor class are the
  * game master's: they are kept apart from the entries, in the folder's
  * `initiativeStats` (entry id → { hp, ac, damage }), which the publications
- * leave out for the players. What the players see of a creature is its
- * `status` on the entry: unhurt, bloodied or down.
+ * leave out for the players unless the game master shows them. So is its
+ * status, unhurt, bloodied or down, which follows from them (entryStatus):
+ * the players never learn how hurt a monster is otherwise.
  */
 export const STATUSES = Object.freeze(['unhurt', 'bloodied', 'down']);
 

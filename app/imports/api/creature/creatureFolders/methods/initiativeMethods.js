@@ -6,11 +6,12 @@ import { Random } from 'meteor/random';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import initiativeOrder, { turnAfterChange } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import initiativeOrder, { turnAfterChange, MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
+import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
 import {
-  MAX_COUNT, entryStatus, numberedNames, damageAfter,
+  MAX_COUNT, numberedNames, damageAfter,
 } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 
 /*
@@ -144,10 +145,7 @@ export const addInitiativeEntry = new ValidatedMethod({
       let entry = { _id: Random.id(), name: entryName, bonus: bonus || 0 };
       entry = Number.isFinite(initiative) ? { ...entry, initiative } : rolled(entry);
       if (hp || Number.isFinite(ac)) {
-        const stats = { ...hp && { hp, damage: 0 }, ...Number.isFinite(ac) && { ac } };
-        $set[`initiativeStats.${entry._id}`] = stats;
-        const status = entryStatus(stats);
-        if (status) entry.status = status;
+        $set[`initiativeStats.${entry._id}`] = { ...hp && { hp, damage: 0 }, ...Number.isFinite(ac) && { ac } };
       }
       return entry;
     });
@@ -161,8 +159,69 @@ export const addInitiativeEntry = new ValidatedMethod({
 });
 
 /**
+ * Puts characters of the folder in its tracker, during a fight as well as
+ * before one, without rerolling anyone: each rolls d20 plus its bonus, or the
+ * whole group once with `sharedRoll`, as the rules suggest for identical
+ * monsters. The creature whose turn it is keeps it. Those already in the
+ * tracker, and those the game master can't view, are left out. Server only:
+ * the dice are the server's. Returns the entries added
+ */
+export async function addCreaturesToTracker(folder, creatureIds, userId, { sharedRoll = false } = {}) {
+  const tracker = folder.initiative || { round: 0, turn: 0, entries: [] };
+  const entries = tracker.entries || [];
+  const ids = [...new Set(creatureIds)].filter(id => folder.creatures?.includes(id)
+    && !entries.some(entry => entry.creatureId === id));
+  const creatures = await Creatures.find({
+    _id: { $in: ids },
+    $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
+  }, { fields: { name: 1 } }).fetchAsync();
+  if (!creatures.length) return [];
+  if (entries.length + creatures.length > MAX_INITIATIVE_ENTRIES) {
+    throw boardError('initiative.full', 'initiative.full', { limit: MAX_INITIATIVE_ENTRIES });
+  }
+  const roll = sharedRoll ? rollD20() : undefined;
+  const added = [];
+  // In the order asked for: "Goblin 1" before "Goblin 2"
+  for (const id of ids) {
+    const creature = creatures.find(creature => creature._id === id);
+    if (!creature) continue;
+    const bonus = await initiativeBonus(id);
+    const d20 = roll ?? rollD20();
+    added.push({ _id: Random.id(), creatureId: id, name: creature.name, bonus, roll: d20, initiative: d20 + bonus });
+  }
+  const newEntries = [...entries, ...added];
+  const turn = turnAfterChange(entries, tracker.turn || 0, newEntries);
+  await CreatureFolders.updateAsync(folder._id, {
+    $set: { initiative: { ...tracker, entries: newEntries, turn } },
+  });
+  return added;
+}
+
+/**
+ * Adds characters of the folder to its tracker, during a fight: a monster that
+ * joins it, a player's character that arrives late. Nobody else is rerolled
+ */
+export const addCreaturesToInitiative = new ValidatedMethod({
+  name: 'creatureFolders.initiative.addCreatures',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    creatureIds: { type: Array, minCount: 1, maxCount: MAX_INITIATIVE_ENTRIES },
+    'creatureIds.$': { type: String, max: 32 },
+    sharedRoll: { type: Boolean, optional: true },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ folderId, creatureIds, sharedRoll }) {
+    const folder = await getOwnFolder(folderId, this.userId);
+    if (Meteor.isClient) return;
+    const added = await addCreaturesToTracker(folder, creatureIds, this.userId, { sharedRoll });
+    return added.map(entry => entry._id);
+  },
+});
+
+/**
  * Damage (or healing, when negative) to a creature added by hand: its status
- * follows, which is what the players see
+ * follows, which the players see when the game master shows the stats
  */
 export const damageInitiativeEntry = new ValidatedMethod({
   name: 'creatureFolders.initiative.damage',
@@ -180,11 +239,8 @@ export const damageInitiativeEntry = new ValidatedMethod({
       throw new Meteor.Error('initiative.not-found', 'Only creatures added by hand take damage here');
     }
     const stats = folder.initiativeStats?.[entryId] || {};
-    const updated = { ...stats, damage: damageAfter(stats, amount) };
-    const status = entryStatus(updated, entry.out);
-    await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
-      $set: { [`initiativeStats.${entryId}`]: updated, ...status && { 'initiative.entries.$.status': status } },
-      ...!status && { $unset: { 'initiative.entries.$.status': 1 } },
+    await CreatureFolders.updateAsync(folderId, {
+      $set: { [`initiativeStats.${entryId}`]: { ...stats, damage: damageAfter(stats, amount) } },
     });
   },
 });
@@ -205,12 +261,8 @@ export const setInitiativeEntryOut = new ValidatedMethod({
     if (!entry || entry.creatureId) {
       throw new Meteor.Error('initiative.not-found', 'Only creatures added by hand are put out of the fight here');
     }
-    const status = entryStatus(folder.initiativeStats?.[entryId], out);
-    const $set = { 'initiative.entries.$.out': out };
-    if (status) $set['initiative.entries.$.status'] = status;
     await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
-      $set,
-      ...!status && { $unset: { 'initiative.entries.$.status': 1 } },
+      $set: { 'initiative.entries.$.out': out },
     });
   },
 });

@@ -24,6 +24,12 @@ const removeCreatureFolder = new ValidatedMethod({
       throw new Meteor.Error('creatureFolders.methods.updateName.denied',
         'This folder does not belong to you');
     }
+    // Its board's monsters go with it: the character list shows none, so they
+    // would stay behind unseen. Imported when called, as monsterMethods does
+    if (Meteor.isServer) {
+      const { removeBoardMonsters } = await import('/imports/api/creature/creatureFolders/server/boardMonsters');
+      await removeBoardMonsters(existingFolder);
+    }
     // Remove
     return await CreatureFolders.removeAsync(_id);
   },

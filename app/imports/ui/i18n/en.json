@@ -292,7 +292,17 @@
     "changeHealth": "Change {name}'s hit points",
     "outOfFight": "{name} out of the fight",
     "showStats": "Show the creatures' hit points and armor class to the players",
-    "showStatsHint": "Otherwise they only see whether each one is unhurt, bloodied or down."
+    "showStatsHint": "Otherwise they see none of it, not even whether each one is unhurt, bloodied or down.",
+    "full": "The initiative tracker holds up to {limit} creatures. Remove some to add others."
+  },
+  "monsters": {
+    "errors": {
+      "denied": "Only the game master of this party can add or remove its monsters.",
+      "notFound": "This monster is no longer in any library.",
+      "libraryDenied": "You can only add monsters from the libraries you subscribe to.",
+      "boardFull": "A party board holds up to {limit} monsters. End the encounter to make room.",
+      "limit": "You can have up to {limit} monsters across your party boards. End an encounter or delete a folder to free some."
+    }
   },
   "docs": {
     "notFound": "Documentation not found",

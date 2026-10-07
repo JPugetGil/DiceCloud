@@ -4,10 +4,11 @@ import { Random } from 'meteor/random';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import initiativeOrder, { turnAfterChange } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import initiativeOrder, { turnAfterChange, MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import {
   rollInitiative, addInitiativeEntry, updateInitiativeEntry, removeInitiativeEntry,
   advanceInitiative, endInitiative, damageInitiativeEntry, setInitiativeEntryOut,
+  addCreaturesToInitiative,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 import {
   entryStatus, numberedNames, damageAfter, boardFolderFields,
@@ -47,6 +48,9 @@ describe('The turn after a change of order', function () {
 describe('Initiative tracker', function () {
   const [userId, otherUserId, folderId, fighterId, wizardId] =
     [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
+  // Late to the fight: not in the folder when it rolls
+  const [rogueId, twinIds, strangerId] = [Random.id(), [Random.id(), Random.id()], Random.id()];
+  const lateIds = [rogueId, ...twinIds, strangerId];
   const as = (method, args, user = userId) => method._execute({ userId: user }, { folderId, ...args });
   const tracker = async () => (await CreatureFolders.findOneAsync(folderId)).initiative;
   const ordered = async () => initiativeOrder((await tracker()).entries);
@@ -54,9 +58,16 @@ describe('Initiative tracker', function () {
   before(async function () {
     if (!Meteor.isServer) this.skip();
     await Meteor.users.insertAsync({ _id: userId, username: `test-${userId}` });
-    for (const [_id, name] of [[fighterId, 'Fighter'], [wizardId, 'Wizard']]) {
+    for (const [_id, name] of [[fighterId, 'Fighter'], [wizardId, 'Wizard'], [rogueId, 'Rogue'],
+      [twinIds[0], 'Twin 1'], [twinIds[1], 'Twin 2']]) {
       await Creatures.rawCollection().insertOne({ _id, name, owner: userId, readers: [], writers: [] });
     }
+    // Another user's, which the game master can't view
+    await Creatures.rawCollection().insertOne({ _id: strangerId, name: 'Stranger', owner: otherUserId, readers: [], writers: [] });
+    await CreatureProperties.rawCollection().insertOne({
+      _id: Random.id(), type: 'attribute', attributeType: 'ability', variableName: 'dexterity', modifier: 4,
+      root: { collection: 'creatures', id: rogueId }, left: 1, right: 2,
+    });
     // The fighter has an initiative stat, the wizard only a Dexterity modifier
     await CreatureProperties.rawCollection().insertOne({
       _id: Random.id(), type: 'skill', variableName: 'initiative', value: 3,
@@ -73,8 +84,8 @@ describe('Initiative tracker', function () {
 
   after(async function () {
     if (!Meteor.isServer) return;
-    await CreatureProperties.removeAsync({ 'root.id': { $in: [fighterId, wizardId] } });
-    await Creatures.removeAsync({ _id: { $in: [fighterId, wizardId] } });
+    await CreatureProperties.removeAsync({ 'root.id': { $in: [fighterId, wizardId, ...lateIds] } });
+    await Creatures.removeAsync({ _id: { $in: [fighterId, wizardId, ...lateIds] } });
     await CreatureFolders.removeAsync(folderId);
     await Meteor.users.removeAsync(userId);
   });
@@ -144,27 +155,35 @@ describe('Initiative tracker', function () {
     assert.equal(error?.error, 'initiative.denied');
   });
 
-  it('adds creatures numbered, their stats kept apart from the entries', async function () {
+  it('adds creatures numbered, their stats and status kept apart from the entries', async function () {
     await as(addInitiativeEntry, { name: 'Orc', bonus: 1, initiative: 12, count: 3, hp: 15, ac: 13 });
     const folder = /** @type {any} */ (await CreatureFolders.findOneAsync(folderId));
     const orcs = folder.initiative.entries.filter(entry => entry.name.startsWith('Orc'));
     assert.deepEqual(orcs.map(entry => entry.name), ['Orc 1', 'Orc 2', 'Orc 3']);
     for (const orc of orcs) {
-      assert.equal(orc.status, 'unhurt');
+      // The status tells of the hit points: the players see neither unless shown
+      assert.notProperty(orc, 'status');
       assert.notProperty(orc, 'hp');
       assert.deepEqual(folder.initiativeStats[orc._id], { hp: 15, damage: 0, ac: 13 });
+      assert.equal(entryStatus(folder.initiativeStats[orc._id], orc.out), 'unhurt');
     }
   });
 
   it('takes damage and healing, the status following', async function () {
     const orc = (await tracker()).entries.find(entry => entry.name === 'Orc 1');
-    const status = async () => (await tracker()).entries.find(entry => entry._id === orc._id).status;
+    const status = async () => {
+      const folder = /** @type {any} */ (await CreatureFolders.findOneAsync(folderId));
+      const entry = folder.initiative.entries.find(entry => entry._id === orc._id);
+      assert.notProperty(entry, 'status');
+      return entryStatus(folder.initiativeStats[orc._id], entry.out);
+    };
     await as(damageInitiativeEntry, { entryId: orc._id, amount: 6 });
     assert.equal(await status(), 'bloodied');
     await as(damageInitiativeEntry, { entryId: orc._id, amount: 20 });
     assert.equal(await status(), 'down');
     const stats = /** @type {any} */ (await CreatureFolders.findOneAsync(folderId)).initiativeStats;
     assert.equal(stats[orc._id].damage, 15);
+    assert.equal(stats[orc._id].hp, 15);
     await as(damageInitiativeEntry, { entryId: orc._id, amount: -15 });
     assert.equal(await status(), 'unhurt');
   });
@@ -172,7 +191,9 @@ describe('Initiative tracker', function () {
   it('skips the turn of a creature out of the fight', async function () {
     const orc = (await tracker()).entries.find(entry => entry.name === 'Orc 2');
     await as(setInitiativeEntryOut, { entryId: orc._id, out: true });
-    assert.equal((await tracker()).entries.find(entry => entry._id === orc._id).status, 'down');
+    const entry = (await tracker()).entries.find(entry => entry._id === orc._id);
+    assert.isTrue(entry.out);
+    assert.notProperty(entry, 'status');
     for (let i = 0; i < 8; i++) {
       await as(advanceInitiative, { step: 1 });
       assert.notEqual((await ordered())[(await tracker()).turn]._id, orc._id);
@@ -191,10 +212,93 @@ describe('Initiative tracker', function () {
     assert.equal(error?.error, 'initiative.denied');
   });
 
+  it('adds characters to a fight under way without rerolling anyone', async function () {
+    await CreatureFolders.updateAsync(folderId, { $addToSet: { creatures: { $each: lateIds } } });
+    const { entries: before, round } = await tracker();
+    const current = (await ordered())[(await tracker()).turn];
+    const added = await as(addCreaturesToInitiative, { creatureIds: [rogueId] });
+    assert.lengthOf(added, 1);
+    const after = await tracker();
+    assert.equal(after.round, round, 'the fight goes on');
+    for (const entry of before) {
+      assert.deepInclude(after.entries, entry, `${entry.name} keeps its result`);
+    }
+    const rogue = after.entries.find(entry => entry.creatureId === rogueId);
+    assert.include(rogue, { name: 'Rogue', bonus: 4 });
+    assert.equal(rogue.initiative, rogue.roll + 4);
+    assert.equal((await ordered())[after.turn]._id, current._id, 'the turn stays with the same creature');
+
+    // Already in, not in the folder, or not the game master's to view: left out
+    const again = await as(addCreaturesToInitiative, { creatureIds: [rogueId, strangerId, Random.id()] });
+    assert.lengthOf(again, 0);
+    assert.lengthOf((await tracker()).entries, before.length + 1);
+  });
+
+  it('rolls once for a group that shares its initiative', async function () {
+    await as(addCreaturesToInitiative, { creatureIds: twinIds, sharedRoll: true });
+    const twins = (await tracker()).entries.filter(entry => twinIds.includes(entry.creatureId));
+    assert.deepEqual(twins.map(entry => entry.name), ['Twin 1', 'Twin 2']);
+    assert.equal(twins[0].roll, twins[1].roll);
+    assert.equal(twins[0].initiative, twins[1].initiative);
+  });
+
+  it('lets only the game master add characters to the fight', async function () {
+    /** @type {any} */
+    let error;
+    try {
+      await as(addCreaturesToInitiative, { creatureIds: [strangerId] }, otherUserId);
+    } catch (e) {
+      error = e;
+    }
+    assert.equal(error?.error, 'initiative.denied');
+  });
+
   it('ends the combat', async function () {
     await as(endInitiative, {});
     assert.notExists(await tracker());
     assert.notExists(/** @type {any} */ (await CreatureFolders.findOneAsync(folderId)).initiativeStats);
+  });
+});
+
+describe('A full initiative tracker', function () {
+  const [userId, folderId, firstId, secondId] = [Random.id(), Random.id(), Random.id(), Random.id()];
+  const add = creatureIds => /** @type {any} */ (addCreaturesToInitiative)._execute({ userId }, { folderId, creatureIds });
+  const entryCount = async () => /** @type {any} */ (await CreatureFolders.findOneAsync(folderId)).initiative.entries.length;
+
+  before(async function () {
+    if (!Meteor.isServer) this.skip();
+    for (const _id of [firstId, secondId]) {
+      await Creatures.rawCollection().insertOne({ _id, name: 'Late', owner: userId, readers: [], writers: [] });
+    }
+    // One entry short of the tracker's limit
+    const entries = Array.from({ length: MAX_INITIATIVE_ENTRIES - 1 }, (_, i) => ({
+      _id: Random.id(), name: `Orc ${i + 1}`, initiative: 10, bonus: 0,
+    }));
+    await CreatureFolders.rawCollection().insertOne(/** @type {any} */ ({
+      _id: folderId, name: 'Horde', owner: userId, creatures: [firstId, secondId], order: 0,
+      initiative: { round: 1, turn: 0, entries },
+    }));
+  });
+
+  after(async function () {
+    if (!Meteor.isServer) return;
+    await Creatures.removeAsync({ _id: { $in: [firstId, secondId] } });
+    await CreatureFolders.removeAsync(folderId);
+  });
+
+  it('takes no more creatures than it holds, and says why', async function () {
+    /** @type {any} */
+    let error;
+    try {
+      await add([firstId, secondId]);
+    } catch (e) {
+      error = e;
+    }
+    assert.equal(error?.error, 'initiative.full');
+    assert.deepEqual(error.details, { i18n: { key: 'initiative.full', params: { limit: MAX_INITIATIVE_ENTRIES } } });
+    assert.equal(await entryCount(), MAX_INITIATIVE_ENTRIES - 1);
+    await add([firstId]);
+    assert.equal(await entryCount(), MAX_INITIATIVE_ENTRIES);
   });
 });
 

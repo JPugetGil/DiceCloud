@@ -348,8 +348,10 @@ const { result: showImportButton } = autorun(() => {
 // the user fills in a new character
 const characterLimit = computed(() => permissions.value.characterLimit);
 
+// Player characters only, as the server counts them: a party board's monsters
+// may be in minimongo too
 const { result: ownedCharacterCount } = autorun(() => {
-  return Creatures.find({ owner: Meteor.userId() }).count();
+  return Creatures.find({ owner: Meteor.userId(), type: 'pc' }).count();
 });
 
 function checkCharacterLimit() {

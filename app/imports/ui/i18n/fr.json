@@ -292,7 +292,17 @@
     "changeHealth": "Modifier les points de vie de {name}",
     "outOfFight": "{name} hors de combat",
     "showStats": "Montrer aux joueurs les points de vie et la CA des créatures",
-    "showStatsHint": "Sinon, ils ne voient que si chacune est indemne, en péril ou hors de combat."
+    "showStatsHint": "Sinon, ils n'en voient rien, pas même si chacune est indemne, en péril ou hors de combat.",
+    "full": "L'ordre d'initiative accueille au plus {limit} créatures. Retirez-en pour en ajouter d'autres."
+  },
+  "monsters": {
+    "errors": {
+      "denied": "Seul le maître du jeu de ce groupe peut ajouter ou retirer ses monstres.",
+      "notFound": "Ce monstre n'est plus dans aucune bibliothèque.",
+      "libraryDenied": "Vous ne pouvez ajouter que les monstres des bibliothèques auxquelles vous êtes abonné.",
+      "boardFull": "Un tableau de groupe accueille au plus {limit} monstres. Terminez la rencontre pour faire de la place.",
+      "limit": "Vous pouvez avoir au plus {limit} monstres sur l'ensemble de vos tableaux de groupe. Terminez une rencontre ou supprimez un dossier pour en libérer."
+    }
   },
   "docs": {
     "notFound": "Documentation introuvable",

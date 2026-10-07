@@ -128,23 +128,23 @@
               </template>
             </v-list-item-subtitle>
             <!--
-              A creature added by hand (UX11): its status for everyone, its hit
-              points and armor class for the game master only, unless shown
+              A creature added by hand (UX11): its status, hit points and armor
+              class for the game master only, unless shown
             -->
             <div
-              v-if="!entry.creatureId && (entry.status || statsOf(entry))"
+              v-if="!entry.creatureId && (statusOf(entry) || statsOf(entry))"
               class="d-flex flex-wrap align-center gc-2 mt-1"
               :data-id="`initiative-creature-${entry._id}`"
             >
               <v-chip
-                v-if="entry.status"
+                v-if="statusOf(entry)"
                 size="x-small"
                 variant="tonal"
-                :color="STATUS_COLORS[entry.status]"
-                :prepend-icon="STATUS_ICONS[entry.status]"
+                :color="STATUS_COLORS[statusOf(entry)]"
+                :prepend-icon="STATUS_ICONS[statusOf(entry)]"
                 :data-id="`initiative-status-${entry._id}`"
               >
-                {{ $t(`initiative.status.${entry.status}`) }}
+                {{ $t(`initiative.status.${statusOf(entry)}`) }}
               </v-chip>
               <span
                 v-if="statsOf(entry)?.hp"
@@ -364,7 +364,7 @@ import {
   advanceInitiative, endInitiative, setTrackDurations,
   damageInitiativeEntry, setInitiativeEntryOut, setInitiativeShowStats,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
-import { MAX_COUNT } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import { MAX_COUNT, entryStatus } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 import HealthChangeMenu from '/imports/ui/properties/components/attributes/HealthChangeMenu.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -418,6 +418,8 @@ const newAc = ref(undefined);
 // A creature's stats, which only the game master receives, unless shown
 const statsOf = entry => props.folder.initiativeStats?.[entry._id];
 const hitPointsLeft = entry => Math.max(0, (statsOf(entry)?.hp || 0) - (statsOf(entry)?.damage || 0));
+// Unhurt, bloodied or down: it tells of the hit points, so the players see it with them alone
+const statusOf = entry => (isGm.value || statsOf(entry)) ? entryStatus(statsOf(entry), entry.out) : undefined;
 const STATUS_COLORS = { unhurt: 'success', bloodied: 'warning', down: 'error' };
 const STATUS_ICONS = { unhurt: 'mdi-heart', bloodied: 'mdi-heart-half-full', down: 'mdi-heart-off' };
 

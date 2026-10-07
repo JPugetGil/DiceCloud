@@ -48,8 +48,10 @@ async function importApiCreature(apiCreature, userId) {
   if (existingCreature) throw new Meteor.Error('Already exists',
     'The creature you are trying to import already exists in this database.')
 
-  // Ensure the user owns the restored creature
+  // Ensure the user owns the restored creature, as a player character, which
+  // the character limit counts
   creature.owner = userId;
+  creature.type = 'pc';
   // Remove the sharing permissions, the ids of users on this instance aren't going to match
   creature.readers = [];
   creature.writers = [];

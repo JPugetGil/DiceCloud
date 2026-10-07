@@ -36,6 +36,10 @@ function childrenActive(prop: CreatureProperty): boolean {
     case 'action': return false;
     case 'spell': return false;
     case 'trigger': return false;
+    // A creature template's children are another creature's: inserted in a
+    // sheet, a bestiary monster's Hit Points or Strength must not become the
+    // character's
+    case 'creature': return false;
     // Other children are active
     default: return true;
   }

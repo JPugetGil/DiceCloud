@@ -1,3 +1,7 @@
+// Creatures in an initiative tracker: characters, monsters and those added by
+// hand. A leaf module: the folders' schema and their methods both read it
+export const MAX_INITIATIVE_ENTRIES = 64;
+
 /**
  * Initiative order: highest result first, ties to the highest bonus, then by
  * name; entries not rolled yet come last. The tracker's `turn` indexes this

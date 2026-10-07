@@ -27,6 +27,13 @@ export default function () {
   // Notes
   active('NoteId', 'Notes should be active');
   active('NoteChildId', 'children of notes should be active');
+
+  // Creature templates
+  active('creatureTemplateId', 'Creature templates should be active');
+  byAncestor('creatureTemplateChildId', 'Children of creature templates should be deactivatedByAncestor');
+  byAncestor('creatureTemplateGrandchildId', 'Their descendants too');
+  assert.notExists(computation.dependencyGraph.getNode('hitPoints'),
+    'A creature template\'s variables are not the character\'s');
 }
 
 function assertDeactivatedBySelf(computation, propId, note) {
@@ -114,6 +121,25 @@ var testProperties = [
     _id: 'NoteChildId',
     type: 'folder',
     parentId: 'NoteId',
+  }),
+  // Creature templates: a bestiary monster inserted in a sheet
+  clean({
+    _id: 'creatureTemplateId',
+    type: 'creature',
+    parentId: 'charId',
+  }),
+  clean({
+    _id: 'creatureTemplateChildId',
+    type: 'folder',
+    parentId: 'creatureTemplateId',
+  }),
+  clean({
+    _id: 'creatureTemplateGrandchildId',
+    type: 'attribute',
+    attributeType: 'healthBar',
+    variableName: 'hitPoints',
+    baseValue: { calculation: '7' },
+    parentId: 'creatureTemplateChildId',
   }),
 ];
 

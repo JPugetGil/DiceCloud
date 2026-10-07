@@ -49,10 +49,11 @@ const searchUsers = new ValidatedMethod({
       limit: SEARCH_USERS_LIMIT,
     }).fetchAsync();
 
-    // How many characters each user owns, to compare with their role's limit
+    // How many player characters each user owns, to compare with their role's
+    // limit, which their monsters don't count towards
     const characterCounts = {};
     const ownerCounts = await Creatures.rawCollection().aggregate([
-      { $match: { owner: { $in: users.map(user => user._id) } } },
+      { $match: { owner: { $in: users.map(user => user._id) }, type: 'pc' } },
       { $group: { _id: '$owner', count: { $sum: 1 } } },
     ]).toArray();
     for (const { _id, count } of ownerCounts) {

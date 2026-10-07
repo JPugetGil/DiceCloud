@@ -44,8 +44,10 @@ async function restoreCreature(archive, userId) {
     return insertCreatureCopy(archive, { owner: userId });
   }
 
-  // Ensure the user owns the restored creature
+  // Ensure the user owns the restored creature, as a player character: the
+  // character limit counts those, and a file can say anything
   archive.creature.owner = userId;
+  archive.creature.type = 'pc';
 
   // Insert the creature sub documents
   // They still have their original _id's

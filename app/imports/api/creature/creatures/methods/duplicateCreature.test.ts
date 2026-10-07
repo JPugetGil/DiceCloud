@@ -128,6 +128,13 @@ describe('Duplicating a character', function () {
     assert.equal(await Creatures.find({ owner: copierId }).countAsync(), 2);
   });
 
+  it('makes the copy of a monster a player character, which the limit counts', async function () {
+    // Monsters don't count towards the limit: a copy that stayed one would get round it
+    await Creatures.rawCollection().updateOne({ _id: originalId }, { $set: { type: 'monster' } });
+    const copyId = await as(duplicateCreature, ownerId, { creatureId: originalId });
+    assert.equal((await Creatures.findOneAsync(copyId))?.type, 'pc');
+  });
+
   it('downloads the archive of a character it can copy, without changing it', async function () {
     const archive = await as(getCreatureArchive, ownerId, { creatureId: originalId });
     assert.equal(archive.creature._id, originalId);
