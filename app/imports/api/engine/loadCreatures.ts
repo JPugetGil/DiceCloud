@@ -283,6 +283,9 @@ class LoadedCreature {
   properties!: Map<string, CreatureProperty>;
   creature?: Creature;
   variables: any;
+  // Set once the creature is deleted: its properties, removed after it, must
+  // not start a computation that can no longer find it
+  deleted = false;
 
   constructor(sub: Tracker.Computation, creatureId: string) {
     const self = this;
@@ -292,8 +295,9 @@ class LoadedCreature {
     Tracker.nonreactive(() => {
       self.subs = new Set([sub]);
       const compute = debounce(Meteor.bindEnvironment(async () => {
-        // It's possible that the creature was unloaded before we get around to computing it
-        if (!loadedCreatures.has(creatureId)) return;
+        // It's possible that the creature was unloaded, or deleted, before we
+        // get around to computing it
+        if (!loadedCreatures.has(creatureId) || self.deleted) return;
         await computeCreature(creatureId);
       }), COMPUTE_DEBOUNCE_TIME);
 
@@ -382,12 +386,14 @@ class LoadedCreature {
   }
   addCreature(creature: Creature) {
     this.creature = creature;
+    this.deleted = false;
   }
   changeCreature(id: string, fields: Partial<Creature>) {
     LoadedCreature.changeDoc(this.creature, fields);
   }
   removeCreature() {
     delete this.creature;
+    this.deleted = true;
   }
   addVariables(variables: any) {
     this.variables = variables;
