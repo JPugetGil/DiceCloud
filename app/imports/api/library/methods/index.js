@@ -4,3 +4,4 @@ import '/imports/api/library/methods/updateReferenceNode';
 import '/imports/api/library/methods/libraryFiles';
 import '/imports/api/library/methods/listRulesets';
 import '/imports/api/library/methods/libraryLanguageMethods';
+import '/imports/api/library/methods/libraryLicenseMethods';

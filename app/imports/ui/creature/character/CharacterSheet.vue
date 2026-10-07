@@ -64,6 +64,12 @@
           <tree-tab :creature-id="creatureId" />
         </v-window-item>
       </v-window>
+      <!-- A party board's monster: the licence of the bestiary it comes from, at the end of the sheet -->
+      <monster-license
+        v-if="creature.templateId"
+        class="character-sheet__license px-4 pb-4"
+        :template-id="creature.templateId"
+      />
     </div>
     <value-change-summary />
     <level-up-card
@@ -164,6 +170,7 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import CharacterSheetFab from '/imports/ui/creature/character/CharacterSheetFab.vue';
 import ValueChangeSummary from '/imports/ui/components/ValueChangeSummary.vue';
 import LevelUpCard from '/imports/ui/creature/character/LevelUpCard.vue';
+import MonsterLicense from '/imports/ui/creature/party/MonsterLicense.vue';
 import ActionsTab from '/imports/ui/creature/character/characterSheetTabs/ActionsTab.vue';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { useAppStore } from '/imports/ui/stores/app';

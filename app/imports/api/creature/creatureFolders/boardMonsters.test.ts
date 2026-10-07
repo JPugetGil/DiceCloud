@@ -33,6 +33,7 @@ if (Meteor.isServer) {
   /* eslint-disable @typescript-eslint/no-require-imports */
   require('/imports/api/creature/creatureFolders/server/publications/partyBoard');
   require('/imports/api/creature/creatureFolders/server/publications/characterCombat');
+  require('/imports/api/creature/creatures/server/publications/singleCharacter');
   // As in production: properties and variables leave no copy in the server's
   // mergebox, so a document sent twice reaches the client twice
   require('/imports/startup/server/publicationStrategies');
@@ -98,7 +99,7 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
     })) as any[]);
     // The game master's library, and someone else's private one
     await Libraries.rawCollection().insertOne({
-      _id: libraryId, name: 'Bestiary', language: 'en', owner: gmId, readers: [], writers: [],
+      _id: libraryId, name: 'Bestiary', language: 'en', license: 'srd-5.1', owner: gmId, readers: [], writers: [],
     } as any);
     await Libraries.rawCollection().insertOne({
       _id: privateLibraryId, name: 'Secret', owner: strangerId, readers: [], writers: [], public: false,
@@ -475,10 +476,26 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       assert.isNotEmpty(about(gm.messages, 'actions', actionId));
       // Its bestiary entry, for the game master's card, and for them alone
       assert.isNotEmpty(about(gm.messages, 'libraryNodes', templateId), 'the game master gets the template');
-      assert.isFalse(player.messages.some(message => message.collection === 'libraryNodes'), 'not the players');
+      assert.include(fieldsOf(gm.messages, 'libraries', libraryId), 'license', 'and its library\'s licence');
+      assert.isFalse(player.messages.some(message => ['libraryNodes', 'libraries'].includes(message.collection)),
+        'not the players');
       assert.notInclude(fieldsOf(player.messages, 'creatures', goblinId), 'templateId');
     } finally {
       player.connection.disconnect();
+      gm.connection.disconnect();
+    }
+  });
+
+  it('gives a monster\'s sheet the licence of its bestiary', async function () {
+    const [goblinId] = await add();
+    const gm = await openAs(gmId);
+    try {
+      await gm.subscribe('singleCharacter', goblinId);
+      assert.isNotEmpty(about(gm.messages, 'libraryNodes', templateId), 'its template');
+      const library = about(gm.messages, 'libraries', libraryId);
+      assert.isNotEmpty(library, 'its template\'s library');
+      assert.equal(library[0].fields.license, 'srd-5.1');
+    } finally {
       gm.connection.disconnect();
     }
   });

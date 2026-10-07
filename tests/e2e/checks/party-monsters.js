@@ -4,7 +4,8 @@
  * The test account follows the SRD 5.1 bestiary (English), makes a board that
  * the other test account joins with its character, and adds two goblins from
  * the board's bestiary picker. The game master's cards show the goblins' hit
- * points; the player's show their names and the condition one is under, and
+ * points, and the card and the sheet their bestiary's licence; the player's
+ * show their names and the condition one is under, and
  * neither hit points nor the initiative roll of a goblin. The end of the
  * encounter deletes them. Everything is put back at the end: the board, the
  * monsters and the library subscription.
@@ -119,6 +120,22 @@ main(async () => {
       return texts[0].slice(0, 90);
     });
 
+    await step('their card and sheet name their bestiary\'s licence, linked to the About page', gm.messages, async () => {
+      const footer = selector => gm.page.evaluate(selector => {
+        const el = document.querySelector(selector);
+        return el && { text: el.innerText.trim(), href: el.querySelector('a')?.getAttribute('href') };
+      }, selector);
+      const expected = JSON.stringify({ text: 'SRD 5.1 · CC BY 4.0', href: '/about#licenses' });
+      const onCard = await footer(`[data-id="party-member-${goblinIds[0]}"] [data-id="monster-license"]`);
+      if (JSON.stringify(onCard) !== expected) throw new Error(`the card's licence: ${JSON.stringify(onCard)}`);
+      await visit(gm.page, `/character/${goblinIds[0]}`, 5000);
+      await removeOverlay(gm.page);
+      const onSheet = await footer('[data-id="monster-license"]');
+      if (JSON.stringify(onSheet) !== expected) throw new Error(`the sheet's licence: ${JSON.stringify(onSheet)}`);
+      await visit(gm.page, `/party/${folderId}`, 4000);
+      await removeOverlay(gm.page);
+    });
+
     await step('a goblin falls prone, and the fight starts', gm.messages, async () => {
       await call('creatureProperties.insert', {
         creatureProperty: { type: 'buff', name: 'Prone', tags: ['condition', 'proneCondition'] },
@@ -140,7 +157,7 @@ main(async () => {
         return {
           found: cards.filter(Boolean).length,
           texts: cards.map(card => card?.innerText.replace(/\s+/g, ' ') || ''),
-          summaries: cards.map(card => card?.querySelectorAll('[data-id^="combat-summary"]').length || 0),
+          summaries: cards.map(card => card?.querySelectorAll('[data-id^="combat-summary"], [data-id="monster-license"]').length || 0),
           goblinRow: tracker(goblinIds[0])?.innerText.replace(/\s+/g, ' '),
           heroRow: tracker(characterId)?.innerText.replace(/\s+/g, ' '),
         };

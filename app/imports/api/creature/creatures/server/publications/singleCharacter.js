@@ -12,6 +12,9 @@ import { loadCreature } from '/imports/api/engine/loadCreatures';
 import { rebuildCreatureNestedSets } from '/imports/api/parenting/parentingFunctions';
 import EngineActions, { WITHOUT_SEED } from '/imports/api/engine/action/EngineActions';
 import { Meteor } from 'meteor/meteor';
+import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import Libraries from '/imports/api/library/Libraries';
 
 let schema = new SimpleSchema({
   creatureId: {
@@ -38,6 +41,7 @@ Meteor.publish('singleCharacter', function (creatureId) {
         writers: 1,
         public: 1,
         computeVersion: 1,
+        templateId: 1,
       }
     });
     try { await assertViewPermission(permissionCreature, userId) }
@@ -56,7 +60,17 @@ Meteor.publish('singleCharacter', function (creatureId) {
         .then(() => computeCreature(creatureId))
         .catch(e => console.error(e));
     }
+    // A party board's monster: the bestiary entry it was copied from, and the
+    // licence of its library, which the sheet's footer shows
+    const templateId = permissionCreature.templateId;
+    const libraryId = templateId && (await AsyncTracker.nonreactive(
+      () => LibraryNodes.findOneAsync(templateId, { fields: { root: 1 } }),
+    ))?.root?.id;
     return [
+      ...libraryId ? [
+        LibraryNodes.find({ _id: templateId }, { fields: { type: 1, name: 1, libraryTags: 1, root: 1 } }),
+        Libraries.find({ _id: libraryId }, { fields: { name: 1, license: 1 } }),
+      ] : [],
       Creatures.find({
         _id: creatureId,
       }, canEdit ? {} : { fields: WITHOUT_WEBHOOK }),

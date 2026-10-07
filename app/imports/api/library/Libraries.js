@@ -8,6 +8,7 @@ import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { LIBRARY_LANGUAGES } from '/imports/api/library/libraryLanguage';
+import { LIBRARY_LICENSES } from '/imports/api/library/libraryLicense';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
@@ -54,6 +55,18 @@ let LibrarySchema = new SimpleSchema({
   recommended: {
     type: Boolean,
     optional: true,
+  },
+  // The licence its content is under, set by its owner (libraryLicense.js)
+  license: {
+    type: String,
+    allowedValues: LIBRARY_LICENSES,
+    optional: true,
+  },
+  // Which other open licence, and the notice it asks for
+  licenseNote: {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.summary,
   },
 });
 

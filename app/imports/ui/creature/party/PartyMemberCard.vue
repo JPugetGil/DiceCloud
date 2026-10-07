@@ -172,6 +172,11 @@
       >
         {{ $t('party.noConditions') }}
       </div>
+      <!-- The game master's monster: the licence of the bestiary it comes from -->
+      <monster-license
+        v-if="monsterTemplate"
+        :template-id="creature.templateId"
+      />
     </v-card-text>
   </v-card>
 </template>
@@ -189,6 +194,7 @@ import softRemoveProperty from '/imports/api/creature/creatureProperties/methods
 import ConditionChips from '/imports/ui/properties/components/buffs/ConditionChips.vue';
 import CombatSummary from '/imports/ui/creature/character/CombatSummary.vue';
 import MarkdownText from '/imports/ui/components/MarkdownText.vue';
+import MonsterLicense from '/imports/ui/creature/party/MonsterLicense.vue';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
 import { monsterTags } from '/imports/api/creature/creatureFolders/boardMonsters';

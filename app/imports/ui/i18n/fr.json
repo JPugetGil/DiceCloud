@@ -93,10 +93,20 @@
     "heroes": "Les « Héros » d'Asaea",
     "heroesThanks": "Le groupe de D&D dont la joie a porté les premières versions de DiceCloud.",
     "supporters": "Soutiens",
-    "credits": "Crédits",
     "iconsCredit": "Les icônes des propriétés et des cartes imprimées viennent de {site}, par Lorc, Delapouite, Skoll, sbed, Willdabeast et d'autres contributeurs, sous licence {license}.",
     "iconsLicense": "CC BY 3.0",
-    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/deed.fr"
+    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/deed.fr",
+    "licenses": "Licences et crédits",
+    "srdTitle": "Document de Référence du Système 5.1",
+    "srdIntro": "Les bestiaires du SRD 5.1, dont les maîtres du jeu ajoutent les monstres à leurs tableaux de groupe, comprennent des textes du Document de Référence du Système 5.1, en anglais et dans sa traduction officielle en français.",
+    "srdEnglish": "Édition anglaise",
+    "srdFrench": "Édition française",
+    "srdAttributionEn": "This work includes material taken from the System Reference Document 5.1 (“SRD 5.1”) by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+    "srdAttributionFr": "Ce travail comprend la documentation tirée du Document de Référence du Système 5.1 (« SRD 5.1 ») par Wizards of the Coast LLC et disponible à l'adresse https://dnd.wizards.com/fr/resources/systems-reference-document. Le SRD 5.1 est distribué en vertu de la licence Creative Commons Attribution 4.0 International disponible à l'adresse https://creativecommons.org/licenses/by/4.0/legalcode.fr.",
+    "srdDisclaimerIntro": "Les informations juridiques du SRD 5.1 ajoutent : « {quote} »",
+    "srdDisclaimer": "La section 5 du CC-BY-4.0 comprend une clause de non-responsabilité et de limitation des garanties qui limite notre responsabilité envers vous.",
+    "srdChanges": "Modifications apportées par DiceCloud : les blocs de statistiques des monstres ont été convertis en propriétés calculées de DiceCloud et, dans l'édition anglaise, les distances en mètres (1,5 mètre pour 5 pieds). Le texte français est celui de la traduction officielle du SRD 5.1.",
+    "iconsTitle": "Icônes"
   },
   "discord": {
     "communityTitle": "DiceCloud sur Discord",
@@ -507,7 +517,19 @@
     "allLanguages": "Toutes les langues",
     "recommended": "Recommandé",
     "recommendedSwitch": "Recommandé",
-    "recommendedHint": "Réservé aux admins : un badge sur sa carte, et en tête dans la bibliothèque communautaire et à la création de personnage."
+    "recommendedHint": "Réservé aux admins : un badge sur sa carte, et en tête dans la bibliothèque communautaire et à la création de personnage.",
+    "license": "Licence",
+    "licenseHint": "Ce sous quoi son contenu peut être partagé. Les propriétés copiées la gardent : le monstre d'un tableau de groupe montre la licence de son bestiaire.",
+    "licenseSrdHint": "La mention d'attribution du SRD et les modifications de DiceCloud sont sur la page À propos, vers laquelle cette licence renvoie.",
+    "licenseOwnerOnly": "Seul le propriétaire de la bibliothèque choisit sa licence.",
+    "licenseNote": "Licence et mention",
+    "licenseNoteHint": "Quelle licence ouverte, et la mention d'attribution qu'elle demande.",
+    "licenses": {
+      "none": "Non précisée",
+      "original": "Création originale",
+      "other-open": "Autre licence ouverte",
+      "private": "Usage privé uniquement"
+    }
   },
   "maintenance": {
     "underMaintenance": "DiceCloud est actuellement en maintenance",

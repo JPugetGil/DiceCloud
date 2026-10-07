@@ -6,6 +6,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
+import Libraries from '/imports/api/library/Libraries';
 import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
@@ -94,10 +95,14 @@ Meteor.publish('partyBoard', function (folderId) {
     const shown = role === 'gm' ? creatures : creatures.filter(creature => !hidesStatsFromPlayers(creature));
     const shownIds = shown.map(creature => creature._id);
     const conditionsOnlyIds = creatureIds.filter(id => !shownIds.includes(id));
-    // The bestiary templates of the game master's monsters: their type line and lore
+    // The bestiary templates of the game master's monsters: their type line and
+    // lore, and their libraries' licence
     const templateIds = role === 'gm'
       ? [...new Set(creatures.map(creature => creature.templateId).filter(Boolean))]
       : [];
+    const templateLibraryIds = templateIds.length ? [...new Set((await AsyncTracker.nonreactive(
+      () => LibraryNodes.find({ _id: { $in: templateIds } }, { fields: { root: 1 } }).fetchAsync(),
+    )).map(template => template.root?.id).filter(Boolean))] : [];
     shown.forEach(creature => {
       loadCreature(creature._id, self);
       // Not awaited, as in singleCharacter: the results arrive through the cursors
@@ -150,6 +155,7 @@ Meteor.publish('partyBoard', function (folderId) {
       LibraryNodes.find({ _id: { $in: templateIds } }, {
         fields: { type: 1, name: 1, description: 1, libraryTags: 1, root: 1 },
       }),
+      Libraries.find({ _id: { $in: templateLibraryIds } }, { fields: { name: 1, license: 1 } }),
     ]);
   });
 });

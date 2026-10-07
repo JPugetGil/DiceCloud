@@ -78,6 +78,13 @@
           v-if="libraryId"
           style="width: 100%; height: 100%; overflow: auto; padding: 12px;"
         >
+          <!-- What its content may be shared under, which its owner states -->
+          <license-line
+            v-if="library?.license"
+            :license="library.license"
+            :note="library.licenseNote"
+            class="px-1 pb-2"
+          />
           <library-contents-container
             :library-id="libraryId"
             :organize-mode="organize"
@@ -138,6 +145,7 @@ import LibraryNodeDialog from '/imports/ui/library/LibraryNodeDialog.vue';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryContentsContainer from '/imports/ui/library/LibraryContentsContainer.vue';
+import LicenseLine from '/imports/ui/library/LicenseLine.vue';
 import InsertLibraryNodeButton from '/imports/ui/library/InsertLibraryNodeButton.vue';
 import useUserSurface from '/imports/ui/composables/useUserSurface';
 import TreeSearchInput from '/imports/ui/components/tree/TreeSearchInput.vue';

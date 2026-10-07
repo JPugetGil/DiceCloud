@@ -93,10 +93,20 @@
     "heroes": "The \"Heroes\" of Asaea",
     "heroesThanks": "The D&D party whose joy was the fuel powering the early versions of DiceCloud.",
     "supporters": "Supporters",
-    "credits": "Credits",
     "iconsCredit": "The icons of the properties and of the printed cards come from {site}, by Lorc, Delapouite, Skoll, sbed, Willdabeast and other contributors, under the {license} license.",
     "iconsLicense": "CC BY 3.0",
-    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/"
+    "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+    "licenses": "Licenses and credits",
+    "srdTitle": "System Reference Document 5.1",
+    "srdIntro": "The SRD 5.1 bestiaries, whose monsters game masters add to their party boards, include material from the System Reference Document 5.1, in English and in its official French translation.",
+    "srdEnglish": "English edition",
+    "srdFrench": "French edition",
+    "srdAttributionEn": "This work includes material taken from the System Reference Document 5.1 (“SRD 5.1”) by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+    "srdAttributionFr": "Ce travail comprend la documentation tirée du Document de Référence du Système 5.1 (« SRD 5.1 ») par Wizards of the Coast LLC et disponible à l'adresse https://dnd.wizards.com/fr/resources/systems-reference-document. Le SRD 5.1 est distribué en vertu de la licence Creative Commons Attribution 4.0 International disponible à l'adresse https://creativecommons.org/licenses/by/4.0/legalcode.fr.",
+    "srdDisclaimerIntro": "The legal information of the SRD 5.1 adds: “{quote}”",
+    "srdDisclaimer": "Section 5 of CC-BY-4.0 includes a Disclaimer of Warranties and Limitation of Liability that limits our liability to you.",
+    "srdChanges": "Changes made by DiceCloud: the monsters' stat blocks were converted into computed DiceCloud properties, and in the English edition, distances into metres (5 feet = 1.5 metres). The French text is that of the official translation of the SRD 5.1.",
+    "iconsTitle": "Icons"
   },
   "discord": {
     "communityTitle": "DiceCloud on Discord",
@@ -507,7 +517,19 @@
     "allLanguages": "All languages",
     "recommended": "Recommended",
     "recommendedSwitch": "Recommended",
-    "recommendedHint": "Admins only: a badge on its card, and first in the community library browser and at character creation."
+    "recommendedHint": "Admins only: a badge on its card, and first in the community library browser and at character creation.",
+    "license": "License",
+    "licenseHint": "What its content may be shared under. Copied properties keep it: a party board's monster shows its bestiary's license.",
+    "licenseSrdHint": "The SRD's attribution statement and DiceCloud's changes are on the About page, which this license links to.",
+    "licenseOwnerOnly": "Only the library's owner sets its license.",
+    "licenseNote": "License and notice",
+    "licenseNoteHint": "Which open license, and the attribution notice it asks for.",
+    "licenses": {
+      "none": "Not stated",
+      "original": "Original work",
+      "other-open": "Other open license",
+      "private": "Private use only"
+    }
   },
   "maintenance": {
     "underMaintenance": "DiceCloud is currently under maintenance",
