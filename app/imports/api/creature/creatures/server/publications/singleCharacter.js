@@ -15,6 +15,7 @@ import { Meteor } from 'meteor/meteor';
 import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import Libraries from '/imports/api/library/Libraries';
+import reactivePublication, { findOneReactive } from '/imports/api/utility/server/reactivePublication';
 
 let schema = new SimpleSchema({
   creatureId: {
@@ -30,9 +31,9 @@ Meteor.publish('singleCharacter', function (creatureId) {
   } catch (e) {
     this.error(e);
   }
-  this.autorun(async function (computation) {
+  reactivePublication(this, async function ({ firstRun }) {
     let userId = this.userId;
-    let permissionCreature = await Creatures.findOneAsync({
+    let permissionCreature = await findOneReactive(Creatures, {
       _id: creatureId,
     }, {
       fields: {
@@ -48,10 +49,12 @@ Meteor.publish('singleCharacter', function (creatureId) {
     catch { return [] }
     // The Discord webhook only for those who may edit the character: anyone
     // else who has it could post in the channel, or delete the webhook
-    const user = userId && await Meteor.users.findOneAsync(userId, { fields: { roles: 1 } });
+    const user = userId && await findOneReactive(Meteor.users, userId, { fields: { roles: 1 } });
     const canEdit = hasEditPermission(permissionCreature, user);
-    loadCreature(creatureId, self);
-    if (permissionCreature?.computeVersion !== VERSION && computation.firstRun) {
+    // Its cache observes its documents for good: outside the computation, or
+    // their first change reruns the sheet
+    await AsyncTracker.nonreactive(() => loadCreature(creatureId, self));
+    if (permissionCreature?.computeVersion !== VERSION && firstRun) {
       // Not awaited, as before Meteor 3: the results reach the client through
       // the cursors below as they land. Blocking the first run on it made the
       // first open of a newly created character never become ready -- the
@@ -66,7 +69,12 @@ Meteor.publish('singleCharacter', function (creatureId) {
     const libraryId = templateId && (await AsyncTracker.nonreactive(
       () => LibraryNodes.findOneAsync(templateId, { fields: { root: 1 } }),
     ))?.root?.id;
-    return [
+    // Made outside the computation, as in partyBoard: a cursor made in it
+    // reruns the publication whenever one of its documents changes, and a
+    // rerun sends every document again: each change to a property sent a
+    // sheet's 190 documents again, 160 KB (2026-10-08). What decides what to
+    // publish is read above
+    return AsyncTracker.nonreactive(() => [
       ...libraryId ? [
         LibraryNodes.find({ _id: templateId }, { fields: { type: 1, name: 1, libraryTags: 1, root: 1 } }),
         Libraries.find({ _id: libraryId }, { fields: { name: 1, license: 1 } }),
@@ -96,6 +104,6 @@ Meteor.publish('singleCharacter', function (creatureId) {
           username: 1,
         },
       }),
-    ];
+    ]);
   });
 });

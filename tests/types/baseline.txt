@@ -12,7 +12,6 @@ imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2322: 
 imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2339: Property 'error' does not exist on type '{}'.
 imports/api/creature/creatureFolders/methods/initiativeMethods.test.js: TS2532: Object is possibly 'undefined'.
 imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
-imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatureFolders/server/publications/partyBoard.js: TS2769: No overload matches this call.
 imports/api/creature/creatureProperties/CreatureProperties.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; optional: true; max: 10000; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[]'.
 imports/api/creature/creatureProperties/methods/adjustQuantity.js: TS2339: Property 'allowsKey' does not exist on type 'TypedSimpleSchema<any>'.
@@ -38,13 +37,8 @@ imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2339: Proper
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object literal may only specify known properties, and 'schema' does not exist in type 'ValidatedMethodOptionsWithMixins<string, (...args: any[]) => any> & ThisType<ValidatedMethodThisBase & { name: string; }>'.
 imports/api/creature/creatures/methods/insertCreature.js: TS2339: Property 'pick' does not exist on type 'TypedSimpleSchema<any>'.
-imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/creature/creatures/server/publications/characterList.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
-imports/api/creature/creatures/server/publications/singleCharacter.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2769: No overload matches this call.
-imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/creature/experience/server/publications.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/creature/log/CreatureLogs.test.js: TS18048: 'oldest' is possibly 'undefined'.
 imports/api/creature/log/CreatureLogs.test.js: TS2345: Argument of type '{ _id: string; creatureId: any; date: Date; content: { value: string; }[]; }[]' is not assignable to parameter of type 'OptionalId<Document>[]'.
@@ -114,30 +108,13 @@ imports/api/library/methods/updateReferenceNode.js: TS2741: Property 'library' i
 imports/api/library/server/publications/library.js: TS18048: 'library' is possibly 'undefined'.
 imports/api/library/server/publications/library.js: TS2339: Property 'subscribedLibraries' does not exist on type 'User'.
 imports/api/library/server/publications/library.js: TS2339: Property 'subscribedLibraryCollections' does not exist on type 'User'.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/library.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/library.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2339: Property '$and' does not exist on type '{ removed: { $ne: boolean; }; searchable: boolean; 'root.id': { $in: string[]; }; }'.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2339: Property '$and' does not exist on type '{ removed: { $ne: boolean; }; searchable: boolean; 'root.id': { $in: string[]; }; }'.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2339: Property '$or' does not exist on type '{ removed: { $ne: boolean; }; searchable: boolean; 'root.id': { $in: string[]; }; }'.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2339: Property 'limit' does not exist on type '{ sort: { 'root.id': number; name: number; left: number; }; }'.
-imports/api/library/server/publications/searchLibraryNodes.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/searchLibraryNodes.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/searchLibraryNodes.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2339: Property 'limit' does not exist on type '{ fields: { 'summary.text': number; 'description.text': number; _id: number; name: number; type: number; icon: number; color: number; order: number; parent: number; ancestors: number; parentId: number; left: number; right: number; root: number; removed: number; removedAt: number; actionType: number; libraryTags: number; slotQuantityFilled: number; slotFillerType: number; slotFillerConditionNote: number; slotFillerCondition: number; fillSlots: number; searchable: number; slotFillImage: number; operation: number; targetTags: number; stats: number; quantity: number; plural: number; equipped: number; branchType: number; damageType: number; stat: number; amount: number; level: number; variableName: number; value: number; cache: number; dc: number; }; sort: { 'cache.node.name': number; name: number; order: number; }; }'.
-imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-imports/api/library/server/publications/slotFillers.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
@@ -346,7 +323,6 @@ imports/api/users/methods/searchUsers.js: TS2339: Property 'fileStorageUsed' doe
 imports/api/users/methods/updateFileStorageUsed.js: TS2339: Property 'fileStorageUsed' does not exist on type 'User'.
 imports/api/users/methods/updateFileStorageUsed.js: TS2339: Property 'fileStorageUsed' does not exist on type 'User'.
 imports/api/users/methods/updateFileStorageUsed.js: TS2345: Argument of type 'User | undefined' is not assignable to parameter of type '{ roles?: string[] | undefined; } & { fileStorageUsed?: number | undefined; }'.
-imports/api/users/server/publications/ownedDocuments.js: TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
 imports/api/users/server/publications/users.js: TS2769: No overload matches this call.
 imports/api/utility/TypedSimpleSchema.ts: TS2339: Property 'validate' does not exist on type 'TypedSimpleSchema<T>'.
 imports/migrations/apiCreature/cleanApiCreatureAtCurrent.js: TS18046: 'e' is of type 'unknown'.

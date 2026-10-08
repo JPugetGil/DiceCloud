@@ -8,10 +8,11 @@ import { LIBRARY_NODE_TREE_FIELDS } from '/imports/api/library/server/publicatio
 import escapeRegex from '/imports/api/utility/escapeRegex';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
+import reactivePublication from '/imports/api/utility/server/reactivePublication';
 
 // Publish docs the user has already selected so they don't disappear when searching
 Meteor.publish('selectedFillers', function (slotId, nodeIds, isDummySlot) {
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     if (!userId) {
       return [];
@@ -68,9 +69,9 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
   // reactive-publish 1.1 that looped: the nested results were torn down and
   // republished every ~75ms, so the dialog flickered between full, partial and
   // empty. The inner autoruns read nothing reactive of their own, apart from
-  // the subscription's limit, which this autorun still depends on.
+  // the subscription's limit, which reruns it (passed as data).
   let self = this;
-  this.autorun(async function () {
+  reactivePublication(this, async function ({ data }) {
     let userId = this.userId;
     if (!userId) {
       return [];
@@ -103,7 +104,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
     // Build a filter for nodes in those libraries that match the slot
     let filter = getSlotFillFilter({ slot, libraryIds });
     // Get the limit of the documents the user can fetch
-    var limit = (await self.data('limit')) || 50;
+    var limit = data.limit || 50;
     check(limit, Number);
 
     let options;
@@ -148,7 +149,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
       LibraryNodes.find(filter, options),
       libraries
     ];
-  });
+  }, { data: ['limit'] });
 });
 
 Meteor.publish('classFillers', function (classId) {
@@ -156,11 +157,11 @@ Meteor.publish('classFillers', function (classId) {
   // reactive-publish 1.1 that looped: the nested results were torn down and
   // republished every ~75ms, so the dialog flickered between full, partial and
   // empty. The inner autoruns read nothing reactive of their own, apart from
-  // the subscription's limit, which this autorun still depends on.
+  // the subscription's limit, which reruns it (passed as data).
   let self = this;
   if (!classId) return [];
 
-  this.autorun(async function () {
+  reactivePublication(this, async function ({ data }) {
     let userId = this.userId;
     if (!userId) {
       return [];
@@ -189,7 +190,7 @@ Meteor.publish('classFillers', function (classId) {
     let filter = getSlotFillFilter({ slot: classProp, libraryIds });
 
     // Get the limit of the documents the user can fetch
-    var limit = (await self.data('limit')) || 50;
+    var limit = data.limit || 50;
     check(limit, Number);
 
     let options = {
@@ -205,5 +206,5 @@ Meteor.publish('classFillers', function (classId) {
     await self.setData('countAll', await LibraryNodes.find(filter).countAsync());
     await self.setData('libraryNodeFilter', EJSON.stringify(filter));
     return [LibraryNodes.find(filter, options), libraries];
-  });
+  }, { data: ['limit'] });
 });

@@ -3,6 +3,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import Experiences from '/imports/api/creature/experience/Experiences';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import { Meteor } from 'meteor/meteor';
+import reactivePublication from '/imports/api/utility/server/reactivePublication';
 
 let schema = new SimpleSchema({
   creatureId: {
@@ -13,7 +14,7 @@ let schema = new SimpleSchema({
 
 Meteor.publish('experiences', function (creatureId) {
   schema.validate({ creatureId });
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     if (!userId) {
       return [];

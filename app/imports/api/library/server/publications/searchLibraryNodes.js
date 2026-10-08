@@ -7,6 +7,7 @@ import { assertViewPermission } from '/imports/api/sharing/sharingPermissions';
 import escapeRegex from '/imports/api/utility/escapeRegex';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
+import reactivePublication from '/imports/api/utility/server/reactivePublication';
 
 Meteor.publish('selectedLibraryNodes', async function (selectedNodeIds) {
   check(selectedNodeIds, Array);
@@ -53,8 +54,9 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
   // One autorun: nesting them under reactive-publish 1.1 tore the results down
   // and republished them in a loop. See the note in slotFillers.js.
   let self = this;
-  this.autorun(async function (computation) {
-    let type = await self.data('type');
+  // The results carry _searchResult, which the client filters them on
+  reactivePublication(this, async function ({ data }) {
+    let type = data.type;
     if (!type) return [];
 
     let userId = this.userId;
@@ -85,11 +87,11 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
     }
 
     // Get the limit of the documents the user can fetch
-    var limit = (await self.data('limit')) || 32;
+    var limit = data.limit || 32;
     check(limit, Number);
 
     // Get the search term
-    let searchTerm = (await self.data('searchTerm')) || '';
+    let searchTerm = data.searchTerm || '';
     check(searchTerm, String);
 
     let options;
@@ -132,34 +134,9 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
 
     await self.setData('countAll', await LibraryNodes.find(filter).countAsync());
 
-    let cursor = LibraryNodes.find(filter, options);
-    let observeHandle = await cursor.observeChangesAsync({
-      added: function (id, fields) {
-        fields._searchResult = true;
-        self.added('libraryNodes', id, fields);
-      },
-      changed: function (id, fields) {
-        self.changed('libraryNodes', id, fields);
-      },
-      removed: function (id) {
-        self.removed('libraryNodes', id);
-      }
-    },
-      // Publications don't mutate the documents
-      { nonMutatingCallbacks: true }
-    );
-
-    // These results are published by hand, so stop this run's observer when
-    // the next run (a new search term or limit) replaces it. onStop alone only
-    // fired when the whole subscription ended, leaving one live observer per
-    // keystroke until then.
-    computation.onInvalidate(function () {
-      observeHandle.stop();
-    });
-    this.onStop(function () {
-      observeHandle.stop();
-    });
-
-    return [Libraries.find({ _id: { $in: libraryIds } })];
-  });
+    return [
+      LibraryNodes.find(filter, options),
+      Libraries.find({ _id: { $in: libraryIds } }),
+    ];
+  }, { data: ['type', 'limit', 'searchTerm'], addedFields: { libraryNodes: { _searchResult: true } } });
 });

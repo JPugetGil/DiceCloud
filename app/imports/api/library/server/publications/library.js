@@ -6,6 +6,8 @@ import { assertViewPermission, assertDocViewPermission } from '/imports/api/shar
 import { union } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
+import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
+import reactivePublication from '/imports/api/utility/server/reactivePublication';
 
 const LIBRARY_NODE_TREE_FIELDS = {
   _id: 1,
@@ -67,7 +69,7 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
   // the nesting raced: the collection document was sometimes removed just
   // after it was added and the page rendered empty. The inner autoruns read
   // nothing reactive of their own, so flattening loses no reactivity.
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     const userId = this.userId;
     if (!userId) return [];
     const libraryCollectionSelector = {
@@ -105,7 +107,7 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
 Meteor.publish('libraries', function () {
   // One autorun: nesting them under reactive-publish 1.1 raced and could
   // retract the published libraries. See the note in slotFillers.js.
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     if (!userId) {
       return [];
@@ -182,12 +184,12 @@ Meteor.publish('browseLibraries', function () {
 Meteor.publish('library', function (libraryId) {
   if (!libraryId) return [];
   libraryIdSchema.validate({ libraryId });
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     let library = await Libraries.findOneAsync(libraryId);
     try { await assertViewPermission(library, userId) }
     catch (e) {
-      return this.error(e);
+      return this.error(/** @type {Error} */ (e));
     }
     return [
       Libraries.find({
@@ -226,26 +228,28 @@ Meteor.publish('libraryNodes', function (libraryId, extraFields) {
   } catch (e) {
     return this.error(e);
   }
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     let library = await Libraries.findOneAsync(libraryId);
     try {
       await assertViewPermission(library, userId)
     } catch (e) {
-      return this.error(e);
+      return this.error(/** @type {Error} */ (e));
     }
     const fields = { ...LIBRARY_NODE_TREE_FIELDS };
     extraFields?.forEach(field => {
       fields[field] = 1;
     });
-    return [
+    // Made outside the computation: in it, each edit to one of the library's
+    // nodes reran the publication, which sent the whole library again
+    return AsyncTracker.nonreactive(() => [
       LibraryNodes.find({
         'root.id': libraryId,
       }, {
         sort: { left: 1 },
         fields,
       }),
-    ];
+    ]);
   });
 });
 
@@ -259,13 +263,13 @@ const nodeIdSchema = new SimpleSchema({
 Meteor.publish('libraryNode', function (libraryNodeId) {
   if (!libraryNodeId) return [];
   nodeIdSchema.validate({ libraryNodeId });
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     const userId = this.userId;
     const nodeCursor = LibraryNodes.find({ _id: libraryNodeId });
     let node = (await nodeCursor.fetchAsync())[0];
     try { await assertDocViewPermission(node, userId) }
     catch (e) {
-      return this.error(e);
+      return this.error(/** @type {Error} */ (e));
     }
     return [nodeCursor];
   });
@@ -274,14 +278,15 @@ Meteor.publish('libraryNode', function (libraryNodeId) {
 Meteor.publish('softRemovedLibraryNodes', function (libraryId) {
   if (!libraryId) return [];
   libraryIdSchema.validate({ libraryId });
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     let library = await Libraries.findOneAsync(libraryId);
     try { await assertViewPermission(library, userId) }
     catch (e) {
-      return this.error(e);
+      return this.error(/** @type {Error} */ (e));
     }
-    return [
+    // Made outside the computation, as in libraryNodes
+    return AsyncTracker.nonreactive(() => [
       LibraryNodes.find({
         ...getFilter.descendantsOfRoot(libraryId),
         removed: true,
@@ -289,7 +294,7 @@ Meteor.publish('softRemovedLibraryNodes', function (libraryId) {
       }, {
         sort: { left: 1 },
       }),
-    ];
+    ]);
   });
 });
 
@@ -297,18 +302,19 @@ Meteor.publish('descendantLibraryNodes', async function (nodeId) {
   let node = await LibraryNodes.findOneAsync(nodeId);
   let libraryId = node?.root.id;
   if (!libraryId || !node) return [];
-  this.autorun(async function () {
+  reactivePublication(this, async function () {
     let userId = this.userId;
     try { await assertDocViewPermission(node, userId) }
     catch (e) {
-      return this.error(e);
+      return this.error(/** @type {Error} */ (e));
     }
-    return [
+    // Made outside the computation, as in libraryNodes
+    return AsyncTracker.nonreactive(() => [
       LibraryNodes.find({
         ...getFilter.descendants(node),
       }, {
         sort: { left: 1 },
       }),
-    ];
+    ]);
   });
 });

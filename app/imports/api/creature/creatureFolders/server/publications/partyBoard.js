@@ -15,6 +15,7 @@ import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatu
 import { boardFolderFields } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 import { settingsFieldsWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
 import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
+import reactivePublication, { findOneReactive } from '/imports/api/utility/server/reactivePublication';
 
 const schema = new SimpleSchema({
   folderId: { type: String, max: 32 },
@@ -76,16 +77,16 @@ Meteor.publish('partyBoard', function (folderId) {
     this.error(e);
     return;
   }
-  this.autorun(async function (computation) {
+  reactivePublication(this, async function ({ firstRun }) {
     const userId = this.userId;
     if (!userId) return [];
-    const folder = await CreatureFolders.findOneAsync(folderId, { fields: FOLDER_FIELDS });
+    const folder = await findOneReactive(CreatureFolders, folderId, { fields: FOLDER_FIELDS });
     const role = getPartyRole(folder, userId);
     if (!folder || !role) return [];
     // Whether the game master shows the players the stats of the creatures
     // added by hand: read apart, a combat that starts or ends changes nothing
-    const showStats = !!await CreatureFolders.findOneAsync(
-      { _id: folderId, 'initiative.showStats': true }, { fields: { _id: 1 } },
+    const showStats = !!await findOneReactive(
+      CreatureFolders, { _id: folderId, 'initiative.showStats': true }, { fields: { _id: 1 } },
     );
     const creatures = await Creatures.find(
       partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1, type: 1, templateId: 1 } },
@@ -103,10 +104,12 @@ Meteor.publish('partyBoard', function (folderId) {
     const templateLibraryIds = templateIds.length ? [...new Set((await AsyncTracker.nonreactive(
       () => LibraryNodes.find({ _id: { $in: templateIds } }, { fields: { root: 1 } }).fetchAsync(),
     )).map(template => template.root?.id).filter(Boolean))] : [];
+    // The creatures' caches observe their documents for good: outside the
+    // computation, or their first change reruns the board
+    await AsyncTracker.nonreactive(() => shown.forEach(creature => loadCreature(creature._id, self)));
     shown.forEach(creature => {
-      loadCreature(creature._id, self);
       // Not awaited, as in singleCharacter: the results arrive through the cursors
-      if (creature.computeVersion !== VERSION && computation.firstRun) {
+      if (creature.computeVersion !== VERSION && firstRun) {
         computeCreature(creature._id).catch(e => console.error(e));
       }
     });

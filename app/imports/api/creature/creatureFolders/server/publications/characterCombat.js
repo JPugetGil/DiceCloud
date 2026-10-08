@@ -1,8 +1,10 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { Meteor } from 'meteor/meteor';
+import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import reactivePublication, { findOneReactive } from '/imports/api/utility/server/reactivePublication';
 
 const schema = new SimpleSchema({
   creatureId: { type: String, max: 32 },
@@ -21,19 +23,20 @@ Meteor.publish('characterCombat', function (creatureId) {
     this.error(/** @type {Error} */ (e));
     return;
   }
-  this.autorun(/** @this {{ userId: string | null }} */ async function () {
+  reactivePublication(this, async function () {
     const userId = this.userId;
     if (!userId) return [];
-    const creature = await Creatures.findOneAsync(creatureId, {
+    const creature = await findOneReactive(Creatures, creatureId, {
       fields: { owner: 1, writers: 1, readers: 1, public: 1 },
     });
-    const user = await Meteor.users.findOneAsync(userId, { fields: { roles: 1 } });
+    const user = await findOneReactive(Meteor.users, userId, { fields: { roles: 1 } });
     if (!creature || !hasEditPermission(creature, user)) return [];
-    return CreatureFolders.find({
+    // Made outside the computation, which would otherwise rerun at every turn
+    return AsyncTracker.nonreactive(() => CreatureFolders.find({
       creatures: creatureId,
       'initiative.round': { $gt: 0 },
     }, {
       fields: { name: 1, owner: 1, members: 1, creatures: 1, initiative: 1 },
-    });
+    }));
   });
 });
