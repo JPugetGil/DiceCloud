@@ -30,6 +30,20 @@ if (Meteor.isServer) {
 }
 
 /**
+ * Tells the party's Discord channel, if it has one, that the tracker changed
+ * (D2): 'start', 'turn', 'update' or 'end' with the tracker as it was. On the
+ * server, once the change is written; it never waits on Discord
+ */
+export function tellDiscord(folderId, change, ended) {
+  if (!Meteor.isServer) return;
+  // require(), not import: the server alone posts, and the module is read
+  // when called, once the collections it reads are all defined
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { initiativeChanged } = require('/imports/api/creature/log/server/discordInitiative');
+  initiativeChanged(folderId, change, ended);
+}
+
+/**
  * The turn of the entry at `turn` starts: its creature's effects count a
  * round down, unless the game master turned that off for the party
  */
@@ -114,6 +128,8 @@ export const rollInitiative = new ValidatedMethod({
       },
     });
     await startTurn(folder, entries, 0, userId);
+    // Rolled again during a fight, the same message shows the new order
+    tellDiscord(folderId, folder.initiative?.round ? 'turn' : 'start');
   },
 });
 
@@ -155,6 +171,7 @@ export const addInitiativeEntry = new ValidatedMethod({
     await CreatureFolders.updateAsync(folderId, {
       $set: { ...$set, initiative: { ...tracker, entries, turn } },
     });
+    tellDiscord(folderId, 'update');
   },
 });
 
@@ -194,6 +211,7 @@ export async function addCreaturesToTracker(folder, creatureIds, userId, { share
   await CreatureFolders.updateAsync(folder._id, {
     $set: { initiative: { ...tracker, entries: newEntries, turn } },
   });
+  tellDiscord(folder._id, 'update');
   return added;
 }
 
@@ -264,6 +282,7 @@ export const setInitiativeEntryOut = new ValidatedMethod({
     await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
       $set: { 'initiative.entries.$.out': out },
     });
+    tellDiscord(folderId, 'update');
   },
 });
 
@@ -333,6 +352,7 @@ export const updateInitiativeEntry = new ValidatedMethod({
     await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': entryId }, {
       $set, $unset: { 'initiative.entries.$.roll': 1 },
     });
+    tellDiscord(folderId, 'update');
   },
 });
 
@@ -363,6 +383,7 @@ export const removeInitiativeEntry = new ValidatedMethod({
       },
       $unset: { [`initiativeStats.${entryId}`]: 1 },
     });
+    tellDiscord(folderId, 'update');
   },
 });
 
@@ -410,6 +431,7 @@ export const advanceInitiative = new ValidatedMethod({
     });
     // Going back a turn gives no round back
     if (step === 1) await startTurn(folder, tracker.entries, turn, this.userId);
+    tellDiscord(folderId, tracker.round ? 'turn' : 'start');
   },
 });
 
@@ -437,7 +459,8 @@ export const endInitiative = new ValidatedMethod({
   mixins: [RateLimiterMixin],
   rateLimit,
   async run({ folderId }) {
-    await getOwnFolder(folderId, this.userId);
+    const folder = await getOwnFolder(folderId, this.userId);
     await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1, initiativeStats: 1 } });
+    tellDiscord(folderId, 'end', folder.initiative);
   },
 });

@@ -41,6 +41,7 @@ export async function createTestCreature(creature: TestCreature) {
     _id: creature._id,
     name: creature.name || 'Test Creature',
     owner: creature.owner || Random.id(),
+    ...creature.type && { type: creature.type },
     dirty: true,
   } as any);
   const propsInserted = propsFromForest(creature.props, creature._id).map(prop => {
@@ -61,6 +62,8 @@ export type TestCreature = {
   name?: string;
   // A random user by default, which nobody signs in as
   owner?: string;
+  // 'pc' by default; a game master's 'monster' or 'npc'
+  type?: 'pc' | 'npc' | 'monster';
   props: ForestProp[];
 }
 

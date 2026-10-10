@@ -44,6 +44,16 @@ module.exports = defineConfig(Meteor => {
     devServer: {
       client: {
         webSocketURL: 'auto://0.0.0.0:0/ws',
+        overlay: {
+          // Vuetify's layout turns transitions off for 100 ms when the page
+          // resizes (composables/layout.js): when that happens in the middle
+          // of the main area's padding transition, as the app bar changes
+          // height while a page loads, the padding jumps inside the layout's
+          // ResizeObserver callback and the browser reports this. The size
+          // reaches the observer on the next frame: nothing is lost. The
+          // function is sent to the browser as text: it stays self-contained
+          runtimeErrors: error => !/^ResizeObserver loop/.test(error?.message ?? ''),
+        },
       },
     },
     optimization: {

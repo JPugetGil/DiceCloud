@@ -1,286 +1,115 @@
 import { Meteor } from 'meteor/meteor';
-import { escapeRegExp } from 'lodash';
+import type { Mongo } from 'meteor/mongo';
+import { escapeRegExp, uniq } from 'lodash';
 import Creatures from '/imports/api/creature/creatures/Creatures';
-import { discordMessages, type LogLine, type WebhookMessage } from '/imports/api/creature/log/discord/discordMessages';
+import VERSION from '/imports/constants/VERSION';
+import {
+  discordMessages, logComponents, webhookUsername, discordLanguage, translatorFor,
+  type DiscordLanguage, type LogLine,
+} from '/imports/api/creature/log/discord/discordMessages';
+import { sessionHeader, sessionName, THREAD_NAME_LENGTH } from '/imports/api/creature/log/discord/partyMessages';
+import { sessionOf, type DiscordSession, type SessionKind } from '/imports/api/creature/log/discord/discordSession';
+import { parseWebhookURL, type Webhook } from '/imports/api/creature/log/discord/webhookUrl';
+import { publishes, type PartyDiscord } from '/imports/api/creature/log/discord/partyPublishing';
+import { hidesStatsFromPlayers, boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
+import {
+  DISCORD_API, DISCORD_CODES, TEST_API_VARIABLE, createWebhookSender, discordApiBase, discordUserAgent, postMessage,
+  type DiscordResult, type Requester, type WebhookSender,
+} from '/imports/api/creature/log/server/webhookSender';
+
+export {
+  DISCORD_API, TEST_API_VARIABLE, createWebhookSender, discordApiBase, parseWebhookURL,
+  type Webhook, type WebhookSender,
+};
 
 /*
- * Posts a character's log entries to its Discord webhook (option 1 of the
- * Discord analysis), with the platform's fetch.
+ * Posts the log entries of characters to Discord (option 1 of the Discord
+ * analysis, D2 and D3), through the webhooks' queues of webhookSender.ts.
  *
- * Only the id and token are taken from the stored URL: the request always
- * goes to Discord, so a character's webhook setting cannot point the server
- * at another host. In development and tests only, a server environment
- * variable may send them to a local fake of Discord's API instead (see
- * discordApiBase); no user can set it, and production ignores it.
+ * An entry goes to the character's own webhook, and to the webhook of each
+ * party it plays in (D2): those of the game master and of the players, never
+ * a game master's monster or non-player character, whose stats the players
+ * never see, and only while the game master lets the party post its rolls
+ * (partyPublishing.ts). Several of those that are the same webhook (the same
+ * id) post once: the party's way, its session and the game master's language.
+ * Lines that would give away a monster's hit points never leave.
  *
- * Each webhook has its own queue, in this process's memory (one server): its
- * messages leave in the order they were logged, one at a time, waiting when
- * Discord's rate limit headers say so, and a message refused with 429 is sent
- * again after the time Discord asks for. A webhook Discord no longer knows
- * (404) or whose token it refuses (401) is removed from the characters that
- * have it, so that it is not called again on every roll: Discord asks clients
- * to stop using such a webhook, and counts 401, 403 and 429 answers against
- * the server's IP address.
+ * Each webhook posts into its holder's session (discordSession.ts), looked up
+ * when the message leaves: the forum post of the session, or the channel. A
+ * session's post that Discord no longer knows ends the session; a forum,
+ * which takes no message outside a post, opens a session of its own.
+ *
+ * A webhook Discord no longer knows (404) or whose token it refuses (401) is
+ * removed from the characters and the parties that have it, so that it is
+ * not called again on every roll.
  */
 
-export const DISCORD_API = 'https://discord.com/api/v10';
-
-// The environment variable of the local fake, and the hosts it may point at
-export const TEST_API_VARIABLE = 'DISCORD_WEBHOOK_TEST_API';
-const LOOPBACK_HOSTS = ['127.0.0.1', 'localhost', '[::1]'];
-
-export type Webhook = { id: string, token: string };
-
-/** A webhook's id and token, from its URL: https://discord.com/api/webhooks/<id>/<token> */
-export function parseWebhookURL(webhookURL?: string | null): Webhook | undefined {
-  if (!webhookURL || typeof webhookURL !== 'string') return undefined;
-  const parts = webhookURL.split(/[?#]/)[0].split('/').filter(Boolean);
-  const token = parts.pop();
-  const id = parts.pop();
-  if (!/^\d+$/.test(id || '') || !/^[\w-]+$/.test(token || '')) return undefined;
-  return { id: id as string, token: token as string };
-}
-
-/**
- * Where webhook requests go: Discord. In development and tests, the local
- * fake that TEST_API_VARIABLE names, when it is a plain http URL on this
- * machine. Under tests without it, nowhere (undefined): a test never reaches
- * Discord.
- */
-export function discordApiBase(
-  env: Record<string, string | undefined> = process.env,
-  meteor: { isDevelopment?: boolean, isTest?: boolean, isAppTest?: boolean } = Meteor,
-): string | undefined {
-  const testing = !!(meteor.isTest || meteor.isAppTest);
-  if (!meteor.isDevelopment && !testing) return DISCORD_API;
-  const override = env[TEST_API_VARIABLE];
-  if (override) {
-    let url: URL | undefined;
-    try {
-      url = new URL(override);
-    } catch {
-      url = undefined;
-    }
-    if (url?.protocol === 'http:' && LOOPBACK_HOSTS.includes(url.hostname)) return override.replace(/\/+$/, '');
-    console.warn(`${TEST_API_VARIABLE} ignored: only an http URL on this machine is accepted`);
-  }
-  return testing ? undefined : DISCORD_API;
-}
-
-// Seconds in a header or a body, as milliseconds
-function milliseconds(value: unknown): number | undefined {
-  const seconds = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
-  return Number.isFinite(seconds) && seconds >= 0 ? Math.ceil(seconds * 1000) : undefined;
-}
-
-type Outcome =
-  | { kind: 'sent', waitMs?: number }
-  | { kind: 'rateLimited', waitMs: number }
-  | { kind: 'gone', status: number, detail: string }
-  | { kind: 'failed', status?: number, detail: string, retry: boolean };
-
-type Queue = {
-  webhook: Webhook,
-  messages: WebhookMessage[],
-  // When the next request may leave, from Discord's rate limit headers
-  notBefore: number,
-  // Messages refused since the queue was last full, logged once
-  overflowed: number,
-};
-
-export type WebhookSenderOptions = {
-  // The API, without /webhooks
-  baseUrl: string,
-  fetch?: typeof globalThis.fetch,
-  sleep?: (ms: number) => Promise<void>,
-  now?: () => number,
-  // Called once a webhook answered 404 or 401
-  onGone?: (webhook: Webhook, status: number) => unknown,
-  // Messages waiting per webhook, beyond which new ones are dropped
-  maxQueue?: number,
-  // Answers 429 in a row for one message before it is dropped
-  maxRateLimited?: number,
-  // Attempts of a message on a server error or a network failure
-  maxAttempts?: number,
-  // The longest wait honoured, and a request's timeout
-  maxWaitMs?: number,
-  timeoutMs?: number,
+// What this reads of a party's folder (CreatureFolders.js)
+export type PartyFolderDoc = {
+  _id: string,
+  name?: string,
+  owner?: string,
+  members?: string[],
+  creatures?: string[],
+  initiative?: {
+    round?: number,
+    turn?: number,
+    entries?: { _id: string, creatureId?: string, name?: string, initiative?: number, bonus?: number, out?: boolean }[],
+  },
+  discord?: PartyDiscord & {
+    session?: DiscordSession,
+    initiative?: { webhookId: string, messageId: string, threadId?: string },
+  },
 };
 
 /**
- * Sends messages to webhooks, each webhook through its own queue. `send`
- * returns at once; `idle` resolves once every queue is empty.
+ * The folders collection, imported when used: the folders' methods import
+ * the logs, which import this
  */
-export function createWebhookSender({
-  baseUrl,
-  fetch = globalThis.fetch,
-  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
-  now = Date.now,
-  onGone,
-  maxQueue = 50,
-  maxRateLimited = 10,
-  maxAttempts = 3,
-  maxWaitMs = 10 * 60 * 1000,
-  timeoutMs = 15 * 1000,
-}: WebhookSenderOptions) {
-  const queues = new Map<string, Queue>();
-  const running = new Set<Promise<void>>();
-  // Webhooks Discord answered 404 or 401: never called again by this process
-  const gone = new Set<string>();
-  const keyOf = (webhook: Webhook) => `${webhook.id}/${webhook.token}`;
-
-  async function post(webhook: Webhook, message: WebhookMessage): Promise<Outcome> {
-    let response: Response;
-    try {
-      response = await fetch(`${baseUrl}/webhooks/${webhook.id}/${webhook.token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
-        signal: AbortSignal.timeout(timeoutMs),
-      });
-    } catch (e) {
-      return { kind: 'failed', detail: String((e as Error)?.message || e), retry: true };
-    }
-    // Read the body in every case: it frees the connection
-    const text = await response.text().catch(() => '');
-    const resetAfter = milliseconds(response.headers.get('x-ratelimit-reset-after'));
-    if (response.ok) {
-      const exhausted = response.headers.get('x-ratelimit-remaining') === '0';
-      return { kind: 'sent', ...exhausted && resetAfter !== undefined && { waitMs: resetAfter } };
-    }
-    if (response.status === 429) {
-      let body: { retry_after?: number } = {};
-      try {
-        body = JSON.parse(text);
-      } catch {
-        // Cloudflare's ban page is HTML: the header says how long
-      }
-      const waitMs = milliseconds(body?.retry_after)
-        ?? milliseconds(response.headers.get('retry-after'))
-        ?? resetAfter
-        ?? 1000;
-      return { kind: 'rateLimited', waitMs };
-    }
-    const detail = text.slice(0, 300);
-    if (response.status === 404 || response.status === 401) {
-      return { kind: 'gone', status: response.status, detail };
-    }
-    return { kind: 'failed', status: response.status, detail, retry: response.status >= 500 };
-  }
-
-  async function drain(key: string, queue: Queue) {
-    let rateLimited = 0;
-    let attempts = 0;
-    while (queue.messages.length) {
-      const wait = queue.notBefore - now();
-      if (wait > 0) await sleep(Math.min(wait, maxWaitMs));
-      const outcome = await post(queue.webhook, queue.messages[0]);
-      if (outcome.kind === 'sent') {
-        queue.messages.shift();
-        rateLimited = 0;
-        attempts = 0;
-        queue.notBefore = outcome.waitMs ? now() + outcome.waitMs : 0;
-      } else if (outcome.kind === 'rateLimited') {
-        // The same message again, once Discord allows it: none is lost, none overtakes it
-        rateLimited += 1;
-        queue.notBefore = now() + Math.min(outcome.waitMs, maxWaitMs);
-        if (rateLimited >= maxRateLimited) {
-          console.warn(`Discord webhook ${queue.webhook.id}: still rate limited after ${rateLimited} tries, a message dropped`);
-          queue.messages.shift();
-          rateLimited = 0;
-        }
-      } else if (outcome.kind === 'gone') {
-        gone.add(key);
-        const dropped = queue.messages.length;
-        queue.messages.length = 0;
-        console.warn(`Discord webhook ${queue.webhook.id} answered ${outcome.status} (${outcome.detail}): `
-          + `forgotten, ${dropped} message(s) dropped`);
-        try {
-          await onGone?.(queue.webhook, outcome.status);
-        } catch (e) {
-          console.error(e);
-        }
-      } else {
-        attempts += 1;
-        if (!outcome.retry || attempts >= maxAttempts) {
-          console.warn(`Discord webhook ${queue.webhook.id}: message dropped after ${attempts} attempt(s), `
-            + `${outcome.status ?? 'no answer'}: ${outcome.detail}`);
-          queue.messages.shift();
-          attempts = 0;
-        } else {
-          queue.notBefore = now() + 1000 * 2 ** (attempts - 1);
-        }
-      }
-    }
-    queues.delete(key);
-  }
-
-  function send(webhook: Webhook, messages: WebhookMessage[]): boolean {
-    const key = keyOf(webhook);
-    if (gone.has(key) || !messages.length) return false;
-    let queue = queues.get(key);
-    const start = !queue;
-    if (!queue) {
-      queue = { webhook, messages: [], notBefore: 0, overflowed: 0 };
-      queues.set(key, queue);
-    }
-    let accepted = true;
-    for (const message of messages) {
-      if (queue.messages.length >= maxQueue) {
-        if (!queue.overflowed) console.warn(`Discord webhook ${webhook.id}: ${maxQueue} messages waiting, new ones dropped`);
-        queue.overflowed += 1;
-        accepted = false;
-      } else {
-        queue.overflowed = 0;
-        queue.messages.push(message);
-      }
-    }
-    if (start) {
-      const run = drain(key, queue).catch(e => {
-        console.error(e);
-        queues.delete(key);
-      }).finally(() => running.delete(run));
-      running.add(run);
-    }
-    return accepted;
-  }
-
-  async function idle() {
-    while (running.size) await Promise.all([...running]);
-  }
-
-  return {
-    send,
-    idle,
-    pending: (webhook: Webhook) => queues.get(keyOf(webhook))?.messages.length ?? 0,
-    isGone: (webhook: Webhook) => gone.has(keyOf(webhook)),
-  };
+export async function creatureFolders() {
+  const { default: CreatureFolders } = await import('/imports/api/creature/creatureFolders/CreatureFolders');
+  return CreatureFolders as unknown as Mongo.Collection<PartyFolderDoc>;
 }
 
-export type WebhookSender = ReturnType<typeof createWebhookSender>;
-
 /**
- * Removes a webhook from every character that has it (several characters of
- * a table often share one). Returns how many there were.
+ * Removes a webhook from every character and party that has it (several
+ * characters of a table often share one), with their sessions. Returns how
+ * many there were.
  */
 export async function forgetWebhook(webhook: Webhook, status: number): Promise<number> {
   const url = new RegExp(`/${escapeRegExp(webhook.id)}/${escapeRegExp(webhook.token)}(?:[/?#]|$)`);
   const count = await Creatures.updateAsync(
     { 'settings.discordWebhook': url },
-    { $unset: { 'settings.discordWebhook': 1 } },
+    { $unset: { 'settings.discordWebhook': 1, discordSession: 1 } },
     { multi: true },
   );
-  console.warn(`Discord webhook ${webhook.id} answered ${status}: removed from ${count} character(s)`);
-  return count;
+  const CreatureFolders = await creatureFolders();
+  const parties = await CreatureFolders.updateAsync(
+    { 'discord.webhook': url },
+    { $unset: { discord: 1, discordPosting: 1 } },
+    { multi: true },
+  );
+  console.warn(`Discord webhook ${webhook.id} answered ${status}: removed from ${count} character(s) and ${parties} part(ies)`);
+  return count + parties;
 }
 
 function defaultSender(): WebhookSender | undefined {
   const baseUrl = discordApiBase();
   if (baseUrl && baseUrl !== DISCORD_API) console.warn(`Discord webhooks are sent to ${baseUrl} (${TEST_API_VARIABLE})`);
-  return baseUrl ? createWebhookSender({ baseUrl, onGone: forgetWebhook }) : undefined;
+  return baseUrl ? createWebhookSender({
+    baseUrl,
+    userAgent: discordUserAgent(Meteor.absoluteUrl(), VERSION),
+    onGone: forgetWebhook,
+  }) : undefined;
 }
 
 let sender: WebhookSender | undefined | null = null;
+
+/** The sender every Discord message goes through; none under tests without the fake */
+export function webhookSender(): WebhookSender | undefined {
+  if (sender === null) sender = defaultSender();
+  return sender;
+}
 
 /**
  * Replaces the sender the log uses, for a test; returns the one it replaced.
@@ -293,34 +122,285 @@ export function setWebhookSender(replacement: WebhookSender | undefined) {
   return previous;
 }
 
-// One lookup at a time per character: its entries keep their order
-const intake = new Map<string, Promise<void>>();
+// ---------------------------------------------------------------- channels and sessions
 
-type LogEntry = { creatureId?: string, content?: LogLine[], date?: Date | string };
+// Whose session a webhook's messages follow: a character's, or a party's
+export type Holder = { creatureId: string } | { folderId: string };
 
-async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender) {
-  const creature = await Creatures.findOneAsync(creatureId, {
-    fields: { name: 1, color: 1, avatarPicture: 1, owner: 1, 'settings.discordWebhook': 1 },
-  });
-  const webhook = parseWebhookURL(creature?.settings?.discordWebhook);
-  if (!creature || !webhook || target.isGone(webhook)) return;
-  const owner = await Meteor.users.findOneAsync(creature.owner as string, { fields: { 'preferences.language': 1 } });
-  const messages = discordMessages({
-    log,
-    creature,
-    language: (owner as { preferences?: { language?: string } } | undefined)?.preferences?.language,
-    sheetUrl: Meteor.absoluteUrl(`character/${creature._id}`),
-  });
-  target.send(webhook, messages);
+/** Where a message goes: a webhook, its holder, and how its messages read */
+export type Channel = {
+  webhook: Webhook,
+  holder: Holder,
+  // The language of the channel's owner: the character's, the game master's
+  language: DiscordLanguage,
+  // What its sessions are named after: the character, the party
+  label: string,
+  // The author of a session's header: the character, or the webhook itself
+  author?: { username?: string, avatar_url?: string },
+  // false when its game master turned the party's sessions off: its messages
+  // go to the channel
+  sessions?: boolean,
+};
+
+/** A user's interface language, which their channels' messages are written in */
+export async function languageOf(userId?: string): Promise<DiscordLanguage> {
+  if (!userId) return 'en';
+  const user = await Meteor.users.findOneAsync(userId, { fields: { 'preferences.language': 1 } });
+  return discordLanguage((user as { preferences?: { language?: string } } | undefined)?.preferences?.language);
 }
 
 /**
- * Posts a log entry to its character's Discord webhook, if it has one. Returns
- * at once: a log never waits on Discord. Once per entry, after it is written.
+ * The party's channel, from its folder: the game master's language, the
+ * party's name, and its sessions unless the game master turned them off
+ */
+export async function partyChannel(folder: Pick<PartyFolderDoc, '_id' | 'name' | 'owner' | 'discord'>, webhook: Webhook): Promise<Channel> {
+  const language = await languageOf(folder.owner);
+  return {
+    webhook,
+    holder: { folderId: folder._id },
+    language,
+    label: folder.name?.trim() || translatorFor(language)('party.untitled', {}) || '',
+    sessions: publishes(folder.discord, 'sessions'),
+  };
+}
+
+/** A character's own channel: its owner's language, its name and picture */
+export async function characterChannel(creature: {
+  _id: string, name?: string, owner?: string, avatarPicture?: string,
+}, webhook: Webhook): Promise<Channel> {
+  const username = webhookUsername(creature.name);
+  return {
+    webhook,
+    holder: { creatureId: creature._id },
+    language: await languageOf(creature.owner),
+    label: creature.name?.trim() || '',
+    author: {
+      ...username && { username },
+      ...creature.avatarPicture && /^https?:\/\//i.test(creature.avatarPicture) && { avatar_url: creature.avatarPicture },
+    },
+  };
+}
+
+/** The holder's session, whichever webhook it was opened on */
+export async function readSession(holder: Holder): Promise<DiscordSession | undefined> {
+  if ('creatureId' in holder) {
+    return (await Creatures.findOneAsync(holder.creatureId, { fields: { discordSession: 1 } }))?.discordSession as DiscordSession | undefined;
+  }
+  const CreatureFolders = await creatureFolders();
+  return (await CreatureFolders.findOneAsync(holder.folderId, { fields: { 'discord.session': 1 } }))?.discord?.session;
+}
+
+/**
+ * Sets the holder's session, or ends it. Ending a given session leaves a
+ * newer one alone
+ */
+export async function writeSession(holder: Holder, session: DiscordSession | undefined, ending?: DiscordSession) {
+  const field = 'creatureId' in holder ? 'discordSession' : 'discord.session';
+  const selector: Record<string, unknown> = {
+    _id: 'creatureId' in holder ? holder.creatureId : holder.folderId,
+    ...ending && { [`${field}.startedAt`]: ending.startedAt },
+  };
+  const modifier = session ? { $set: { [field]: session } } : { $unset: { [field]: 1 as const } };
+  if ('creatureId' in holder) {
+    await Creatures.updateAsync(selector, modifier);
+  } else {
+    const CreatureFolders = await creatureFolders();
+    await CreatureFolders.updateAsync(selector, modifier);
+  }
+}
+
+// Discord's answers to a message for a thread that can no longer take it:
+// deleted, archived for good, locked
+const THREAD_CLOSED_CODES: number[] = [DISCORD_CODES.unknownChannel, 50083, 160005];
+
+export type SessionResult = { session?: DiscordSession, result: DiscordResult };
+
+/**
+ * Opens a session on the channel's webhook: a post in a forum channel, named
+ * after the date and the holder; in a text channel, where Discord answers
+ * that a webhook only opens threads in forums (220003), a header message.
+ * The holder keeps it; the result says what Discord answered
+ */
+export async function openSession(request: Requester, channel: Channel, {
+  date = new Date(), timeZone,
+}: { date?: Date, timeZone?: string } = {}): Promise<SessionResult> {
+  const name = sessionName({ label: channel.label, date, language: channel.language, timeZone });
+  const header = sessionHeader(name, channel.author);
+  let kind: SessionKind = 'forum';
+  let result = await postMessage(request, {
+    body: { ...header, thread_name: name.slice(0, THREAD_NAME_LENGTH) }, wait: true,
+  });
+  if (!result.ok && result.code === DISCORD_CODES.threadsOnlyInForums) {
+    kind = 'channel';
+    result = await postMessage(request, { body: header, wait: true });
+  }
+  if (!result.ok) return { result };
+  const message = result.message;
+  // A forum's new post: the message's channel is its thread
+  const threadId = kind === 'forum' ? message?.channel_id : undefined;
+  if (kind === 'forum' && !threadId) return { result };
+  const session: DiscordSession = {
+    webhookId: channel.webhook.id,
+    kind,
+    ...threadId && { threadId },
+    ...message?.id && { messageId: message.id },
+    name,
+    startedAt: date,
+  };
+  await writeSession(channel.holder, session);
+  return { session, result };
+}
+
+/**
+ * Posts a message on the channel, in its session if one is open: its forum
+ * post, else the channel. Its fallback is the embeds of a card Discord does
+ * not take. Returns Discord's answer, and the thread it went into
+ */
+export async function deliver(request: Requester, channel: Channel, message: {
+  body: Record<string, unknown>,
+  fallback?: Record<string, unknown>[],
+  wait?: boolean,
+}): Promise<DiscordResult & { threadId?: string }> {
+  const sessions = channel.sessions !== false;
+  let session = sessions ? sessionOf(await readSession(channel.holder), channel.webhook.id) : undefined;
+  let result = await postMessage(request, { ...message, threadId: session?.threadId });
+  if (!result.ok && session?.threadId && result.code !== undefined && THREAD_CLOSED_CODES.includes(result.code)) {
+    // Its post is gone: the session is over, the channel takes the message
+    console.warn(`Discord webhook ${channel.webhook.id}: the session's thread is closed (${result.code}), session ended`);
+    await writeSession(channel.holder, undefined, session);
+    session = undefined;
+    result = await postMessage(request, message);
+  }
+  if (!result.ok && result.code === DISCORD_CODES.forumNeedsThread && sessions) {
+    // A forum takes no message outside a post: a session opens by itself
+    session = (await openSession(request, channel)).session;
+    if (session?.threadId) result = await postMessage(request, { ...message, threadId: session.threadId });
+  }
+  return { ...result, ...result.ok && session?.threadId && { threadId: session.threadId } };
+}
+
+// How long a "New session" button waits for Discord: the session still opens
+// later if Discord is slower (rate limits)
+const SESSION_WAIT_MS = 20 * 1000;
+
+/**
+ * Opens a session on the channel now, for the "New session" buttons: through
+ * the webhook's queue, after what it already holds. Resolves with the session,
+ * or throws an error the interface can show (boardError, `discord.errors.*`)
+ */
+export async function startSession(channel: Channel, timeZone?: string): Promise<DiscordSession> {
+  const target = webhookSender();
+  if (!target) throw boardError('discord.unavailable', 'discord.errors.unavailable');
+  if (target.isGone(channel.webhook)) throw boardError('discord.gone', 'discord.errors.gone');
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<'late'>(resolve => {
+    timer = setTimeout(() => resolve('late'), SESSION_WAIT_MS);
+  });
+  const opened = await Promise.race([
+    target.enqueue(channel.webhook, request => openSession(request, channel, { timeZone })),
+    late,
+  ]);
+  clearTimeout(timer);
+  if (opened === 'late') throw boardError('discord.late', 'discord.errors.late');
+  if (opened?.session) return opened.session;
+  const result = opened?.result;
+  if (!result || (!result.ok && result.gone)) throw boardError('discord.gone', 'discord.errors.gone');
+  throw boardError('discord.failed', 'discord.errors.failed', { status: result.ok ? result.status : result.status ?? '–' });
+}
+
+// ---------------------------------------------------------------- the log
+
+type LogEntry = { creatureId?: string, content?: LogLine[], date?: Date | string };
+
+type LogCreature = {
+  _id: string, name?: string, color?: string, picture?: string, avatarPicture?: string,
+  owner?: string, type?: string, settings?: { discordWebhook?: string },
+};
+
+/**
+ * Where a character's log goes: the webhook of each party it plays in, then
+ * its own, once per webhook
+ */
+export async function logChannels(creature: LogCreature): Promise<Channel[]> {
+  const channels: Channel[] = [];
+  const known = (webhook: Webhook) => channels.some(channel => channel.webhook.id === webhook.id);
+  if (!hidesStatsFromPlayers(creature)) {
+    const CreatureFolders = await creatureFolders();
+    const parties = await CreatureFolders.find(
+      { creatures: creature._id, 'discord.webhook': { $exists: true } },
+      { fields: { name: 1, owner: 1, members: 1, 'discord.webhook': 1, 'discord.enabled': 1, 'discord.publish': 1 } },
+    ).fetchAsync();
+    for (const party of parties) {
+      // The table's characters only: the game master's and the players'.
+      // Another's character the game master put in the folder never joined
+      if (![party.owner, ...party.members || []].includes(creature.owner)) continue;
+      // Unless the game master turned the party's rolls off: then the
+      // character's own webhook, if it is the same, posts as its own
+      if (!publishes(party.discord, 'rolls')) continue;
+      const webhook = parseWebhookURL(party.discord?.webhook);
+      if (webhook && !known(webhook)) channels.push(await partyChannel(party, webhook));
+    }
+  }
+  const own = parseWebhookURL(creature.settings?.discordWebhook);
+  if (own && !known(own)) channels.push(await characterChannel(creature, own));
+  return channels;
+}
+
+// Of the creatures a log entry acted on, those of a game master whose stats
+// the players never see: monsters and non-player characters
+async function hiddenTargets(creature: LogCreature, log: LogEntry): Promise<string[]> {
+  if (hidesStatsFromPlayers(creature)) return [];
+  const targetIds = uniq((log.content || []).flatMap(line => line?.targetIds || []))
+    .filter(id => id !== creature._id);
+  if (!targetIds.length) return [];
+  return Creatures.find(
+    { _id: { $in: targetIds }, type: { $in: [...GM_CREATURE_TYPES] } }, { fields: { _id: 1 } },
+  ).mapAsync(target => target._id);
+}
+
+// One lookup at a time per character: its entries keep their order
+const intake = new Map<string, Promise<void>>();
+
+async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender) {
+  const creature = await Creatures.findOneAsync(creatureId, {
+    fields: {
+      name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, type: 1, 'settings.discordWebhook': 1,
+    },
+  }) as LogCreature | undefined;
+  if (!creature) return;
+  const channels = (await logChannels(creature)).filter(channel => !target.isGone(channel.webhook));
+  if (!channels.length) return;
+  const hiddenIds = await hiddenTargets(creature, log);
+  const sheetUrl = Meteor.absoluteUrl(`character/${creature._id}`);
+  for (const channel of channels) {
+    const input = { log, creature, language: channel.language, sheetUrl, hiddenIds };
+    const embeds = discordMessages(input);
+    if (!embeds.length) continue;
+    const card = logComponents(input);
+    target.enqueue(channel.webhook, async request => {
+      // The card, or the embeds when Discord does not take it; the embeds
+      // alone for an entry too long for a card
+      const parts = card ? [{ body: card, fallback: embeds }] : embeds.map(body => ({ body }));
+      for (const part of parts) {
+        const result = await deliver(request, channel, part);
+        if (!result.ok) {
+          if (!result.gone) {
+            console.warn(`Discord webhook ${channel.webhook.id}: message dropped, ${result.status ?? 'no answer'}: ${result.detail}`);
+          }
+          return;
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Posts a log entry to its character's Discord webhooks, if it has some.
+ * Returns at once: a log never waits on Discord. Once per entry, after it is
+ * written.
  */
 export function sendLogToDiscord(log: LogEntry) {
-  if (sender === null) sender = defaultSender();
-  const target = sender;
+  const target = webhookSender();
   const creatureId = log?.creatureId;
   if (!target || !creatureId) return;
   const next = (intake.get(creatureId) ?? Promise.resolve())
@@ -335,4 +415,18 @@ export function sendLogToDiscord(log: LogEntry) {
 /** Resolves once the entries logged so far are queued (for tests) */
 export async function discordIntakeIdle() {
   while (intake.size) await Promise.all([...intake.values()]);
+}
+
+// In development only: where the server posts, when it is a local fake of
+// Discord (TEST_API_VARIABLE), for the browser checks (tests/e2e, check
+// discord-webhook). They set a webhook Discord could take only once the
+// server says it posts to their fake: never anything to Discord itself. A
+// production server has no such method
+if (Meteor.isDevelopment) {
+  Meteor.methods({
+    'discord.testApi'() {
+      const base = discordApiBase();
+      return base && base !== DISCORD_API ? base : null;
+    },
+  });
 }

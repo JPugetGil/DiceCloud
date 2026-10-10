@@ -1,7 +1,9 @@
 import { get } from 'lodash';
 import en from '/imports/ui/i18n/en.json';
 import fr from '/imports/ui/i18n/fr.json';
-import { logLineTone, translateLogLine, type LogI18n } from '/imports/api/creature/log/logMessages';
+import {
+  logLineTone, translateLogLine, withoutHiddenStats, type LogI18n,
+} from '/imports/api/creature/log/logMessages';
 import { withTotals } from '/imports/ui/log/logTotals';
 import { rollsFromLog } from '/imports/ui/dice/logDice';
 
@@ -9,9 +11,13 @@ import { rollsFromLog } from '/imports/ui/dice/logDice';
  * A log entry as Discord webhook messages (option 2 of the Discord analysis):
  * an embed titled with the action or the roll, linked to the character sheet,
  * coloured by the character or by a critical, with each line's result first.
- * Written in the language of the character's owner, as the log shows it to
- * them: lines hidden in the log (silenced) are never sent. Pure: the server
- * posts what this returns (server/discordWebhooks.ts).
+ * Since D3, first as a Components V2 card (logComponents): a container in the
+ * same colour, the character's picture beside the title, and a link button to
+ * the sheet; the embeds stay as its fallback, for an entry too long for one
+ * card or a card Discord refuses. Written in the language of the channel's
+ * owner, as the log shows it to them: lines hidden in the log (silenced) are
+ * never sent. Pure: the server posts what this returns
+ * (server/discordWebhooks.ts).
  */
 
 // https://discord.com/developers/docs/resources/message#embed-object-embed-limits
@@ -26,6 +32,26 @@ export const DISCORD_LIMITS = {
   fieldValue: 1024,
   username: 80,
 };
+
+// https://docs.discord.com/developers/components/reference: a Components V2
+// message holds at most 40 components and 4,000 characters of text
+export const COMPONENT_LIMITS = {
+  components: 40,
+  text: 4000,
+};
+
+// The message flag of a Components V2 message, and the components it uses
+export const IS_COMPONENTS_V2 = 1 << 15;
+export const COMPONENT = {
+  actionRow: 1,
+  button: 2,
+  section: 9,
+  textDisplay: 10,
+  thumbnail: 11,
+  container: 17,
+} as const;
+// A button that opens a link: the only kind a webhook no application owns may send
+export const LINK_BUTTON = 5;
 
 // The app's success and error seeds (ui/plugins/themes.js): a critical hit,
 // a critical miss
@@ -64,6 +90,8 @@ export type LogLine = {
   inline?: boolean,
   silenced?: boolean,
   i18n?: LogI18n,
+  // The creatures it acted on
+  targetIds?: string[],
 };
 
 // A line as the log shows it: translated, its result taken out (logTotals.js)
@@ -78,17 +106,22 @@ export type DiscordEmbed = {
   timestamp?: string,
   fields: DiscordField[],
 };
-export type WebhookMessage = {
+type MessageAuthor = {
   username?: string,
   avatar_url?: string,
-  embeds: DiscordEmbed[],
   allowed_mentions: { parse: string[] },
 };
+// A message of embeds; a Components V2 message, which can hold nothing else
+export type WebhookMessage = MessageAuthor & { embeds: DiscordEmbed[] };
+export type ComponentMessage = MessageAuthor & { flags: number, components: Record<string, unknown>[] };
 
 /** The lines a reader of the log sees: hidden (silenced) lines never leave */
 export function visibleLines<T extends LogLine>(content: T[] = []): T[] {
   return content.filter(line => line && !line.silenced);
 }
+
+// The log's own rule, for the entries written before it applied
+export { withoutHiddenStats };
 
 /**
  * 'success' for a critical hit, 'error' for a critical miss: as the engine
@@ -126,14 +159,23 @@ export function truncate(text: string, max: number): string {
   return text.slice(0, end) + '…';
 }
 
-// Discord refuses a webhook username containing these, and an empty one
-const FORBIDDEN_USERNAME = /discord|clyde/i;
+// Discord refuses a webhook username containing "discord" or "clyde",
+// whatever the case: 400, code 50035, USERNAME_INVALID_CONTAINS (checked
+// 2026-10-10). A hair space after their first letter, as PluralKit has done
+// for years with the names it posts under, keeps the name readable ("Clyde"
+// shows as "C lyde") and no longer contains the word
+const FORBIDDEN_IN_USERNAME = /(?<=d)(?=iscord)|(?<=c)(?=lyde)/gi;
+const HAIR_SPACE = '\u200A';
 
-/** The name a message is posted under: the character's, when Discord takes it */
+/**
+ * The name a message is posted under: the character's, where Discord takes
+ * it; none for a character without a name (the webhook's own then). Discord
+ * refusing it all the same, the sender posts it as DiceCloud
+ */
 export function webhookUsername(name?: string): string | undefined {
   const trimmed = (name || '').trim();
-  if (!trimmed || FORBIDDEN_USERNAME.test(trimmed)) return undefined;
-  return truncate(trimmed, DISCORD_LIMITS.username);
+  if (!trimmed) return undefined;
+  return truncate(trimmed.replace(FORBIDDEN_IN_USERNAME, HAIR_SPACE), DISCORD_LIMITS.username);
 }
 
 const isHttpUrl = (url?: string) => !!url && /^https?:\/\/\S+$/i.test(url);
@@ -155,21 +197,29 @@ const fieldSize = (field: DiscordField) => field.name.length + field.value.lengt
 
 type MessageInput = {
   log: { content?: LogLine[], date?: Date | string },
-  creature: { name?: string, color?: string, avatarPicture?: string },
+  creature: { name?: string, color?: string, avatarPicture?: string, picture?: string },
   language?: string,
   // The character sheet, which the title links to
   sheetUrl?: string,
+  // Game master's creatures whose attributes the lines must not give away
+  hiddenIds?: string[],
 };
 
-/**
- * The messages that post a log entry to a webhook, in order: usually one,
- * more when the entry is longer than Discord takes in one message. None when
- * every line is hidden.
- */
-export function discordMessages({ log, creature, language, sheetUrl }: MessageInput): WebhookMessage[] {
+// A log entry as the messages show it: its title, its first line's text, its
+// other lines as fields, its colour
+type Entry = {
+  title: string,
+  description: string,
+  color?: number,
+  date?: Date,
+  fields: DiscordField[],
+};
+
+function logEntry({ log, creature, language, hiddenIds = [] }: MessageInput): Entry | undefined {
   const translate = translatorFor(discordLanguage(language));
-  const lines: ShownLine[] = withTotals(visibleLines(log.content).map(line => translateLogLine(line, translate)));
-  if (!lines.length) return [];
+  const lines: ShownLine[] = withTotals(withoutHiddenStats(visibleLines(log.content), hiddenIds)
+    .map(line => translateLogLine(line, translate)));
+  if (!lines.length) return undefined;
   const [first, ...rest] = lines;
 
   // The title names the action, the rest, the effect...; a roll typed in the
@@ -202,19 +252,49 @@ export function discordMessages({ log, creature, language, sheetUrl }: MessageIn
     : tone === 'error' ? CRITICAL_MISS_COLOR
       : colorNumber(creature.color);
   const date = log.date ? new Date(log.date) : undefined;
+  return {
+    title: truncate(title, DISCORD_LIMITS.title),
+    description: truncate(description, DISCORD_LIMITS.description),
+    color,
+    ...date && !isNaN(date.getTime()) && { date },
+    fields: others.map(line => ({
+      name: truncate(line.name || BLANK, DISCORD_LIMITS.fieldName),
+      value: truncate(lineText(line) || BLANK, DISCORD_LIMITS.fieldValue),
+      inline: !!line.inline,
+    })),
+  };
+}
+
+// Never ping anyone, whatever the log says
+const NO_MENTIONS = { allowed_mentions: { parse: [] } };
+
+// The character's name and picture, as the message's author
+function identity(creature: MessageInput['creature']) {
+  const username = webhookUsername(creature.name);
+  return {
+    ...username && { username },
+    ...isHttpUrl(creature.avatarPicture) && { avatar_url: creature.avatarPicture },
+  };
+}
+
+/**
+ * The messages that post a log entry to a webhook as embeds, in order:
+ * usually one, more when the entry is longer than Discord takes in one
+ * message. None when every line is hidden.
+ */
+export function discordMessages(input: MessageInput): WebhookMessage[] {
+  const { creature, sheetUrl } = input;
+  const entry = logEntry(input);
+  if (!entry) return [];
+  const { title, description, color, date, fields } = entry;
   const head: DiscordEmbed = {
-    ...title && { title: truncate(title, DISCORD_LIMITS.title) },
+    ...title && { title },
     ...isHttpUrl(sheetUrl) && { url: sheetUrl },
-    ...description && { description: truncate(description, DISCORD_LIMITS.description) },
+    ...description && { description },
     ...color !== undefined && { color },
-    ...date && !isNaN(date.getTime()) && { timestamp: date.toISOString() },
+    ...date && { timestamp: date.toISOString() },
     fields: [],
   };
-  const fields: DiscordField[] = others.map(line => ({
-    name: truncate(line.name || BLANK, DISCORD_LIMITS.fieldName),
-    value: truncate(lineText(line) || BLANK, DISCORD_LIMITS.fieldValue),
-    inline: !!line.inline,
-  }));
 
   // Fields fill an embed up to 25, then the next one, in the same colour;
   // embeds fill a message up to 10 or 6,000 characters, then the next message
@@ -240,12 +320,62 @@ export function discordMessages({ log, creature, language, sheetUrl }: MessageIn
   }
   close();
 
-  const username = webhookUsername(creature.name);
-  return messages.map(embeds => ({
-    ...username && { username },
-    ...isHttpUrl(creature.avatarPicture) && { avatar_url: creature.avatarPicture },
-    embeds,
-    // Never ping anyone, whatever the log says
-    allowed_mentions: { parse: [] },
-  }));
+  return messages.map(embeds => ({ ...identity(creature), embeds, ...NO_MENTIONS }));
+}
+
+// The text a Components V2 message counts against its 4,000 characters
+function componentText(components: Record<string, any>[]): number {
+  return components.reduce((sum, component) => sum + (component.content?.length || 0)
+    + (component.label?.length || 0) + componentText([
+      ...component.components || [], ...component.accessory ? [component.accessory] : [],
+    ]), 0);
+}
+
+function componentCount(components: Record<string, any>[]): number {
+  return components.reduce((sum, component) => sum + 1 + componentCount([
+    ...component.components || [], ...component.accessory ? [component.accessory] : [],
+  ]), 0);
+}
+
+/**
+ * The log entry as one Components V2 card: a container in the entry's colour,
+ * the title and first line beside the character's picture, the other lines
+ * below, and a link button to the sheet. Undefined when every line is hidden,
+ * or when the entry is longer than one card holds: the embeds then.
+ */
+export function logComponents(input: MessageInput): ComponentMessage | undefined {
+  const { creature, sheetUrl, language } = input;
+  const entry = logEntry(input);
+  if (!entry) return undefined;
+  const translate = translatorFor(discordLanguage(language));
+  const heading = [entry.title && `### ${entry.title}`, entry.description].filter(Boolean).join('\n');
+  const picture = [creature.picture, creature.avatarPicture].find(isHttpUrl);
+  const text = (content: string) => ({ type: COMPONENT.textDisplay, content });
+  const fields = entry.fields
+    .map(field => [field.name, field.value].filter(part => part && part !== BLANK)
+      .map((part, i) => i === 0 && field.name !== BLANK ? `**${part}**` : part).join('\n'))
+    .filter(Boolean);
+  const inside: Record<string, unknown>[] = [
+    picture
+      ? { type: COMPONENT.section, components: [text(heading || BLANK)], accessory: { type: COMPONENT.thumbnail, media: { url: picture } } }
+      : text(heading || BLANK),
+    ...fields.length ? [text(fields.join('\n\n'))] : [],
+  ];
+  if (isHttpUrl(sheetUrl)) {
+    inside.push({
+      type: COMPONENT.actionRow,
+      components: [{
+        type: COMPONENT.button, style: LINK_BUTTON, url: sheetUrl,
+        label: translate('discord.openSheet', {}) || 'Open sheet',
+      }],
+    });
+  }
+  const container = {
+    type: COMPONENT.container,
+    ...entry.color !== undefined && { accent_color: entry.color },
+    components: inside,
+  };
+  if (componentText([container]) > COMPONENT_LIMITS.text
+    || componentCount([container]) > COMPONENT_LIMITS.components) return undefined;
+  return { ...identity(creature), flags: IS_COMPONENTS_V2, components: [container], ...NO_MENTIONS };
 }

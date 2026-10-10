@@ -59,6 +59,16 @@ const message = (title: string): WebhookMessage => ({
 });
 const titles = (requests: Received[]) => requests.map(request => request.body.embeds[0].title);
 
+// The texts of a Components V2 card, and its container
+const cardTexts = (body: any): string[] => {
+  const walk = (components: any[] = []): string[] => components.flatMap(component => [
+    ...component.content ? [component.content] : [],
+    ...walk(component.components),
+  ]);
+  return walk(body.components);
+};
+const container = (body: any) => body.components[0];
+
 if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () {
   this.timeout(20000);
   let fake: Awaited<ReturnType<typeof fakeDiscord>> | undefined;
@@ -231,7 +241,7 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
       return fake?.requests.map(request => request.body) ?? [];
     }
 
-    it('posts a typed roll once, in the owner\'s language', async function () {
+    it('posts a typed roll once, as a card, in the owner\'s language', async function () {
       await Creatures.rawCollection().insertOne({ _id: creatureId, name: 'Aria' } as any);
       await giveWebhook();
       await insertCreatureLogWork({
@@ -240,11 +250,16 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
       const [body, ...more] = await sent();
       assert.lengthOf(more, 0);
       assert.equal(body.username, 'Aria');
-      assert.equal(body.embeds[0].title, 'Jet : 1d20 + 5');
-      assert.equal(body.embeds[0].description, '**25**\n1d20 [20] + 5');
-      assert.equal(body.embeds[0].url, Meteor.absoluteUrl(`character/${creatureId}`));
-      assert.equal(body.embeds[0].color, 0x43A047, 'a natural 20');
+      assert.equal(body.flags, 1 << 15, 'Components V2');
+      assert.notProperty(body, 'embeds');
+      assert.deepEqual(cardTexts(body), ['### Jet : 1d20 + 5\n**25**\n1d20 [20] + 5']);
+      assert.equal(container(body).accent_color, 0x43A047, 'a natural 20');
+      const button = container(body).components.at(-1).components[0];
+      assert.deepEqual(button, {
+        type: 2, style: 5, url: Meteor.absoluteUrl(`character/${creatureId}`), label: 'Ouvrir la fiche',
+      });
       assert.deepEqual(body.allowed_mentions, { parse: [] });
+      assert.equal(fake?.requests[0].path, `/api/v10/webhooks/${webhook.id}/${webhook.token}?with_components=true`);
     });
 
     it('posts an action of the engine once, without its hidden lines', async function () {
@@ -269,10 +284,10 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
       assert.isTrue(log?.content.some(line => line.silenced), 'the log keeps the hidden line');
       const bodies = await sent();
       assert.lengthOf(bodies, 1, 'one message for the one log entry');
-      const [embed] = bodies[0].embeds;
-      assert.equal(embed.title, 'Longsword');
-      assert.equal(embed.color, 0x43A047);
-      assert.deepEqual(embed.fields.map(field => field.name), ['Coup critique !']);
+      const [heading, fields] = cardTexts(bodies[0]);
+      assert.match(heading, /^### Longsword/);
+      assert.equal(container(bodies[0]).accent_color, 0x43A047);
+      assert.match(fields, /^\*\*Coup critique\u202f!\*\*/);
       assert.notInclude(JSON.stringify(bodies), 'cursed');
     });
 

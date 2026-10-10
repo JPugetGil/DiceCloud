@@ -54,6 +54,18 @@
             <p class="mb-0">
               {{ $t('discord.webhookPrivacy') }}
             </p>
+            <!-- The party's channel (D2), sessions (D3), link previews (D1) -->
+            <template
+              v-for="section in SECTIONS"
+              :key="section"
+            >
+              <h2 class="text-title-small mt-4 mb-1">
+                {{ $t(`discord.${section}Title`) }}
+              </h2>
+              <p class="mb-0">
+                {{ $t(`discord.${section}Text`) }}
+              </p>
+            </template>
           </v-card-text>
         </v-card>
       </v-col>
@@ -69,6 +81,9 @@ const theme = useTheme();
 
 // Discord draws the widget itself, in either of its two themes
 const widgetTheme = computed(() => theme.current.value.dark ? 'dark' : 'light');
+
+// discord.<section>Title and discord.<section>Text
+const SECTIONS = ['partySection', 'sessions', 'previews'];
 </script>
 
 <style lang="css" scoped>

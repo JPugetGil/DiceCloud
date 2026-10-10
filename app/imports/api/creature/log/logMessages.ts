@@ -126,6 +126,30 @@ export function translateLogLine<T extends { name?: string, value?: string, i18n
   return result;
 }
 
+// The lines that change a creature's attribute: their amount is capped by
+// what it has left ("−7 Hit Points" on a goblin with 7), or they give its
+// value ("Hit Points set from 7 to 0")
+const ATTRIBUTE_CHANGE_KEYS = ['logs.attributeDamaged', 'logs.attributeRestored', 'logs.attributeSet'];
+
+// The message keys a line is made of: its name's, its value's parts'
+function messageKeys(line: { i18n?: LogI18n }): string[] {
+  const parts = [line.i18n?.name, ...line.i18n?.value ?? []];
+  return parts.flatMap(part => isMessage(part) ? [part.key] : []);
+}
+
+/**
+ * The lines but those that give away the hit points (or another attribute)
+ * of a game master's creature among `hiddenIds`, a monster or a non-player
+ * character, that the line acted on: the players never learn them, in a
+ * character's log as on Discord (partyBoard.js). The creature's own log
+ * keeps them, for its game master (writeActionResults.ts)
+ */
+export function withoutHiddenStats<T extends { i18n?: LogI18n, targetIds?: string[] }>(lines: T[], hiddenIds: string[]): T[] {
+  if (!hiddenIds.length) return lines;
+  return lines.filter(line => !(line.targetIds?.some(id => hiddenIds.includes(id))
+    && messageKeys(line).some(key => ATTRIBUTE_CHANGE_KEYS.includes(key))));
+}
+
 /**
  * 'success' for a critical hit, 'error' for a critical miss, from the line's
  * message (whatever the language) or, for older logs, its English name

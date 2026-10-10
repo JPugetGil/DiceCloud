@@ -3,21 +3,29 @@ import { CreatureSchema } from '/imports/api/creature/creatures/Creatures';
 
 /*
  * A character's Discord webhook URL lets whoever holds it post in the channel
- * or delete the webhook: only those who may edit the character get it. Every
- * path that sends a character to someone who cannot edit it leaves it out:
- * the publications, the REST API and the character archive.
+ * or delete the webhook: only those who may edit the character get it, and
+ * the session its messages go into (discordSession.ts) with it. Every path
+ * that sends a character to someone who cannot edit it leaves both out: the
+ * publications, the REST API and the character archive. A party's own webhook
+ * and session are its folder's `discord` field, the game master's alone.
  *
  * Meteor's mergebox merges a document's fields from all of a client's
  * subscriptions by top-level field: `settings` from a publication that hides
  * the webhook and `settings` from one that does not would cover each other.
  * So no publication sends the webhook to someone who cannot edit the
- * character, and the ones that cannot tell send settings without it.
+ * character, and the ones that cannot tell send settings without it. The
+ * session is a top-level field of its own: those publications list the
+ * fields they send, and leave it out.
  */
 
 export const WEBHOOK_FIELD = 'settings.discordWebhook';
+export const SESSION_FIELD = 'discordSession';
 
-/** A projection that leaves the webhook out (and keeps every other field) */
-export const WITHOUT_WEBHOOK = { [WEBHOOK_FIELD]: 0 } as const;
+/** A projection that leaves the webhook and its session out (and keeps every other field) */
+export const WITHOUT_WEBHOOK = { [WEBHOOK_FIELD]: 0, [SESSION_FIELD]: 0 } as const;
+
+/** What a party's players never get of its folder: its Discord webhook and session */
+export const PARTY_DISCORD_FIELD = 'discord';
 
 /**
  * The fields of the settings but the webhook, for a publication that lists
@@ -33,8 +41,15 @@ export function settingsFieldsWithoutWebhook(): Record<string, 1> {
   return fields;
 }
 
-/** A copy of a character without its webhook; the character itself if it has none */
-export function creatureWithoutWebhook<T extends { settings?: { discordWebhook?: unknown } }>(creature: T): T {
-  if (!creature?.settings || !('discordWebhook' in creature.settings)) return creature;
-  return { ...creature, settings: omit(creature.settings, 'discordWebhook') };
+/** A copy of a character without its webhook and session; the character itself if it has neither */
+export function creatureWithoutWebhook<T extends {
+  settings?: { discordWebhook?: unknown },
+  discordSession?: unknown,
+}>(creature: T): T {
+  const hasWebhook = !!creature?.settings && 'discordWebhook' in creature.settings;
+  const hasSession = !!creature && SESSION_FIELD in creature;
+  if (!hasWebhook && !hasSession) return creature;
+  const copy = omit(creature, SESSION_FIELD) as T;
+  if (hasWebhook) copy.settings = omit(creature.settings, 'discordWebhook');
+  return copy;
 }

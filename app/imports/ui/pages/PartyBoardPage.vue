@@ -171,6 +171,10 @@
                 :creatures="creatures"
                 :role="role"
               />
+              <party-discord-card
+                :folder="folder"
+                :role="role"
+              />
             </div>
           </v-col>
         </v-row>
@@ -189,6 +193,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import { Meteor } from 'meteor/meteor';
 import PartyActions from '/imports/ui/creature/party/PartyActions.vue';
 import PartyPlayersCard from '/imports/ui/creature/party/PartyPlayersCard.vue';
+import PartyDiscordCard from '/imports/ui/creature/party/PartyDiscordCard.vue';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import PartyMemberCard from '/imports/ui/creature/party/PartyMemberCard.vue';
 import InitiativeTracker from '/imports/ui/creature/party/InitiativeTracker.vue';

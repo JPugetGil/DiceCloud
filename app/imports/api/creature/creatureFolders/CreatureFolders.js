@@ -1,6 +1,8 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import { DiscordSessionSchema } from '/imports/api/creature/log/discord/discordSession';
+import { PUBLISH_KINDS } from '/imports/api/creature/log/discord/partyPublishing';
 
 let CreatureFolders = new Mongo.Collection('creatureFolders');
 
@@ -130,6 +132,66 @@ let creatureFolderSchema = new SimpleSchema({
   initiativeStats: {
     type: Object,
     blackbox: true,
+    optional: true,
+  },
+  // The party's Discord channel (D2), the game master's alone: a top-level
+  // field, which the publications leave out for everyone else (the mergebox
+  // merges by top-level field). Its webhook URL, the session it posts into,
+  // and the initiative message it keeps up to date during a fight
+  discord: {
+    type: Object,
+    optional: true,
+  },
+  'discord.webhook': {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.url,
+  },
+  // What it posts (partyPublishing.ts): false turns everything off, the
+  // webhook kept; by kind of message, false for those turned off
+  'discord.enabled': {
+    type: Boolean,
+    optional: true,
+  },
+  'discord.publish': {
+    type: Object,
+    optional: true,
+  },
+  ...Object.fromEntries(PUBLISH_KINDS.map(kind => [`discord.publish.${kind}`, { type: Boolean, optional: true }])),
+  'discord.session': {
+    type: DiscordSessionSchema,
+    optional: true,
+  },
+  'discord.initiative': {
+    type: Object,
+    optional: true,
+  },
+  'discord.initiative.webhookId': {
+    type: String,
+    max: 32,
+  },
+  'discord.initiative.messageId': {
+    type: String,
+    max: 32,
+  },
+  'discord.initiative.threadId': {
+    type: String,
+    optional: true,
+    max: 32,
+  },
+  // What the party posts to Discord, its rolls and its fights
+  // (postingSummary): all the players see of it, so that they know where
+  // their rolls go. The URL stays the game master's
+  discordPosting: {
+    type: Object,
+    optional: true,
+  },
+  'discordPosting.rolls': {
+    type: Boolean,
+    optional: true,
+  },
+  'discordPosting.combat': {
+    type: Boolean,
     optional: true,
   },
 });

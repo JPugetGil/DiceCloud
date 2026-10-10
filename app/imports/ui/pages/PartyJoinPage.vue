@@ -55,6 +55,17 @@
               <p class="mt-0">
                 {{ invite.role === 'member' ? $t('party.joinMoreHint') : $t('party.joinHint') }}
               </p>
+              <!-- The players know before they join where their rolls will go -->
+              <p
+                v-if="postingKey(invite.discordPosting)"
+                class="d-flex align-center ga-2"
+                data-id="party-join-discord"
+              >
+                <v-icon size="small">
+                  mdi-discord
+                </v-icon>
+                {{ $t(postingKey(invite.discordPosting)) }}
+              </p>
               <party-character-picker v-model="creatureIds" />
             </v-card-text>
             <v-card-actions>
@@ -90,6 +101,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { getPartyInvite, joinParty } from '/imports/api/creature/creatureFolders/methods/partyMethods';
+import { postingKey } from '/imports/api/creature/log/discord/partyPublishing';
 import PartyCharacterPicker from '/imports/ui/creature/party/PartyCharacterPicker.vue';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useAppStore } from '/imports/ui/stores/app';

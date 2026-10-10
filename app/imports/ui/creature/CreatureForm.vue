@@ -82,13 +82,31 @@
           :model-value="model.settings.hitDiceResetMultiplier"
           @change="(value, ack) => emit('change', {path: ['settings','hitDiceResetMultiplier'], value, ack})"
         />
+      </form-section>
+      <form-section :name="$t('creatureForm.discord')">
         <text-field
           :label="$t('creatureForm.discordWebhook')"
           :hint="$t('creatureForm.discordWebhookHint')"
-          placeholder="https://discordapp.com/api/webhooks/<id>/<token>"
+          placeholder="https://discord.com/api/webhooks/<id>/<token>"
           :disabled="!editPermission"
           :model-value="model.settings.discordWebhook"
+          data-id="creature-discord-webhook"
           @change="(value, ack) => emit('change', {path: ['settings','discordWebhook'], value, ack})"
+        />
+        <!-- The party's webhook too: its sessions apply, the game master's -->
+        <p
+          v-if="discordWebhookId && editPermission && partyWebhook"
+          class="text-body-medium my-0"
+          data-id="discord-party-session"
+        >
+          {{ $t('discord.partySessionApplies', { name: partyWebhook.name }) }}
+        </p>
+        <discord-session-controls
+          v-else-if="discordWebhookId && editPermission"
+          :session="discordSession"
+          :busy="sessionBusy"
+          @start="startSession"
+          @end="endSession"
         />
       </form-section>
       <form-section :name="$t('creatureForm.libraries')">
@@ -148,6 +166,15 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
 import { changeAllowedLibraries, toggleAllUserLibraries } from '/imports/api/creature/creatures/methods/changeAllowedLibraries';
 
 import SmartImageInput from '/imports/ui/components/global/SmartImageInput.vue';
+import DiscordSessionControls from '/imports/ui/creature/discord/DiscordSessionControls.vue';
+import {
+  startCharacterSession, endCharacterSession, characterPartyWebhook,
+} from '/imports/api/creature/creatures/methods/discordSessionMethods';
+import { parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { useI18n } from 'vue-i18n';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
@@ -282,6 +309,61 @@ function selectLibraryCollection(id, val) {
   }
   dirty.value = true;
   updateAllowedLibraryCollections();
+}
+
+// The Discord session of its webhook (D3), if one is open: a session of
+// another webhook is over
+const { t } = useI18n();
+const discordWebhookId = computed(() => parseWebhookURL(props.model.settings?.discordWebhook)?.id);
+const discordSession = computed(() => sessionOf(props.model.discordSession, discordWebhookId.value));
+// 'start' or 'end' while its method runs
+const sessionBusy = ref(undefined);
+
+// The party whose webhook is this one, which posts its rolls: asked of the
+// server, which alone knows the party's webhook
+const partyWebhook = ref(null);
+watch([discordWebhookId, editPermission], async ([webhookId, canEdit]) => {
+  partyWebhook.value = null;
+  if (!webhookId || !canEdit) return;
+  try {
+    partyWebhook.value = await characterPartyWebhook.callAsync({ creatureId: props.model._id }) || null;
+  } catch (error) {
+    console.error(error);
+  }
+}, { immediate: true });
+
+async function runSession(name, call) {
+  sessionBusy.value = name;
+  try {
+    await call();
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  } finally {
+    sessionBusy.value = undefined;
+  }
+}
+
+function startSession() {
+  runSession('start', async () => {
+    const opened = await startCharacterSession.callAsync({
+      creatureId: props.model._id,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+    if (!opened) return;
+    snackbar({
+      text: opened.kind === 'forum'
+        ? t('discord.sessionStartedForum', { name: opened.name })
+        : t('discord.sessionStartedChannel'),
+    });
+  });
+}
+
+function endSession() {
+  runSession('end', async () => {
+    await endCharacterSession.callAsync({ creatureId: props.model._id });
+    snackbar({ text: t('discord.sessionEnded') });
+  });
 }
 
 function showDependencyGraph() {

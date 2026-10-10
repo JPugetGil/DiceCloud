@@ -41,17 +41,33 @@ meteor npm run check:contrast        # one check, by its npm script
 | `flows` | The hit points heading the Stats tab (combat summary), every character sheet tab, the speed dial, creating a property, editing it, finding it through the character search, a condition chip on and off, the character list's search; then removes the property | Forms that saved nothing; dialogs left open; a health bar squeezed to half the row |
 | `actions` | An action may target the acting character but not one the user cannot edit; a skill check through its dialog; the Short rest button end to end; no log entry cut off | The check dialog failing as it opened; log entries clipped; guards the rule that replaced tabletop ids, under which any character id passed outside a tabletop (found in the code) |
 | `docs-navigation` | Navigates the default docs inside the app and loads one directly | Documents that showed a title and no content after navigation |
-| `property-forms` | Opens one library node of every property type in view and edit mode; checks select items, "false" values and console errors | Every select showing "false"; "[object Object]" options; a viewer that crashed |
-| `dialogs` | Opens every lazily loaded dialog listed in `DialogComponentIndex.js` | Dialogs rendered as "[object Promise]" |
+| `property-forms` | Opens one library node of every property type in view and edit mode; checks select items, "false" values and console errors; then one node of every type of the SRD 5.1 bestiary when it is imported (an action without `resources` first; edit mode where the test account may edit it) | Every select showing "false"; "[object Object]" options; a viewer that crashed; the action viewer crashing on a bestiary action imported without `resources` (production) |
+| `dialogs` | Opens every lazily loaded dialog listed in `DialogComponentIndex.js`; the library node dialog with an action of the SRD 5.1 bestiary without `resources`, which must log nothing | Dialogs rendered as "[object Promise]"; a bestiary action's viewer crashing |
 | `login-services` | Google buttons shown exactly when Google sign-in is configured | Buttons that only led to "Service not configured" |
 | `contrast` | WCAG contrast of links, the selected toggle option and app bar text, in both themes (4.5:1 text, 3:1 icons) | Links and selected options below 4.5:1 |
 | `palette` | Every theme colour role, as Vuetify applies it, against every surface of its theme and under its on- colour; then the 190 colours users pick from, under the text colour the app gives them (`onColor`, see DESIGN_SYSTEM.md) | Brand red at 3.6:1 as text on dark cards; white titles at 2.6:1 on light blue notes |
 | `accessibility` | axe-core's WCAG 2.1 A and AA rules over the main pages, in both themes, at 1400 and 390 px; the Journal's coloured notes, title against card (axe cannot measure them under the hover highlight) | Light-theme labels and subtitles at 4.3:1; icon buttons without a name; zoom disabled on phones; tooltips and lists that screen readers found empty or invalid |
 | `slot-fill` | Opens a library slot in test mode and compares the fillers listed (and the "requirements not met" count) with what the database holds; skipped when the test account can use no library | Every slot fill dialog listing nothing ("Explore the Library!"); fillers offered although their requirements failed |
 | `print-cards` | Gives the test character a prepared spell and an item from a public library, then: the sheet's menu opens `/print-cards` with the spell among the default cards, the page lays out a spell card and an item card, no card shows a brace or overflows its body, the cards keep their title in print, the PDF has one A4 page per sheet, each card has its library's language, with backs every back sits opposite its front; removes them again; skipped without a public library holding both | Built with the printable cards: their header hidden in print by the app bar's `header { display: none }`; a layout run while printing (the character recomputed) that measured nothing and gave 28 pages for 8 sheets; a page opened from the menu that laid out no card |
-| `discord-webhook` | Gives the test character a made-up Discord webhook (never called: its id is not a number), shares it with `e2e-tester-other` as a reader and makes it public; then searches every DDP frame the reader's browser and a signed-out visitor's receive, and the REST API's answer without a token, for the webhook's token, which the editor's own frames must hold; puts the character back | The webhook URL published whole to every reader and, for a public character, to anyone through the REST API: with it, anyone could post in the channel or delete the webhook |
+| `discord-webhook` | Gives the test character a made-up Discord webhook (never called: its id is not a number), shares it with `e2e-tester-other` as a reader and makes it public; then searches every DDP frame the reader's browser and a signed-out visitor's receive, and the REST API's answer without a token, for the webhook's token, which the editor's own frames must hold; the public character's page carries its link preview (Open Graph, component embed of at most 3,000 bytes), nothing of it once private again. Against the local fake of Discord (below), also: a roll leaves as a Components V2 card with Discord's User-Agent; the character's "New session" in a text channel posts a header; a party board with a forum webhook, which `e2e-tester-other` joins and whose players see what it posts but never its URL; a roll to both channels, the forum opening a post of its own; the board's "New session"; a fight's initiative message, which says it starts and is edited at each turn, the turn lines and the summary, never a monster's hit points; each of the game master's switches (initiative, turns, combat, rolls, sessions, and publishing as a whole). Puts everything back | The webhook URL published whole to every reader and, for a public character, to anyone through the REST API: with it, anyone could post in the channel or delete the webhook |
 | `party-monsters` | Follows the SRD 5.1 bestiary, makes a board that `e2e-tester-other` joins, adds two goblins through the bestiary picker; the game master's cards show their hit points, challenge rating and type line, the card and the sheet their bestiary's licence linked to the About page; a goblin falls prone and the fight starts; the player sees the goblins' names and the condition, and neither their hit points nor their initiative roll; the end of the encounter deletes them; puts the board and the subscription back; needs the bestiary imported | Built with the monsters (phase 2) |
 | `licenses` | Signed out, the About page's Licences and credits: each edition's SRD 5.1 attribution statement, word for word against the bestiary library's description and, when `tools/monsters/work` holds them, the SRD's page 1; the Section 5 note, the changes, the icons' credit; the English edition first; then a bestiary's library page shows "SRD 5.1 · CC BY 4.0" linked there. Read-only | Built with the licences (phase 3) |
+
+### Discord, against a local fake
+
+`discord-webhook` starts a fake of Discord's webhook API on `127.0.0.1:3990`
+(`lib/fakeDiscord.js`, `E2E_DISCORD_PORT` to change it) and runs its posting
+steps only when the server says it posts there: a development server started
+with
+
+```sh
+DISCORD_WEBHOOK_TEST_API=http://127.0.0.1:3990/api/v10 meteor run --settings settings.json
+```
+
+The server honours that variable only in development and tests, and only for
+an address on this machine. Without it (or against a production bundle) the
+check skips those steps and never sets a webhook Discord could take: nothing
+ever reaches Discord.
 
 The server's own log can hold errors a clean browser console hides. Keep the dev
 server's output (`meteor 2>&1 | tee /tmp/dicecloud-dev.log`) and run
@@ -92,7 +108,9 @@ meteor node tools/dom.js /account '.theme-preference'
   account's theme preference to "Match device theme"; `print-cards` gives the
   test character a library spell and item, and removes them again;
   `discord-webhook` gives the test character a made-up webhook, shares it with
-  `e2e-tester-other` and makes it public, then takes all three back;
+  `e2e-tester-other` and makes it public, then takes all three back; against
+  the fake Discord, it also rolls, opens sessions and makes a party board
+  that `e2e-tester-other` joins, then deletes the board;
   `party-monsters` follows the SRD 5.1 bestiary, makes a board with two goblins
   that `e2e-tester-other` joins, then deletes the board and the goblins and
   follows the bestiary only if the test account already did.

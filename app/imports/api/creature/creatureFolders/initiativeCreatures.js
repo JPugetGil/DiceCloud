@@ -52,14 +52,15 @@ export function damageAfter(stats, amount) {
 
 /**
  * What the party board publishes of the folder to someone of `role`: all of
- * it to the game master; to the players, neither the invitation's token nor
- * the creatures' stats, unless the game master shows them
+ * it to the game master; to the players, neither the invitation's token, nor
+ * the party's Discord webhook and session, nor the creatures' stats, unless
+ * the game master shows them
  * @param {string | undefined} role
  * @param {any} folder
  * @returns {Record<string, 0>}
  */
 export function boardFolderFields(role, folder) {
   if (role === 'gm') return {};
-  if (folder?.initiative?.showStats) return { inviteToken: 0 };
-  return { inviteToken: 0, initiativeStats: 0 };
+  if (folder?.initiative?.showStats) return { inviteToken: 0, discord: 0 };
+  return { inviteToken: 0, initiativeStats: 0, discord: 0 };
 }

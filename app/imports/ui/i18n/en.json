@@ -115,10 +115,76 @@
     "webhookText": "Each character can post its log (rolls, actions, rests) to a Discord channel.",
     "webhookStep1": "In Discord, open the channel settings, then Integrations, Webhooks, and create a webhook.",
     "webhookStep2": "Copy its webhook URL.",
-    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the “Discord webhook URL” field.",
+    "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the Discord section.",
     "webhookLanguage": "Messages are written in the language of the character's owner. Lines hidden in the log are not sent.",
     "webhookPrivacy": "Only those who can edit the character see its webhook URL. If the webhook is deleted in Discord, the character forgets it.",
-    "typedRoll": "Roll: {roll}"
+    "typedRoll": "Roll: {roll}",
+    "openSheet": "Open sheet",
+    "sessionName": "Session of {date} — {name}",
+    "sessionNameAlone": "Session of {date}",
+    "initiativeTitle": "Combat — round {round}",
+    "initiativeEnded": "Combat over — round {round}",
+    "outOfFight": "out of the fight",
+    "yourTurn": "Your turn: {name}",
+    "creatureTurn": "{name}'s turn",
+    "summaryTitle": "End of combat",
+    "summaryTitleParty": "End of combat — {name}",
+    "summaryRounds": "Rounds: {rounds}",
+    "summaryParticipants": "Participants: {names}",
+    "summaryOut": "Out of the fight: {names}",
+    "partyTitle": "Discord",
+    "partyText": "The party's channel receives its fights (the initiative order kept up to date, whose turn it is, a summary at the end) and its characters' rolls and actions. Never a monster's hit points.",
+    "partyWebhook": "Party webhook URL",
+    "partyWebhookHint": "Only you see it. A character that posts to the same webhook posts each roll once.",
+    "save": "Save",
+    "remove": "Remove",
+    "webhookSaved": "Discord webhook saved",
+    "webhookRemoved": "Discord webhook removed",
+    "session": "Session",
+    "sessionNone": "No session open: messages go to the channel.",
+    "sessionForum": "Session open: the forum post “{name}” receives everything.",
+    "sessionChannel": "Session open: “{name}”. A header message marks its start in the channel.",
+    "sessionTextChannelHint": "In a text channel a webhook cannot create a thread: a header message marks each session. With a forum channel, each session gets a post of its own.",
+    "newSession": "New session",
+    "endSession": "End session",
+    "sessionStartedForum": "Session opened: a new forum post, “{name}”",
+    "sessionStartedChannel": "Session opened: a header message in the text channel",
+    "sessionEnded": "Session ended: messages go to the channel again",
+    "characterSessionHint": "A session gathers the rolls of one game: a forum post of its own, or a header message in a text channel.",
+    "partySectionTitle": "A party's channel",
+    "partySectionText": "On a party board, the game master can paste a webhook too: the party's fights (the initiative order kept up to date, whose turn it is, a summary at the end) and its characters' rolls and actions go there. Monsters' hit points never do. The players see that the party posts to Discord, never its URL.",
+    "sessionsTitle": "Sessions",
+    "sessionsText": "“New session”, on the party board or in a character's Discord settings, gathers a game in one place: in a forum channel, a post of its own named after the date; in a text channel, where a webhook cannot create a thread, a header message. “End session” goes back to the channel.",
+    "previewsTitle": "Link previews",
+    "previewsText": "A link to a public character, pasted in Discord, shows its name, portrait, race, class, level, hit points and armor class, with a button to the sheet. A private character's link shows nothing of it.",
+    "errors": {
+      "denied": "Only the game master of this party can do this",
+      "invalidWebhook": "This is not a Discord webhook URL: it looks like https://discord.com/api/webhooks/…",
+      "noWebhook": "Set a Discord webhook first",
+      "unavailable": "This server does not post to Discord",
+      "gone": "Discord no longer knows this webhook: it was removed. Create a new one in Discord.",
+      "late": "Discord is slow to answer: the session opens in a moment",
+      "failed": "Discord refused (error {status})",
+      "sessionsOff": "Sessions are turned off in the party's Discord settings"
+    },
+    "combatStarts": "**Combat begins**",
+    "partySessionApplies": "This webhook is also the one of the party “{name}”: its rolls go into the party's sessions, which the game master opens.",
+    "publishing": "Post to Discord",
+    "publishingHint": "Turned off, nothing is posted and the webhook is kept.",
+    "publishWhat": "What the channel receives",
+    "publish": {
+      "initiative": "The initiative message, kept up to date",
+      "turns": "A line at each turn",
+      "combat": "The end of combat, with a summary; its start when the initiative message is off",
+      "rolls": "The characters' rolls and actions",
+      "sessions": "Sessions (a forum post or a header message each)"
+    },
+    "sessionsOff": "Sessions are turned off: messages go to the channel. A forum channel only takes messages in a post.",
+    "posting": {
+      "rollsAndCombat": "This party posts its characters' rolls and its fights to a Discord channel.",
+      "rolls": "This party posts its characters' rolls to a Discord channel.",
+      "combat": "This party posts its fights to a Discord channel."
+    }
   },
   "legal": {
     "termsLink": "terms of use",
@@ -812,7 +878,8 @@
     "allUserLibraries": "All user libraries",
     "debug": "Debug",
     "dependencyGraph": "Dependency graph",
-    "characterDetails": "Character details"
+    "characterDetails": "Character details",
+    "discord": "Discord"
   },
   "castSpell": {
     "slot": "Slot",
@@ -1806,7 +1873,8 @@
     "effect": "Effect",
     "effectEnded": "Ended: its duration ran out",
     "untypedDamageAmount": "**{amount}** damage",
-    "actionAbandoned": "Action abandoned after its dice were rolled: {name}"
+    "actionAbandoned": "Action abandoned after its dice were rolled: {name}",
+    "actedBy": "{name}'s action"
   },
   "health": {
     "change": "{name}",
@@ -1984,5 +2052,11 @@
     "noSpells": "No spells.",
     "noEquipment": "No equipment.",
     "notes": "Notes"
+  },
+  "linkPreview": {
+    "siteDescription": "D&D 5e character sheets computed live: rolls, actions, rests and party boards.",
+    "unnamed": "Unnamed character",
+    "hitPoints": "HP {value}/{total}",
+    "armorClass": "AC {ac}"
   }
 }

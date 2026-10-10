@@ -327,7 +327,7 @@ describe('Creatures added to the initiative tracker', function () {
 
   it('publishes the stats to the game master only, unless shown', function () {
     assert.deepEqual(boardFolderFields('gm', {}), {});
-    assert.deepEqual(boardFolderFields('member', {}), { inviteToken: 0, initiativeStats: 0 });
-    assert.deepEqual(boardFolderFields('member', { initiative: { showStats: true } }), { inviteToken: 0 });
+    assert.deepEqual(boardFolderFields('member', {}), { inviteToken: 0, initiativeStats: 0, discord: 0 });
+    assert.deepEqual(boardFolderFields('member', { initiative: { showStats: true } }), { inviteToken: 0, discord: 0 });
   });
 });

@@ -115,10 +115,76 @@
     "webhookText": "Chaque personnage peut publier son journal (jets, actions, repos) dans un salon Discord.",
     "webhookStep1": "Dans Discord, ouvrez les paramètres du salon, puis Intégrations, Webhooks, et créez un webhook.",
     "webhookStep2": "Copiez l'URL du webhook.",
-    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans le champ « URL du webhook Discord ».",
+    "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans la section Discord.",
     "webhookLanguage": "Les messages sont rédigés dans la langue du propriétaire du personnage. Les lignes masquées du journal ne sont pas envoyées.",
     "webhookPrivacy": "Seules les personnes qui peuvent modifier le personnage voient l'URL de son webhook. Si le webhook est supprimé dans Discord, le personnage l'oublie.",
-    "typedRoll": "Jet : {roll}"
+    "typedRoll": "Jet : {roll}",
+    "openSheet": "Ouvrir la fiche",
+    "sessionName": "Séance du {date} — {name}",
+    "sessionNameAlone": "Séance du {date}",
+    "initiativeTitle": "Combat — round {round}",
+    "initiativeEnded": "Combat terminé — round {round}",
+    "outOfFight": "hors de combat",
+    "yourTurn": "À toi : {name}",
+    "creatureTurn": "Au tour de {name}",
+    "summaryTitle": "Fin du combat",
+    "summaryTitleParty": "Fin du combat — {name}",
+    "summaryRounds": "Rounds : {rounds}",
+    "summaryParticipants": "Participants : {names}",
+    "summaryOut": "Hors de combat : {names}",
+    "partyTitle": "Discord",
+    "partyText": "Le salon du groupe reçoit ses combats (l'ordre d'initiative tenu à jour, à qui c'est le tour, un résumé à la fin) et les jets et actions de ses personnages. Jamais les points de vie d'un monstre.",
+    "partyWebhook": "URL du webhook du groupe",
+    "partyWebhookHint": "Vous seul la voyez. Un personnage qui publie sur le même webhook n'envoie chaque jet qu'une fois.",
+    "save": "Enregistrer",
+    "remove": "Retirer",
+    "webhookSaved": "Webhook Discord enregistré",
+    "webhookRemoved": "Webhook Discord retiré",
+    "session": "Séance",
+    "sessionNone": "Aucune séance ouverte : les messages vont dans le salon.",
+    "sessionForum": "Séance ouverte : le post du forum « {name} » reçoit tout.",
+    "sessionChannel": "Séance ouverte : « {name} ». Un message d'en-tête marque son début dans le salon.",
+    "sessionTextChannelHint": "Dans un salon texte, un webhook ne peut pas créer de fil : un message d'en-tête marque chaque séance. Avec un salon forum, chaque séance a son propre post.",
+    "newSession": "Nouvelle séance",
+    "endSession": "Fin de séance",
+    "sessionStartedForum": "Séance ouverte : un nouveau post du forum, « {name} »",
+    "sessionStartedChannel": "Séance ouverte : un message d'en-tête dans le salon texte",
+    "sessionEnded": "Séance terminée : les messages vont de nouveau dans le salon",
+    "characterSessionHint": "Une séance rassemble les jets d'une partie : un post de forum à elle, ou un message d'en-tête dans un salon texte.",
+    "partySectionTitle": "Le salon d'un groupe",
+    "partySectionText": "Sur un tableau de groupe, le maître du jeu peut aussi coller un webhook : les combats du groupe (l'ordre d'initiative tenu à jour, à qui c'est le tour, un résumé à la fin) et les jets et actions de ses personnages y sont publiés. Jamais les points de vie des monstres. Les joueurs voient que le groupe publie sur Discord, jamais son URL.",
+    "sessionsTitle": "Séances",
+    "sessionsText": "« Nouvelle séance », sur le tableau de groupe ou dans les réglages Discord d'un personnage, rassemble une partie au même endroit : dans un salon forum, un post à elle, au nom de la date ; dans un salon texte, où un webhook ne peut pas créer de fil, un message d'en-tête. « Fin de séance » revient au salon.",
+    "previewsTitle": "Aperçus des liens",
+    "previewsText": "Un lien vers un personnage public, collé dans Discord, montre son nom, son portrait, sa race, sa classe, son niveau, ses points de vie et sa classe d'armure, avec un bouton vers la fiche. Le lien d'un personnage privé ne montre rien de lui.",
+    "errors": {
+      "denied": "Seul le maître du jeu de ce groupe peut faire cela",
+      "invalidWebhook": "Ce n'est pas l'URL d'un webhook Discord : elle ressemble à https://discord.com/api/webhooks/…",
+      "noWebhook": "Renseignez d'abord un webhook Discord",
+      "unavailable": "Ce serveur ne publie pas sur Discord",
+      "gone": "Discord ne connaît plus ce webhook : il a été retiré. Créez-en un nouveau dans Discord.",
+      "late": "Discord tarde à répondre : la séance va s'ouvrir dans un instant",
+      "failed": "Discord a refusé (erreur {status})",
+      "sessionsOff": "Les séances sont désactivées dans les réglages Discord du groupe"
+    },
+    "combatStarts": "**Début du combat**",
+    "partySessionApplies": "Ce webhook est aussi celui du groupe « {name} » : ses jets vont dans les séances du groupe, que le maître du jeu ouvre.",
+    "publishing": "Publier sur Discord",
+    "publishingHint": "Désactivé, rien n'est publié et le webhook est gardé.",
+    "publishWhat": "Ce que reçoit le salon",
+    "publish": {
+      "initiative": "Le message d'initiative, tenu à jour",
+      "turns": "Une ligne à chaque tour",
+      "combat": "La fin du combat, avec un résumé ; son début si le message d'initiative est désactivé",
+      "rolls": "Les jets et actions des personnages",
+      "sessions": "Les séances (un post de forum ou un message d'en-tête chacune)"
+    },
+    "sessionsOff": "Les séances sont désactivées : les messages vont dans le salon. Un salon forum n'accepte de messages que dans un post.",
+    "posting": {
+      "rollsAndCombat": "Ce groupe publie les jets de ses personnages et ses combats sur un salon Discord.",
+      "rolls": "Ce groupe publie les jets de ses personnages sur un salon Discord.",
+      "combat": "Ce groupe publie ses combats sur un salon Discord."
+    }
   },
   "legal": {
     "termsLink": "conditions d'utilisation",
@@ -812,7 +878,8 @@
     "allUserLibraries": "Toutes les bibliothèques de l'utilisateur",
     "debug": "Débogage",
     "dependencyGraph": "Graphe des dépendances",
-    "characterDetails": "Détails du personnage"
+    "characterDetails": "Détails du personnage",
+    "discord": "Discord"
   },
   "castSpell": {
     "slot": "Emplacement",
@@ -1806,7 +1873,8 @@
     "effect": "Effet",
     "effectEnded": "Terminé : sa durée est écoulée",
     "untypedDamageAmount": "**{amount}** dégâts",
-    "actionAbandoned": "Action abandonnée après le jet des dés : {name}"
+    "actionAbandoned": "Action abandonnée après le jet des dés : {name}",
+    "actedBy": "Action de {name}"
   },
   "health": {
     "change": "{name}",
@@ -1984,5 +2052,11 @@
     "noSpells": "Aucun sort.",
     "noEquipment": "Aucun équipement.",
     "notes": "Notes"
+  },
+  "linkPreview": {
+    "siteDescription": "Fiches de personnage D&D 5e calculées en direct : jets, actions, repos et tableaux de groupe.",
+    "unnamed": "Personnage sans nom",
+    "hitPoints": "PV {value}/{total}",
+    "armorClass": "CA {ac}"
   }
 }

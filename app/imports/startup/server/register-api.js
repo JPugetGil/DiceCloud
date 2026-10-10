@@ -4,6 +4,9 @@
 // REST routes
 import '/imports/api/rest/server';
 
+// Link previews, in the HTML of every page
+import '/imports/api/linkPreviews/server/linkPreviews';
+
 // Publications
 import '/imports/api/creature/creatures/server/publications/characterList';
 import '/imports/api/library/server/publications/library';

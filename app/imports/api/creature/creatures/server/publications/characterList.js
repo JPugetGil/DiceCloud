@@ -39,10 +39,12 @@ Meteor.publish('characterList', function () {
     }
     ),
     // The user's folders, and the parties they play in for the sidebar. The
-    // invitation link's token and the initiative creatures' stats are the
-    // party board's to publish, to its game master
+    // invitation link's token, the initiative creatures' stats and the
+    // party's Discord webhook are the party board's to publish, to its game
+    // master
     CreatureFolders.find(
-      { $or: [{ owner: userId }, { members: userId }] }, { fields: { inviteToken: 0, initiativeStats: 0 } },
+      { $or: [{ owner: userId }, { members: userId }] },
+      { fields: { inviteToken: 0, initiativeStats: 0, discord: 0 } },
     ),
   ];
 });

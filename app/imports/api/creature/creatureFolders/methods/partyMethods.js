@@ -114,6 +114,8 @@ export const getPartyInvite = new ValidatedMethod({
       gmName: gm?.username,
       memberCount: folder.members?.length || 0,
       role: getPartyRole(folder, this.userId),
+      // What it posts to Discord, rolls or fights: never where
+      discordPosting: folder.discordPosting,
     };
   },
 });

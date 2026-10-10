@@ -50,7 +50,7 @@ export async function insertCreatureCopy(archive, { owner, name = undefined }) {
   const withNewIds = docs => (docs || []).map(doc => ({ ...doc, _id: Random.id(), creatureId }));
 
   const creature = {
-    ...omit(archive.creature, ['computeVersion', 'lastComputedAt']),
+    ...omit(archive.creature, ['computeVersion', 'lastComputedAt', 'discordSession']),
     _id: creatureId,
     owner,
     type: 'pc',

@@ -7,9 +7,12 @@ import bulkWrite from '/imports/api/engine/shared/bulkWrite';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { softRemove } from '/imports/api/parenting/softRemove';
 import computeCreature from '/imports/api/engine/computeCreature';
-import { reloadCachedProperties } from '/imports/api/engine/loadCreatures';
+import { getCreature, reloadCachedProperties } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
 import { DDP } from 'meteor/ddp';
+import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
+import { logLine, msg, withoutHiddenStats } from '/imports/api/creature/log/logMessages';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 export default async function writeActionResults(action: EngineAction) {
   if (!action._id) throw new Meteor.Error('type-error', 'Action does not have an _id');
@@ -32,14 +35,25 @@ export default async function writeActionResults(action: EngineAction) {
   });
   const allTargetIds: string[] = union(...logContents.map(c => c.targetIds));
 
+  // A player's character acting on a game master's creature, a monster or a
+  // non-player character, logs the damage dealt and not what it did to the
+  // creature's hit points, capped by what it had left: the players read the
+  // character's log (hiddenStats.ts). The creature's own log, its game
+  // master's, gets the whole entry
+  const hiddenIds = await hiddenTargets(action.creatureId, allTargetIds);
+  const shownContents = withoutHiddenStats(logContents, hiddenIds);
+
   // Write the log
   const log = {
     _id: logId,
-    content: logContents,
+    content: shownContents,
     creatureId: action.creatureId,
     actionId: action._id,
     date: new Date(),
   };
+  const gmLogsPromise = Meteor.isServer && shownContents.length < logContents.length
+    ? writeHiddenTargetLogs(action, logContents, shownContents, hiddenIds)
+    : undefined;
   const logPromise = CreatureLogs.insertAsync(log).then(() => {
     // Not in the client's simulation of the method: the server's result replaces it
     if (!Meteor.isServer) return;
@@ -53,7 +67,7 @@ export default async function writeActionResults(action: EngineAction) {
   // in the subscription, rather than waiting for oplog tailing to catch up
   const bulkWritePromise = await bulkWrite(creaturePropUpdates, CreatureProperties, true);
 
-  await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
+  await Promise.all([engineActionPromise, logPromise, bulkWritePromise, gmLogsPromise]);
 
   // A removed buff goes with everything under it, as when it is removed from
   // the sheet, and can be restored the same way. The sequential writes above
@@ -73,4 +87,28 @@ export default async function writeActionResults(action: EngineAction) {
   });
 
   return Promise.all(recomputePromises);
+}
+
+/**
+ * The whole entry, in the own log of each game master's creature that the
+ * actor's log leaves something out of: who acted, then every line. Server
+ * only: the client's simulation has nothing hidden to show
+ */
+async function writeHiddenTargetLogs(action: EngineAction, contents: any[], shown: any[], hiddenIds: string[]) {
+  const actor = await getCreature(action.creatureId);
+  const heading = logLine({ name: msg('logs.actedBy', { name: actor?.name || '?' }) });
+  for (const targetId of hiddenIds) {
+    if (!contents.some(line => !shown.includes(line) && line.targetIds?.includes(targetId))) continue;
+    const log = {
+      // The log keeps 32 lines at most: the heading only where it fits
+      content: contents.length < STORAGE_LIMITS.logContentCount ? [heading, ...contents] : contents,
+      creatureId: targetId,
+      creatureName: actor?.name,
+      actionId: action._id,
+      date: new Date(),
+    };
+    await CreatureLogs.insertAsync(log);
+    postLogToDiscord(log);
+    await trimCreatureLogs(targetId);
+  }
 }

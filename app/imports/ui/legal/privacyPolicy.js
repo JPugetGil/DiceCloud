@@ -4,8 +4,8 @@
 import frenchTypography from '/imports/ui/i18n/frenchTypography';
 
 const LAST_UPDATED = {
-  en: 'October 6, 2026',
-  fr: '6 octobre 2026',
+  en: 'October 10, 2026',
+  fr: '10 octobre 2026',
 };
 
 const contactLink = (email, missing) => email ? `[${email}](mailto:${email})` : missing;
@@ -29,7 +29,7 @@ Your data is kept on a server the controller operates in France, and the files y
 
 - **Your account**: username, email address, password (stored only as an irreversible hash), role, preferences, library subscriptions and login tokens.
 - **Sign-in with Google**, if you use it: your Google identifier, email address, name and profile picture, and the tokens Google provides; nothing else from your Google account.
-- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook address you may set on a character.
+- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook addresses you may set on a character or, as a game master, on a party board, with the Discord sessions you open there (the identifiers of a forum post or of a message, and the date).
 - **Your files**: the images you upload and the archives of your characters.
 - **Technical data**: IP addresses and technical logs, processed by the server and by Cloudflare.
 
@@ -44,7 +44,8 @@ We use no audience measurement, advertising or profiling tools, and we neither s
 
 - **Other users**: the people you share a character or a library with see your username, and anyone with its link can view a character or a library you make public. On a party board, the game master can view and modify the characters you bring for as long as they stay on it, and the members see each other's usernames and characters.
 - **Our providers**, on our behalf only: Cloudflare, through which every connection to the service goes; Amazon Web Services (S3), which stores the files; Brevo, which sends the emails; Google, only if you sign in with Google.
-- **Discord**, only if you set a webhook on a character: that character's log, name and picture are posted to the Discord channel you chose, under Discord's privacy policy. The Discord page also shows a widget of the community's server, which Discord serves directly.
+- **Discord**, only if a webhook is set: on a character, its log, name and picture are posted to the Discord channel chosen, under Discord's privacy policy; on a party board, by its game master, the party's fights (names, initiative order and conditions, never a monster's hit points) and the log, name and picture of the characters its players bring are posted to the party's channel. The party board and its invitation tell the players when a party does so. The Discord page also shows a widget of the community's server, which Discord serves directly.
+- **Link previews**: a link to a public character or library shows its name and a summary (for a character: race, class, level, picture, hit points and armor class) wherever it is pasted, Discord included. A private character's link shows nothing of it.
 - **Other websites** that host some library images: your browser downloads them directly, so those sites see your IP address.
 
 Some of these providers are based outside the European Union, notably in the United States. Those transfers are covered by the safeguards the GDPR provides for: an adequacy decision or the European Commission's standard contractual clauses.
@@ -93,7 +94,7 @@ Vos données sont conservées sur un serveur que le responsable du traitement ex
 
 - **Votre compte** : nom d'utilisateur, adresse e-mail, mot de passe (conservé uniquement sous une forme chiffrée irréversible), rôle, préférences, abonnements aux bibliothèques et jetons de connexion.
 - **Connexion avec Google**, si vous l'utilisez : votre identifiant Google, votre adresse e-mail, votre nom et votre photo de profil, ainsi que les jetons fournis par Google ; rien d'autre de votre compte Google.
-- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et l'adresse du webhook Discord que vous pouvez renseigner sur un personnage.
+- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et les adresses de webhook Discord que vous pouvez renseigner sur un personnage ou, comme meneur de jeu, sur un tableau de groupe, avec les séances Discord que vous y ouvrez (les identifiants d'un post de forum ou d'un message, et la date).
 - **Vos fichiers** : les images que vous envoyez et les archives de vos personnages.
 - **Données techniques** : adresses IP et journaux techniques, traités par le serveur et par Cloudflare.
 
@@ -108,7 +109,8 @@ Nous n'utilisons aucun outil de mesure d'audience, de publicité ou de profilage
 
 - **Les autres utilisateurs** : les personnes avec qui vous partagez un personnage ou une bibliothèque voient votre nom d'utilisateur, et toute personne qui en a le lien peut consulter un personnage ou une bibliothèque que vous rendez public. Sur un tableau de groupe, le meneur de jeu peut consulter et modifier les personnages que vous y amenez tant qu'ils y restent, et les membres voient les noms d'utilisateur et les personnages les uns des autres.
 - **Nos prestataires**, pour notre compte uniquement : Cloudflare, par qui passent toutes les connexions au service ; Amazon Web Services (S3), qui stocke les fichiers ; Brevo, qui envoie les e-mails ; Google, uniquement si vous vous connectez avec Google.
-- **Discord**, uniquement si vous renseignez un webhook sur un personnage : le journal de ce personnage, son nom et son image sont publiés sur le salon Discord choisi, selon les règles de confidentialité de Discord. La page Discord affiche aussi un module du serveur de la communauté, que Discord fournit directement.
+- **Discord**, uniquement si un webhook est renseigné : sur un personnage, son journal, son nom et son image sont publiés sur le salon Discord choisi, selon les règles de confidentialité de Discord ; sur un tableau de groupe, par son meneur de jeu, les combats du groupe (noms, ordre d'initiative et états, jamais les points de vie d'un monstre) ainsi que le journal, le nom et l'image des personnages qu'y amènent ses joueurs sont publiés sur le salon du groupe. Le tableau de groupe et son invitation l'indiquent aux joueurs. La page Discord affiche aussi un module du serveur de la communauté, que Discord fournit directement.
+- **Aperçus des liens** : un lien vers un personnage ou une bibliothèque public montre son nom et un résumé (pour un personnage : race, classe, niveau, image, points de vie et classe d'armure) là où il est collé, Discord compris. Le lien d'un personnage privé ne montre rien de lui.
 - **D'autres sites**, qui hébergent certaines images des bibliothèques : votre navigateur les télécharge directement, et ces sites voient donc votre adresse IP.
 
 Certains de ces prestataires sont établis hors de l'Union européenne, notamment aux États-Unis. Ces transferts sont encadrés par les garanties prévues par le RGPD : une décision d'adéquation ou les clauses contractuelles types de la Commission européenne.

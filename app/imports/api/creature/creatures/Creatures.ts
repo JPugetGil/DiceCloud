@@ -5,6 +5,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { Simplify } from 'type-fest';
 import { Mongo } from 'meteor/mongo';
+import { sessionFields } from '/imports/api/creature/log/discord/discordSession';
 
 const CreatureSettingsSchema = TypedSimpleSchema.from({
   //slowed down by carrying too much?
@@ -177,6 +178,13 @@ const CreatureSchema = TypedSimpleSchema.from({
     type: CreatureSettingsSchema,
     defaultValue: {},
   },
+  // The Discord session its webhook posts into, opened from its settings:
+  // only for those who may edit it, as the webhook (webhookVisibility.ts)
+  discordSession: {
+    type: Object,
+    optional: true,
+  },
+  ...sessionFields('discordSession'),
 })
   .extend(ColorSchema)
   .extend(SharingSchema);

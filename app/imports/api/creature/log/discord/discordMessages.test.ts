@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import {
   CRITICAL_HIT_COLOR, CRITICAL_MISS_COLOR, DISCORD_LIMITS, colorNumber, discordLanguage, discordMessages,
-  entryTone, truncate, visibleLines, webhookUsername, type WebhookMessage,
+  entryTone, logComponents, truncate, visibleLines, webhookUsername, withoutHiddenStats, type WebhookMessage,
 } from '/imports/api/creature/log/discord/discordMessages';
 import { damageTypeMessage, logLine, msg } from '/imports/api/creature/log/logMessages';
 
@@ -149,18 +149,74 @@ describe('Discord messages of a log entry (discordMessages)', function () {
     assert.deepEqual(message.embeds.map(embed => embed.fields.length), [25, 6]);
   });
 
-  it('posts under the character\'s name and picture only when Discord takes them', function () {
+  it('posts under the character\'s name, readable where Discord refuses it, and its picture', function () {
     assert.equal(webhookUsername('  Aria '), 'Aria');
-    assert.isUndefined(webhookUsername('Discord Dan'), 'Discord refuses "discord" in a webhook name');
+    // Discord refuses "discord" and "clyde" in a webhook name: a hair space
+    // after their first letter
+    assert.equal(webhookUsername('Discord Dan'), 'D\u200Aiscord Dan');
+    assert.equal(webhookUsername('McClyde of discord'), 'McC\u200Alyde of d\u200Aiscord');
     assert.isUndefined(webhookUsername(''));
     assert.lengthOf(webhookUsername('A'.repeat(100)) as string, DISCORD_LIMITS.username);
     const [message] = discordMessages({
       log: typedRoll(11), creature: { name: 'Clyde', avatarPicture: '/cdn/avatar.png' }, sheetUrl: 'not a url',
     });
-    assert.notProperty(message, 'username');
+    assert.equal(message.username, 'C\u200Alyde');
     assert.notProperty(message, 'avatar_url');
     assert.notProperty(message.embeds[0], 'url');
     assert.deepEqual(message.allowed_mentions, { parse: [] });
+  });
+
+  it('leaves out the lines that give a game master\'s creature\'s hit points away', function () {
+    const goblin = 'goblinId';
+    const content = [
+      { name: 'Longsword', value: 'A trusty blade' },
+      logLine({ name: msg('logs.damage'), value: ['1d8 [6] +3', msg('logs.damageAmount', { amount: 9, type: damageTypeMessage('slashing') })] }),
+      // Capped by what the goblin had left: 7, not 9
+      { ...logLine({ name: msg('logs.attributeDamaged', { type: 'Health bar' }), value: '-7 Hit Points' }), targetIds: [goblin] },
+      { ...logLine({ name: 'Set', value: msg('logs.attributeSet', { name: 'Hit Points', from: 7, to: 0 }) }), targetIds: [goblin] },
+      // The same on a character of the party stays
+      { ...logLine({ name: msg('logs.attributeDamaged', { type: 'Health bar' }), value: '-3 Hit Points' }), targetIds: ['ariaId'] },
+    ];
+    assert.lengthOf(withoutHiddenStats(content, [goblin]), 3);
+    assert.lengthOf(withoutHiddenStats(content, []), 5);
+    const text = allText(discordMessages({ log: { content }, creature, sheetUrl, hiddenIds: [goblin] }));
+    assert.notInclude(text, '-7 Hit Points');
+    assert.notInclude(text, 'from 7');
+    assert.include(text, '-3 Hit Points');
+    assert.include(text, 'slashing');
+    assert.notInclude(JSON.stringify(logComponents({ log: { content }, creature, sheetUrl, hiddenIds: [goblin] })), '-7');
+  });
+
+  it('lays an entry out as a Components V2 card: colour, picture, lines, a link to the sheet', function () {
+    const message = logComponents({ log: attack('logs.criticalHit', 20), creature, sheetUrl, language: 'fr' });
+    assert.deepEqual(message, {
+      username: 'Aria',
+      avatar_url: 'https://example.com/aria.png',
+      flags: 1 << 15,
+      components: [{
+        type: 17,
+        accent_color: CRITICAL_HIT_COLOR,
+        components: [
+          {
+            type: 9,
+            components: [{ type: 10, content: '### Longsword\nA trusty blade' }],
+            accessory: { type: 11, media: { url: 'https://example.com/aria.png' } },
+          },
+          { type: 10, content: '**Coup critique\u202f!**\n**25**\n1d20 [20] +5\n\n**Dégâts**\n**9** dégâts (tranchant)\n1d8 [6] +3' },
+          { type: 1, components: [{ type: 2, style: 5, url: sheetUrl, label: 'Ouvrir la fiche' }] },
+        ],
+      }],
+      allowed_mentions: { parse: [] },
+    });
+    // Without a picture, the title alone; without a sheet, no button
+    const plain = logComponents({ log: typedRoll(11), creature: { name: 'Aria' } }) as any;
+    assert.deepEqual(plain.components[0].components, [{ type: 10, content: '### Roll: 1d20 + 5\n**16**\n1d20 [11] + 5' }]);
+    assert.notProperty(plain.components[0], 'accent_color');
+    // Hidden lines never leave, and an entry too long for a card is left to the embeds
+    assert.isUndefined(logComponents({ log: { content: [{ name: 'Secret', silenced: true }] }, creature }));
+    const long = [{ name: 'Wish' }, ...Array.from({ length: 31 }, (_, i) => ({ name: `Line ${i}`, value: 'x'.repeat(900) }))];
+    assert.isUndefined(logComponents({ log: { content: long }, creature, sheetUrl }));
+    assert.isAbove(discordMessages({ log: { content: long }, creature, sheetUrl }).length, 1);
   });
 
   it('reads a character\'s colour', function () {

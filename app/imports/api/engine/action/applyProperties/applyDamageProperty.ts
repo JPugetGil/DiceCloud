@@ -18,6 +18,7 @@ import Context from '/imports/parser/types/Context';
 import applySavingThrowProperty from '/imports/api/engine/action/applyProperties/applySavingThrowProperty';
 import { Meteor } from 'meteor/meteor';
 import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
+import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyDamageProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -151,6 +152,7 @@ export default async function applyDamageProperty(
     // Iterate through all the targets
     for (const target of damageTargets) {
       let damageToApply = damage || 0;
+      let saved = false;
 
       // If there is a saving throw, apply that first
       if (prop.save) {
@@ -173,6 +175,7 @@ export default async function applyDamageProperty(
             );
           }
           damageToApply = damageOnSave;
+          saved = true;
         }
       }
 
@@ -183,6 +186,13 @@ export default async function applyDamageProperty(
         damageProp: prop,
         logValue
       });
+
+      // A game master's creature hit by a player's character: the damage
+      // dealt, not what it did to its hit points, which the log leaves out
+      // (hiddenStats.ts)
+      if ((await hiddenTargets(action.creatureId, [target])).length) {
+        logValue.push(amountMessage(damageToApply, saved));
+      }
 
       // Deal the damage to the target
       await dealDamage(

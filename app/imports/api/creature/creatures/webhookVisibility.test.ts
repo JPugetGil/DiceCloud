@@ -24,6 +24,14 @@ if (Meteor.isServer) {
 
 const WEBHOOK = 'https://discord.com/api/webhooks/123456/secret-token';
 const OTHER_SETTINGS = { hitDiceResetMultiplier: 0.5, hideSpellsTab: true };
+// A session's ids are the editors' too
+const SESSION = { webhookId: '123456', kind: 'forum', threadId: '777000111', messageId: '777000111', startedAt: new Date() };
+// The party's own, the game master's alone; the players get the summary
+const PARTY_DISCORD = {
+  webhook: 'https://discord.com/api/webhooks/654321/party-secret',
+  session: { ...SESSION, webhookId: '654321', threadId: '888000222', messageId: '888000222' },
+  initiative: { webhookId: '654321', messageId: '888000333' },
+};
 
 describe('Who gets a character\'s Discord webhook (webhookVisibility)', function () {
   it('lists every setting but the webhook', function () {
@@ -34,10 +42,11 @@ describe('Who gets a character\'s Discord webhook (webhookVisibility)', function
     assert.lengthOf(Object.keys(fields), 9);
   });
 
-  it('copies a character without its webhook', function () {
-    const creature = { _id: 'a', settings: { discordWebhook: WEBHOOK, ...OTHER_SETTINGS } };
-    assert.deepEqual(creatureWithoutWebhook(creature), { _id: 'a', settings: OTHER_SETTINGS });
+  it('copies a character without its webhook and its session', function () {
+    const creature = { _id: 'a', settings: { discordWebhook: WEBHOOK, ...OTHER_SETTINGS }, discordSession: SESSION };
+    assert.deepEqual<object>(creatureWithoutWebhook(creature), { _id: 'a', settings: OTHER_SETTINGS });
     assert.equal(creature.settings.discordWebhook, WEBHOOK, 'the original is untouched');
+    assert.deepEqual<object>(creatureWithoutWebhook({ _id: 'c', settings: {}, discordSession: SESSION }), { _id: 'c', settings: {} });
     const without = { _id: 'b', settings: {} };
     assert.strictEqual(creatureWithoutWebhook(without), without);
   });
@@ -45,8 +54,10 @@ describe('Who gets a character\'s Discord webhook (webhookVisibility)', function
 
 if (Meteor.isServer) describe('Publications and the REST API leave the webhook to editors', function () {
   this.timeout(30000);
-  const [ownerId, writerId, readerId, gmId, strangerId] = [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
-  const userIds = [ownerId, writerId, readerId, gmId, strangerId];
+  const [ownerId, writerId, readerId, gmId, strangerId, memberId] = [
+    Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id(),
+  ];
+  const userIds = [ownerId, writerId, readerId, gmId, strangerId, memberId];
   const [creatureId, folderId] = [Random.id(), Random.id()];
   let connections: any[] = [];
 
@@ -57,9 +68,11 @@ if (Meteor.isServer) describe('Publications and the REST API leave the webhook t
     await Creatures.rawCollection().insertOne({
       _id: creatureId, name: 'Aria', type: 'pc', owner: ownerId, writers: [writerId], readers: [readerId, gmId],
       public: true, computeVersion: VERSION, settings: { discordWebhook: WEBHOOK, ...OTHER_SETTINGS },
+      discordSession: SESSION,
     } as any);
     await CreatureFolders.rawCollection().insertOne({
-      _id: folderId, name: 'The table', owner: gmId, creatures: [creatureId], members: [], order: 0,
+      _id: folderId, name: 'The table', owner: gmId, creatures: [creatureId], members: [memberId], order: 0,
+      discord: PARTY_DISCORD, discordPosting: { rolls: true, combat: true },
     } as any);
   });
 
@@ -85,32 +98,53 @@ if (Meteor.isServer) describe('Publications and the REST API leave the webhook t
       await connection.callAsync('login', { resume: stamped.token });
     }
     const creatures = new Mongo.Collection<any>('creatures', { connection });
+    const folders = new Mongo.Collection<any>('creatureFolders', { connection });
     const subscribe = (name: string, ...args: any[]) => new Promise((resolve, reject) => connection.subscribe(name, ...args, {
       onReady: resolve,
       onStop: (error: unknown) => error && reject(error),
     }));
-    const settings = async () => (await creatures.findOneAsync(creatureId))?.settings;
-    return { subscribe, settings };
+    const creature = () => creatures.findOneAsync(creatureId);
+    const settings = async () => (await creature())?.settings;
+    const folder = () => folders.findOneAsync(folderId);
+    return { subscribe, settings, creature, folder };
   }
 
   async function eventually(condition: () => Promise<boolean>) {
     for (let i = 0; i < 50 && !await condition(); i += 1) await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  it('sends it to those who may edit the character', async function () {
+  it('sends it to those who may edit the character, with its session', async function () {
     for (const userId of [ownerId, writerId]) {
       const client = await clientOf(userId);
       await client.subscribe('singleCharacter', creatureId);
       assert.deepEqual(await client.settings(), { discordWebhook: WEBHOOK, ...OTHER_SETTINGS });
+      assert.equal((await client.creature())?.discordSession?.threadId, SESSION.threadId);
     }
   });
 
-  it('sends the other settings, not the webhook, to a reader and to anyone reading a public character', async function () {
+  it('sends the other settings, not the webhook nor its session, to a reader and to anyone reading a public character', async function () {
     for (const userId of [readerId, strangerId, undefined]) {
       const client = await clientOf(userId);
       await client.subscribe('singleCharacter', creatureId);
       assert.deepEqual(await client.settings(), OTHER_SETTINGS, `user ${userId}`);
+      assert.notProperty(await client.creature(), 'discordSession', `user ${userId}`);
     }
+  });
+
+  it('sends the party\'s webhook and session to its game master alone; the players learn what it posts', async function () {
+    const gm = await clientOf(gmId);
+    await gm.subscribe('partyBoard', folderId);
+    assert.equal((await gm.folder())?.discord?.webhook, PARTY_DISCORD.webhook);
+    const member = await clientOf(memberId);
+    await member.subscribe('partyBoard', folderId);
+    await member.subscribe('characterList');
+    const seen = await member.folder();
+    assert.equal(seen?.name, 'The table', 'the member reads the board');
+    assert.notProperty(seen, 'discord');
+    assert.deepEqual(seen?.discordPosting, { rolls: true, combat: true });
+    assert.notInclude(JSON.stringify(seen), 'party-secret');
+    // Nor the character's session, which the board leaves out for the game master too
+    assert.notProperty(await gm.creature(), 'discordSession');
   });
 
   it('never sends it to a game master who only reads the character, from the board or the sheet', async function () {
@@ -142,6 +176,7 @@ if (Meteor.isServer) describe('Publications and the REST API leave the webhook t
     assert.equal(response.status, 200);
     const text = await response.text();
     assert.notInclude(text, 'secret-token');
+    assert.notInclude(text, SESSION.threadId);
     assert.deepEqual(JSON.parse(text).creatures[0].settings, OTHER_SETTINGS);
   });
 });

@@ -5,6 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { MAX_BOARD_MONSTERS, boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { tellDiscord } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
 
 /*
  * The monsters of a party board (boardMonsters.js), which its game master
@@ -74,6 +75,9 @@ export const endEncounter = new ValidatedMethod({
       const removed = await removeBoardMonsters(folder);
       if (endCombat) {
         await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1, initiativeStats: 1 } });
+        tellDiscord(folderId, 'end', folder.initiative);
+      } else {
+        tellDiscord(folderId, 'update');
       }
       return removed;
     }
