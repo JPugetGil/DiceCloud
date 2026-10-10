@@ -25,7 +25,7 @@ const selectAmmoItem = new ValidatedMethod({
     await assertEditPermission(rootCreature, this.userId);
 
     // Check that this index has a document to edit
-    let itemConsumed = action.resources.itemsConsumed[itemConsumedIndex];
+    let itemConsumed = action.resources?.itemsConsumed?.[itemConsumedIndex];
     if (!itemConsumed) {
       throw new Meteor.Error('Resouce not found',
         'Could not set ammo, because the ammo document was not found');

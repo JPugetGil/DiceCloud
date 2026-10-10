@@ -51,19 +51,19 @@
         v-if="showResources"
       >
         <action-condition-view
-          v-for="condition in model.resources.conditions"
+          v-for="condition in model.resources?.conditions"
           :key="condition._id"
           class="action-child"
           :model="condition"
         />
         <attribute-consumed-view
-          v-for="attributeConsumed in model.resources.attributesConsumed"
+          v-for="attributeConsumed in model.resources?.attributesConsumed"
           :key="attributeConsumed._id"
           class="action-child"
           :model="attributeConsumed"
         />
         <item-consumed-view
-          v-for="itemConsumed in model.resources.itemsConsumed"
+          v-for="itemConsumed in model.resources?.itemsConsumed"
           :key="itemConsumed._id"
           class="action-child"
           :model="itemConsumed"

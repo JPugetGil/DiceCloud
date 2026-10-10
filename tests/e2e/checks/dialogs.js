@@ -6,12 +6,16 @@
  * dialogs are covered. Dialogs open without their usual data here, so console
  * messages are reported but do not fail the check; the few that cannot render
  * at all without their required props get sample data from the test account.
+ * The library node dialog opens an action of the SRD 5.1 bestiary without
+ * `resources`, when the bestiary is imported, and must log nothing: imported
+ * as generated, without what the schema fills in, such an action crashed its
+ * viewer.
  */
 const fs = require('fs');
 const path = require('path');
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
-const { getTestUser } = require('../lib/db');
+const { getTestUser, withDb } = require('../lib/db');
 const { USERNAME } = require('../lib/config');
 
 const INDEX = path.join(__dirname, '..', '..', '..', 'app', 'imports', 'ui', 'dialogStack', 'DialogComponentIndex.js');
@@ -20,7 +24,17 @@ main(async () => {
   const names = [...fs.readFileSync(INDEX, 'utf8').matchAll(/const (\w+) = defineAsyncComponent\(/g)]
     .map(m => m[1].replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase());
   const { userId, creatureId } = await getTestUser();
+  const bestiaryAction = await withDb(async db => {
+    const bestiary = await db.collection('libraries').findOne(
+      { name: { $in: ['SRD 5.1 Bestiary', 'Bestiaire SRD 5.1'] } }, { projection: { _id: 1 } });
+    return bestiary && db.collection('libraryNodes').findOne(
+      { 'root.id': bestiary._id, type: 'action', resources: { $exists: false }, removed: { $ne: true } },
+      { projection: { _id: 1, name: 1 } });
+  });
+  // Opened with real data: these must log nothing
+  const STRICT = new Set(bestiaryAction ? ['library-node-dialog'] : []);
   const DATA = {
+    ...bestiaryAction && { 'library-node-dialog': { _id: bestiaryAction._id } },
     'character-search-dialog': { creatureId },
     'creature-form-dialog': { _id: creatureId },
     'help-dialog': { path: 'property' },
@@ -46,6 +60,11 @@ main(async () => {
       });
       if (r.promise) throw new Error('renders "[object Promise]"');
       if (!r.rendered) throw new Error('nothing rendered');
+      if (STRICT.has(name) && messages.length) {
+        throw Object.assign(new Error(`${new Set(messages).size} console message(s) with "${bestiaryAction.name}" of the bestiary`),
+          { details: [...new Set(messages)] });
+      }
+      if (STRICT.has(name)) return `"${bestiaryAction.name}", a bestiary action without resources`;
       if (messages.length) return `${new Set(messages).size} console message(s), opened without its usual data`;
     });
   }

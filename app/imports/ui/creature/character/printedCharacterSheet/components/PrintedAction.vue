@@ -22,19 +22,18 @@
     </div>
     <div>
       <div
-        v-if="model.resources && model.resources.attributesConsumed.length ||
-          model.resources.itemsConsumed.length"
+        v-if="model.resources?.attributesConsumed?.length || model.resources?.itemsConsumed?.length"
         class="resources my-2"
       >
         <div
-          v-for="attributeConsumed in model.resources.attributesConsumed"
+          v-for="attributeConsumed in model.resources?.attributesConsumed"
           :key="attributeConsumed._id"
           class="d-flex flex-1-1 align-center justify-start"
         >
           {{ $t('printed.cost', { quantity: attributeConsumed.quantity && attributeConsumed.quantity.value, stat: attributeConsumed.statName || attributeConsumed.variableName }) }}
         </div>
         <div
-          v-for="itemConsumed in model.resources.itemsConsumed"
+          v-for="itemConsumed in model.resources?.itemsConsumed"
           :key="itemConsumed._id"
         >
           <template v-if="itemConsumed.itemName">

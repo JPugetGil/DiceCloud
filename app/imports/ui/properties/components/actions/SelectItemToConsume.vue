@@ -54,7 +54,7 @@ const items = computed(() => itemsResult.result.value || []);
 
 async function selectItem(itemId){
   let itemConsumedIndex = findIndex(
-    props.action.resources.itemsConsumed,
+    props.action.resources?.itemsConsumed,
     item => item._id === props.itemConsumed._id
   );
   try {

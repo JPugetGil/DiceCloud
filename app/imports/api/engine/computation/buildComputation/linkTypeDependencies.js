@@ -47,7 +47,7 @@ function linkAction(dependencyGraph, prop, { propsById }) {
   // Link the resources the action uses
   if (!prop.resources) return;
   // Link items consumed
-  prop.resources.itemsConsumed.forEach((itemConsumed, index) => {
+  prop.resources.itemsConsumed?.forEach((itemConsumed, index) => {
     if (!itemConsumed.itemId) return;
     const item = propsById[itemConsumed.itemId];
     if (!item || item.inactive) {
@@ -70,7 +70,7 @@ function linkAction(dependencyGraph, prop, { propsById }) {
     });
   });
   // Link attributes consumed
-  prop.resources.attributesConsumed.forEach((attConsumed, index) => {
+  prop.resources.attributesConsumed?.forEach((attConsumed, index) => {
     if (!attConsumed.variableName) return;
     dependencyGraph.addLink(prop._id, attConsumed.variableName, 'resource');
     // Link the property to its resource quantity calculation

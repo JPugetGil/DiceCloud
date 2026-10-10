@@ -64,12 +64,12 @@
         :value="reset"
       />
       <property-field
-        v-if="model.resources.conditions && model.resources.conditions.length"
+        v-if="model.resources?.conditions?.length"
         :name="$t('viewers.conditions')"
       >
         <div style="width: 100%;">
           <action-condition-view
-            v-for="condition in model.resources.conditions"
+            v-for="condition in model.resources?.conditions"
             :key="condition._id"
             class="action-child"
             :model="condition"
@@ -77,12 +77,12 @@
         </div>
       </property-field>
       <property-field
-        v-if="model.resources.attributesConsumed.length"
+        v-if="model.resources?.attributesConsumed?.length"
         :name="$t('viewers.attributesConsumed')"
       >
         <div style="width: 100%;">
           <attribute-consumed-view
-            v-for="attributeConsumed in model.resources.attributesConsumed"
+            v-for="attributeConsumed in model.resources?.attributesConsumed"
             :key="attributeConsumed._id"
             class="action-child"
             :model="attributeConsumed"
@@ -90,12 +90,12 @@
         </div>
       </property-field>
       <property-field
-        v-if="model.resources.itemsConsumed.length"
+        v-if="model.resources?.itemsConsumed?.length"
         :name="$t('viewers.itemsConsumed')"
       >
         <div style="width: 100%;">
           <item-consumed-view
-            v-for="itemConsumed in model.resources.itemsConsumed"
+            v-for="itemConsumed in model.resources?.itemsConsumed"
             :key="itemConsumed._id"
             class="action-child"
             :model="itemConsumed"
