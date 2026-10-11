@@ -202,6 +202,13 @@ const CreatureSchema = TypedSimpleSchema.from({
     optional: true,
     max: 32,
   },
+  // The channel it posts in, once Discord said (pastedWebhooks.ts): to find a
+  // party's channel and to post a roll there once (D6). For editors only too
+  discordWebhookChannelId: {
+    type: String,
+    optional: true,
+    max: 32,
+  },
 })
   .extend(ColorSchema)
   .extend(SharingSchema);

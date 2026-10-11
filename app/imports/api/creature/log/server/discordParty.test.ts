@@ -96,7 +96,8 @@ if (Meteor.isServer) describe('A party\'s Discord channel and the sessions', fun
   let seen = 0;
   async function requests(webhook?: { id: string }): Promise<FakeRequest[]> {
     await settle();
-    const fresh = fake.requests.slice(seen);
+    // The messages: not the webhook asked where it posts (GET, D6)
+    const fresh = fake.requests.slice(seen).filter(request => request.method !== 'GET');
     seen = fake.requests.length;
     return webhook ? fresh.filter(request => request.webhookId === webhook.id) : fresh;
   }

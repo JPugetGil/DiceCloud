@@ -228,7 +228,58 @@
     "mentionsTitle": "Mentions",
     "mentionsText": "Link your Discord account in your account's settings, and the party's channel mentions you on your character's turn.",
     "signInTitle": "Sign in with Discord",
-    "signInText": "Once your Discord account is linked, \"Sign in with Discord\" works for that account only (it never creates one), in one click: linking authorized DiceCloud in Discord, which keeps that authorization. DiceCloud itself keeps no Discord token. To withdraw it, unlink your account here, and remove DiceCloud from Authorized Apps in Discord's User Settings."
+    "signInText": "Once your Discord account is linked, \"Sign in with Discord\" works for that account only (it never creates one), in one click: linking authorized DiceCloud in Discord, which keeps that authorization. DiceCloud itself keeps no Discord token. To withdraw it, unlink your account here, and remove DiceCloud from Authorized Apps in Discord's User Settings.",
+    "interactions": {
+      "notLinked": "Your Discord account is not linked to a DiceCloud account. Link it in your account's settings (Discord section), then try again.",
+      "openAccount": "Link my account",
+      "noCharacter": "Which character? Choose one with /character, or give the character option.",
+      "characterNotFound": "None of your characters is named “{name}”.",
+      "characterAmbiguous": "Several of your characters are named “{name}”: pick one from the list.",
+      "denied": "You can no longer change this character.",
+      "failed": "DiceCloud could not do it: {error}",
+      "nothingLogged": "Nothing was rolled.",
+      "noFormula": "What should be rolled? For example: 1d20 + 5.",
+      "checkNotFound": "{name} has no skill or ability “{check}”.",
+      "saveNotFound": "{name} has no saving throw “{check}”.",
+      "hpNone": "{name} has no hit points to show.",
+      "hpLine": "{name}: {value} / {total} hit points",
+      "hpTemporary": "(+{temporary} temporary)",
+      "hpNoTemporary": "{name} has no temporary hit points.",
+      "hpTemporarySet": "has {amount} temporary hit points",
+      "hpDamaged": "takes {amount} damage",
+      "hpHealed": "regains {amount} hit points",
+      "activeShow": {
+        "server": "Your character on this server: {name}.",
+        "dm": "Your character here: {name}."
+      },
+      "activeSet": {
+        "server": "{name} is now your character on this server.",
+        "dm": "{name} is now your character here."
+      },
+      "activeNone": "No character chosen here yet: /character and its name.",
+      "unknownCommand": "DiceCloud does not know this command.",
+      "slowDown": "Too many at once: wait a few seconds.",
+      "stale": "This button is no longer current.",
+      "buttonDenied": "Only those who can edit {name} can use this button.",
+      "nextTurnDenied": "Only the game master moves to the next turn.",
+      "endTurnDenied": "Only {name}'s player or the game master can end this turn.",
+      "buttons": {
+        "rerollAdvantage": "Reroll with advantage",
+        "rerollDisadvantage": "Reroll with disadvantage",
+        "nextTurn": "Next turn",
+        "endTurn": "End my turn"
+      }
+    },
+    "installTitle": "Commands and buttons",
+    "installText": "Install DiceCloud on your Discord account, to use its commands anywhere, or on a server you manage. Link your Discord account in your account's settings first: the commands use your characters.",
+    "installButton": "Install DiceCloud on Discord",
+    "installCommands": {
+      "roll": "/roll: roll dice for your character, as the log does (secret: only you see it)",
+      "check": "/check and /save: a skill or ability check, a saving throw, with advantage if you like",
+      "hp": "/hp: see your hit points (only you see them), or deal damage, heal, set temporary ones, which the channel is told",
+      "character": "/character: choose your character for a server; in your party's channel, your only character there is chosen for you"
+    },
+    "installButtons": "Under a check, a saving throw or a roll of one d20, \"Reroll with advantage\" and \"with disadvantage\". On a channel connected with \"Connect to Discord\", \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Rolls stay in the character's log; a monster's are only shown to its game master."
   },
   "legal": {
     "termsLink": "terms of use",
@@ -279,7 +330,12 @@
       "servers": "Servers",
       "channels": "Channels",
       "notConfigured": "No Discord application in this server's settings (discord.clientId and discord.clientSecret): nothing is connected.",
-      "verificationHint": "Discord asks an application to be verified, its owner's identity checked, beyond 100 servers."
+      "verificationHint": "Discord asks an application to be verified, its owner's identity checked, beyond 100 servers.",
+      "commands": "Slash commands",
+      "commandsOff": "No discord.publicKey in the settings: no interactions endpoint, no command.",
+      "commandsRegistered": "{count} registered on {date} ({hash}), the current ones.",
+      "commandsOutdated": "{count} registered on {date} ({hash}): not the current ones; they are registered again at the next start.",
+      "commandsNever": "Not registered yet: they are at the next start (in development, only with discord.registerCommands)."
     }
   },
   "characterList": {

@@ -20,6 +20,8 @@ export type PartyDiscord = {
   // master's client gets instead
   webhook?: string,
   webhookId?: string,
+  // The channel it posts in, once Discord said (pastedWebhooks.ts)
+  webhookChannelId?: string,
   // Connected with "Connect to Discord" instead of pasted
   channel?: { webhookId: string },
   // false: nothing is posted, the webhook stays

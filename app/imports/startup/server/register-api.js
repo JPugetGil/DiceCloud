@@ -10,6 +10,9 @@ import '/imports/api/linkPreviews/server/linkPreviews';
 // Discord's OAuth2 redirect, and "Sign in with Discord"
 import '/imports/api/discord/server/oauthCallback';
 
+// Discord's interactions: the slash commands and the buttons, and their registration
+import '/imports/api/discord/server/interactions/interactionsEndpoint';
+
 // Publications
 import '/imports/api/creature/creatures/server/publications/characterList';
 import '/imports/api/library/server/publications/library';

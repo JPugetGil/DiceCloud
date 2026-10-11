@@ -18,7 +18,8 @@
     "check:slot-fill": "node checks/slot-fill.js",
     "check:print-cards": "node checks/print-cards.js",
     "check:discord-webhook": "node checks/discord-webhook.js",
-    "check:discord-oauth": "node checks/discord-oauth.js"
+    "check:discord-oauth": "node checks/discord-oauth.js",
+    "check:discord-interactions": "node checks/discord-interactions.js"
   },
   "dependencies": {
     "@axe-core/playwright": "4.13.0",

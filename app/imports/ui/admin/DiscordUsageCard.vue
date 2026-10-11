@@ -55,6 +55,38 @@
         <p class="text-body-small text-medium-emphasis mt-2 mb-0">
           {{ $t('admin.discord.verificationHint') }}
         </p>
+        <!-- The slash commands (D6): registered at startup when they change -->
+        <div
+          v-if="commands"
+          class="mt-4"
+          data-id="discord-commands"
+        >
+          <div class="text-label-large text-medium-emphasis">
+            {{ $t('admin.discord.commands') }}
+          </div>
+          <p
+            v-if="!commands.interactions"
+            class="text-body-medium my-1"
+          >
+            {{ $t('admin.discord.commandsOff') }}
+          </p>
+          <p
+            v-else-if="commands.registeredAt"
+            class="text-body-medium my-1"
+          >
+            {{ $t(commands.upToDate ? 'admin.discord.commandsRegistered' : 'admin.discord.commandsOutdated', {
+              date: new Date(commands.registeredAt).toLocaleString(locale),
+              count: commands.count,
+              hash: (commands.registeredHash || '').slice(0, 12),
+            }) }}
+          </p>
+          <p
+            v-else
+            class="text-body-medium my-1"
+          >
+            {{ $t('admin.discord.commandsNever') }}
+          </p>
+        </div>
       </template>
     </v-card-text>
   </v-card>
@@ -63,15 +95,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Meteor } from 'meteor/meteor';
-import { discordConnectedCounts } from '/imports/api/discord/methods/discordOAuthMethods';
+import { useI18n } from 'vue-i18n';
+import { discordCommandsStatus, discordConnectedCounts } from '/imports/api/discord/methods/discordOAuthMethods';
 
 /**
  * How many Discord servers and channels DiceCloud's application posts to
  * (D4): Discord asks an application to be verified, its owner's identity
- * checked, beyond 100 servers
+ * checked, beyond 100 servers. And its slash commands (D6): when they were
+ * last registered, under which hash, and whether they are the current ones
  */
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
+const { locale } = useI18n();
 const counts = ref(undefined);
+const commands = ref(undefined);
 const loading = ref(false);
 const error = ref(undefined);
 
@@ -79,6 +115,7 @@ async function refresh() {
   loading.value = true;
   try {
     counts.value = await discordConnectedCounts.callAsync();
+    commands.value = await discordCommandsStatus.callAsync();
     error.value = undefined;
   } catch (e) {
     error.value = e.reason || e.message;

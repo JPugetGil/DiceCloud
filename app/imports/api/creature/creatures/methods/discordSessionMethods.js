@@ -55,16 +55,21 @@ export const setCharacterWebhook = new ValidatedMethod({
         await disconnectTarget(discordApiBase(), { creatureId });
       }
       if (!url) {
-        await Creatures.updateAsync(creatureId, { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordSession: 1 } });
+        await Creatures.updateAsync(creatureId, {
+          $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordSession: 1 },
+        });
         return;
       }
-      const { pastedWebhookFields } = await import('/imports/api/creature/log/server/pastedWebhooks');
+      const { pastedWebhookFields, learnPastedChannel } = await import('/imports/api/creature/log/server/pastedWebhooks');
+      const { parseWebhookURL } = await import('/imports/api/creature/log/discord/webhookUrl');
       const { stored, webhookId } = /** @type {{ stored: string, webhookId: string }} */ (pastedWebhookFields(url));
       await Creatures.updateAsync(creatureId, {
         $set: { 'settings.discordWebhook': stored, discordWebhookId: webhookId },
-        // Another webhook: the session was the old one's
-        ...creature.discordWebhookId !== webhookId && { $unset: { discordSession: 1 } },
+        // Another webhook: the session and the channel were the old one's
+        ...creature.discordWebhookId !== webhookId && { $unset: { discordSession: 1, discordWebhookChannelId: 1 } },
       });
+      // Where it posts, asked of Discord without waiting (D6)
+      learnPastedChannel({ creatureId }, /** @type {any} */ (parseWebhookURL(url))).catch(e => console.warn(e));
     }
   },
 });
@@ -107,12 +112,12 @@ export const characterPartyWebhook = new ValidatedMethod({
   async run({ creatureId }) {
     const creature = await getEditableCreature(creatureId, this.userId);
     if (Meteor.isServer) {
-      const { characterWebhook, destinationKey, logChannels } = await import('/imports/api/creature/log/server/discordWebhooks');
+      const { characterWebhook, destinationOf, logChannels, sameDestination } = await import('/imports/api/creature/log/server/discordWebhooks');
       const own = await characterWebhook(creature);
       if (!own) return null;
       // The same webhook, or the same channel
       const party = (await logChannels(creature))
-        .find(channel => 'folderId' in channel.holder && channel.key === destinationKey(own));
+        .find(channel => 'folderId' in channel.holder && sameDestination(destinationOf(channel), own));
       return party ? { name: party.label } : null;
     }
   },

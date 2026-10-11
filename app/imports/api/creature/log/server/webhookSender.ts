@@ -86,6 +86,8 @@ export type DiscordMessage = { id: string, channel_id?: string, [key: string]: u
 export type DiscordRequest = {
   // The message to post, or the new content of the one to edit
   body: Record<string, unknown>,
+  // GET: the webhook itself (its channel), the body ignored
+  method?: 'GET',
   // Edits this message of the webhook (PATCH) instead of posting a new one
   messageId?: string,
   // In this thread: a forum post, or a thread of a text channel
@@ -200,9 +202,14 @@ export function createWebhookSender({
     // owns, and refuses a Components V2 message as empty (50006)
     const components = request.body.components;
     if (Array.isArray(components) && components.length) url.searchParams.set('with_components', 'true');
+    const get = request.method === 'GET';
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(url, get ? {
+        method: 'GET',
+        headers: { ...userAgent && { 'User-Agent': userAgent } },
+        signal: AbortSignal.timeout(timeoutMs),
+      } : {
         method: request.messageId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json', ...userAgent && { 'User-Agent': userAgent } },
         body: JSON.stringify(request.body),

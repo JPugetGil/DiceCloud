@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
 import { parseWebhookURL, type Webhook } from '/imports/api/creature/log/discord/webhookUrl';
+import type { DiscordResult, Requester } from '/imports/api/creature/log/server/webhookSender';
 import {
   openSecret, openSecretOrWarn, sealSecret, sealedWithCurrentKey, tokenKeyStatus, SecretError,
 } from '/imports/api/discord/server/secretCipher';
@@ -36,6 +37,49 @@ export function pastedWebhook(stored?: string): Webhook | undefined {
 export function isPastedWebhook(stored: string | undefined, webhook: Webhook): boolean {
   const found = pastedWebhook(stored);
   return found?.id === webhook.id && found.token === webhook.token;
+}
+
+/**
+ * The channel a webhook posts in, as Discord says when asked for the webhook
+ * (GET, through its queue, or with the requester of a task of that queue,
+ * which must not wait for its own queue); undefined when nothing posts to
+ * Discord or it does not say
+ */
+export async function askWebhookChannel(webhook: Webhook, request?: Requester): Promise<string | undefined> {
+  let result: DiscordResult | undefined;
+  if (request) {
+    result = await request({ method: 'GET', body: {} });
+  } else {
+    // Imported when called: discordWebhooks.ts imports this module
+    const { webhookSender } = await import('/imports/api/creature/log/server/discordWebhooks');
+    const target = webhookSender();
+    if (!target || target.isGone(webhook)) return undefined;
+    result = await target.enqueue(webhook, ask => ask({ method: 'GET', body: {} }));
+  }
+  const channelId = result?.ok ? result.message?.channel_id : undefined;
+  return typeof channelId === 'string' && /^\d{1,32}$/.test(channelId) ? channelId : undefined;
+}
+
+/**
+ * Learns where a character's or a party's pasted webhook posts, and keeps it
+ * while it is still that webhook: to find a party's channel from a command,
+ * and to post a roll there once (D6). Returns the channel
+ */
+export async function learnPastedChannel(
+  holder: { creatureId: string } | { folderId: string }, webhook: Webhook | undefined, request?: Requester,
+): Promise<string | undefined> {
+  if (!webhook) return undefined;
+  const channelId = await askWebhookChannel(webhook, request);
+  if (!channelId) return undefined;
+  if ('creatureId' in holder) {
+    const { default: Creatures } = await import('/imports/api/creature/creatures/Creatures');
+    await Creatures.updateAsync({ _id: holder.creatureId, discordWebhookId: webhook.id }, { $set: { discordWebhookChannelId: channelId } });
+  } else {
+    const { default: CreatureFolders } = await import('/imports/api/creature/creatureFolders/CreatureFolders');
+    await (CreatureFolders as unknown as Mongo.Collection<any>).updateAsync(
+      { _id: holder.folderId, 'discord.webhookId': webhook.id }, { $set: { 'discord.webhookChannelId': channelId } });
+  }
+  return channelId;
 }
 
 type Counts = { sealed: number, ids: number, unreadable: number };

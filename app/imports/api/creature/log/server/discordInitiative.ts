@@ -4,8 +4,10 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
 import {
-  combatStart, combatSummary, initiativeMessage, turnLine, type InitiativeRow,
+  buttonRow, combatStart, combatSummary, initiativeMessage, turnLine, type InitiativeRow,
 } from '/imports/api/creature/log/discord/partyMessages';
+import { translatorFor } from '/imports/api/creature/log/discord/discordMessages';
+import { interactionsPublicKey } from '/imports/api/discord/server/interactions/interactionSignature';
 import { publishes, type PublishKind } from '/imports/api/creature/log/discord/partyPublishing';
 import { DISCORD_CODES, postMessage, type Requester, type WebhookSender } from '/imports/api/creature/log/server/webhookSender';
 import {
@@ -58,6 +60,7 @@ export async function initiativeRows(tracker: Tracker | undefined): Promise<Init
     const creature = creatures.find(creature => creature._id === entry.creatureId);
     return {
       name: creature?.name || entry.name || '?',
+      ...entry._id && { entryId: entry._id },
       ...Number.isFinite(entry.initiative) && { initiative: entry.initiative },
       ...entry.out && { out: true },
       character: !!creature && !hidesStatsFromPlayers(creature),
@@ -68,6 +71,18 @@ export async function initiativeRows(tracker: Tracker | undefined): Promise<Init
     };
   });
 }
+
+/**
+ * Whether the party's messages carry the buttons of D7: on a webhook "Connect
+ * to Discord" made, which DiceCloud's application owns, and when the
+ * application takes interactions. Never on a pasted webhook: Discord refuses
+ * any interactive component from it, and the whole message with it
+ */
+function interactive(folder: { discord?: PartyFolderDoc['discord'] } | undefined, channel: Channel): boolean {
+  return !!interactionsPublicKey() && !!folder?.discord?.channel?.webhookId && folder.discord.channel.webhookId === channel.webhook.id;
+}
+
+const label = (channel: Channel, key: string) => translatorFor(channel.language)(`discord.interactions.buttons.${key}`, {}) || key;
 
 // The folder's fight and Discord setting, as they are when read
 async function readFolder(folderId: string) {
@@ -84,6 +99,9 @@ async function showInitiative(request: Requester, channel: Channel, folderId: st
   if (!folder || !tracker?.round) return;
   const message = initiativeMessage({
     rows: await initiativeRows(tracker), round: tracker.round, turn: tracker.turn || 0, language: channel.language,
+    ...interactive(folder, channel) && {
+      components: [buttonRow([{ label: label(channel, 'nextTurn'), customId: `dc:next:${folderId}:${tracker.round}:${tracker.turn || 0}`, style: 1 }])],
+    },
   });
   const stored = folder.discord?.initiative;
   if (stored?.webhookId === channel.webhook.id) {
@@ -121,7 +139,11 @@ async function endFight(request: Requester, channel: Channel, folderId: string, 
   const stored = folder?.discord?.initiative;
   if (stored?.webhookId === channel.webhook.id && publishes(folder?.discord, 'initiative')) {
     await postMessage(request, {
-      body: initiativeMessage({ rows, round, turn: 0, language: channel.language, ended: true }),
+      body: initiativeMessage({
+        rows, round, turn: 0, language: channel.language, ended: true,
+        // Its button goes with the fight
+        ...interactive(folder, channel) && { components: [] },
+      }),
       messageId: stored.messageId,
       threadId: stored.threadId,
     });
@@ -182,7 +204,10 @@ async function queueChange(folderId: string, change: InitiativeChange, ended: Tr
   if (change !== 'update' && on('turns')) {
     const rows = await initiativeRows(folder.initiative);
     const row = rows[folder.initiative?.turn || 0];
-    line = turnLine(row, channel.language, await mentionOf(row?.ownerId));
+    const endTurn = interactive(folder, channel) && row?.character && row.entryId
+      ? [buttonRow([{ label: label(channel, 'endTurn'), customId: `dc:end:${folderId}:${row.entryId}:${folder.initiative?.round}` }])]
+      : undefined;
+    line = turnLine(row, channel.language, await mentionOf(row?.ownerId), endTurn);
   }
   // The initiative message says the fight starts; without it, a line does
   const start = change === 'start' && on('combat') && !on('initiative') ? combatStart(channel.language) : undefined;

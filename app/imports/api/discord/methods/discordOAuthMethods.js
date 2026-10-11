@@ -136,6 +136,11 @@ export const discordUnlink = new ValidatedMethod({
   async run() {
     if (!this.userId) throw boardError('discord.denied', 'discord.errors.denied');
     await Meteor.users.updateAsync(this.userId, { $unset: { discordAccount: 1 } });
+    // The characters chosen with /character go with the link
+    if (Meteor.isServer) {
+      const { forgetActiveCharacters } = await import('/imports/api/discord/server/interactions/interactionCharacters');
+      await forgetActiveCharacters(this.userId);
+    }
   },
 });
 
@@ -152,6 +157,21 @@ export const discordLoginUrl = new ValidatedMethod({
   async run({ returnTo, nonceHash }) {
     if (Meteor.isServer) {
       return startAuthorization({ purpose: 'login', scope: 'identify', returnTo, nonceHash, silent: true });
+    }
+  },
+});
+
+/** The slash commands registered with Discord (D6): when, their hash, whether they are the current ones */
+export const discordCommandsStatus = new ValidatedMethod({
+  name: 'discord.commandsStatus',
+  validate: null,
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run() {
+    await assertAdmin(this.userId);
+    if (Meteor.isServer) {
+      const { commandsStatus } = await import('/imports/api/discord/server/interactions/commandRegistration');
+      return commandsStatus();
     }
   },
 });

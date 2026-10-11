@@ -141,7 +141,7 @@ main(async () => {
       const leaks = frames.filter(frame => [...tokens, 'enc1.'].some(token => frame.includes(token)));
       if (leaks.length) throw new Error(`${leaks.length} frame(s) hold a webhook's token or a sealed value`);
       if (!frames.some(frame => frame.includes('discordChannel'))) throw new Error('the channel never reached its editor: the search proves nothing');
-      const stored = await withDb(db => db.collection('discordWebhooks').find({}).toArray());
+      const stored = await withDb(db => db.collection('discordWebhooks').find({ webhookId: { $in: [...fake.oauthWebhooks.keys()] } }).toArray());
       if (stored.some(doc => tokens.includes(doc.token)) && stored.some(doc => doc.token.startsWith('enc1.'))) {
         throw new Error('some tokens sealed, others not');
       }
@@ -270,7 +270,8 @@ main(async () => {
       const state = await withDb(async db => ({
         creature: (await db.collection('creatures').findOne({ _id: creatureId }, { projection: { discordChannel: 1 } })).discordChannel,
         account: (await db.collection('users').findOne({ _id: userId }, { projection: { discordAccount: 1 } })).discordAccount,
-        webhooks: await db.collection('discordWebhooks').countDocuments(),
+        // The fake's alone: the database may hold the developer's own, sealed with another key
+        webhooks: await db.collection('discordWebhooks').countDocuments({ webhookId: { $in: [...fake.oauthWebhooks.keys()] } }),
         folder: folderId && await db.collection('creatureFolders').countDocuments({ _id: folderId }),
       }));
       if (state.creature || state.account || state.webhooks || state.folder) throw new Error(`left: ${JSON.stringify(state)}; ${errors.join('; ')}`);

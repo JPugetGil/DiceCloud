@@ -387,6 +387,55 @@ export const removeInitiativeEntry = new ValidatedMethod({
   },
 });
 
+// The tracker's round or turn as read, for an update that applies only while it is still so
+const stillAt = value => value === undefined || value === null ? { $exists: false } : value;
+
+/**
+ * Moves the folder's tracker to the next (1) or the previous (-1) turn,
+ * across rounds, if it is still where it was when the folder was read: two
+ * clicks on Discord's "Next turn" move it once (D7). Returns whether it moved
+ */
+export async function advanceTracker(folder, step, userId) {
+  const tracker = folder.initiative;
+  const count = tracker?.entries?.length || 0;
+  if (!count) return false;
+  const order = initiativeOrder(tracker.entries);
+  let round = tracker.round || 0;
+  let turn = tracker.turn || 0;
+  if (round === 0) {
+    round = 1;
+    turn = 0;
+  } else {
+    // A creature out of the fight has no turn: skip it, unless all are
+    for (let moved = 0; moved < count; moved += 1) {
+      turn += step;
+      if (turn >= count) {
+        turn = 0;
+        round += 1;
+      } else if (turn < 0) {
+        if (round > 1) {
+          turn = count - 1;
+          round -= 1;
+        } else {
+          turn = 0;
+          break;
+        }
+      }
+      if (!order[turn]?.out) break;
+    }
+  }
+  const updated = await CreatureFolders.updateAsync({
+    _id: folder._id, 'initiative.round': stillAt(tracker.round), 'initiative.turn': stillAt(tracker.turn),
+  }, {
+    $set: { 'initiative.round': round, 'initiative.turn': turn },
+  });
+  if (!updated) return false;
+  // Going back a turn gives no round back
+  if (step === 1) await startTurn(folder, tracker.entries, turn, userId);
+  tellDiscord(folder._id, tracker.round ? 'turn' : 'start');
+  return true;
+}
+
 /** Next (1) or previous (-1) turn, across rounds */
 export const advanceInitiative = new ValidatedMethod({
   name: 'creatureFolders.initiative.advance',
@@ -398,40 +447,7 @@ export const advanceInitiative = new ValidatedMethod({
   rateLimit,
   async run({ folderId, step }) {
     const folder = await getOwnFolder(folderId, this.userId);
-    const tracker = folder.initiative;
-    const count = tracker?.entries?.length || 0;
-    if (!count) return;
-    const order = initiativeOrder(tracker.entries);
-    let round = tracker.round || 0;
-    let turn = tracker.turn || 0;
-    if (round === 0) {
-      round = 1;
-      turn = 0;
-    } else {
-      // A creature out of the fight has no turn: skip it, unless all are
-      for (let moved = 0; moved < count; moved += 1) {
-        turn += step;
-        if (turn >= count) {
-          turn = 0;
-          round += 1;
-        } else if (turn < 0) {
-          if (round > 1) {
-            turn = count - 1;
-            round -= 1;
-          } else {
-            turn = 0;
-            break;
-          }
-        }
-        if (!order[turn]?.out) break;
-      }
-    }
-    await CreatureFolders.updateAsync(folderId, {
-      $set: { 'initiative.round': round, 'initiative.turn': turn },
-    });
-    // Going back a turn gives no round back
-    if (step === 1) await startTurn(folder, tracker.entries, turn, this.userId);
-    tellDiscord(folderId, tracker.round ? 'turn' : 'start');
+    await advanceTracker(folder, step, this.userId);
   },
 });
 

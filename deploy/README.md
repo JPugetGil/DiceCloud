@@ -124,6 +124,12 @@ Then:
   application"; add its `discord` `{ clientId, clientSecret }` to
   `settings.production.json` and the redirect URI
   `https://dd-dc.hemoreg.me/discord/oauth/callback` in Discord's portal.
+- **Discord's commands** (optional, with the application): its Public Key as
+  `discord.publicKey` in `settings.production.json`; deploy and start, then
+  set the Interactions Endpoint URL `https://dd-dc.hemoreg.me/discord/interactions`
+  in Discord's portal, which checks it at once (main README, "Commands and
+  buttons"). In Cloudflare, nothing may stand between Discord and that path:
+  no challenge (Bot Fight Mode, WAF, Under Attack mode) and no cache.
 - **The webhooks' key**, with or without the application: `openssl rand
   -base64 32`, as `discord.tokenKey` in `settings.production.json`, and a copy
   in a password manager (main README, "The webhooks' key"). At the next start

@@ -41,6 +41,12 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
       multi: true,
     });
 
+    // The characters chosen on Discord with /character (D6)
+    if (Meteor.isServer) {
+      const { forgetActiveCharacters } = await import('/imports/api/discord/server/interactions/interactionCharacters');
+      await forgetActiveCharacters(userId);
+    }
+
     // Delete all libraries
     let libraries = await Libraries.find({ owner: userId }, { fields: { _id: 1 } }).fetchAsync();
     for (const library of libraries) {

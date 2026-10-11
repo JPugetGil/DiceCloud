@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
-import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import { isDiscordWebhookURL, parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import { PUBLISH_KINDS, postingSummary, publishes } from '/imports/api/creature/log/discord/partyPublishing';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
@@ -67,7 +67,7 @@ export const setPartyWebhook = new ValidatedMethod({
       await CreatureFolders.updateAsync(folderId, { $unset: { discord: 1, discordPosting: 1 } });
       return;
     }
-    const { pastedWebhookFields } = await import('/imports/api/creature/log/server/pastedWebhooks');
+    const { pastedWebhookFields, learnPastedChannel } = await import('/imports/api/creature/log/server/pastedWebhooks');
     const { stored, webhookId } = /** @type {{ stored: string, webhookId: string }} */ (pastedWebhookFields(url));
     // Another webhook: the session and the fight's message were the old one's.
     // What it posts stays as the game master chose: all of it at first
@@ -76,12 +76,14 @@ export const setPartyWebhook = new ValidatedMethod({
     const posting = postingSummary({ ...folder.discord, webhook: stored, webhookId });
     const $unset = {
       ...!posting && { discordPosting: 1 },
-      ...!sameWebhook && folder.discord && { 'discord.session': 1, 'discord.initiative': 1 },
+      ...!sameWebhook && folder.discord && { 'discord.session': 1, 'discord.initiative': 1, 'discord.webhookChannelId': 1 },
     };
     await CreatureFolders.updateAsync(folderId, {
       $set: { 'discord.webhook': stored, 'discord.webhookId': webhookId, ...posting && { discordPosting: posting } },
       ...Object.keys($unset).length && { $unset },
     });
+    // Where it posts, asked of Discord without waiting (D6)
+    learnPastedChannel({ folderId }, parseWebhookURL(url)).catch(e => console.warn(e));
   },
 });
 

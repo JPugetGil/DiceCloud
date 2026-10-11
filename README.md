@@ -299,7 +299,8 @@ Discord application
 -------------------
 
 Characters and party boards can post to Discord with a pasted webhook URL
-without any setting. With a Discord application, three more buttons appear:
+without any setting. With a Discord application, three more buttons appear,
+and with its Public Key, slash commands on Discord:
 "Connect to Discord" (a character's details, a party board), "Link my Discord
 account" (account page, for the mentions on one's turn) and "Sign in with
 Discord" (for an account already linked: it never creates one). Without the
@@ -322,11 +323,13 @@ application's settings, none of them shows and nothing else changes.
      "discord": {
        "clientId": "<application id>",
        "clientSecret": "<client secret>",
+       "publicKey": "<public key>",
        "tokenKey": "<openssl rand -base64 32>"
      }
    }
    ```
 
+   `publicKey` turns the commands on: see [Commands and buttons](#commands-and-buttons).
    `tokenKey` encrypts the webhooks' tokens: see [The webhooks' key](#the-webhooks-key).
 
 4. Restart the server.
@@ -338,6 +341,43 @@ makes "Sign in with Discord" one click (`prompt=none`); they remove it in
 Discord's User Settings, Authorized Apps (the account page says so). Discord
 asks an application to be verified beyond 100 servers: the administration page
 counts the servers DiceCloud is connected to.
+
+### Commands and buttons
+
+With the application's **Public Key** too, Discord sends DiceCloud its slash
+commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, in French `/jet`,
+`/test`, `/sauvegarde`, `/pv`, `/personnage`) and the clicks on its buttons
+(reroll with advantage or disadvantage, next turn, end my turn), over HTTP: no
+bot runs. Only for accounts that linked their Discord account.
+
+1. In the portal, Installation: Installation Contexts **Guild Install** and
+   **User Install**; Install Link "Discord Provided Link"; for each context,
+   the scope `applications.commands` alone (no `bot`). The Discord page of
+   DiceCloud offers that link.
+2. General Information: copy the **Public Key** into the settings,
+   `discord.publicKey` (64 hexadecimal digits). It is not secret, but without
+   it there is no endpoint and no command.
+3. Restart, so that the server answers at `ROOT_URL/discord/interactions`
+   (deploy first), then paste that address as **Interactions Endpoint URL**
+   (General Information) and save: Discord checks it at once with a signed
+   PING, and refuses the address if the server does not answer.
+4. At startup the server registers the commands (all at once, replacing the
+   application's global commands) with a client credentials token, scope
+   `applications.commands.update`: no bot token, and it works for an
+   application owned by a team. Only when their definitions changed: the
+   administration page says when they were registered. In development, never
+   to Discord itself unless `discord.registerCommands` is `true` (a
+   development application); to the local fake of the e2e checks, always.
+
+Behind Cloudflare, Discord's requests to `/discord/interactions` must reach the
+server as they are: no challenge (Bot Fight Mode, a WAF rule, "Under Attack")
+and no cache on that path.
+
+To try them in development: a development application, its Public Key in
+`settings.json` with `"registerCommands": true`, and a quick tunnel to the dev
+server, `cloudflared tunnel --url http://localhost:3000`, whose
+`https://<random>.trycloudflare.com/discord/interactions` is the development
+application's Interactions Endpoint URL.
 
 ### The webhooks' key
 

@@ -19,6 +19,12 @@ import { Meteor } from 'meteor/meteor';
  * owned, in a text channel: the picker never offers a forum), up to 15 per
  * channel (30007); /users/@me with `identify`; the token's revocation; a
  * webhook's GET and DELETE with its token.
+ *
+ * And the interactions (phase C): `interact` sends one to the app's endpoint,
+ * signed with a test Ed25519 key pair whose public key (`publicKey`) the app
+ * is given; the client credentials token and the global commands' overwrite;
+ * the interaction's own webhook, whose original message and follow-ups it
+ * keeps (`interactions`).
  */
 
 export type FakeRequest = {
@@ -82,6 +88,15 @@ export async function fakeDiscord({ channels = {}, override }: {
   const accessTokens = new Map<string, { scope: string, user?: FakeAuthorization['user'], revoked?: boolean }>();
   const oauthWebhooks = new Map<string, FakeWebhook>();
   const clientCredentials: { id?: string, secret?: string }[] = [];
+  // Interactions: the key pair they are signed with, the commands registered,
+  // and, per interaction token, its answer, original message and follow-ups
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const crypto = Meteor.isServer ? require('node:crypto') : undefined;
+  const keys = crypto?.generateKeyPairSync('ed25519');
+  const publicKey: string = keys?.publicKey.export({ format: 'der', type: 'spki' }).subarray(12).toString('hex');
+  const registeredCommands = new Map<string, unknown[]>();
+  type InteractionRecord = { answer?: any, original?: any, edits: any[], followUps: any[], ephemeral: boolean };
+  const interactions = new Map<string, InteractionRecord>();
   // The authorizations users gave: application, user, scope
   const consents = new Set<string>();
   const consentOf = (clientId: string, userId: string | undefined, scope: string) => `${clientId}|${userId}|${scope}`;
@@ -111,6 +126,16 @@ export async function fakeDiscord({ channels = {}, override }: {
   function exchange(request: FakeRequest, basic?: { id?: string, secret?: string }): Reply {
     clientCredentials.push(basic || {});
     const form = request.body || {};
+    // The application's own token (client credentials grant)
+    if (form.grant_type === 'client_credentials') {
+      if (!basic?.id || !basic.secret) return error(401, 0, '401: Unauthorized');
+      const access = secret();
+      accessTokens.set(access, { scope: form.scope || '', application: basic.id } as any);
+      return {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+        body: { token_type: 'Bearer', access_token: access, expires_in: 604800, scope: form.scope || '' },
+      };
+    }
     const grant = grants.get(form.code);
     if (!basic?.id || !basic.secret) return error(401, 0, '401: Unauthorized');
     if (form.grant_type !== 'authorization_code' || !grant || grant.used || grant.redirectUri !== form.redirect_uri
@@ -156,6 +181,34 @@ export async function fakeDiscord({ channels = {}, override }: {
     // The user's authorization goes with it
     for (const consent of consents) if (token?.user && consent.split('|')[1] === token.user.id) consents.delete(consent);
     return { status: 200, headers: { 'Content-Type': 'application/json' }, body: {} };
+  }
+
+  // PUT /applications/<id>/commands, with a client credentials token for that application
+  function overwriteCommands(applicationId: string, request: FakeRequest, authorization?: string): Reply {
+    const token: any = accessTokens.get((authorization || '').replace(/^Bearer /, ''));
+    if (!token || token.application !== applicationId || !String(token.scope).split(' ').includes('applications.commands.update')) {
+      return error(401, 0, '401: Unauthorized');
+    }
+    const commands = (Array.isArray(request.body) ? request.body : []).map((command: any) => ({ ...command, id: snowflake(), application_id: applicationId }));
+    registeredCommands.set(applicationId, commands);
+    return { status: 200, headers: { 'Content-Type': 'application/json' }, body: commands };
+  }
+
+  // The webhook of an interaction: its original message edited, follow-ups posted
+  function interactionWebhook(request: FakeRequest, token: string, original: boolean): Reply {
+    const record = interactions.get(token) as InteractionRecord;
+    const message = { ...request.body, id: record.original?.id || snowflake(), channel_id: 'interaction' };
+    if (original && request.method === 'PATCH') {
+      record.original = { ...record.original, ...message };
+      record.edits.push(request.body);
+      return { status: 200, headers: { 'Content-Type': 'application/json' }, body: record.original };
+    }
+    if (!original && request.method === 'POST') {
+      const followUp = { ...request.body, id: snowflake() };
+      record.followUps.push(followUp);
+      return { status: 200, headers: { 'Content-Type': 'application/json' }, body: followUp };
+    }
+    return error(405, 0, '405: Method Not Allowed');
   }
 
   // GET or DELETE a webhook with its token
@@ -220,6 +273,8 @@ export async function fakeDiscord({ channels = {}, override }: {
     req.on('end', () => {
       const url = new URL(req.url, 'http://127.0.0.1');
       const match = /^\/api\/v10\/webhooks\/(\d+)\/([\w-]+)(?:\/messages\/(\d+))?$/.exec(url.pathname);
+      const interactionMatch = /^\/api\/v10\/webhooks\/(\d+)\/([\w.-]+)(\/messages\/@original)?$/.exec(url.pathname);
+      const commandsMatch = /^\/api\/v10\/applications\/(\d+)\/commands$/.exec(url.pathname);
       const form = /x-www-form-urlencoded/.test(req.headers['content-type'] || '');
       const request: FakeRequest = {
         method: req.method,
@@ -235,7 +290,10 @@ export async function fakeDiscord({ channels = {}, override }: {
       const [id, password] = basic ? Buffer.from(basic, 'base64').toString().split(':') : [];
       let reply = override?.(request, requests.length);
       if (!reply) {
-        if (req.method === 'GET' && url.pathname === '/oauth2/authorize') reply = authorize(url);
+        if (interactionMatch && interactions.has(interactionMatch[2])) {
+          reply = interactionWebhook(request, interactionMatch[2], !!interactionMatch[3]);
+        } else if (req.method === 'PUT' && commandsMatch) reply = overwriteCommands(commandsMatch[1], request, req.headers.authorization);
+        else if (req.method === 'GET' && url.pathname === '/oauth2/authorize') reply = authorize(url);
         else if (req.method === 'POST' && url.pathname === '/api/v10/oauth2/token') reply = exchange(request, basic ? { id, secret: password } : undefined);
         else if (req.method === 'POST' && url.pathname === '/api/v10/oauth2/token/revoke') reply = revoke(request);
         else if (req.method === 'GET' && url.pathname === '/api/v10/users/@me') reply = me(req.headers.authorization);
@@ -270,6 +328,42 @@ export async function fakeDiscord({ channels = {}, override }: {
     /** Removes a webhook, as a server's admin removing the integration would */
     removeWebhook: (id: string) => {
       channels[id] = 'gone';
+    },
+    /** The interactions' public key, which the app is given (hexadecimal) */
+    publicKey,
+    /** The commands each application registered */
+    registeredCommands,
+    /** Per interaction token: the app's answer, its original message and follow-ups */
+    interactions,
+    /**
+     * Sends an interaction to the app's endpoint as Discord does, signed
+     * (`tamper`: a wrong signature; `age`: seconds in the past), with a token
+     * of its own; returns the HTTP status, the answer, and the token
+     */
+    async interact(endpoint: string, payload: Record<string, unknown>, { tamper = false, age = 0, unsigned = false } = {}) {
+      const token = `interaction-${secret()}`;
+      const body = JSON.stringify({ token, ...payload });
+      const timestamp = String(Math.floor(Date.now() / 1000) - age);
+      let signature = crypto.sign(null, Buffer.from(timestamp + body), keys.privateKey).toString('hex');
+      if (tamper) signature = `${signature[0] === 'a' ? 'b' : 'a'}${signature.slice(1)}`;
+      interactions.set(token, { edits: [], followUps: [], ephemeral: false });
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...!unsigned && { 'X-Signature-Ed25519': signature, 'X-Signature-Timestamp': timestamp } },
+        body,
+      });
+      const text = await response.text();
+      let answer: any;
+      try {
+        answer = text ? JSON.parse(text) : undefined;
+      } catch {
+        answer = text;
+      }
+      const record = interactions.get(token) as InteractionRecord;
+      record.answer = answer;
+      record.ephemeral = !!(answer?.data?.flags & 64);
+      if (answer?.type === 4) record.original = { ...answer.data, id: snowflake() };
+      return { status: response.status, answer, token };
     },
     /** Deletes a forum post, as a moderator would */
     deleteThread: (id: string) => threads.delete(id),

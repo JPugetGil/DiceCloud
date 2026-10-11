@@ -157,7 +157,10 @@ export async function connectTarget({ apiBase, target, userId, webhook }: {
     previous = creature?.discordChannel?.webhookId;
     await Creatures.updateAsync(target.creatureId, {
       $set: { discordChannel: channel },
-      $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, ...previous !== kept.webhookId && { discordSession: 1 } },
+      $unset: {
+        'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1,
+        ...previous !== kept.webhookId && { discordSession: 1 },
+      },
     });
   } else {
     const CreatureFolders = await creatureFolders();
@@ -169,6 +172,7 @@ export async function connectTarget({ apiBase, target, userId, webhook }: {
       $unset: {
         'discord.webhook': 1,
         'discord.webhookId': 1,
+        'discord.webhookChannelId': 1,
         ...!posting && { discordPosting: 1 },
         ...previous !== kept.webhookId && { 'discord.session': 1, 'discord.initiative': 1 },
       },

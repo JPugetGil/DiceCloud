@@ -65,6 +65,8 @@ export type InitiativeRow = {
   // Its player's DiceCloud account, whom its turn's line may mention
   ownerId?: string,
   conditions?: string[],
+  // Its entry in the tracker, which a button names (D7)
+  entryId?: string,
 };
 
 type InitiativeInput = {
@@ -75,6 +77,8 @@ type InitiativeInput = {
   language?: string,
   // The fight is over: no one has the turn any more
   ended?: boolean,
+  // Its buttons (D7): only on a webhook of DiceCloud's application; [] takes them away
+  components?: unknown[],
 };
 
 function rowText(row: InitiativeRow, current: boolean, translate: ReturnType<typeof translatorFor>): string {
@@ -91,7 +95,7 @@ function rowText(row: InitiativeRow, current: boolean, translate: ReturnType<typ
  * creature's conditions. An embed, which Discord lets the webhook edit in
  * place at each turn
  */
-export function initiativeMessage({ rows, round, turn, language, ended }: InitiativeInput) {
+export function initiativeMessage({ rows, round, turn, language, ended, components }: InitiativeInput) {
   const translate = translatorFor(discordLanguage(language));
   const title = ended
     ? translate('discord.initiativeEnded', { round })
@@ -102,7 +106,16 @@ export function initiativeMessage({ rows, round, turn, language, ended }: Initia
       title: truncate(title || '', DISCORD_LIMITS.title),
       description: truncate(description || '–', DISCORD_LIMITS.description),
     }],
+    ...components && { components },
     ...NO_MENTIONS,
+  };
+}
+
+/** A row of buttons (D7): never on a pasted webhook's message, which Discord would refuse whole */
+export function buttonRow(buttons: { label: string, customId: string, style?: number }[]) {
+  return {
+    type: 1,
+    components: buttons.map(({ label, customId, style = 2 }) => ({ type: 2, style, label: label.slice(0, 80), custom_id: customId })),
   };
 }
 
@@ -119,7 +132,7 @@ export function combatStart(language?: string) {
  * linked their account and wants it: that user alone may be pinged, never a
  * role nor everyone
  */
-export function turnLine(row: InitiativeRow | undefined, language?: string, mention?: string) {
+export function turnLine(row: InitiativeRow | undefined, language?: string, mention?: string, components?: unknown[]) {
   if (!row) return undefined;
   const translate = translatorFor(discordLanguage(language));
   const name = escapeMarkdown(row.name);
@@ -128,7 +141,7 @@ export function turnLine(row: InitiativeRow | undefined, language?: string, ment
     : ping ? translate('discord.yourTurnMention', { name, mention: `<@${ping}>` })
       : translate('discord.yourTurn', { name });
   if (!content) return undefined;
-  return { content, allowed_mentions: { parse: [], ...ping && { users: [ping] } } };
+  return { content, allowed_mentions: { parse: [], ...ping && { users: [ping] } }, ...components && { components } };
 }
 
 /** The end of the fight: how many rounds, who fought, who was put out of it */

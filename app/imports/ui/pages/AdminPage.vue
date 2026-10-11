@@ -19,7 +19,10 @@
       >
         <discord-usage-card />
       </v-col>
-      <v-col cols="12" lg="8">
+      <v-col
+        cols="12"
+        lg="8"
+      >
         <user-roles-card />
       </v-col>
     </v-row>

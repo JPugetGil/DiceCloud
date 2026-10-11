@@ -151,6 +151,38 @@ export async function currentUser(config: OAuthConfig, accessToken: string): Pro
   };
 }
 
+/**
+ * A token of the application itself (client credentials grant), for one
+ * scope; DiceCloud asks for `applications.commands.update` alone, the one
+ * besides `identify` that an application owned by a team may ask for
+ * (Discord's OAuth2 documentation, "Client Credentials Grant"). Used at once,
+ * never kept
+ */
+export async function clientCredentialsToken(config: OAuthConfig, scope: 'applications.commands.update'): Promise<string> {
+  const body = await call(`${config.apiBase}/oauth2/token`, {
+    method: 'POST',
+    headers: { ...headers(), Authorization: basicAuth(config), 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'client_credentials', scope }).toString(),
+  });
+  if (typeof body?.access_token !== 'string') throw new DiscordOAuthError('Discord gave no token');
+  return body.access_token;
+}
+
+/**
+ * Replaces the application's global commands with these (Bulk Overwrite
+ * Global Application Commands), with a client credentials token: no bot
+ * token. Returns how many Discord kept
+ */
+export async function overwriteGlobalCommands(config: OAuthConfig, commands: unknown[]): Promise<number> {
+  const token = await clientCredentialsToken(config, 'applications.commands.update');
+  const body = await call(`${config.apiBase}/applications/${config.clientId}/commands`, {
+    method: 'PUT',
+    headers: { ...headers(), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(commands),
+  });
+  return Array.isArray(body) ? body.length : 0;
+}
+
 /** Whether Discord still knows the webhook: false for a 404 (10015), true otherwise */
 export async function webhookExists(apiBase: string, webhook: Webhook): Promise<boolean> {
   try {

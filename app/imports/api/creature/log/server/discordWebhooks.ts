@@ -13,7 +13,8 @@ import { parseWebhookURL, type Webhook } from '/imports/api/creature/log/discord
 import { publishes, type PartyDiscord } from '/imports/api/creature/log/discord/partyPublishing';
 import type { DiscordChannel } from '/imports/api/creature/log/discord/discordChannel';
 import { connectedWebhook, forgetConnectedWebhook } from '/imports/api/creature/log/server/connectedWebhooks';
-import { isPastedWebhook, pastedWebhook } from '/imports/api/creature/log/server/pastedWebhooks';
+import { isPastedWebhook, learnPastedChannel, pastedWebhook } from '/imports/api/creature/log/server/pastedWebhooks';
+import { interactionOrigin } from '/imports/api/discord/server/interactions/interactionOrigin';
 import { hidesStatsFromPlayers, boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import {
   DISCORD_API, DISCORD_CODES, TEST_API_VARIABLE, createWebhookSender, discordApiBase, discordUserAgent, postMessage,
@@ -94,7 +95,7 @@ export async function forgetWebhook(webhook: Webhook, status: number): Promise<n
   ).fetchAsync()).filter(creature => isPastedWebhook(creature.settings?.discordWebhook, webhook)).map(creature => creature._id);
   const count = creatureIds.length ? await Creatures.updateAsync(
     { _id: { $in: creatureIds } },
-    { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordSession: 1 } },
+    { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordSession: 1 } },
     { multi: true },
   ) : 0;
   const CreatureFolders = await creatureFolders();
@@ -115,18 +116,23 @@ export async function forgetWebhook(webhook: Webhook, status: number): Promise<n
 // A webhook, and the channel it posts in when DiceCloud knows it (connected)
 export type Destination = Webhook & { channelId?: string };
 
-/** The webhook a character posts with: its connected channel's, else its pasted URL's (sealed or not) */
+/**
+ * The webhook a character posts with: its connected channel's, else its
+ * pasted URL's (sealed or not), with its channel once Discord said
+ */
 export async function characterWebhook(creature: {
-  discordChannel?: DiscordChannel, settings?: { discordWebhook?: string },
+  discordChannel?: DiscordChannel, settings?: { discordWebhook?: string }, discordWebhookChannelId?: string,
 }): Promise<Destination | undefined> {
   if (creature?.discordChannel?.webhookId) return connectedWebhook(creature.discordChannel.webhookId);
-  return pastedWebhook(creature?.settings?.discordWebhook);
+  const webhook = pastedWebhook(creature?.settings?.discordWebhook);
+  return webhook && { ...webhook, ...creature.discordWebhookChannelId && { channelId: creature.discordWebhookChannelId } };
 }
 
 /** The webhook a party posts with: its connected channel's, else its pasted URL's (sealed or not) */
 export async function partyWebhook(discord?: PartyFolderDoc['discord']): Promise<Destination | undefined> {
   if (discord?.channel?.webhookId) return connectedWebhook(discord.channel.webhookId);
-  return pastedWebhook(discord?.webhook);
+  const webhook = pastedWebhook(discord?.webhook);
+  return webhook && { ...webhook, ...discord?.webhookChannelId && { channelId: discord.webhookChannelId } };
 }
 
 /**
@@ -135,6 +141,16 @@ export async function partyWebhook(discord?: PartyFolderDoc['discord']): Promise
  */
 export const destinationKey = (destination: Destination) => destination.channelId
   ? `channel:${destination.channelId}` : `webhook:${destination.id}`;
+
+/**
+ * Whether two webhooks post to the same place (D2): the same webhook, or the
+ * same channel when DiceCloud knows both (a pasted webhook's once Discord
+ * said, D6). One of two holders of one webhook may know its channel already
+ */
+export const sameDestination = (a: Destination, b: Destination) => a.id === b.id || (!!a.channelId && a.channelId === b.channelId);
+
+// A channel's webhook, as a destination
+const destinationOf = (channel: Channel): Destination => ({ ...channel.webhook, ...channel.channelId && { channelId: channel.channelId } });
 
 function defaultSender(): WebhookSender | undefined {
   const baseUrl = discordApiBase();
@@ -175,6 +191,9 @@ export type Channel = {
   webhook: Webhook,
   // Where it posts, once per message (destinationKey)
   key?: string,
+  // The Discord channel it posts in, when known: connected, or a pasted
+  // webhook's once Discord said
+  channelId?: string,
   holder: Holder,
   // The language of the channel's owner: the character's, the game master's
   language: DiscordLanguage,
@@ -203,12 +222,15 @@ export async function partyChannel(folder: Pick<PartyFolderDoc, '_id' | 'name' |
   return {
     webhook: { id: webhook.id, token: webhook.token },
     key: destinationKey(webhook),
+    ...webhook.channelId && { channelId: webhook.channelId },
     holder: { folderId: folder._id },
     language,
     label: folder.name?.trim() || translatorFor(language)('party.untitled', {}) || '',
     sessions: publishes(folder.discord, 'sessions'),
   };
 }
+
+export { destinationOf };
 
 /** A character's own channel: its owner's language, its name and picture */
 export async function characterChannel(creature: {
@@ -218,6 +240,7 @@ export async function characterChannel(creature: {
   return {
     webhook: { id: webhook.id, token: webhook.token },
     key: destinationKey(webhook),
+    ...webhook.channelId && { channelId: webhook.channelId },
     holder: { creatureId: creature._id },
     language: await languageOf(creature.owner),
     label: creature.name?.trim() || '',
@@ -362,6 +385,7 @@ type LogEntry = { creatureId?: string, content?: LogLine[], date?: Date | string
 type LogCreature = {
   _id: string, name?: string, color?: string, picture?: string, avatarPicture?: string,
   owner?: string, type?: string, settings?: { discordWebhook?: string }, discordChannel?: DiscordChannel,
+  discordWebhookChannelId?: string,
 };
 
 /**
@@ -370,7 +394,7 @@ type LogCreature = {
  */
 export async function logChannels(creature: LogCreature): Promise<Channel[]> {
   const channels: Channel[] = [];
-  const known = (destination: Destination) => channels.some(channel => channel.key === destinationKey(destination));
+  const known = (destination: Destination) => channels.some(channel => sameDestination(destinationOf(channel), destination));
   if (!hidesStatsFromPlayers(creature)) {
     const CreatureFolders = await creatureFolders();
     const parties = await CreatureFolders.find(
@@ -380,7 +404,8 @@ export async function logChannels(creature: LogCreature): Promise<Channel[]> {
       },
       {
         fields: {
-          name: 1, owner: 1, members: 1, 'discord.webhook': 1, 'discord.channel': 1, 'discord.enabled': 1, 'discord.publish': 1,
+          name: 1, owner: 1, members: 1, 'discord.webhook': 1, 'discord.webhookId': 1, 'discord.webhookChannelId': 1,
+          'discord.channel': 1, 'discord.enabled': 1, 'discord.publish': 1,
         },
       },
     ).fetchAsync();
@@ -415,10 +440,22 @@ async function hiddenTargets(creature: LogCreature, log: LogEntry): Promise<stri
 // One lookup at a time per character: its entries keep their order
 const intake = new Map<string, Promise<void>>();
 
-async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender) {
+/**
+ * Where a channel's next message lands: its session's post, else the channel
+ * itself, when known (a pasted webhook's is asked of Discord once)
+ */
+async function landingChannel(request: Requester, channel: Channel): Promise<string | undefined> {
+  const session = channel.sessions !== false ? sessionOf(await readSession(channel.holder), channel.webhook.id) : undefined;
+  if (session?.threadId) return session.threadId;
+  if (!channel.channelId) channel.channelId = await learnPastedChannel(channel.holder, channel.webhook, request);
+  return channel.channelId;
+}
+
+async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender, repliedIn?: string) {
   const creature = await Creatures.findOneAsync(creatureId, {
     fields: {
       name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, type: 1, 'settings.discordWebhook': 1, discordChannel: 1,
+      discordWebhookChannelId: 1,
     },
   }) as LogCreature | undefined;
   if (!creature) return;
@@ -432,6 +469,8 @@ async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender
     if (!embeds.length) continue;
     const card = logComponents(input);
     target.enqueue(channel.webhook, async request => {
+      // A command's entry: its reply is in that channel already (D6)
+      if (repliedIn && await landingChannel(request, channel) === repliedIn) return;
       // The card, or the embeds when Discord does not take it; the embeds
       // alone for an entry too long for a card
       const parts = card ? [{ body: card, fallback: embeds }] : embeds.map(body => ({ body }));
@@ -454,11 +493,15 @@ async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender
  * written.
  */
 export function sendLogToDiscord(log: LogEntry) {
+  // Written by a Discord command (D6): its reply shows it in that channel
+  const origin = interactionOrigin();
+  origin?.logs.push(log);
   const target = webhookSender();
   const creatureId = log?.creatureId;
   if (!target || !creatureId) return;
+  const repliedIn = origin?.channelId;
   const next = (intake.get(creatureId) ?? Promise.resolve())
-    .then(() => queueLog(creatureId, log, target))
+    .then(() => queueLog(creatureId, log, target, repliedIn))
     .catch(e => console.error(e));
   intake.set(creatureId, next);
   next.finally(() => {

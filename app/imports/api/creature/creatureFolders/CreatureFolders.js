@@ -156,6 +156,12 @@ let creatureFolderSchema = new SimpleSchema({
     optional: true,
     max: 32,
   },
+  // The channel it posts in, once Discord said (pastedWebhooks.ts)
+  'discord.webhookChannelId': {
+    type: String,
+    optional: true,
+    max: 32,
+  },
   // Or the channel connected with "Connect to Discord" (D4): its webhook's
   // id, never its token (discordChannel.ts)
   'discord.channel': {
