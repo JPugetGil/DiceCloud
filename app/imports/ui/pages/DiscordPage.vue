@@ -54,7 +54,8 @@
             <p class="mb-0">
               {{ $t('discord.webhookPrivacy') }}
             </p>
-            <!-- The party's channel (D2), sessions (D3), link previews (D1) -->
+            <!-- Connecting (D4), the party's channel (D2), sessions (D3), mentions and
+                 signing in (D5), link previews (D1) -->
             <template
               v-for="section in SECTIONS"
               :key="section"
@@ -83,7 +84,7 @@ const theme = useTheme();
 const widgetTheme = computed(() => theme.current.value.dark ? 'dark' : 'light');
 
 // discord.<section>Title and discord.<section>Text
-const SECTIONS = ['partySection', 'sessions', 'previews'];
+const SECTIONS = ['connectSection', 'partySection', 'sessions', 'mentions', 'signIn', 'previews'];
 </script>
 
 <style lang="css" scoped>

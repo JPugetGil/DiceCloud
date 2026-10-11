@@ -5,18 +5,21 @@
  *
  * Always. The test account gives its character a made-up webhook, shares the
  * character with the other test account as a reader and makes it public. Then
- * every DDP frame the reader's browser receives on the sheet and the
- * character list, those of a signed-out visitor, and the REST API's answer
- * without a token must not hold the URL's token; the editor's frames must
- * (else the search proves nothing). The HTML of the public character's page
- * holds its link preview; once private again, nothing of it.
+ * no DDP frame holds the URL's token, nor a sealed value (enc1.): neither the
+ * editor's, who gets the webhook's id and sees "Webhook …0001", nor those the
+ * reader's browser receives on the sheet and the character list, nor a
+ * signed-out visitor's; nor the REST API's answer without a token. The HTML
+ * of the public character's page holds its link preview; once private again,
+ * nothing of it.
  *
  * Against a local fake of Discord only. The check starts the fake on
  * 127.0.0.1:3990 (lib/fakeDiscord.js) and goes on only when the server says
  * it posts there: a dev server started with
  * DISCORD_WEBHOOK_TEST_API=http://127.0.0.1:3990/api/v10. Otherwise those
- * steps are skipped, and no webhook Discord could take is ever set: nothing
- * reaches Discord. The character's roll leaves as a card with Discord's
+ * steps are skipped, and no webhook Discord could take is ever set (the
+ * made-up one goes straight into the database: the app takes only Discord's
+ * URLs): nothing reaches Discord. With the fake, the webhook is pasted in the
+ * character's form, as a user does. The character's roll leaves as a card with Discord's
  * User-Agent; its "New session" in a text channel posts a header; the test
  * account makes a party board, which the other account joins, and pastes a
  * forum webhook on it; the player sees what the party posts, never where; a
@@ -114,6 +117,8 @@ main(async () => {
   const partyWebhook = `https://discord.com/api/webhooks/${FORUM_ID}/${partyToken}`;
   // What only those who may see it can tell: the session's ids
   const secrets = [token, partyToken];
+  // What no client ever gets, its editors included: the URL's token, a sealed value
+  const neverSent = [token, partyToken, 'enc1.'];
   let seen = 0;
   /** The fake's requests to a webhook since the last call */
   const sent = (webhookId) => {
@@ -139,14 +144,34 @@ main(async () => {
   try {
     await step('the editor sets a webhook and shares the character with a reader, and the public', editor.messages, async () => {
       if (!otherId) throw new Error(`no ${OTHER} account: run "npm run setup"`);
-      await call('creatures.update', { _id: creatureId, path: ['settings', 'discordWebhook'], value: webhookUrl });
+      let masked = 'none (no fake: set in the database)';
+      if (fake) {
+        // Pasted in the character's form; then only its id comes back
+        await pushDialog(editor.page, 'creature-form-dialog', { _id: creatureId });
+        await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
+        await editor.page.fill('[data-id="creature-discord-webhook"] input', webhookUrl);
+        await editor.page.click('[data-id="creature-discord-save"]');
+        masked = (await (await editor.page.waitForSelector('[data-id="creature-discord-masked"]', { timeout: 10000 })).textContent()).trim();
+        if (!masked.endsWith(TEXT_ID.slice(-4))) throw new Error(`shown "${masked}"`);
+        // The sheet again, without the dialog
+        await visit(editor.page, `/character/${creatureId}`, 3000);
+      } else {
+        await withDb(db => db.collection('creatures').updateOne({ _id: creatureId }, { $set: { 'settings.discordWebhook': webhookUrl } }));
+      }
       await call('sharing.updateUserSharePermissions', { docRef, userId: otherId, role: 'reader' });
       await call('sharing.setPublic', { docRef, isPublic: true });
       await pause(1500);
-      if (!editorFrames.some(frame => frame.includes(token))) {
-        throw new Error('the editor never received the webhook: the frame search would prove nothing');
+      const stored = await withDb(async db => (await db.collection('creatures').findOne(
+        { _id: creatureId }, { projection: { 'settings.discordWebhook': 1, discordWebhookId: 1 } })));
+      const leaks = editorFrames.filter(frame => neverSent.some(secret => frame.includes(secret)));
+      if (leaks.length) throw new Error(`${leaks.length} frame(s) of the editor hold the webhook's token or a sealed value`);
+      // SockJS frames escape the quotes: the field's name and value apart
+      const proof = fake ? ['discordWebhookId', TEXT_ID] : ['settings'];
+      if (!editorFrames.some(frame => proof.every(part => frame.includes(part)) && frame.includes(creatureId))) {
+        throw new Error(`the editor never received ${proof.join(' ')}: the frame search would prove nothing`);
       }
-      return `${editorFrames.length} frames, the webhook among them; ${fake
+      const at = stored.settings?.discordWebhook?.startsWith('enc1.') ? 'sealed' : 'in plaintext (the server has no discord.tokenKey)';
+      return `shown "${masked}"; stored ${at}; ${editorFrames.length} frames, its id, never its URL; ${fake
         ? `the server posts to the fake Discord at ${fake.baseUrl}`
         : 'the server does not post to the fake Discord: the steps that post are skipped (see the README)'}`;
     });
@@ -199,8 +224,9 @@ main(async () => {
         throw new Error('the reader never received the character\'s settings: is the sheet open?');
       }
       await visit(reader.page, '/character-list', 3000);
-      const leaks = frames.filter(frame => secrets.some(secret => frame.includes(secret)));
+      const leaks = frames.filter(frame => [...secrets, ...neverSent].some(secret => frame.includes(secret)));
       if (leaks.length) throw new Error(`${leaks.length} frame(s) hold the webhook or the session`);
+      if (frames.some(frame => frame.includes('discordWebhookId'))) throw new Error('the reader received the webhook\'s id');
       await reader.browser.close();
       return `${frames.length} frames, none with the webhook`;
     });
@@ -213,7 +239,9 @@ main(async () => {
       if (!frames.some(frame => frame.includes(creatureId) && frame.includes('settings'))) {
         throw new Error('the visitor never received the character\'s settings');
       }
-      if (frames.some(frame => secrets.some(secret => frame.includes(secret)))) throw new Error('a frame holds the webhook');
+      if (frames.some(frame => [...secrets, ...neverSent, 'discordWebhookId'].some(secret => frame.includes(secret)))) {
+        throw new Error('a frame holds the webhook');
+      }
       await visitor.browser.close();
       return `${frames.length} frames, none with the webhook`;
     });
@@ -223,7 +251,7 @@ main(async () => {
       const text = await response.text();
       if (response.status !== 200) throw new Error(`status ${response.status}: ${text.slice(0, 100)}`);
       if (!text.includes(creatureId)) throw new Error('the answer does not hold the character');
-      if (secrets.some(secret => text.includes(secret))) throw new Error('the answer holds the webhook or the session');
+      if ([...secrets, ...neverSent].some(secret => text.includes(secret))) throw new Error('the answer holds the webhook or the session');
       return `${text.length} characters, without the webhook`;
     });
 
@@ -264,7 +292,11 @@ main(async () => {
         if (!joinNotice || !notice) throw new Error('the player is not told the party posts to Discord');
         if (await player.page.$('[data-id="party-discord-webhook"]')) throw new Error('the player sees the webhook field');
         await visit(player.page, '/character-list', 2000);
-        if (frames.some(frame => frame.includes(partyToken))) throw new Error('a frame of the player holds the party\'s webhook');
+        if (frames.some(frame => neverSent.some(secret => frame.includes(secret)))) throw new Error('a frame of the player holds the party\'s webhook');
+        // The game master: its id, shown masked, never the URL
+        const shown = (await editor.page.textContent('[data-id="party-discord-masked"]'))?.trim();
+        if (!shown?.endsWith(FORUM_ID.slice(-4))) throw new Error(`the game master is shown "${shown}"`);
+        if (editorFrames.some(frame => neverSent.some(secret => frame.includes(secret)))) throw new Error('a frame of the game master holds the party\'s webhook');
         if (player.messages.length) throw new Error(player.messages[0]);
         return `"${notice}"`;
       });
@@ -412,7 +444,9 @@ main(async () => {
           errors.push(e.message);
         }
       };
-      await attempt(() => call('creatures.update', { _id: creatureId, path: ['settings', 'discordWebhook'], value: null }));
+      if (fake) await attempt(() => call('creatures.discord.setWebhook', { creatureId }));
+      await attempt(() => withDb(db => db.collection('creatures').updateOne(
+        { _id: creatureId }, { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1 } })));
       if (fake) await attempt(() => call('creatures.discord.endSession', { creatureId }));
       if (folderId) {
         if (player) await attempt(() => caller(player.page)('creatureFolders.party.leave', { folderId }));
@@ -421,9 +455,10 @@ main(async () => {
       await attempt(() => call('sharing.setPublic', { docRef, isPublic: false }));
       if (otherId) await attempt(() => call('sharing.updateUserSharePermissions', { docRef, userId: otherId, role: 'none' }));
       const creature = await withDb(db => db.collection('creatures').findOne(
-        { _id: creatureId }, { projection: { public: 1, readers: 1, settings: 1, discordSession: 1 } }));
+        { _id: creatureId }, { projection: { public: 1, readers: 1, settings: 1, discordSession: 1, discordWebhookId: 1 } }));
       const folder = folderId && await withDb(db => db.collection('creatureFolders').findOne({ _id: folderId }));
-      if (creature.public || creature.readers?.length || creature.settings?.discordWebhook || creature.discordSession || folder) {
+      if (creature.public || creature.readers?.length || creature.settings?.discordWebhook || creature.discordWebhookId
+        || creature.discordSession || folder) {
         throw new Error(`not put back: ${JSON.stringify({ creature, folder: !!folder })}; ${errors.join('; ')}`);
       }
       if (errors.length) throw new Error(errors.join('; '));

@@ -5,13 +5,14 @@ import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
-import { parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 /*
- * The sessions of a character's own Discord webhook (D3): "New session" in
- * its Discord settings opens a forum post, or a header message in a text
- * channel, and its log goes there until "End session". For those who may
- * edit the character, as the webhook.
+ * A character's own Discord webhook, pasted, and its sessions (D3): "New
+ * session" in its Discord settings opens a forum post, or a header message in
+ * a text channel, and its log goes there until "End session". For those who
+ * may edit the character, as the webhook.
  */
 
 const rateLimit = { numRequests: 5, timeInterval: 10000 };
@@ -21,12 +22,52 @@ const creatureIdSchema = { creatureId: { type: String, max: 32 } };
 async function getEditableCreature(creatureId, userId) {
   const creature = await Creatures.findOneAsync(creatureId, {
     fields: {
-      name: 1, owner: 1, writers: 1, readers: 1, public: 1, type: 1, avatarPicture: 1, 'settings.discordWebhook': 1,
+      name: 1, owner: 1, writers: 1, readers: 1, public: 1, type: 1, avatarPicture: 1,
+      'settings.discordWebhook': 1, discordWebhookId: 1, discordChannel: 1,
     },
   });
   await assertEditPermission(creature, userId);
   return creature;
 }
+
+/**
+ * Sets the character's pasted webhook, or removes it (and its session) when
+ * empty. The URL is stored sealed (pastedWebhooks.ts): its editors get the
+ * webhook's id back, never the URL. It replaces a connected channel (D4)
+ */
+export const setCharacterWebhook = new ValidatedMethod({
+  name: 'creatures.discord.setWebhook',
+  validate: new SimpleSchema({
+    ...creatureIdSchema,
+    webhook: { type: String, optional: true, max: STORAGE_LIMITS.url },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ creatureId, webhook }) {
+    const creature = await getEditableCreature(creatureId, this.userId);
+    const url = webhook?.trim();
+    if (url && !isDiscordWebhookURL(url)) throw boardError('discord.invalid', 'discord.errors.invalidWebhook');
+    // The server alone seals it
+    if (Meteor.isServer) {
+      if (creature.discordChannel) {
+        const { disconnectTarget } = await import('/imports/api/creature/log/server/connectedWebhooks');
+        const { discordApiBase } = await import('/imports/api/creature/log/server/webhookSender');
+        await disconnectTarget(discordApiBase(), { creatureId });
+      }
+      if (!url) {
+        await Creatures.updateAsync(creatureId, { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordSession: 1 } });
+        return;
+      }
+      const { pastedWebhookFields } = await import('/imports/api/creature/log/server/pastedWebhooks');
+      const { stored, webhookId } = /** @type {{ stored: string, webhookId: string }} */ (pastedWebhookFields(url));
+      await Creatures.updateAsync(creatureId, {
+        $set: { 'settings.discordWebhook': stored, discordWebhookId: webhookId },
+        // Another webhook: the session was the old one's
+        ...creature.discordWebhookId !== webhookId && { $unset: { discordSession: 1 } },
+      });
+    }
+  },
+});
 
 /** Opens a session on the character's webhook; returns its kind and name */
 export const startCharacterSession = new ValidatedMethod({
@@ -41,10 +82,11 @@ export const startCharacterSession = new ValidatedMethod({
     const creature = await getEditableCreature(creatureId, this.userId);
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
-      const webhook = parseWebhookURL(creature.settings?.discordWebhook);
-      if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
       // Imported when called
-      const { characterChannel, startSession } = await import('/imports/api/creature/log/server/discordWebhooks');
+      const { characterChannel, characterWebhook, startSession } = await import('/imports/api/creature/log/server/discordWebhooks');
+      // Connected or pasted
+      const webhook = await characterWebhook(creature);
+      if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
       const session = await startSession(await characterChannel(creature, webhook), timeZone);
       return { kind: session.kind, name: session.name };
     }
@@ -65,11 +107,12 @@ export const characterPartyWebhook = new ValidatedMethod({
   async run({ creatureId }) {
     const creature = await getEditableCreature(creatureId, this.userId);
     if (Meteor.isServer) {
-      const own = parseWebhookURL(creature.settings?.discordWebhook);
+      const { characterWebhook, destinationKey, logChannels } = await import('/imports/api/creature/log/server/discordWebhooks');
+      const own = await characterWebhook(creature);
       if (!own) return null;
-      const { logChannels } = await import('/imports/api/creature/log/server/discordWebhooks');
+      // The same webhook, or the same channel
       const party = (await logChannels(creature))
-        .find(channel => 'folderId' in channel.holder && channel.webhook.id === own.id);
+        .find(channel => 'folderId' in channel.holder && channel.key === destinationKey(own));
       return party ? { name: party.label } : null;
     }
   },

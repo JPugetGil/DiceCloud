@@ -175,11 +175,23 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
         body: status === 404 ? '{"message": "Unknown Webhook", "code": 10015}' : '{"message": "Invalid Webhook Token", "code": 50027}',
       }));
       const dead = { id: '1000000000000000404', token: `dead-${status}` };
-      const [first, second, unrelated] = getRandomIds(3);
+      const [first, second, unrelated, sealed, sealedOther] = getRandomIds(5);
+      // Pasted before the key (plaintext, no id yet), and sealed with it
+      /* eslint-disable-next-line @typescript-eslint/no-require-imports */
+      const { setTokenKeys, sealSecret } = require('/imports/api/discord/server/secretCipher');
+      const restoreKeys = setTokenKeys(Buffer.alloc(32, 5).toString('base64'));
       await Creatures.rawCollection().insertMany([
         { _id: first, name: 'First', settings: { discordWebhook: `https://discord.com/api/webhooks/${dead.id}/${dead.token}`, hideSpellsTab: true } },
         { _id: second, name: 'Second', settings: { discordWebhook: `https://discordapp.com/api/webhooks/${dead.id}/${dead.token}?wait=true` } },
         { _id: unrelated, name: 'Other', settings: { discordWebhook: `https://discord.com/api/webhooks/${dead.id}/${dead.token}-not` } },
+        {
+          _id: sealed, name: 'Sealed', discordWebhookId: dead.id,
+          settings: { discordWebhook: sealSecret(`https://discord.com/api/webhooks/${dead.id}/${dead.token}`) },
+        },
+        {
+          _id: sealedOther, name: 'Sealed, another token', discordWebhookId: dead.id,
+          settings: { discordWebhook: sealSecret(`https://discord.com/api/webhooks/${dead.id}/${dead.token}-not`) },
+        },
       ] as any[]);
       try {
         const sender = createWebhookSender({ baseUrl: fake.baseUrl, onGone: forgetWebhook });
@@ -194,8 +206,13 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
         assert.deepEqual(await settings(first), { hideSpellsTab: true });
         assert.deepEqual(await settings(second), {});
         assert.include((await settings(unrelated))?.discordWebhook, '-not', 'another token stays');
+        assert.deepEqual(await settings(sealed), {}, 'sealed, found by its id and token');
+        assert.notProperty(await Creatures.findOneAsync(sealed), 'discordWebhookId');
+        assert.match((await settings(sealedOther))?.discordWebhook, /^enc1\./, 'another token stays, sealed too');
+        assert.equal((await Creatures.findOneAsync(sealedOther))?.discordWebhookId, dead.id);
       } finally {
-        await Creatures.removeAsync({ _id: { $in: [first, second, unrelated] } });
+        restoreKeys();
+        await Creatures.removeAsync({ _id: { $in: [first, second, unrelated, sealed, sealedOther] } });
       }
     });
   }

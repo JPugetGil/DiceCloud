@@ -84,14 +84,28 @@
         />
       </form-section>
       <form-section :name="$t('creatureForm.discord')">
-        <text-field
+        <!-- Connected (D4): Discord's own channel picker; the token stays on the server -->
+        <discord-connect-controls
+          v-if="editPermission"
+          :channel="model.discordChannel"
+          :available="discordOAuth"
+          :busy="connectBusy"
+          class="mb-4"
+          @connect="connectDiscord"
+          @disconnect="disconnectDiscord"
+        />
+        <!-- Or pasted: the way for a forum channel, which the picker never offers.
+             Its URL stays on the server: the sheet only knows the webhook's id -->
+        <discord-pasted-webhook
+          v-if="!model.discordChannel"
+          :webhook-id="model.discordWebhookId"
           :label="$t('creatureForm.discordWebhook')"
           :hint="$t('creatureForm.discordWebhookHint')"
-          placeholder="https://discord.com/api/webhooks/<id>/<token>"
+          :busy="pasteBusy"
           :disabled="!editPermission"
-          :model-value="model.settings.discordWebhook"
-          data-id="creature-discord-webhook"
-          @change="(value, ack) => emit('change', {path: ['settings','discordWebhook'], value, ack})"
+          data-id="creature-discord"
+          @save="savePastedWebhook"
+          @remove="removePastedWebhook"
         />
         <!-- The party's webhook too: its sessions apply, the game master's -->
         <p
@@ -167,10 +181,14 @@ import { changeAllowedLibraries, toggleAllUserLibraries } from '/imports/api/cre
 
 import SmartImageInput from '/imports/ui/components/global/SmartImageInput.vue';
 import DiscordSessionControls from '/imports/ui/creature/discord/DiscordSessionControls.vue';
+import DiscordConnectControls from '/imports/ui/creature/discord/DiscordConnectControls.vue';
+import DiscordPastedWebhook from '/imports/ui/creature/discord/DiscordPastedWebhook.vue';
+import { bindToThisBrowser } from '/imports/ui/discord/discordNonce';
+import { discordConnectUrl, discordDisconnect } from '/imports/api/discord/methods/discordOAuthMethods';
+import { webhookIdOf } from '/imports/api/creature/log/discord/discordChannel';
 import {
-  startCharacterSession, endCharacterSession, characterPartyWebhook,
+  startCharacterSession, endCharacterSession, characterPartyWebhook, setCharacterWebhook,
 } from '/imports/api/creature/creatures/methods/discordSessionMethods';
-import { parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -314,10 +332,74 @@ function selectLibraryCollection(id, val) {
 // The Discord session of its webhook (D3), if one is open: a session of
 // another webhook is over
 const { t } = useI18n();
-const discordWebhookId = computed(() => parseWebhookURL(props.model.settings?.discordWebhook)?.id);
+const discordWebhookId = computed(() => webhookIdOf(props.model.discordChannel, props.model.discordWebhookId));
 const discordSession = computed(() => sessionOf(props.model.discordSession, discordWebhookId.value));
 // 'start' or 'end' while its method runs
 const sessionBusy = ref(undefined);
+
+// The pasted webhook: 'save' or 'remove' while its method runs
+const pasteBusy = ref(undefined);
+
+async function runPaste(name, call) {
+  pasteBusy.value = name;
+  try {
+    await call();
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  } finally {
+    pasteBusy.value = undefined;
+  }
+}
+
+function savePastedWebhook(url, done) {
+  runPaste('save', async () => {
+    await setCharacterWebhook.callAsync({ creatureId: props.model._id, webhook: url });
+    done();
+    snackbar({ text: t('discord.webhookSaved') });
+  });
+}
+
+function removePastedWebhook() {
+  runPaste('remove', async () => {
+    await setCharacterWebhook.callAsync({ creatureId: props.model._id });
+    snackbar({ text: t('discord.webhookRemoved') });
+  });
+}
+
+// "Connect to Discord" (D4), when this server has a Discord application
+const discordOAuth = !!Meteor.settings.public?.discordOAuth;
+// 'connect' or 'disconnect' while its method runs
+const connectBusy = ref(undefined);
+
+async function connectDiscord() {
+  connectBusy.value = 'connect';
+  try {
+    // Discord's page, which comes back to this sheet with the result, to this browser alone
+    const url = await discordConnectUrl.callAsync({
+      creatureId: props.model._id, returnTo: `/character/${props.model._id}`, nonceHash: await bindToThisBrowser('connect'),
+    });
+    if (url) window.location.assign(url);
+    else connectBusy.value = undefined;
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+    connectBusy.value = undefined;
+  }
+}
+
+async function disconnectDiscord() {
+  connectBusy.value = 'disconnect';
+  try {
+    await discordDisconnect.callAsync({ creatureId: props.model._id });
+    snackbar({ text: t('discord.connect.disconnected') });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  } finally {
+    connectBusy.value = undefined;
+  }
+}
 
 // The party whose webhook is this one, which posts its rolls: asked of the
 // server, which alone knows the party's webhook

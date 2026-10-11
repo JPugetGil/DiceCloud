@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
-import { isDiscordWebhookURL, parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import { PUBLISH_KINDS, postingSummary, publishes } from '/imports/api/creature/log/discord/partyPublishing';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
@@ -34,7 +34,11 @@ const folderIdSchema = { folderId: { type: String, max: 32 } };
 // The browser's time zone, which the session's date is written in
 const timeZoneSchema = { timeZone: { type: String, optional: true, max: 64 } };
 
-/** Sets the party's webhook, or removes it (and its session) when empty */
+/**
+ * Sets the party's webhook, or removes it (and its session) when empty. The
+ * URL is stored sealed (pastedWebhooks.ts): the game master gets the
+ * webhook's id back, never the URL
+ */
 export const setPartyWebhook = new ValidatedMethod({
   name: 'creatureFolders.discord.setWebhook',
   validate: new SimpleSchema({
@@ -46,24 +50,36 @@ export const setPartyWebhook = new ValidatedMethod({
   async run({ folderId, webhook }) {
     const folder = await getFolderAsGm(folderId, this.userId);
     const url = webhook?.trim();
+    if (url && !isDiscordWebhookURL(url)) {
+      throw boardError('discord.invalid', 'discord.errors.invalidWebhook');
+    }
+    // The server alone seals it
+    if (!Meteor.isServer) return;
+    // A pasted webhook replaces a connected channel (D4), whose webhook goes
+    // once nothing else uses it
+    if (folder.discord?.channel) {
+      const { disconnectTarget } = await import('/imports/api/creature/log/server/connectedWebhooks');
+      const { discordApiBase } = await import('/imports/api/creature/log/server/webhookSender');
+      await disconnectTarget(discordApiBase(), { folderId });
+      folder.discord = { ...folder.discord, channel: undefined };
+    }
     if (!url) {
       await CreatureFolders.updateAsync(folderId, { $unset: { discord: 1, discordPosting: 1 } });
       return;
     }
-    if (!isDiscordWebhookURL(url)) {
-      throw boardError('discord.invalid', 'discord.errors.invalidWebhook');
-    }
+    const { pastedWebhookFields } = await import('/imports/api/creature/log/server/pastedWebhooks');
+    const { stored, webhookId } = /** @type {{ stored: string, webhookId: string }} */ (pastedWebhookFields(url));
     // Another webhook: the session and the fight's message were the old one's.
     // What it posts stays as the game master chose: all of it at first
-    const sameWebhook = parseWebhookURL(folder.discord?.webhook)?.id === parseWebhookURL(url)?.id;
+    const sameWebhook = folder.discord?.webhookId === webhookId;
     // What the players learn of it
-    const posting = postingSummary({ ...folder.discord, webhook: url });
+    const posting = postingSummary({ ...folder.discord, webhook: stored, webhookId });
     const $unset = {
       ...!posting && { discordPosting: 1 },
       ...!sameWebhook && folder.discord && { 'discord.session': 1, 'discord.initiative': 1 },
     };
     await CreatureFolders.updateAsync(folderId, {
-      $set: { 'discord.webhook': url, ...posting && { discordPosting: posting } },
+      $set: { 'discord.webhook': stored, 'discord.webhookId': webhookId, ...posting && { discordPosting: posting } },
       ...Object.keys($unset).length && { $unset },
     });
   },
@@ -85,7 +101,9 @@ export const setPartyPublishing = new ValidatedMethod({
   rateLimit: { numRequests: 10, timeInterval: 5000 },
   async run({ folderId, enabled, publish = {} }) {
     const folder = await getFolderAsGm(folderId, this.userId);
-    if (!folder.discord?.webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
+    if (!folder.discord?.webhook && !folder.discord?.webhookId && !folder.discord?.channel) {
+      throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
+    }
     const $set = {};
     if (enabled !== undefined) $set['discord.enabled'] = enabled;
     for (const kind of PUBLISH_KINDS) {
@@ -117,11 +135,12 @@ export const startPartySession = new ValidatedMethod({
     const folder = await getFolderAsGm(folderId, this.userId);
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
-      const webhook = parseWebhookURL(folder.discord?.webhook);
+      // Imported when called
+      const { partyChannel, partyWebhook, startSession } = await import('/imports/api/creature/log/server/discordWebhooks');
+      // Connected or pasted
+      const webhook = await partyWebhook(folder.discord);
       if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
       if (!publishes(folder.discord, 'sessions')) throw boardError('discord.sessionsOff', 'discord.errors.sessionsOff');
-      // Imported when called
-      const { partyChannel, startSession } = await import('/imports/api/creature/log/server/discordWebhooks');
       const session = await startSession(await partyChannel(folder, webhook), timeZone);
       return { kind: session.kind, name: session.name };
     }

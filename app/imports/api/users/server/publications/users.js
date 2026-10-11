@@ -18,6 +18,8 @@ Meteor.publish('user', function () {
       'services.google.name': 1,
       'services.google.email': 1,
       'services.google.locale': 1,
+      // The Discord account linked to this one: the user alone gets it
+      discordAccount: 1,
     }
   });
 });

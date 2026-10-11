@@ -4,8 +4,7 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { getArchiveObj } from '/imports/api/creature/archive/methods/archiveCreatureToFile';
-import { assertCopyPermission, hasEditPermission } from '/imports/api/sharing/sharingPermissions';
-import { creatureWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
+import { assertCopyPermission } from '/imports/api/sharing/sharingPermissions';
 
 /**
  * A character as an archive, the file archiving makes, without archiving it:
@@ -31,11 +30,8 @@ const getCreatureArchive = new ValidatedMethod({
       fields: { owner: 1, readers: 1, writers: 1, public: 1, readersCanCopy: 1 },
     });
     await assertCopyPermission(creature, this.userId);
-    const archive = await getArchiveObj(creatureId);
-    // Readers allowed to copy it don't get its Discord webhook
-    const user = await Meteor.users.findOneAsync(/** @type {string} */ (this.userId), { fields: { roles: 1 } });
-    if (!hasEditPermission(creature, user)) archive.creature = creatureWithoutWebhook(archive.creature);
-    return archive;
+    // Nothing of Discord in it, for anyone (getArchiveObj)
+    return getArchiveObj(creatureId);
   },
 });
 

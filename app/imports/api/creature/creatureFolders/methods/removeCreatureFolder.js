@@ -31,7 +31,14 @@ const removeCreatureFolder = new ValidatedMethod({
       await removeBoardMonsters(existingFolder);
     }
     // Remove
-    return await CreatureFolders.removeAsync(_id);
+    const removed = await CreatureFolders.removeAsync(_id);
+    // Its Discord channel's webhook, once nothing else posts with it
+    if (Meteor.isServer && existingFolder.discord?.channel?.webhookId) {
+      const { releaseWebhook } = await import('/imports/api/creature/log/server/connectedWebhooks');
+      const { discordApiBase } = await import('/imports/api/creature/log/server/webhookSender');
+      await releaseWebhook(discordApiBase(), existingFolder.discord.channel.webhookId);
+    }
+    return removed;
   },
 });
 

@@ -3,6 +3,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { DiscordSessionSchema } from '/imports/api/creature/log/discord/discordSession';
 import { PUBLISH_KINDS } from '/imports/api/creature/log/discord/partyPublishing';
+import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
 let CreatureFolders = new Mongo.Collection('creatureFolders');
 
@@ -142,11 +143,26 @@ let creatureFolderSchema = new SimpleSchema({
     type: Object,
     optional: true,
   },
+  // The URL pasted, sealed when the server has a key (pastedWebhooks.ts):
+  // no client ever gets it, the game master included; they get its id
   'discord.webhook': {
     type: String,
     optional: true,
-    max: STORAGE_LIMITS.url,
+    // A URL of STORAGE_LIMITS.url characters, sealed
+    max: 2 * STORAGE_LIMITS.url,
   },
+  'discord.webhookId': {
+    type: String,
+    optional: true,
+    max: 32,
+  },
+  // Or the channel connected with "Connect to Discord" (D4): its webhook's
+  // id, never its token (discordChannel.ts)
+  'discord.channel': {
+    type: Object,
+    optional: true,
+  },
+  ...channelFields('discord.channel'),
   // What it posts (partyPublishing.ts): false turns everything off, the
   // webhook kept; by kind of message, false for those turned off
   'discord.enabled': {

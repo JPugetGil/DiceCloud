@@ -13,6 +13,7 @@ import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArc
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 import { insertCreatureCopy } from '/imports/api/creature/creatures/methods/duplicateCreature';
+import { creatureWithoutDiscord } from '/imports/api/creature/creatures/webhookVisibility';
 import { Meteor } from 'meteor/meteor';
 
 let migrateArchive;
@@ -23,7 +24,8 @@ if (Meteor.isServer) {
   migrateArchive = require('/imports/migrations/archive/migrateArchive').default;
 }
 
-async function restoreCreature(archive, userId) {
+/** Restores an archive's character for the user; returns its id. Exported for the tests */
+export async function restoreCreature(archive, userId) {
   if (SCHEMA_VERSION < archive.meta.schemaVersion) {
     throw new Meteor.Error('Incompatible',
       'The archive file is from a newer version. Update required to read.')
@@ -48,6 +50,8 @@ async function restoreCreature(archive, userId) {
   // character limit counts those, and a file can say anything
   archive.creature.owner = userId;
   archive.creature.type = 'pc';
+  // Nor any Discord webhook or channel, which a file could name
+  archive.creature = creatureWithoutDiscord(archive.creature);
 
   // Insert the creature sub documents
   // They still have their original _id's

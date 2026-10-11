@@ -117,7 +117,7 @@
     "webhookStep2": "Copy its webhook URL.",
     "webhookStep3": "On the character sheet, open the menu, Edit details, and paste the URL in the Discord section.",
     "webhookLanguage": "Messages are written in the language of the character's owner. Lines hidden in the log are not sent.",
-    "webhookPrivacy": "Only those who can edit the character see its webhook URL. If the webhook is deleted in Discord, the character forgets it.",
+    "webhookPrivacy": "Once saved, the webhook's URL stays on DiceCloud's server: nobody sees it again, not even you; those who can edit the character see that one is set, and can replace or remove it. If the webhook is deleted in Discord, the character forgets it.",
     "typedRoll": "Roll: {roll}",
     "openSheet": "Open sheet",
     "sessionName": "Session of {date} — {name}",
@@ -135,9 +135,15 @@
     "partyTitle": "Discord",
     "partyText": "The party's channel receives its fights (the initiative order kept up to date, whose turn it is, a summary at the end) and its characters' rolls and actions. Never a monster's hit points.",
     "partyWebhook": "Party webhook URL",
-    "partyWebhookHint": "Only you see it. A character that posts to the same webhook posts each roll once.",
+    "partyWebhookHint": "Once saved, it stays on the server: nobody sees it again, not even you. A character that posts to the same webhook posts each roll once.",
     "save": "Save",
     "remove": "Remove",
+    "pasted": {
+      "masked": "Webhook …{end}",
+      "hidden": "Its URL stays on the server: nobody sees it again, not even you. Paste a new one to replace it.",
+      "replace": "Replace",
+      "cancel": "Cancel"
+    },
     "webhookSaved": "Discord webhook saved",
     "webhookRemoved": "Discord webhook removed",
     "session": "Session",
@@ -165,7 +171,8 @@
       "gone": "Discord no longer knows this webhook: it was removed. Create a new one in Discord.",
       "late": "Discord is slow to answer: the session opens in a moment",
       "failed": "Discord refused (error {status})",
-      "sessionsOff": "Sessions are turned off in the party's Discord settings"
+      "sessionsOff": "Sessions are turned off in the party's Discord settings",
+      "notConfigured": "This server has no Discord application to connect with"
     },
     "combatStarts": "**Combat begins**",
     "partySessionApplies": "This webhook is also the one of the party “{name}”: its rolls go into the party's sessions, which the game master opens.",
@@ -184,7 +191,44 @@
       "rollsAndCombat": "This party posts its characters' rolls and its fights to a Discord channel.",
       "rolls": "This party posts its characters' rolls to a Discord channel.",
       "combat": "This party posts its fights to a Discord channel."
-    }
+    },
+    "yourTurnMention": "Your turn: {name} {mention}",
+    "connect": {
+      "connect": "Connect to Discord",
+      "connected": "Connected to a Discord channel",
+      "openChannel": "Open the channel",
+      "disconnect": "Disconnect",
+      "disconnected": "Disconnected from Discord",
+      "hint": "Discord asks you which channel to post in. For a forum channel, with a post of its own per session, paste a webhook instead: Discord does not offer forums here."
+    },
+    "result": {
+      "connected": "Connected to Discord: messages go to the channel you picked",
+      "linked": "Discord account linked",
+      "denied": "Discord: authorization cancelled",
+      "expired": "This Discord link has expired: start again",
+      "forbidden": "You can no longer change this character or board",
+      "error": "Discord could not finish: try again later",
+      "full": "That channel has 15 webhooks already, the most Discord allows: remove one in the channel's settings (Integrations), or pick another channel",
+      "taken": "That Discord account is linked to another DiceCloud account already",
+      "unknown": "No DiceCloud account is linked to this Discord account. Sign in another way, then link it in your account's settings, under Discord."
+    },
+    "account": {
+      "title": "Discord",
+      "linked": "Linked to the Discord account {name}",
+      "notLinked": "Link your Discord account to be mentioned when it is your turn, and to sign in with Discord. DiceCloud keeps its id and its name, nothing else.",
+      "link": "Link my Discord account",
+      "unlink": "Unlink",
+      "unlinkHint": "Discord still lists DiceCloud in your Authorized Apps (User Settings): remove it there too to withdraw its access. DiceCloud keeps no Discord token.",
+      "unlinked": "Discord account unlinked. You can also remove DiceCloud from Discord's Authorized Apps.",
+      "mention": "Mention me when it's my turn",
+      "mentionHint": "On the turn lines a party posts to Discord"
+    },
+    "connectSectionTitle": "Connect to Discord",
+    "connectSectionText": "\"Connect to Discord\", in a character's details or on a party board, lets Discord ask you which channel to post in: DiceCloud gets a webhook there, which nobody sees, not even you. Discord does not offer forum channels this way: for a forum, with a post of its own per session, paste a webhook as above. \"Disconnect\" removes DiceCloud's webhook once nothing else posts with it.",
+    "mentionsTitle": "Mentions",
+    "mentionsText": "Link your Discord account in your account's settings, and the party's channel mentions you on your character's turn.",
+    "signInTitle": "Sign in with Discord",
+    "signInText": "Once your Discord account is linked, \"Sign in with Discord\" works for that account only (it never creates one), in one click: linking authorized DiceCloud in Discord, which keeps that authorization. DiceCloud itself keeps no Discord token. To withdraw it, unlink your account here, and remove DiceCloud from Authorized Apps in Discord's User Settings."
   },
   "legal": {
     "termsLink": "terms of use",
@@ -229,6 +273,13 @@
       "bucketRoot": "Bucket root",
       "monthlyCost": "Estimated cost per month",
       "costHint": "Estimate for S3 Standard storage in {region} at {price} per GB and month, as if the files stayed the same all month. Requests, data transfer and the AWS free tier are not counted."
+    },
+    "discord": {
+      "title": "Discord",
+      "servers": "Servers",
+      "channels": "Channels",
+      "notConfigured": "No Discord application in this server's settings (discord.clientId and discord.clientSecret): nothing is connected.",
+      "verificationHint": "Discord asks an application to be verified, its owner's identity checked, beyond 100 servers."
     }
   },
   "characterList": {
@@ -625,7 +676,8 @@
     "passwordRequired": "Password is required",
     "passwordsDontMatch": "Passwords don't match",
     "resetLinkSent": "Password reset link sent to {email}",
-    "acceptTerms": "By creating an account, you accept the {terms} and the {privacy}."
+    "acceptTerms": "By creating an account, you accept the {terms} and the {privacy}.",
+    "signInWithDiscord": "Sign in with Discord"
   },
   "common": {
     "cancel": "Cancel",
@@ -873,7 +925,7 @@
     "hitDiceMultiplier": "Hit Dice reset multiplier",
     "hitDiceMultiplierHint": "What fraction of your hit dice are reset every long rest",
     "discordWebhook": "Discord webhook URL",
-    "discordWebhookHint": "This creature's logs will be posted to the discord channel",
+    "discordWebhookHint": "Or paste a webhook's URL: the way for a forum channel, with a post per session",
     "libraries": "Libraries",
     "allUserLibraries": "All user libraries",
     "debug": "Debug",

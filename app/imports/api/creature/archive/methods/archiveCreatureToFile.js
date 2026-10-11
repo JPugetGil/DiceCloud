@@ -13,6 +13,7 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { getUserFileStorageError } from '/imports/api/users/methods/updateFileStorageUsed';
+import { creatureWithoutDiscord } from '/imports/api/creature/creatures/webhookVisibility';
 
 export async function getArchiveObj(creatureId) {
   // Build the archive document
@@ -27,7 +28,8 @@ export async function getArchiveObj(creatureId) {
       schemaVersion: SCHEMA_VERSION,
       archiveDate: new Date(),
     },
-    creature,
+    // Nothing of Discord: its owner can download the file
+    creature: creatureWithoutDiscord(creature),
     properties,
     experiences,
     logs,

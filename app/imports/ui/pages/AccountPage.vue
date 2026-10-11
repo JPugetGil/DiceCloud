@@ -258,6 +258,7 @@
             {{ $t('account.linkGoogle') }}
           </v-btn>
         </v-list-item>
+        <discord-account-items />
       </v-list>
       <div class="d-flex flex-1-1 justify-end">
         <v-btn
@@ -296,6 +297,7 @@ import useUnits from '/imports/ui/composables/useUnits';
 import { ROLES } from '/imports/api/users/roles';
 import prettyBytes from 'pretty-bytes';
 import { Meteor } from 'meteor/meteor';
+import DiscordAccountItems from '/imports/ui/user/DiscordAccountItems.vue';
 
 const dialogStackStore = useDialogStackStore();
 const { locale } = useI18n();

@@ -22,6 +22,14 @@ const updateCreature = new ValidatedMethod({
       throw new Meteor.Error('Creatures.methods.update.denied',
         'This field can\'t be updated using this method');
     }
+    // One setting at a time, never the Discord webhook, which its own method
+    // seals (creatures.discord.setWebhook): the whole settings object would
+    // replace it, a dotted name would reach into it
+    if (!Array.isArray(path) || path.some(key => typeof key !== 'string' || /[.$]/.test(key))
+      || (path[0] === 'settings' && (path.length !== 2 || path[1] === 'discordWebhook'))) {
+      throw new Meteor.Error('Creatures.methods.update.denied',
+        'This field can\'t be updated using this method');
+    }
   },
   mixins: [RateLimiterMixin],
   rateLimit: {

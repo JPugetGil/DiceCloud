@@ -10,6 +10,17 @@
  * thread_name or thread_id (220001), not both (220002); thread_name refused
  * outside a forum (220003); an unknown thread (10003) or message (10008).
  * It keeps every request, to compare with what the check expects.
+ *
+ * And Discord's OAuth2 (phase B): the authorization page, which redirects at
+ * once with a code (or `access_denied`) as `authorizeAs` says, and keeps the
+ * user's authorization of each application and scope; with prompt=none, a
+ * code at once for an authorization given before, else an error
+ * (`consent_required` unless `silentError` says another: what Discord does
+ * then was not probed, DiceCloud starts again with the page); the code's
+ * exchange, which creates a webhook with `webhook.incoming` (application
+ * owned, in a text channel: the picker never offers a forum), up to 15 per
+ * channel (30007); /users/@me with `identify`; the token's revocation; a
+ * webhook's GET and DELETE with its token.
  */
 const http = require('http');
 
@@ -26,7 +37,69 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
   const threads = new Set();
   let next = 1300000000000000000n;
   const snowflake = () => String(next++);
+  const secret = () => `${snowflake()}-${Math.random().toString(36).slice(2)}`;
   const error = (status, code, message, errors) => ({ status, body: { code, message, ...errors && { errors } } });
+
+  // OAuth2: what the next authorization gives, the codes, tokens and webhooks
+  let authorization = {
+    user: { id: '1400000000000000001', username: 'e2e_player', global_name: 'E2E player' },
+    guildId: '1500000000000000001',
+    channelId: '1500000000000000002',
+  };
+  const grants = new Map();
+  const accessTokens = new Map();
+  const oauthWebhooks = new Map();
+  // The authorizations users gave: `<client id>|<user id>|<scope>`
+  const consents = new Set();
+
+  function authorize(url) {
+    const target = new URL(url.searchParams.get('redirect_uri') || 'http://invalid');
+    if (url.searchParams.get('state')) target.searchParams.set('state', url.searchParams.get('state'));
+    const scope = url.searchParams.get('scope') || '';
+    const clientId = url.searchParams.get('client_id');
+    const consent = `${clientId}|${authorization.user?.id}|${scope}`;
+    if (authorization.deny) {
+      target.searchParams.set('error', 'access_denied');
+    } else if (url.searchParams.get('prompt') === 'none' && !consents.has(consent)) {
+      target.searchParams.set('error', authorization.silentError || 'consent_required');
+    } else {
+      const code = secret();
+      grants.set(code, {
+        scope, redirectUri: url.searchParams.get('redirect_uri'), clientId, used: false, authorization: { ...authorization },
+      });
+      consents.add(consent);
+      target.searchParams.set('code', code);
+    }
+    return { status: 302, headers: { Location: target.href } };
+  }
+
+  function exchange(form, basic) {
+    const grant = grants.get(form.code);
+    if (!basic?.id || !basic.secret) return error(401, 0, '401: Unauthorized');
+    if (form.grant_type !== 'authorization_code' || !grant || grant.used || grant.redirectUri !== form.redirect_uri
+      || grant.clientId !== basic.id) {
+      return { status: 400, body: { error: 'invalid_grant' } };
+    }
+    grant.used = true;
+    const access = secret();
+    const body = {
+      token_type: 'Bearer', access_token: access, expires_in: 604800, refresh_token: secret(),
+      scope: grant.scope === 'webhook.incoming' ? '' : grant.scope,
+    };
+    if (grant.scope.split(' ').includes('webhook.incoming')) {
+      const channelId = grant.authorization.channelId;
+      const inChannel = [...oauthWebhooks.values()].filter(w => w.channel_id === channelId && channels[w.id] !== 'gone');
+      if (inChannel.length >= 15) return error(400, 30007, 'Maximum number of webhooks reached (15)');
+      const webhook = {
+        id: snowflake(), token: secret(), type: 1, application_id: basic.id, channel_id: channelId,
+        guild_id: grant.authorization.guildId, name: 'DiceCloud',
+      };
+      oauthWebhooks.set(webhook.id, webhook);
+      body.webhook = webhook;
+    }
+    accessTokens.set(access, { scope: grant.scope, user: grant.authorization.user });
+    return { status: 200, body };
+  }
 
   function answer(request) {
     const kind = channels[request.webhookId] || 'text';
@@ -45,7 +118,7 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
       return { status: 200, body: message };
     }
     if (body.thread_name && query.thread_id) return error(400, 220002, 'Cannot set both thread_name and thread_id');
-    let channel = `9${request.webhookId.slice(1)}`;
+    let channel = oauthWebhooks.get(request.webhookId)?.channel_id ?? `9${request.webhookId.slice(1)}`;
     if (query.thread_id) {
       if (!threads.has(query.thread_id)) return error(404, 10003, 'Unknown Channel');
       channel = query.thread_id;
@@ -70,23 +143,47 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
       const match = /^\/api\/v10\/webhooks\/(\d+)\/([\w-]+)(?:\/messages\/(\d+))?$/.exec(url.pathname);
       let body;
       try {
-        body = data ? JSON.parse(data) : undefined;
+        body = !data ? undefined : /x-www-form-urlencoded/.test(req.headers['content-type'] || '')
+          ? Object.fromEntries(new URLSearchParams(data)) : JSON.parse(data);
       } catch {
         body = data;
       }
       const request = {
         method: req.method,
+        path: url.pathname,
         webhookId: match?.[1],
         messageId: match?.[3],
         query: Object.fromEntries(url.searchParams),
         userAgent: req.headers['user-agent'],
         body,
       };
-      const reply = match ? answer(request) : error(405, 0, '405: Method Not Allowed');
+      const basicAuth = /^Basic (.+)$/.exec(req.headers.authorization || '')?.[1];
+      const [id, password] = basicAuth ? Buffer.from(basicAuth, 'base64').toString().split(':') : [];
+      let reply;
+      if (req.method === 'GET' && url.pathname === '/oauth2/authorize') reply = authorize(url);
+      else if (req.method === 'POST' && url.pathname === '/api/v10/oauth2/token') reply = exchange(body || {}, basicAuth && { id, secret: password });
+      else if (req.method === 'POST' && url.pathname === '/api/v10/oauth2/token/revoke') {
+        const token = accessTokens.get(body?.token);
+        if (token) token.revoked = true;
+        // The user's authorization goes with it
+        for (const consent of consents) if (token && consent.split('|')[1] === token.user.id) consents.delete(consent);
+        reply = { status: 200, body: {} };
+      } else if (req.method === 'GET' && url.pathname === '/api/v10/users/@me') {
+        const token = accessTokens.get((req.headers.authorization || '').replace(/^Bearer /, ''));
+        reply = !token || token.revoked || !token.scope.split(' ').includes('identify')
+          ? error(401, 0, '401: Unauthorized') : { status: 200, body: { ...token.user, avatar: null, discriminator: '0' } };
+      } else if (match && !match[3] && ['GET', 'DELETE'].includes(req.method)) {
+        const webhook = oauthWebhooks.get(match[1]);
+        if (channels[match[1]] === 'gone' || (webhook && webhook.token !== match[2])) reply = error(404, 10015, 'Unknown Webhook');
+        else if (req.method === 'DELETE') {
+          channels[match[1]] = 'gone';
+          reply = { status: 204 };
+        } else reply = { status: 200, body: webhook ?? { id: match[1], type: 1 } };
+      } else reply = match ? answer(request) : error(405, 0, '405: Method Not Allowed');
       request.status = reply.status;
       request.code = reply.body?.code;
       requests.push(request);
-      res.writeHead(reply.status, reply.body ? { 'Content-Type': 'application/json' } : {});
+      res.writeHead(reply.status, { ...reply.body && { 'Content-Type': 'application/json' }, ...reply.headers });
       res.end(reply.body ? JSON.stringify(reply.body) : '');
     });
   });
@@ -98,6 +195,13 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
     baseUrl: `http://127.0.0.1:${port}/api/v10`,
     requests,
     threads,
+    // OAuth2: what the next authorizations give; the webhooks and tokens handed out
+    authorizeAs: next => {
+      authorization = next;
+    },
+    oauthWebhooks,
+    accessTokens,
+    consents,
     close: () => new Promise(resolve => {
       server.closeAllConnections();
       server.close(resolve);

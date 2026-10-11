@@ -13,7 +13,13 @@
       >
         <database-usage-card />
       </v-col>
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        lg="4"
+      >
+        <discord-usage-card />
+      </v-col>
+      <v-col cols="12" lg="8">
         <user-roles-card />
       </v-col>
     </v-row>
@@ -24,4 +30,5 @@
 import DatabaseUsageCard from '/imports/ui/admin/DatabaseUsageCard.vue';
 import S3UsageCard from '/imports/ui/admin/S3UsageCard.vue';
 import UserRolesCard from '/imports/ui/admin/UserRolesCard.vue';
+import DiscordUsageCard from '/imports/ui/admin/DiscordUsageCard.vue';
 </script>

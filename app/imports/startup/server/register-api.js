@@ -7,6 +7,9 @@ import '/imports/api/rest/server';
 // Link previews, in the HTML of every page
 import '/imports/api/linkPreviews/server/linkPreviews';
 
+// Discord's OAuth2 redirect, and "Sign in with Discord"
+import '/imports/api/discord/server/oauthCallback';
+
 // Publications
 import '/imports/api/creature/creatures/server/publications/characterList';
 import '/imports/api/library/server/publications/library';
@@ -35,3 +38,4 @@ import '/imports/api/engine/action/methods/index';
 import '/imports/api/sharing/sharing';
 import '/imports/api/files/methods/getS3Usage';
 import '/imports/api/admin/methods/getDatabaseUsage';
+import '/imports/api/discord/methods/discordOAuthMethods';

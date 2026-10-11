@@ -1,15 +1,15 @@
+import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
-import { parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import {
   combatStart, combatSummary, initiativeMessage, turnLine, type InitiativeRow,
 } from '/imports/api/creature/log/discord/partyMessages';
 import { publishes, type PublishKind } from '/imports/api/creature/log/discord/partyPublishing';
 import { DISCORD_CODES, postMessage, type Requester, type WebhookSender } from '/imports/api/creature/log/server/webhookSender';
 import {
-  creatureFolders, deliver, partyChannel, webhookSender, type Channel, type PartyFolderDoc,
+  creatureFolders, deliver, partyChannel, partyWebhook, webhookSender, type Channel, type PartyFolderDoc,
 } from '/imports/api/creature/log/server/discordWebhooks';
 
 /*
@@ -45,7 +45,7 @@ export async function initiativeRows(tracker: Tracker | undefined): Promise<Init
   const order = initiativeOrder(tracker?.entries || []);
   const ids = order.map(entry => entry.creatureId).filter((id): id is string => !!id);
   const creatures = ids.length ? await Creatures.find(
-    { _id: { $in: ids } }, { fields: { name: 1, type: 1 } },
+    { _id: { $in: ids } }, { fields: { name: 1, type: 1, owner: 1 } },
   ).fetchAsync() : [];
   const conditions = ids.length ? await CreatureProperties.find({
     'root.id': { $in: ids },
@@ -61,6 +61,7 @@ export async function initiativeRows(tracker: Tracker | undefined): Promise<Init
       ...Number.isFinite(entry.initiative) && { initiative: entry.initiative },
       ...entry.out && { out: true },
       character: !!creature && !hidesStatsFromPlayers(creature),
+      ...creature && !hidesStatsFromPlayers(creature) && creature.owner && { ownerId: creature.owner },
       conditions: conditions
         .filter(condition => condition.root?.id === entry.creatureId && condition.name)
         .map(condition => condition.name as string),
@@ -139,6 +140,18 @@ async function endFight(request: Requester, channel: Channel, folderId: string, 
   }
 }
 
+/**
+ * The Discord id to mention on a player's turn: theirs, once they linked
+ * their account (D5), unless they turned "Mention me when it's my turn" off
+ */
+export async function mentionOf(userId?: string): Promise<string | undefined> {
+  if (!userId) return undefined;
+  const user = await Meteor.users.findOneAsync(userId, {
+    fields: { 'discordAccount.id': 1, 'preferences.discordMentionOff': 1 },
+  }) as { discordAccount?: { id?: string }, preferences?: { discordMentionOff?: boolean } } | undefined;
+  return user?.preferences?.discordMentionOff ? undefined : user?.discordAccount?.id;
+}
+
 // The folders whose initiative message waits to be drawn: a change made
 // meanwhile shows in it
 const waiting = new Set<string>();
@@ -147,7 +160,7 @@ const intake = new Map<string, Promise<void>>();
 
 async function queueChange(folderId: string, change: InitiativeChange, ended: Tracker | undefined, target: WebhookSender) {
   const folder = await readFolder(folderId);
-  const webhook = parseWebhookURL(folder?.discord?.webhook);
+  const webhook = await partyWebhook(folder?.discord);
   if (!folder || !webhook || target.isGone(webhook)) return;
   if (change === 'end' ? !ended?.round : !folder.initiative?.round) return;
   const on = (kind: PublishKind) => publishes(folder.discord, kind);
@@ -168,7 +181,8 @@ async function queueChange(folderId: string, change: InitiativeChange, ended: Tr
   let line: ReturnType<typeof turnLine>;
   if (change !== 'update' && on('turns')) {
     const rows = await initiativeRows(folder.initiative);
-    line = turnLine(rows[folder.initiative?.turn || 0], channel.language);
+    const row = rows[folder.initiative?.turn || 0];
+    line = turnLine(row, channel.language, await mentionOf(row?.ownerId));
   }
   // The initiative message says the fight starts; without it, a line does
   const start = change === 'start' && on('combat') && !on('initiative') ? combatStart(channel.language) : undefined;

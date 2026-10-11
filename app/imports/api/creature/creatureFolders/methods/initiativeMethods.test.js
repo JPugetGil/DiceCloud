@@ -326,7 +326,7 @@ describe('Creatures added to the initiative tracker', function () {
   });
 
   it('publishes the stats to the game master only, unless shown', function () {
-    assert.deepEqual(boardFolderFields('gm', {}), {});
+    assert.deepEqual(boardFolderFields('gm', {}), { 'discord.webhook': 0 }, 'never the webhook\'s URL, not even to the game master');
     assert.deepEqual(boardFolderFields('member', {}), { inviteToken: 0, initiativeStats: 0, discord: 0 });
     assert.deepEqual(boardFolderFields('member', { initiative: { showStats: true } }), { inviteToken: 0, discord: 0 });
   });

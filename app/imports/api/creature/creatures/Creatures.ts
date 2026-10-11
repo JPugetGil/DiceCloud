@@ -6,6 +6,7 @@ import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSc
 import type { Simplify } from 'type-fest';
 import { Mongo } from 'meteor/mongo';
 import { sessionFields } from '/imports/api/creature/log/discord/discordSession';
+import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
 const CreatureSettingsSchema = TypedSimpleSchema.from({
   //slowed down by carrying too much?
@@ -55,10 +56,13 @@ const CreatureSettingsSchema = TypedSimpleSchema.from({
     min: 0,
     max: 1,
   },
+  // The Discord webhook URL pasted, sealed when the server has a key
+  // (pastedWebhooks.ts): no client ever gets it, its editors included
   discordWebhook: {
     type: String,
     optional: true,
-    max: STORAGE_LIMITS.url,
+    // A URL of STORAGE_LIMITS.url characters, sealed
+    max: 2 * STORAGE_LIMITS.url,
   },
 });
 
@@ -185,6 +189,19 @@ const CreatureSchema = TypedSimpleSchema.from({
     optional: true,
   },
   ...sessionFields('discordSession'),
+  // The Discord channel connected with "Connect to Discord" (D4): its
+  // webhook's id, never its token (discordChannel.ts). For editors only too
+  discordChannel: {
+    type: Object,
+    optional: true,
+  },
+  ...channelFields('discordChannel'),
+  // The pasted webhook's id, which is no secret: what its editors get of it
+  discordWebhookId: {
+    type: String,
+    optional: true,
+    max: 32,
+  },
 })
   .extend(ColorSchema)
   .extend(SharingSchema);

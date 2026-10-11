@@ -5,7 +5,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
-import { WITHOUT_WEBHOOK } from '/imports/api/creature/creatures/webhookVisibility';
+import { WITHOUT_WEBHOOK, WITHOUT_WEBHOOK_URL } from '/imports/api/creature/creatures/webhookVisibility';
 import computeCreature from '/imports/api/engine/computeCreature';
 import VERSION from '/imports/constants/VERSION';
 import { loadCreature } from '/imports/api/engine/loadCreatures';
@@ -81,7 +81,7 @@ Meteor.publish('singleCharacter', function (creatureId) {
       ] : [],
       Creatures.find({
         _id: creatureId,
-      }, canEdit ? {} : { fields: WITHOUT_WEBHOOK }),
+      }, { fields: canEdit ? WITHOUT_WEBHOOK_URL : WITHOUT_WEBHOOK }),
       CreatureVariables.find({
         _creatureId: creatureId,
       }),

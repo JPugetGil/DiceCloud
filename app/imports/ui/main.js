@@ -6,6 +6,7 @@ import router from '/imports/ui/router';
 import registerGlobalComponents from '/imports/ui/components/global/globalIndex';
 import vuetify from '/imports/ui/plugins/vuetify';
 import i18n from '/imports/ui/i18n';
+import showDiscordResult from '/imports/ui/discord/discordResult';
 // After Vuetify's styles, which the app's stylesheets override
 import '/imports/ui/stylesheets';
 
@@ -16,6 +17,7 @@ Meteor.startup(() => {
   // cannot be used before its app installs Pinia
   app.use(createPinia());
   app.use(router);
+  showDiscordResult(router);
   app.use(i18n);
   app.use(vuetify);
   registerGlobalComponents(app);

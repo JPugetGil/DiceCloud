@@ -16,16 +16,21 @@ export const PUBLISH_KINDS = Object.freeze(['initiative', 'turns', 'combat', 'ro
 export type PublishKind = typeof PUBLISH_KINDS[number];
 
 export type PartyDiscord = {
+  // The URL pasted, on the server (sealed); its webhook's id, which the game
+  // master's client gets instead
   webhook?: string,
+  webhookId?: string,
+  // Connected with "Connect to Discord" instead of pasted
+  channel?: { webhookId: string },
   // false: nothing is posted, the webhook stays
   enabled?: boolean,
   // By kind, false for those turned off
   publish?: Partial<Record<PublishKind, boolean>>,
 };
 
-/** Whether the party posts on: a webhook, publishing on, and that kind on */
+/** Whether the party posts on: a webhook (pasted or connected), publishing on, and that kind on */
 export function publishes(discord: PartyDiscord | undefined | null, kind?: PublishKind): boolean {
-  if (!discord?.webhook || discord.enabled === false) return false;
+  if (!(discord?.webhook || discord?.webhookId || discord?.channel?.webhookId) || discord.enabled === false) return false;
   return !kind || discord.publish?.[kind] !== false;
 }
 

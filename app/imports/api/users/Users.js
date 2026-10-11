@@ -124,6 +124,11 @@ const userSchema = new SimpleSchema({
     allowedValues: ['en', 'fr'],
     optional: true,
   },
+  // Not mentioned on Discord when it is one's turn (D5): mentioned unless set
+  'preferences.discordMentionOff': {
+    type: Boolean,
+    optional: true,
+  },
   // Units distances and weights are shown in; stored values stay metric
   // (see imports/api/utility/units)
   'preferences.distanceUnit': {
@@ -135,6 +140,28 @@ const userSchema = new SimpleSchema({
     type: String,
     allowedValues: WEIGHT_UNITS,
     optional: true,
+  },
+  // The Discord account linked to this one (D5): its id and the name to show,
+  // nothing else; one DiceCloud account per Discord account. Published to
+  // the user alone
+  discordAccount: {
+    type: Object,
+    optional: true,
+  },
+  'discordAccount.id': {
+    type: String,
+    max: 32,
+    index: 1,
+    unique: true,
+    sparse: true,
+  },
+  'discordAccount.username': {
+    type: String,
+    optional: true,
+    max: 64,
+  },
+  'discordAccount.linkedAt': {
+    type: Date,
   },
 });
 

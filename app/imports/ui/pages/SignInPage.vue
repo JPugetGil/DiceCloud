@@ -79,6 +79,30 @@
           </div>
         </v-form>
       </v-card-text>
+      <!-- Only for an account that linked its Discord account: never creates one -->
+      <template v-if="discordOAuth">
+        <v-divider class="mx-4" />
+        <v-card-text class="d-flex flex-column ga-2">
+          <v-alert
+            v-if="discordMessage"
+            :type="discordMessage.type"
+            variant="tonal"
+            density="compact"
+            :text="discordMessage.text"
+            data-id="discord-sign-in-message"
+          />
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-discord"
+            block
+            :loading="discordBusy"
+            data-id="discord-sign-in"
+            @click="discordLogin"
+          >
+            {{ $t('auth.signInWithDiscord') }}
+          </v-btn>
+        </v-card-text>
+      </template>
       <!-- Only once Google sign-in is configured on the server (see README) -->
       <template v-if="googleConfigured">
         <v-divider class="mx-4" />
@@ -105,7 +129,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { Accounts } from 'meteor/accounts-base';
+import { discordLoginUrl } from '/imports/api/discord/methods/discordOAuthMethods';
+import { bindToThisBrowser, clearSignInNonce, signInNonce } from '/imports/ui/discord/discordNonce';
 import { useRoute, useRouter } from 'vue-router';
 import useLoginServiceConfigured from '/imports/ui/composables/useLoginServiceConfigured';
 import { Meteor } from 'meteor/meteor';
@@ -143,6 +170,57 @@ async function submit() {
     }
   });
 }
+
+// "Sign in with Discord" (D5), when this server has a Discord application
+const discordOAuth = !!Meteor.settings.public?.discordOAuth;
+const discordBusy = ref(false);
+const discordMessage = ref(undefined);
+
+async function discordLogin() {
+  discordBusy.value = true;
+  discordMessage.value = undefined;
+  try {
+    // Discord's page, which comes back here with a one-time ticket for this
+    // browser alone: it keeps the nonce, the server its hash
+    const nonceHash = await bindToThisBrowser('login');
+    const url = await discordLoginUrl.callAsync({ returnTo: route.query.redirect || '/character-list', nonceHash });
+    if (url) window.location.assign(url);
+    else discordBusy.value = false;
+  } catch (loginError) {
+    console.error(loginError);
+    discordMessage.value = { type: 'error', text: loginError.reason || loginError.message };
+    discordBusy.value = false;
+  }
+}
+
+// Back from Discord: a ticket signs the account in, once, with the nonce of
+// this browser; otherwise why not
+onMounted(() => {
+  const { discord: result, ticket, ...rest } = route.query;
+  if (!result) return;
+  // The ticket and the result leave the address at once, the nonce this browser
+  const nonce = signInNonce();
+  clearSignInNonce();
+  router.replace({ query: rest });
+  if (result !== 'ticket' || !ticket) {
+    discordMessage.value = { type: result === 'unknown' ? 'info' : 'error', text: t(`discord.result.${result}`) };
+    return;
+  }
+  discordBusy.value = true;
+  Accounts.callLoginMethod({
+    methodArguments: [{ discordTicket: ticket, discordNonce: nonce }],
+    userCallback: loginError => {
+      discordBusy.value = false;
+      if (loginError) {
+        // An expired or used ticket, or one of another browser: in the reader's language
+        const text = loginError.error === 'discord-sign-in-expired' ? t('discord.result.expired') : loginError.reason || loginError.message;
+        discordMessage.value = { type: 'error', text };
+      } else {
+        router.push(rest.redirect || '/character-list');
+      }
+    },
+  });
+});
 
 function googleLogin() {
   Meteor.loginWithGoogle(loginError => {

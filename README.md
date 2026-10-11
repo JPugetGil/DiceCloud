@@ -99,6 +99,7 @@ settings, a JSON document. Locally, copy `app/exampleMeteorSettings.json` to
 | Setting | |
 |---------|---|
 | `packages.service-configuration.google` | Google sign-in, see [Sign in with Google](#sign-in-with-google) |
+| `discord` | DiceCloud's Discord application and the webhooks' key, see [Discord application](#discord-application) |
 | `s3` | File storage, see [File storage (AWS S3)](#file-storage-aws-s3) |
 | `public.legal` | Who runs the instance, see [Privacy policy and terms of use](#privacy-policy-and-terms-of-use) |
 | `public.disallowCreatureApiImport` | `true` to turn off importing characters from another DiceCloud instance |
@@ -293,6 +294,77 @@ server. Until then, accounts use a username or email and a password.
 Removing the configuration from the settings later does not switch Google off:
 Meteor keeps it in the `meteor_accounts_loginServiceConfiguration` collection.
 Delete the document whose `service` is `google` from that collection as well.
+
+Discord application
+-------------------
+
+Characters and party boards can post to Discord with a pasted webhook URL
+without any setting. With a Discord application, three more buttons appear:
+"Connect to Discord" (a character's details, a party board), "Link my Discord
+account" (account page, for the mentions on one's turn) and "Sign in with
+Discord" (for an account already linked: it never creates one). Without the
+application's settings, none of them shows and nothing else changes.
+
+1. In the [Discord Developer Portal](https://discord.com/developers/applications),
+   create the application under a **team** (Teams > New Team, then the
+   application in it), not your personal account: deleting the application
+   deletes every webhook it created, so it must outlive any one person. Name it
+   without the word "discord" (Discord refuses it). Keep its client secret
+   safe: a new one breaks nothing, a new application breaks every connection.
+2. OAuth2 > Redirects: add `ROOT_URL` followed by `/discord/oauth/callback`,
+   such as `https://dd-dc.hemoreg.me/discord/oauth/callback`, and
+   `http://localhost:3000/discord/oauth/callback` for a development
+   application (better a second application for development).
+3. Put its client ID and secret in the server's settings (never in `public`):
+
+   ```json
+   {
+     "discord": {
+       "clientId": "<application id>",
+       "clientSecret": "<client secret>",
+       "tokenKey": "<openssl rand -base64 32>"
+     }
+   }
+   ```
+
+   `tokenKey` encrypts the webhooks' tokens: see [The webhooks' key](#the-webhooks-key).
+
+4. Restart the server.
+
+DiceCloud keeps no Discord access token: the webhooks' tokens stay in the
+server-only `discordWebhooks` collection, an account link keeps the Discord id
+and name. The user's authorization of the application stays on Discord, which
+makes "Sign in with Discord" one click (`prompt=none`); they remove it in
+Discord's User Settings, Authorized Apps (the account page says so). Discord
+asks an application to be verified beyond 100 servers: the administration page
+counts the servers DiceCloud is connected to.
+
+### The webhooks' key
+
+The webhooks' tokens, connected or pasted on a character or a party board, are
+stored encrypted (AES-256-GCM) when the settings hold a key,
+`discord.tokenKey`, with or without a Discord application. Without it they are
+stored in plaintext, as before, and the server says so once at startup.
+
+- **Make it** once: `openssl rand -base64 32` (32 random bytes in base64), into
+  the server's settings, never in `public`:
+
+  ```json
+  { "discord": { "tokenKey": "<the 44 characters>" } }
+  ```
+
+  At the next start, the server encrypts what is stored in plaintext; the log
+  says how many. It does so at every start, and finds nothing more to do.
+- **Keep it** in the settings file and in a password manager. It is never in
+  the database, so a dump or a backup (`deploy/dicecloud.sh backup`, its copy to
+  S3) holds no webhook anyone could post with; keep the key out of those
+  backups too.
+- **Restoring** a dump needs the same key. Without it, the server keeps the
+  encrypted values but cannot use them (it says how many at startup): every
+  character, board and channel has to be connected or pasted again.
+- **A new key**: put the old one in `discord.oldTokenKeys` (a list) and the new
+  one in `discord.tokenKey`; the next start encrypts everything again with the
+  new one, then the old one can go.
 
 File storage (AWS S3)
 ---------------------

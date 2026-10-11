@@ -46,7 +46,7 @@ Cloudflared**, name it `dicecloud`.
 1. On the install step, choose Docker and copy the token: the long value after
    `--token` in the command shown. It goes in `CLOUDFLARE_TUNNEL_TOKEN`.
    Nothing else on that page needs running: the script starts the connector.
-2. **Public hostname**: subdomain `dicecloud`, domain `hemoreg.me` (or no
+2. **Public hostname**: subdomain `dd-dc`, domain `hemoreg.me` (or no
    subdomain for `hemoreg.me` itself), service URL `http://dicecloud:3000`.
    Plain `http`: the tunnel already encrypts the way to Cloudflare, which
    gives visitors HTTPS; the app's container answers in plain HTTP. Cloudflare
@@ -64,7 +64,7 @@ cd ~/DiceCloud/deploy
 up the daily backup. Then:
 
 1. In `deploy/.env`:
-   - `ROOT_URL`: the public address, `https://dicecloud.hemoreg.me`;
+   - `ROOT_URL`: the public address, `https://dd-dc.hemoreg.me`;
    - `CLOUDFLARE_TUNNEL_TOKEN`: the tunnel's token;
    - `MAIL_URL`: the SMTP server, see `.env.example`;
    - `MAIL_FROM`: the sender, on the domain authenticated with the SMTP
@@ -118,8 +118,18 @@ default. The app stops during the copy: start it again with
 Then:
 
 - **Google sign-in**: in Google Cloud's console, add
-  `https://dicecloud.hemoreg.me/_oauth/google` to the OAuth client's
+  `https://dd-dc.hemoreg.me/_oauth/google` to the OAuth client's
   authorized redirect URIs.
+- **Discord application** (optional): see the main README, "Discord
+  application"; add its `discord` `{ clientId, clientSecret }` to
+  `settings.production.json` and the redirect URI
+  `https://dd-dc.hemoreg.me/discord/oauth/callback` in Discord's portal.
+- **The webhooks' key**, with or without the application: `openssl rand
+  -base64 32`, as `discord.tokenKey` in `settings.production.json`, and a copy
+  in a password manager (main README, "The webhooks' key"). At the next start
+  the app encrypts the Discord webhooks stored in plaintext; `./dicecloud.sh
+  logs` says how many. Without it, they stay in plaintext, in the database
+  and its backups.
 - **Emails**: in Brevo, authenticate the domain of `MAIL_FROM` (Senders,
   domains and dedicated IPs > Domains), then add the records it gives in
   Cloudflare, its DKIM records as **DNS only**: proxied, they hide the keys
@@ -171,6 +181,13 @@ A disk failure, a theft or a fire takes the backups along with the machine. To
 keep a copy elsewhere, fill in the `BACKUP_S3_*` values: after each backup, the
 bucket gets the same files under `BACKUP_S3_PREFIX`, old ones removed there
 too. An AWS key limited to that prefix is best.
+
+A backup holds the database alone (`mongodump` of the app's database), never
+the settings file nor `.env`. With `discord.tokenKey` set, the Discord
+webhooks in it are encrypted, so a backup, on S3 or elsewhere, holds none that
+anyone could post with. Keep the key out of the bucket, in a password manager:
+restoring a backup needs the same key in the settings, and without it every
+character, board and channel has to be connected to Discord again.
 
 ## 7. Day to day
 

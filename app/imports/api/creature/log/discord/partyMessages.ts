@@ -62,6 +62,8 @@ export type InitiativeRow = {
   out?: boolean,
   // A character of the party (not a monster, nor a creature added by hand)
   character?: boolean,
+  // Its player's DiceCloud account, whom its turn's line may mention
+  ownerId?: string,
   conditions?: string[],
 };
 
@@ -113,16 +115,20 @@ export function combatStart(language?: string) {
 /**
  * The turn's line, as plain text: "Your turn: Aria" for a character of the
  * party, "Goblin 1's turn" for anyone else. Text, not a card: a mention in it
- * notifies the player (D5)
+ * notifies (D5). `mention`, the Discord id of the character's player, who
+ * linked their account and wants it: that user alone may be pinged, never a
+ * role nor everyone
  */
-export function turnLine(row: InitiativeRow | undefined, language?: string) {
+export function turnLine(row: InitiativeRow | undefined, language?: string, mention?: string) {
   if (!row) return undefined;
   const translate = translatorFor(discordLanguage(language));
   const name = escapeMarkdown(row.name);
-  const content = row.character
-    ? translate('discord.yourTurn', { name })
-    : translate('discord.creatureTurn', { name });
-  return content ? { content, ...NO_MENTIONS } : undefined;
+  const ping = row.character && mention && /^\d{1,32}$/.test(mention) ? mention : undefined;
+  const content = !row.character ? translate('discord.creatureTurn', { name })
+    : ping ? translate('discord.yourTurnMention', { name, mention: `<@${ping}>` })
+      : translate('discord.yourTurn', { name });
+  if (!content) return undefined;
+  return { content, allowed_mentions: { parse: [], ...ping && { users: [ping] } } };
 }
 
 /** The end of the fight: how many rounds, who fought, who was put out of it */

@@ -20,5 +20,10 @@
         "secret": "<Google client secret>"
       }
     }
+  },
+  "discord": {
+    "clientId": "",
+    "clientSecret": "",
+    "tokenKey": ""
   }
 }

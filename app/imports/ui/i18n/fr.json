@@ -117,7 +117,7 @@
     "webhookStep2": "Copiez l'URL du webhook.",
     "webhookStep3": "Sur la fiche du personnage, ouvrez le menu, Modifier les détails, et collez-la dans la section Discord.",
     "webhookLanguage": "Les messages sont rédigés dans la langue du propriétaire du personnage. Les lignes masquées du journal ne sont pas envoyées.",
-    "webhookPrivacy": "Seules les personnes qui peuvent modifier le personnage voient l'URL de son webhook. Si le webhook est supprimé dans Discord, le personnage l'oublie.",
+    "webhookPrivacy": "Une fois enregistrée, l'URL du webhook reste sur le serveur de DiceCloud : personne ne la revoit, pas même vous ; les personnes qui peuvent modifier le personnage voient qu'il y en a une, et peuvent la remplacer ou la retirer. Si le webhook est supprimé dans Discord, le personnage l'oublie.",
     "typedRoll": "Jet : {roll}",
     "openSheet": "Ouvrir la fiche",
     "sessionName": "Séance du {date} — {name}",
@@ -135,9 +135,15 @@
     "partyTitle": "Discord",
     "partyText": "Le salon du groupe reçoit ses combats (l'ordre d'initiative tenu à jour, à qui c'est le tour, un résumé à la fin) et les jets et actions de ses personnages. Jamais les points de vie d'un monstre.",
     "partyWebhook": "URL du webhook du groupe",
-    "partyWebhookHint": "Vous seul la voyez. Un personnage qui publie sur le même webhook n'envoie chaque jet qu'une fois.",
+    "partyWebhookHint": "Une fois enregistrée, elle reste sur le serveur : personne ne la revoit, pas même vous. Un personnage qui publie sur le même webhook n'envoie chaque jet qu'une fois.",
     "save": "Enregistrer",
     "remove": "Retirer",
+    "pasted": {
+      "masked": "Webhook …{end}",
+      "hidden": "Son URL reste sur le serveur : personne ne la revoit, pas même vous. Collez-en une nouvelle pour la remplacer.",
+      "replace": "Remplacer",
+      "cancel": "Annuler"
+    },
     "webhookSaved": "Webhook Discord enregistré",
     "webhookRemoved": "Webhook Discord retiré",
     "session": "Séance",
@@ -165,7 +171,8 @@
       "gone": "Discord ne connaît plus ce webhook : il a été retiré. Créez-en un nouveau dans Discord.",
       "late": "Discord tarde à répondre : la séance va s'ouvrir dans un instant",
       "failed": "Discord a refusé (erreur {status})",
-      "sessionsOff": "Les séances sont désactivées dans les réglages Discord du groupe"
+      "sessionsOff": "Les séances sont désactivées dans les réglages Discord du groupe",
+      "notConfigured": "Ce serveur n'a pas d'application Discord à laquelle se connecter"
     },
     "combatStarts": "**Début du combat**",
     "partySessionApplies": "Ce webhook est aussi celui du groupe « {name} » : ses jets vont dans les séances du groupe, que le maître du jeu ouvre.",
@@ -184,7 +191,44 @@
       "rollsAndCombat": "Ce groupe publie les jets de ses personnages et ses combats sur un salon Discord.",
       "rolls": "Ce groupe publie les jets de ses personnages sur un salon Discord.",
       "combat": "Ce groupe publie ses combats sur un salon Discord."
-    }
+    },
+    "yourTurnMention": "À toi : {name} {mention}",
+    "connect": {
+      "connect": "Connecter à Discord",
+      "connected": "Connecté à un salon Discord",
+      "openChannel": "Ouvrir le salon",
+      "disconnect": "Déconnecter",
+      "disconnected": "Déconnecté de Discord",
+      "hint": "Discord vous demande dans quel salon publier. Pour un salon forum, avec un post par séance, collez plutôt un webhook : Discord ne propose pas les forums ici."
+    },
+    "result": {
+      "connected": "Connecté à Discord : les messages vont dans le salon choisi",
+      "linked": "Compte Discord lié",
+      "denied": "Discord : autorisation annulée",
+      "expired": "Ce lien Discord a expiré : recommencez",
+      "forbidden": "Vous ne pouvez plus modifier ce personnage ou ce tableau",
+      "error": "Discord n'a pas pu aboutir : réessayez plus tard",
+      "full": "Ce salon a déjà 15 webhooks, le maximum de Discord : retirez-en un dans les paramètres du salon (Intégrations), ou choisissez un autre salon",
+      "taken": "Ce compte Discord est déjà lié à un autre compte DiceCloud",
+      "unknown": "Aucun compte DiceCloud n'est lié à ce compte Discord. Connectez-vous autrement, puis liez-le dans les réglages de votre compte, section Discord."
+    },
+    "account": {
+      "title": "Discord",
+      "linked": "Lié au compte Discord {name}",
+      "notLinked": "Liez votre compte Discord pour être mentionné quand c'est votre tour, et pour vous connecter avec Discord. DiceCloud en garde l'identifiant et le nom, rien d'autre.",
+      "link": "Lier mon compte Discord",
+      "unlink": "Délier",
+      "unlinkHint": "Discord garde DiceCloud dans vos Applications autorisées (Paramètres utilisateur) : retirez-l'y aussi pour lui reprendre son accès. DiceCloud ne garde aucun jeton Discord.",
+      "unlinked": "Compte Discord délié. Vous pouvez aussi retirer DiceCloud des Applications autorisées de Discord.",
+      "mention": "Me mentionner quand c'est mon tour",
+      "mentionHint": "Sur les lignes de tour qu'un groupe publie sur Discord"
+    },
+    "connectSectionTitle": "Connecter à Discord",
+    "connectSectionText": "« Connecter à Discord », dans les détails d'un personnage ou sur un tableau de groupe, laisse Discord vous demander dans quel salon publier : DiceCloud y obtient un webhook, que personne ne voit, pas même vous. Discord ne propose pas les salons forum de cette façon : pour un forum, avec un post par séance, collez un webhook comme ci-dessus. « Déconnecter » retire le webhook de DiceCloud dès que plus rien ne publie avec lui.",
+    "mentionsTitle": "Mentions",
+    "mentionsText": "Liez votre compte Discord dans les réglages de votre compte, et le salon du groupe vous mentionne au tour de votre personnage.",
+    "signInTitle": "Se connecter avec Discord",
+    "signInText": "Une fois votre compte Discord lié, « Se connecter avec Discord » fonctionne pour ce compte seulement (cela ne crée jamais de compte), en un clic : la liaison a autorisé DiceCloud dans Discord, qui garde cette autorisation. DiceCloud, lui, ne garde aucun jeton Discord. Pour la retirer, déliez votre compte ici, et retirez DiceCloud des Applications autorisées, dans les Paramètres utilisateur de Discord."
   },
   "legal": {
     "termsLink": "conditions d'utilisation",
@@ -229,6 +273,13 @@
       "bucketRoot": "Racine du bucket",
       "monthlyCost": "Coût estimé par mois",
       "costHint": "Estimation pour le stockage S3 Standard en {region}, à {price} par Go et par mois, comme si les fichiers restaient les mêmes tout le mois. Les requêtes, les transferts de données et l'offre gratuite d'AWS ne sont pas comptés."
+    },
+    "discord": {
+      "title": "Discord",
+      "servers": "Serveurs",
+      "channels": "Salons",
+      "notConfigured": "Pas d'application Discord dans les réglages de ce serveur (discord.clientId et discord.clientSecret) : rien n'est connecté.",
+      "verificationHint": "Discord demande qu'une application soit vérifiée, l'identité de son propriétaire contrôlée, au-delà de 100 serveurs."
     }
   },
   "characterList": {
@@ -625,7 +676,8 @@
     "passwordRequired": "Le mot de passe est obligatoire",
     "passwordsDontMatch": "Les mots de passe ne correspondent pas",
     "resetLinkSent": "Lien de réinitialisation envoyé à {email}",
-    "acceptTerms": "En créant un compte, vous acceptez les {terms} et les {privacy}."
+    "acceptTerms": "En créant un compte, vous acceptez les {terms} et les {privacy}.",
+    "signInWithDiscord": "Se connecter avec Discord"
   },
   "common": {
     "cancel": "Annuler",
@@ -873,7 +925,7 @@
     "hitDiceMultiplier": "Multiplicateur de récupération des dés de vie",
     "hitDiceMultiplierHint": "Fraction de vos dés de vie récupérée à chaque repos long",
     "discordWebhook": "URL du webhook Discord",
-    "discordWebhookHint": "Le journal de cette créature sera publié sur le salon Discord",
+    "discordWebhookHint": "Ou collez l'URL d'un webhook : la façon de faire pour un salon forum, avec un post par séance",
     "libraries": "Bibliothèques",
     "allUserLibraries": "Toutes les bibliothèques de l'utilisateur",
     "debug": "Débogage",

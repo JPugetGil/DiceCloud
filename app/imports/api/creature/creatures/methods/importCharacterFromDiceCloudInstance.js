@@ -58,6 +58,10 @@ async function importApiCreature(apiCreature, userId) {
 
   // Mark the creature as dirty so that it recomputes
   creature.dirty = true;
+  // Nothing of Discord: a channel is one of this server's webhooks, by its
+  // id, and a webhook's URL is sealed by its own method
+  for (const field of ['discordChannel', 'discordSession', 'discordWebhookId']) delete creature[field];
+  if (creature.settings) delete creature.settings.discordWebhook;
 
   // Ensure there is only 1 creature being imported
   if (apiCreature.creatures.length !== 1) {

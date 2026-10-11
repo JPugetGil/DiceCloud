@@ -29,7 +29,9 @@ Your data is kept on a server the controller operates in France, and the files y
 
 - **Your account**: username, email address, password (stored only as an irreversible hash), role, preferences, library subscriptions and login tokens.
 - **Sign-in with Google**, if you use it: your Google identifier, email address, name and profile picture, and the tokens Google provides; nothing else from your Google account.
-- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook addresses you may set on a character or, as a game master, on a party board, with the Discord sessions you open there (the identifiers of a forum post or of a message, and the date).
+- **Your Discord account**, if you link it: its identifier and its name, to mention you on your character's turn and to let you sign in with Discord; nothing else. DiceCloud keeps no Discord token: the authorization you give it stays in your Discord account, which lets you sign in with one click, until you remove DiceCloud from Authorized Apps in Discord's settings.
+- **Discord channels**, if you connect a character or a party board to one: the identifiers of the Discord server and channel, and the webhook DiceCloud's application receives there, which only the server keeps, encrypted. The access Discord grants with it is discarded at once.
+- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook addresses you may set on a character or, as a game master, on a party board (kept encrypted on the server, and shown to nobody, you included), with the Discord sessions you open there (the identifiers of a forum post or of a message, and the date).
 - **Your files**: the images you upload and the archives of your characters.
 - **Technical data**: IP addresses and technical logs, processed by the server and by Cloudflare.
 
@@ -44,7 +46,7 @@ We use no audience measurement, advertising or profiling tools, and we neither s
 
 - **Other users**: the people you share a character or a library with see your username, and anyone with its link can view a character or a library you make public. On a party board, the game master can view and modify the characters you bring for as long as they stay on it, and the members see each other's usernames and characters.
 - **Our providers**, on our behalf only: Cloudflare, through which every connection to the service goes; Amazon Web Services (S3), which stores the files; Brevo, which sends the emails; Google, only if you sign in with Google.
-- **Discord**, only if a webhook is set: on a character, its log, name and picture are posted to the Discord channel chosen, under Discord's privacy policy; on a party board, by its game master, the party's fights (names, initiative order and conditions, never a monster's hit points) and the log, name and picture of the characters its players bring are posted to the party's channel. The party board and its invitation tell the players when a party does so. The Discord page also shows a widget of the community's server, which Discord serves directly.
+- **Discord**, only if a webhook is set or a channel connected: on a character, its log, name and picture are posted to the Discord channel chosen, under Discord's privacy policy; on a party board, by its game master, the party's fights (names, initiative order and conditions, never a monster's hit points) and the log, name and picture of the characters its players bring are posted to the party's channel. The party board and its invitation tell the players when a party does so. A player who linked their Discord account is mentioned on their character's turn, unless they turn it off in their account's settings. Linking your Discord account or signing in with it goes through Discord's own authorization page. The Discord page also shows a widget of the community's server, which Discord serves directly.
 - **Link previews**: a link to a public character or library shows its name and a summary (for a character: race, class, level, picture, hit points and armor class) wherever it is pasted, Discord included. A private character's link shows nothing of it.
 - **Other websites** that host some library images: your browser downloads them directly, so those sites see your IP address.
 
@@ -65,7 +67,7 @@ The application sets no advertising or audience measurement cookies. Your browse
 
 ## Security
 
-Connections are encrypted (HTTPS), passwords are never stored in clear, and files are kept in private storage that only the application can reach.
+Connections are encrypted (HTTPS), passwords are never stored in clear, Discord webhooks are stored encrypted with a key kept outside the database and its backups, and files are kept in private storage that only the application can reach.
 
 ## Your rights
 
@@ -94,7 +96,9 @@ Vos données sont conservées sur un serveur que le responsable du traitement ex
 
 - **Votre compte** : nom d'utilisateur, adresse e-mail, mot de passe (conservé uniquement sous une forme chiffrée irréversible), rôle, préférences, abonnements aux bibliothèques et jetons de connexion.
 - **Connexion avec Google**, si vous l'utilisez : votre identifiant Google, votre adresse e-mail, votre nom et votre photo de profil, ainsi que les jetons fournis par Google ; rien d'autre de votre compte Google.
-- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et les adresses de webhook Discord que vous pouvez renseigner sur un personnage ou, comme meneur de jeu, sur un tableau de groupe, avec les séances Discord que vous y ouvrez (les identifiants d'un post de forum ou d'un message, et la date).
+- **Votre compte Discord**, si vous le liez : son identifiant et son nom, pour vous mentionner au tour de votre personnage et vous permettre de vous connecter avec Discord ; rien d'autre. DiceCloud ne garde aucun jeton Discord : l'autorisation que vous lui donnez reste dans votre compte Discord, ce qui permet de vous connecter en un clic, jusqu'à ce que vous retiriez DiceCloud des Applications autorisées, dans les paramètres de Discord.
+- **Salons Discord**, si vous y connectez un personnage ou un tableau de groupe : les identifiants du serveur et du salon Discord, et le webhook que l'application de DiceCloud y reçoit, que seul le serveur conserve, chiffré. L'accès que Discord accorde avec lui est jeté aussitôt.
+- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et les adresses de webhook Discord que vous pouvez renseigner sur un personnage ou, comme meneur de jeu, sur un tableau de groupe (conservées chiffrées sur le serveur, et montrées à personne, vous compris), avec les séances Discord que vous y ouvrez (les identifiants d'un post de forum ou d'un message, et la date).
 - **Vos fichiers** : les images que vous envoyez et les archives de vos personnages.
 - **Données techniques** : adresses IP et journaux techniques, traités par le serveur et par Cloudflare.
 
@@ -109,7 +113,7 @@ Nous n'utilisons aucun outil de mesure d'audience, de publicité ou de profilage
 
 - **Les autres utilisateurs** : les personnes avec qui vous partagez un personnage ou une bibliothèque voient votre nom d'utilisateur, et toute personne qui en a le lien peut consulter un personnage ou une bibliothèque que vous rendez public. Sur un tableau de groupe, le meneur de jeu peut consulter et modifier les personnages que vous y amenez tant qu'ils y restent, et les membres voient les noms d'utilisateur et les personnages les uns des autres.
 - **Nos prestataires**, pour notre compte uniquement : Cloudflare, par qui passent toutes les connexions au service ; Amazon Web Services (S3), qui stocke les fichiers ; Brevo, qui envoie les e-mails ; Google, uniquement si vous vous connectez avec Google.
-- **Discord**, uniquement si un webhook est renseigné : sur un personnage, son journal, son nom et son image sont publiés sur le salon Discord choisi, selon les règles de confidentialité de Discord ; sur un tableau de groupe, par son meneur de jeu, les combats du groupe (noms, ordre d'initiative et états, jamais les points de vie d'un monstre) ainsi que le journal, le nom et l'image des personnages qu'y amènent ses joueurs sont publiés sur le salon du groupe. Le tableau de groupe et son invitation l'indiquent aux joueurs. La page Discord affiche aussi un module du serveur de la communauté, que Discord fournit directement.
+- **Discord**, uniquement si un webhook est renseigné ou un salon connecté : sur un personnage, son journal, son nom et son image sont publiés sur le salon Discord choisi, selon les règles de confidentialité de Discord ; sur un tableau de groupe, par son meneur de jeu, les combats du groupe (noms, ordre d'initiative et états, jamais les points de vie d'un monstre) ainsi que le journal, le nom et l'image des personnages qu'y amènent ses joueurs sont publiés sur le salon du groupe. Le tableau de groupe et son invitation l'indiquent aux joueurs. Un joueur qui a lié son compte Discord est mentionné au tour de son personnage, sauf s'il le désactive dans les réglages de son compte. Lier votre compte Discord ou vous connecter avec lui passe par la page d'autorisation de Discord. La page Discord affiche aussi un module du serveur de la communauté, que Discord fournit directement.
 - **Aperçus des liens** : un lien vers un personnage ou une bibliothèque public montre son nom et un résumé (pour un personnage : race, classe, niveau, image, points de vie et classe d'armure) là où il est collé, Discord compris. Le lien d'un personnage privé ne montre rien de lui.
 - **D'autres sites**, qui hébergent certaines images des bibliothèques : votre navigateur les télécharge directement, et ces sites voient donc votre adresse IP.
 
@@ -130,7 +134,7 @@ L'application ne dépose aucun cookie publicitaire ou de mesure d'audience. Le s
 
 ## Sécurité
 
-Les échanges sont chiffrés (HTTPS), les mots de passe ne sont jamais stockés en clair, et les fichiers sont conservés dans un espace privé que seule l'application peut atteindre.
+Les échanges sont chiffrés (HTTPS), les mots de passe ne sont jamais stockés en clair, les webhooks Discord sont stockés chiffrés avec une clé gardée hors de la base et de ses sauvegardes, et les fichiers sont conservés dans un espace privé que seule l'application peut atteindre.
 
 ## Vos droits
 

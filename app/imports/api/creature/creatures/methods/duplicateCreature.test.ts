@@ -151,13 +151,35 @@ describe('Duplicating a character', function () {
     assert.exists(error, 'a reader who may not copy it can\'t download it');
   });
 
-  it('keeps the Discord webhook out of the archive of a reader allowed to copy', async function () {
-    const archive = await as(getCreatureArchive, ownerId, { creatureId: originalId });
-    assert.equal(archive.creature.settings.discordWebhook, 'https://discord.com/api/webhooks/1/secret');
-    await Creatures.updateAsync(originalId, { $set: { readersCanCopy: true } });
-    const copy = await as(getCreatureArchive, readerId, { creatureId: originalId });
-    assert.notProperty(copy.creature.settings, 'discordWebhook');
-    assert.isTrue(copy.creature.settings.hideSpellsTab);
+  it('keeps everything of Discord out of the archive, its owner\'s included: the file can be downloaded', async function () {
+    await Creatures.updateAsync(originalId, { $set: { discordWebhookId: '1', readersCanCopy: true } });
+    for (const userId of [ownerId, readerId]) {
+      const archive = await as(getCreatureArchive, userId, { creatureId: originalId });
+      assert.notProperty(archive.creature.settings, 'discordWebhook');
+      assert.notProperty(archive.creature, 'discordWebhookId');
+      assert.isTrue(archive.creature.settings.hideSpellsTab);
+      assert.notInclude(JSON.stringify(archive), 'secret');
+    }
+  });
+
+  it('restores a file without anything of Discord, which it could name: a channel is one of the server\'s webhooks', async function () {
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports */
+    const { restoreCreature } = require('/imports/api/creature/archive/methods/restoreCreatureFromFile');
+    const archive = JSON.parse(JSON.stringify(await as(getCreatureArchive, ownerId, { creatureId: originalId })));
+    await removeCreatureWork(originalId);
+    // A file made by hand: someone else's channel, session and webhook
+    Object.assign(archive.creature, {
+      discordChannel: { webhookId: '1600000000000000001', guildId: '1', channelId: '2', connectedAt: new Date() },
+      discordSession: { webhookId: '1600000000000000001', kind: 'channel', messageId: '3', startedAt: new Date() },
+      discordWebhookId: '4',
+    });
+    archive.creature.settings.discordWebhook = 'https://discord.com/api/webhooks/4/stolen';
+    const restoredId = await restoreCreature(archive, ownerId);
+    const restored = await Creatures.findOneAsync(restoredId) as any;
+    assert.equal(restored.name, 'Original');
+    for (const field of ['discordChannel', 'discordSession', 'discordWebhookId']) assert.notProperty(restored, field);
+    assert.notProperty(restored.settings, 'discordWebhook');
+    assert.isTrue(restored.settings.hideSpellsTab);
   });
 
   it('restores an archive of a character that still exists as a copy, log included', async function () {

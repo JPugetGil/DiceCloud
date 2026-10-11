@@ -50,8 +50,17 @@ const removeCreature = new ValidatedMethod({
 });
 
 export async function removeCreatureWork(creatureId) {
+  const connected = Meteor.isServer && (await Creatures.findOneAsync(creatureId, {
+    fields: { 'discordChannel.webhookId': 1 },
+  }))?.discordChannel?.webhookId;
   await Creatures.removeAsync(creatureId);
   await removeRelatedDocuments(creatureId);
+  // Its Discord channel's webhook, once nothing else posts with it
+  if (Meteor.isServer && connected) {
+    const { releaseWebhook } = await import('/imports/api/creature/log/server/connectedWebhooks');
+    const { discordApiBase } = await import('/imports/api/creature/log/server/webhookSender');
+    await releaseWebhook(discordApiBase(), connected);
+  }
 }
 
 export default removeCreature;
