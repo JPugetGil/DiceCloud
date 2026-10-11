@@ -44,6 +44,17 @@ export function channelFields<P extends string>(prefix: P): Prefixed<P, typeof D
     .map(([key, definition]) => [`${prefix}.${key}`, definition])) as Prefixed<P, typeof DISCORD_CHANNEL_FIELDS>;
 }
 
+/**
+ * The server and the thread a link of Discord's app names, as "Copy Link"
+ * gives it: https://discord.com/channels/<server>/<thread> (or a message's,
+ * /<message> after it; ptb. and canary. too). Undefined for anything else
+ */
+export function parseThreadLink(link?: string | null): { guildId: string, threadId: string } | undefined {
+  const match = /^https:\/\/(?:(?:ptb|canary)\.)?discord(?:app)?\.com\/channels\/(\d{1,32})\/(\d{1,32})(?:\/\d{1,32})?\/?$/
+    .exec(String(link || '').trim());
+  return match ? { guildId: match[1], threadId: match[2] } : undefined;
+}
+
 /** The channel in Discord's app: https://discord.com/channels/<server>/<channel> */
 export function discordChannelUrl(channel?: { guildId?: string, channelId?: string } | null): string | undefined {
   if (!channel?.guildId || !channel.channelId) return undefined;

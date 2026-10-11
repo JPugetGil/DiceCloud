@@ -160,7 +160,7 @@
     "partySectionTitle": "A party's channel",
     "partySectionText": "On a party board, the game master can paste a webhook too: the party's fights (the initiative order kept up to date, whose turn it is, a summary at the end) and its characters' rolls and actions go there. Monsters' hit points never do. The players see that the party posts to Discord, never its URL.",
     "sessionsTitle": "Sessions",
-    "sessionsText": "“New session”, on the party board or in a character's Discord settings, gathers a game in one place: in a forum channel, a post of its own named after the date; in a text channel, where a webhook cannot create a thread, a header message. “End session” goes back to the channel.",
+    "sessionsText": "“New session”, on the party board or in a character's Discord settings, gathers a game in one place: in a forum channel, a post of its own named after the date; in a text channel, a header message, or a thread you create in the channel and paste the link of, which the messages then all go into, with the buttons of a connected channel. “End session” goes back to the channel; so does a thread that no longer accepts messages.",
     "previewsTitle": "Link previews",
     "previewsText": "A link to a public character, pasted in Discord, shows its name, portrait, race, class, level, hit points and armor class, with a button to the sheet. A private character's link shows nothing of it.",
     "errors": {
@@ -172,7 +172,10 @@
       "late": "Discord is slow to answer: the session opens in a moment",
       "failed": "Discord refused (error {status})",
       "sessionsOff": "Sessions are turned off in the party's Discord settings",
-      "notConfigured": "This server has no Discord application to connect with"
+      "notConfigured": "This server has no Discord application to connect with",
+      "threadLink": "This is not a link to a Discord thread: it looks like https://discord.com/channels/…/…",
+      "threadOtherServer": "This thread is on another Discord server than the channel the messages go to",
+      "threadRefused": "Discord refused to post in this thread ({status}): it must be a thread of the same channel, open and not locked"
     },
     "combatStarts": "**Combat begins**",
     "partySessionApplies": "This webhook is also the one of the party “{name}”: its rolls go into the party's sessions, which the game master opens.",
@@ -279,7 +282,17 @@
       "hp": "/hp: see your hit points (only you see them), or deal damage, heal, set temporary ones, which the channel is told",
       "character": "/character: choose your character for a server; in your party's channel, your only character there is chosen for you"
     },
-    "installButtons": "Under a check, a saving throw or a roll of one d20, \"Reroll with advantage\" and \"with disadvantage\". On a channel connected with \"Connect to Discord\", \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Rolls stay in the character's log; a monster's are only shown to its game master."
+    "installButtons": "Under a check, a saving throw or a roll of one d20, \"Reroll with advantage\" and \"with disadvantage\". On a channel connected with \"Connect to Discord\", \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Rolls stay in the character's log; a monster's are only shown to its game master.",
+    "sessionThread": "Session open in the thread “{name}”: everything goes there.",
+    "newSessionHeader": "Header message in the channel",
+    "newSessionHeaderHint": "In a forum channel: a post of its own",
+    "newSessionThread": "In a thread of the channel…",
+    "newSessionThreadHint": "Its own place, with the buttons on a connected channel",
+    "threadHelp": "In Discord, create a thread in the channel (right-click a message > Create Thread, or the threads icon at the top), then right-click the thread > Copy Link, and paste the link here.",
+    "threadLink": "Thread link",
+    "threadOpen": "Open the session there",
+    "sessionClosed": "The thread of “{name}” no longer accepts messages: the session ended, and messages go to the channel again.",
+    "sessionStartedThread": "Session opened in the thread: “{name}”"
   },
   "legal": {
     "termsLink": "terms of use",

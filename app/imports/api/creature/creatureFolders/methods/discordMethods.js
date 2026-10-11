@@ -6,6 +6,7 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { isDiscordWebhookURL, parseWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
+import { parseThreadLink } from '/imports/api/creature/log/discord/discordChannel';
 import { PUBLISH_KINDS, postingSummary, publishes } from '/imports/api/creature/log/discord/partyPublishing';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
@@ -31,8 +32,20 @@ async function getFolderAsGm(folderId, userId) {
 
 const folderIdSchema = { folderId: { type: String, max: 32 } };
 
-// The browser's time zone, which the session's date is written in
-const timeZoneSchema = { timeZone: { type: String, optional: true, max: 64 } };
+// The browser's time zone, which the session's date is written in; and the
+// link of a thread of the channel to hold the session, if one is chosen
+const timeZoneSchema = {
+  timeZone: { type: String, optional: true, max: 64 },
+  threadLink: { type: String, optional: true, max: 200 },
+};
+
+/** The thread a link names, or an error the interface shows; none without a link */
+export function threadOfLink(threadLink) {
+  if (!threadLink?.trim()) return undefined;
+  const thread = parseThreadLink(threadLink);
+  if (!thread) throw boardError('discord.threadLink', 'discord.errors.threadLink');
+  return thread;
+}
 
 /**
  * Sets the party's webhook, or removes it (and its session) when empty. The
@@ -133,8 +146,9 @@ export const startPartySession = new ValidatedMethod({
   validate: new SimpleSchema({ ...folderIdSchema, ...timeZoneSchema }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ folderId, timeZone }) {
+  async run({ folderId, timeZone, threadLink }) {
     const folder = await getFolderAsGm(folderId, this.userId);
+    const thread = threadOfLink(threadLink);
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
       // Imported when called
@@ -143,7 +157,7 @@ export const startPartySession = new ValidatedMethod({
       const webhook = await partyWebhook(folder.discord);
       if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
       if (!publishes(folder.discord, 'sessions')) throw boardError('discord.sessionsOff', 'discord.errors.sessionsOff');
-      const session = await startSession(await partyChannel(folder, webhook), timeZone);
+      const session = await startSession(await partyChannel(folder, webhook), timeZone, thread);
       return { kind: session.kind, name: session.name };
     }
   },
@@ -157,6 +171,6 @@ export const endPartySession = new ValidatedMethod({
   rateLimit,
   async run({ folderId }) {
     await getFolderAsGm(folderId, this.userId);
-    await CreatureFolders.updateAsync(folderId, { $unset: { 'discord.session': 1 } });
+    await CreatureFolders.updateAsync(folderId, { $unset: { 'discord.session': 1, 'discord.sessionClosed': 1 } });
   },
 });

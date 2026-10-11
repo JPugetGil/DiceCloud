@@ -136,6 +136,34 @@ main(async () => {
       return 'the second webhook deleted, the board on the channel\'s webhook';
     });
 
+    await step('the board\'s session opens in a thread of the connected channel; a closed thread ends it, once', editor.messages, async () => {
+      const thread = fake.createThread('1500000000000000002');
+      await visit(editor.page, `/party/${folderId}`, 4000);
+      await removeOverlay(editor.page);
+      await editor.page.click('[data-id="party-discord"] [data-id="discord-session-start"]');
+      await editor.page.click('[data-id="discord-session-thread"]');
+      await editor.page.fill('[data-id="discord-thread-link"] input', `https://discord.com/channels/1500000000000000001/${thread}`);
+      await editor.page.click('[data-id="discord-thread-open"]');
+      const session = await waitFor(() => withDb(async db => (await db.collection('creatureFolders')
+        .findOne({ _id: folderId }))?.discord?.session), 'the session in the thread');
+      if (session.kind !== 'thread' || session.threadId !== thread) throw new Error(`session ${JSON.stringify(session)}`);
+      const webhookId = (await withDb(db => db.collection('creatureFolders').findOne({ _id: folderId }))).discord.channel.webhookId;
+      const posts = () => fake.requests.filter(request => request.method === 'POST' && request.webhookId === webhookId);
+      let before = posts().length;
+      await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
+      const inThread = await waitFor(() => posts().slice(before).find(request => request.status === 204), 'the roll in the thread');
+      if (inThread.query.thread_id !== thread) throw new Error(`posted with thread_id ${inThread.query.thread_id}`);
+      // Archived in Discord: the next roll goes back to the channel, the board says why
+      fake.closeThread(thread, 'archived');
+      before = posts().length;
+      await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
+      const inChannel = await waitFor(() => posts().slice(before).find(request => request.status === 204), 'the roll in the channel');
+      if (inChannel.query.thread_id) throw new Error('still in the thread');
+      await editor.page.waitForSelector('[data-id="party-discord"] [data-id="discord-session-closed"]', { timeout: 10000 });
+      const notice = (await editor.page.textContent('[data-id="party-discord"] [data-id="discord-session-closed"]')).trim();
+      return `"${session.name}" in thread ${thread}; then "${notice}"`;
+    });
+
     await step('no client ever receives a webhook\'s token, not even its owner; the server keeps it sealed', null, async () => {
       const tokens = [...fake.oauthWebhooks.values()].map(webhook => webhook.token);
       const leaks = frames.filter(frame => [...tokens, 'enc1.'].some(token => frame.includes(token)));

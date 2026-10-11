@@ -6,12 +6,15 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
  * or of a character opens one, and then everything its webhook posts goes
  * there. In a forum channel it is a post of its own, a thread; in a text
  * channel, where a webhook cannot open a thread, a header message marks where
- * it starts and the messages follow in the channel. "End session" goes back
- * to the channel. Kept with the webhook, and like it only for those who may
- * change it: the editors of the character, the game master of the party.
+ * it starts and the messages follow in the channel, or, in a thread the game
+ * master made in that channel and pasted the link of, everything goes into
+ * that thread. "End session" goes back to the channel; so does a thread that
+ * no longer takes messages, which leaves a notice (`SessionClosed`). Kept with
+ * the webhook, and like it only for those who may change it: the editors of
+ * the character, the game master of the party.
  */
 
-export type SessionKind = 'forum' | 'channel';
+export type SessionKind = 'forum' | 'channel' | 'thread';
 
 // The fields of a session, `true as const`: optional in the type it infers
 export const DISCORD_SESSION_FIELDS = {
@@ -22,9 +25,9 @@ export const DISCORD_SESSION_FIELDS = {
   },
   kind: {
     type: String,
-    allowedValues: ['forum', 'channel'],
+    allowedValues: ['forum', 'channel', 'thread'],
   },
-  // The forum post: its thread, and the message that opened it
+  // The forum post or the thread: its id, and the message that opened it
   threadId: {
     type: String,
     optional: true as const,
@@ -66,6 +69,14 @@ export type DiscordSession = {
   messageId?: string,
   name?: string,
   startedAt: Date,
+};
+
+/** A session that ended by itself, its thread no longer taking messages: shown until the next one */
+export type SessionClosed = { name?: string, at: Date };
+
+export const SESSION_CLOSED_FIELDS = {
+  name: { type: String, optional: true as const, max: STORAGE_LIMITS.name },
+  at: { type: Date },
 };
 
 /** The session, if it is one of this webhook's */

@@ -198,7 +198,9 @@ main(async () => {
         await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
         await editor.page.waitForSelector('[data-id="discord-session-start"]', { timeout: 15000 });
         sent();
+        // "New session", then its header message (or, in a forum, its post)
         await editor.page.click('[data-id="discord-session-start"]');
+        await editor.page.click('[data-id="discord-session-header"]');
         const session = await waitFor(() => withDb(async db => (await db.collection('creatures')
           .findOne({ _id: creatureId }, { projection: { discordSession: 1 } }))?.discordSession), 'the session');
         const [refused, header] = sent(TEXT_ID);
@@ -317,7 +319,9 @@ main(async () => {
 
       await step('the board\'s "New session" opens another forum post', editor.messages, async () => {
         const before = fake.threads.size;
+        // "New session", then its header message (or, in a forum, its post)
         await editor.page.click('[data-id="discord-session-start"]');
+        await editor.page.click('[data-id="discord-session-header"]');
         await waitFor(() => fake.threads.size > before, 'a new post');
         await pause(1000);
         const state = (await editor.page.textContent('[data-id="discord-session-state"]')).trim();

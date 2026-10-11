@@ -11,7 +11,7 @@ import { interactionsPublicKey } from '/imports/api/discord/server/interactions/
 import { publishes, type PublishKind } from '/imports/api/creature/log/discord/partyPublishing';
 import { DISCORD_CODES, postMessage, type Requester, type WebhookSender } from '/imports/api/creature/log/server/webhookSender';
 import {
-  creatureFolders, deliver, partyChannel, partyWebhook, webhookSender, type Channel, type PartyFolderDoc,
+  creatureFolders, deliver, partyChannel, partyWebhook, refusedInThread, webhookSender, type Channel, type PartyFolderDoc,
 } from '/imports/api/creature/log/server/discordWebhooks';
 
 /*
@@ -107,8 +107,11 @@ async function showInitiative(request: Requester, channel: Channel, folderId: st
   if (stored?.webhookId === channel.webhook.id) {
     const edited = await postMessage(request, { body: message, messageId: stored.messageId, threadId: stored.threadId });
     if (edited.ok || edited.gone) return;
-    // Deleted in Discord: a new one
-    const deleted = edited.code === DISCORD_CODES.unknownMessage || edited.code === DISCORD_CODES.unknownChannel;
+    // Deleted in Discord, or in a session's thread that no longer takes it (its
+    // codes are not all known): a new one, which ends that session if its
+    // thread refuses it too (deliver), rather than an error at every turn
+    const deleted = edited.code === DISCORD_CODES.unknownMessage || edited.code === DISCORD_CODES.unknownChannel
+      || (!!stored.threadId && refusedInThread(edited));
     if (!deleted) {
       console.warn(`Discord webhook ${channel.webhook.id}: initiative not edited, ${edited.status}: ${edited.detail}`);
       return;

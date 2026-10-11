@@ -83,6 +83,7 @@
         <discord-session-controls
           :session="session"
           :busy="busy"
+          :closed="folder.discord?.sessionClosed"
           @start="startSession"
           @end="endSession"
         />
@@ -114,6 +115,7 @@ import { bindToThisBrowser } from '/imports/ui/discord/discordNonce';
 import { Meteor } from 'meteor/meteor';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { sessionStartedText } from '/imports/ui/creature/discord/sessionStartedText';
 
 /**
  * The party's Discord channel (D2, D3). The game master connects it, or
@@ -204,18 +206,15 @@ function disconnect() {
   });
 }
 
-function startSession() {
+function startSession(threadLink) {
   run('start', async () => {
     const opened = await startPartySession.callAsync({
       folderId: props.folder._id,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...threadLink && { threadLink },
     });
     if (!opened) return;
-    snackbar({
-      text: opened.kind === 'forum'
-        ? t('discord.sessionStartedForum', { name: opened.name })
-        : t('discord.sessionStartedChannel'),
-    });
+    snackbar({ text: sessionStartedText(opened, t) });
   });
 }
 

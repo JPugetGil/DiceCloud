@@ -113,8 +113,9 @@ export async function forgetWebhook(webhook: Webhook, status: number): Promise<n
   return count + parties + connected;
 }
 
-// A webhook, and the channel it posts in when DiceCloud knows it (connected)
-export type Destination = Webhook & { channelId?: string };
+// A webhook, and the channel it posts in when DiceCloud knows it (connected),
+// and its server
+export type Destination = Webhook & { channelId?: string, guildId?: string };
 
 /**
  * The webhook a character posts with: its connected channel's, else its
@@ -192,8 +193,9 @@ export type Channel = {
   // Where it posts, once per message (destinationKey)
   key?: string,
   // The Discord channel it posts in, when known: connected, or a pasted
-  // webhook's once Discord said
+  // webhook's once Discord said; and its server, when connected
   channelId?: string,
+  guildId?: string,
   holder: Holder,
   // The language of the channel's owner: the character's, the game master's
   language: DiscordLanguage,
@@ -223,6 +225,7 @@ export async function partyChannel(folder: Pick<PartyFolderDoc, '_id' | 'name' |
     webhook: { id: webhook.id, token: webhook.token },
     key: destinationKey(webhook),
     ...webhook.channelId && { channelId: webhook.channelId },
+    ...webhook.guildId && { guildId: webhook.guildId },
     holder: { folderId: folder._id },
     language,
     label: folder.name?.trim() || translatorFor(language)('party.untitled', {}) || '',
@@ -241,6 +244,7 @@ export async function characterChannel(creature: {
     webhook: { id: webhook.id, token: webhook.token },
     key: destinationKey(webhook),
     ...webhook.channelId && { channelId: webhook.channelId },
+    ...webhook.guildId && { guildId: webhook.guildId },
     holder: { creatureId: creature._id },
     language: await languageOf(creature.owner),
     label: creature.name?.trim() || '',
@@ -264,13 +268,20 @@ export async function readSession(holder: Holder): Promise<DiscordSession | unde
  * Sets the holder's session, or ends it. Ending a given session leaves a
  * newer one alone
  */
-export async function writeSession(holder: Holder, session: DiscordSession | undefined, ending?: DiscordSession) {
+export async function writeSession(holder: Holder, session: DiscordSession | undefined, ending?: DiscordSession, {
+  closed = false,
+}: { closed?: boolean } = {}) {
   const field = 'creatureId' in holder ? 'discordSession' : 'discord.session';
+  const notice = 'creatureId' in holder ? 'discordSessionClosed' : 'discord.sessionClosed';
   const selector: Record<string, unknown> = {
     _id: 'creatureId' in holder ? holder.creatureId : holder.folderId,
     ...ending && { [`${field}.startedAt`]: ending.startedAt },
   };
-  const modifier = session ? { $set: { [field]: session } } : { $unset: { [field]: 1 as const } };
+  // A new session takes the notice of the last one's thread away; a session
+  // whose thread closed leaves it
+  const modifier = session ? { $set: { [field]: session }, $unset: { [notice]: 1 as const } }
+    : closed ? { $unset: { [field]: 1 as const }, $set: { [notice]: { ...ending?.name && { name: ending.name }, at: new Date() } } }
+      : { $unset: { [field]: 1 as const } };
   if ('creatureId' in holder) {
     await Creatures.updateAsync(selector, modifier);
   } else {
@@ -321,10 +332,20 @@ export async function openSession(request: Requester, channel: Channel, {
   return { session, result };
 }
 
+// A refusal of a message for a thread of a text channel: Discord's codes for a
+// thread that is gone, archived or locked are not all known, so any client
+// error but a rate limit; whether the message itself was the matter is told
+// by the channel taking it
+export const refusedInThread = (result: DiscordResult) => !result.ok && !result.gone
+  && result.status !== undefined && result.status >= 400 && result.status < 500 && result.status !== 429;
+
 /**
  * Posts a message on the channel, in its session if one is open: its forum
- * post, else the channel. Its fallback is the embeds of a card Discord does
- * not take. Returns Discord's answer, and the thread it went into
+ * post or its thread, else the channel. Its fallback is the embeds of a card
+ * Discord does not take. A thread that no longer takes messages ends its
+ * session, once: the message and the next ones go to the channel, and the
+ * holder keeps a notice of it. Returns Discord's answer, and the thread it
+ * went into
  */
 export async function deliver(request: Requester, channel: Channel, message: {
   body: Record<string, unknown>,
@@ -334,12 +355,23 @@ export async function deliver(request: Requester, channel: Channel, message: {
   const sessions = channel.sessions !== false;
   let session = sessions ? sessionOf(await readSession(channel.holder), channel.webhook.id) : undefined;
   let result = await postMessage(request, { ...message, threadId: session?.threadId });
-  if (!result.ok && session?.threadId && result.code !== undefined && THREAD_CLOSED_CODES.includes(result.code)) {
+  const closedCode = !result.ok && result.code !== undefined && THREAD_CLOSED_CODES.includes(result.code);
+  if (!result.ok && session?.threadId && closedCode) {
     // Its post is gone: the session is over, the channel takes the message
     console.warn(`Discord webhook ${channel.webhook.id}: the session's thread is closed (${result.code}), session ended`);
-    await writeSession(channel.holder, undefined, session);
+    await writeSession(channel.holder, undefined, session, { closed: session.kind === 'thread' });
     session = undefined;
     result = await postMessage(request, message);
+  } else if (session?.kind === 'thread' && refusedInThread(result)) {
+    // A thread of a text channel refusing it: if the channel takes it, the
+    // thread was the matter, and the session ends
+    const inChannel = await postMessage(request, message);
+    if (inChannel.ok) {
+      console.warn(`Discord webhook ${channel.webhook.id}: the session's thread refused a message (${result.ok ? '' : result.status}), session ended`);
+      await writeSession(channel.holder, undefined, session, { closed: true });
+      session = undefined;
+    }
+    result = inChannel;
   }
   if (!result.ok && result.code === DISCORD_CODES.forumNeedsThread && sessions) {
     // A forum takes no message outside a post: a session opens by itself
@@ -347,6 +379,46 @@ export async function deliver(request: Requester, channel: Channel, message: {
     if (session?.threadId) result = await postMessage(request, { ...message, threadId: session.threadId });
   }
   return { ...result, ...result.ok && session?.threadId && { threadId: session.threadId } };
+}
+
+/**
+ * Opens a session in a thread of the channel's text channel, which the game
+ * master made in Discord and pasted the link of: on the webhook's server, and
+ * only if Discord takes the session's header there and says it went into
+ * that thread. `refused` says why not: another server, or a thread Discord
+ * refused (of another channel, unknown, archived, locked: its codes are not
+ * all known)
+ */
+export async function openThreadSession(request: Requester, channel: Channel, { guildId, threadId, date = new Date(), timeZone }: {
+  guildId: string, threadId: string, date?: Date, timeZone?: string,
+}): Promise<SessionResult & { refused?: 'otherServer' | 'thread' }> {
+  // The webhook's server: known when connected, else asked of Discord
+  let webhookGuild = channel.guildId;
+  if (!webhookGuild) {
+    const asked = await request({ method: 'GET', body: {} });
+    if (!asked.ok && asked.gone) return { result: asked };
+    const guild = asked.ok ? asked.message?.guild_id : undefined;
+    webhookGuild = typeof guild === 'string' ? guild : undefined;
+  }
+  if (webhookGuild && webhookGuild !== guildId) {
+    return { refused: 'otherServer', result: { ok: false, fields: [], detail: 'a thread of another server' } };
+  }
+  const name = sessionName({ label: channel.label, date, language: channel.language, timeZone });
+  const result = await postMessage(request, { body: sessionHeader(name, channel.author), threadId, wait: true });
+  if (!result.ok) return { refused: result.gone ? undefined : 'thread', result };
+  if (result.message?.channel_id !== threadId) {
+    return { refused: 'thread', result: { ok: false, fields: [], detail: 'not posted in that thread' } };
+  }
+  const session: DiscordSession = {
+    webhookId: channel.webhook.id,
+    kind: 'thread',
+    threadId,
+    ...result.message?.id && { messageId: result.message.id },
+    name,
+    startedAt: date,
+  };
+  await writeSession(channel.holder, session);
+  return { session, result };
 }
 
 // How long a "New session" button waits for Discord: the session still opens
@@ -358,7 +430,7 @@ const SESSION_WAIT_MS = 20 * 1000;
  * the webhook's queue, after what it already holds. Resolves with the session,
  * or throws an error the interface can show (boardError, `discord.errors.*`)
  */
-export async function startSession(channel: Channel, timeZone?: string): Promise<DiscordSession> {
+export async function startSession(channel: Channel, timeZone?: string, thread?: { guildId: string, threadId: string }): Promise<DiscordSession> {
   const target = webhookSender();
   if (!target) throw boardError('discord.unavailable', 'discord.errors.unavailable');
   if (target.isGone(channel.webhook)) throw boardError('discord.gone', 'discord.errors.gone');
@@ -367,12 +439,21 @@ export async function startSession(channel: Channel, timeZone?: string): Promise
     timer = setTimeout(() => resolve('late'), SESSION_WAIT_MS);
   });
   const opened = await Promise.race([
-    target.enqueue(channel.webhook, request => openSession(request, channel, { timeZone })),
+    target.enqueue(channel.webhook, (request): Promise<SessionResult & { refused?: 'otherServer' | 'thread' }> => thread
+      ? openThreadSession(request, channel, { ...thread, timeZone })
+      : openSession(request, channel, { timeZone })),
     late,
   ]);
   clearTimeout(timer);
   if (opened === 'late') throw boardError('discord.late', 'discord.errors.late');
   if (opened?.session) return opened.session;
+  if (opened?.refused === 'otherServer') throw boardError('discord.threadOtherServer', 'discord.errors.threadOtherServer');
+  if (opened?.refused === 'thread') {
+    const failed = opened.result;
+    throw boardError('discord.threadRefused', 'discord.errors.threadRefused', {
+      status: failed.ok ? '' : `${failed.status ?? '–'}${failed.code ? ` ${failed.code}` : ''}`,
+    });
+  }
   const result = opened?.result;
   if (!result || (!result.ok && result.gone)) throw boardError('discord.gone', 'discord.errors.gone');
   throw boardError('discord.failed', 'discord.errors.failed', { status: result.ok ? result.status : result.status ?? '–' });

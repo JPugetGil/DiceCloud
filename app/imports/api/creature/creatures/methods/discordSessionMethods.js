@@ -7,6 +7,7 @@ import { assertEditPermission } from '/imports/api/creature/creatures/creaturePe
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { parseThreadLink } from '/imports/api/creature/log/discord/discordChannel';
 
 /*
  * A character's own Discord webhook, pasted, and its sessions (D3): "New
@@ -19,11 +20,19 @@ const rateLimit = { numRequests: 5, timeInterval: 10000 };
 
 const creatureIdSchema = { creatureId: { type: String, max: 32 } };
 
+/** The thread a link names, or an error the interface shows; none without a link */
+function threadOfLink(threadLink) {
+  if (!threadLink?.trim()) return undefined;
+  const thread = parseThreadLink(threadLink);
+  if (!thread) throw boardError('discord.threadLink', 'discord.errors.threadLink');
+  return thread;
+}
+
 async function getEditableCreature(creatureId, userId) {
   const creature = await Creatures.findOneAsync(creatureId, {
     fields: {
       name: 1, owner: 1, writers: 1, readers: 1, public: 1, type: 1, avatarPicture: 1,
-      'settings.discordWebhook': 1, discordWebhookId: 1, discordChannel: 1,
+      'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordChannel: 1,
     },
   });
   await assertEditPermission(creature, userId);
@@ -80,11 +89,14 @@ export const startCharacterSession = new ValidatedMethod({
   validate: new SimpleSchema({
     ...creatureIdSchema,
     timeZone: { type: String, optional: true, max: 64 },
+    // A thread of the channel to hold the session (its link), if one is chosen
+    threadLink: { type: String, optional: true, max: 200 },
   }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ creatureId, timeZone }) {
+  async run({ creatureId, timeZone, threadLink }) {
     const creature = await getEditableCreature(creatureId, this.userId);
+    const thread = threadOfLink(threadLink);
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
       // Imported when called
@@ -92,7 +104,7 @@ export const startCharacterSession = new ValidatedMethod({
       // Connected or pasted
       const webhook = await characterWebhook(creature);
       if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
-      const session = await startSession(await characterChannel(creature, webhook), timeZone);
+      const session = await startSession(await characterChannel(creature, webhook), timeZone, thread);
       return { kind: session.kind, name: session.name };
     }
   },
@@ -131,6 +143,6 @@ export const endCharacterSession = new ValidatedMethod({
   rateLimit,
   async run({ creatureId }) {
     await getEditableCreature(creatureId, this.userId);
-    await Creatures.updateAsync(creatureId, { $unset: { discordSession: 1 } });
+    await Creatures.updateAsync(creatureId, { $unset: { discordSession: 1, discordSessionClosed: 1 } });
   },
 });

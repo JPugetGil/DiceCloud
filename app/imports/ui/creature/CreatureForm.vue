@@ -119,6 +119,7 @@
           v-else-if="discordWebhookId && editPermission"
           :session="discordSession"
           :busy="sessionBusy"
+          :closed="model.discordSessionClosed"
           @start="startSession"
           @end="endSession"
         />
@@ -192,6 +193,7 @@ import {
 import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { sessionStartedText } from '/imports/ui/creature/discord/sessionStartedText';
 import { useI18n } from 'vue-i18n';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -426,18 +428,15 @@ async function runSession(name, call) {
   }
 }
 
-function startSession() {
+function startSession(threadLink) {
   runSession('start', async () => {
     const opened = await startCharacterSession.callAsync({
       creatureId: props.model._id,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...threadLink && { threadLink },
     });
     if (!opened) return;
-    snackbar({
-      text: opened.kind === 'forum'
-        ? t('discord.sessionStartedForum', { name: opened.name })
-        : t('discord.sessionStartedChannel'),
-    });
+    snackbar({ text: sessionStartedText(opened, t) });
   });
 }
 

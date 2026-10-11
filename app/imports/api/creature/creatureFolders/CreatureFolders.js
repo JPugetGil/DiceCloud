@@ -1,7 +1,7 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
-import { DiscordSessionSchema } from '/imports/api/creature/log/discord/discordSession';
+import { DiscordSessionSchema, SESSION_CLOSED_FIELDS } from '/imports/api/creature/log/discord/discordSession';
 import { PUBLISH_KINDS } from '/imports/api/creature/log/discord/partyPublishing';
 import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
@@ -184,6 +184,14 @@ let creatureFolderSchema = new SimpleSchema({
     type: DiscordSessionSchema,
     optional: true,
   },
+  // A session whose thread stopped taking messages, ended by itself: the
+  // board says so until the next one
+  'discord.sessionClosed': {
+    type: Object,
+    optional: true,
+  },
+  'discord.sessionClosed.name': SESSION_CLOSED_FIELDS.name,
+  'discord.sessionClosed.at': SESSION_CLOSED_FIELDS.at,
   'discord.initiative': {
     type: Object,
     optional: true,

@@ -57,11 +57,11 @@ function readable(doc: ConnectedWebhook): Webhook | undefined {
 }
 
 /** A connected webhook's id and token, for the sender; undefined if it is not one of DiceCloud's */
-export async function connectedWebhook(webhookId?: string): Promise<(Webhook & { channelId: string }) | undefined> {
+export async function connectedWebhook(webhookId?: string): Promise<(Webhook & { channelId: string, guildId?: string }) | undefined> {
   if (!webhookId) return undefined;
   const doc = await ConnectedWebhooks.findOneAsync({ webhookId });
   const webhook = doc && readable(doc);
-  return webhook && { ...webhook, channelId: doc.channelId };
+  return webhook && { ...webhook, channelId: doc.channelId, ...doc.guildId && { guildId: doc.guildId } };
 }
 
 // The selectors of the characters and boards pointing at a webhook

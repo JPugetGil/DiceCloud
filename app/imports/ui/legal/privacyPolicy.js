@@ -4,8 +4,8 @@
 import frenchTypography from '/imports/ui/i18n/frenchTypography';
 
 const LAST_UPDATED = {
-  en: 'October 10, 2026',
-  fr: '10 octobre 2026',
+  en: 'October 11, 2026',
+  fr: '11 octobre 2026',
 };
 
 const contactLink = (email, missing) => email ? `[${email}](mailto:${email})` : missing;
@@ -32,7 +32,7 @@ Your data is kept on a server the controller operates in France, and the files y
 - **Your Discord account**, if you link it: its identifier and its name, to mention you on your character's turn and to let you sign in with Discord; nothing else. DiceCloud keeps no Discord token: the authorization you give it stays in your Discord account, which lets you sign in with one click, until you remove DiceCloud from Authorized Apps in Discord's settings.
 - **Discord channels**, if you connect a character or a party board to one: the identifiers of the Discord server and channel, and the webhook DiceCloud's application receives there, which only the server keeps, encrypted. The access Discord grants with it is discarded at once.
 - **DiceCloud's commands on Discord**, if you use them: what you ask (the roll, the check, the hit points changed), which goes to your character's log as from the sheet; your Discord user identifier and the identifiers of the server and channel it comes from, to answer there, not kept; the character you choose for each server with /character, until you choose another, unlink your Discord account or delete yours; and, for 30 days, what a "Reroll" button rolls again.
-- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook addresses you may set on a character or, as a game master, on a party board (kept encrypted on the server, and shown to nobody, you included), with the Discord sessions you open there (the identifiers of a forum post or of a message, and the date).
+- **Your content**: your characters and their logs, your folders and party boards, your libraries, and the Discord webhook addresses you may set on a character or, as a game master, on a party board (kept encrypted on the server, and shown to nobody, you included), with the Discord sessions you open there (the identifiers of a forum post, of a thread or of a message, and the date).
 - **Your files**: the images you upload and the archives of your characters.
 - **Technical data**: IP addresses and technical logs, processed by the server and by Cloudflare.
 
@@ -100,7 +100,7 @@ Vos données sont conservées sur un serveur que le responsable du traitement ex
 - **Votre compte Discord**, si vous le liez : son identifiant et son nom, pour vous mentionner au tour de votre personnage et vous permettre de vous connecter avec Discord ; rien d'autre. DiceCloud ne garde aucun jeton Discord : l'autorisation que vous lui donnez reste dans votre compte Discord, ce qui permet de vous connecter en un clic, jusqu'à ce que vous retiriez DiceCloud des Applications autorisées, dans les paramètres de Discord.
 - **Salons Discord**, si vous y connectez un personnage ou un tableau de groupe : les identifiants du serveur et du salon Discord, et le webhook que l'application de DiceCloud y reçoit, que seul le serveur conserve, chiffré. L'accès que Discord accorde avec lui est jeté aussitôt.
 - **Les commandes de DiceCloud sur Discord**, si vous les utilisez : ce que vous demandez (le jet, le test, les points de vie changés), qui va au journal de votre personnage comme depuis la fiche ; votre identifiant d'utilisateur Discord et les identifiants du serveur et du salon d'où cela vient, pour y répondre, non conservés ; le personnage que vous choisissez pour chaque serveur avec /personnage, jusqu'à ce que vous en choisissiez un autre, déliiez votre compte Discord ou supprimiez le vôtre ; et, pendant 30 jours, ce qu'un bouton « Relancer » relance.
-- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et les adresses de webhook Discord que vous pouvez renseigner sur un personnage ou, comme meneur de jeu, sur un tableau de groupe (conservées chiffrées sur le serveur, et montrées à personne, vous compris), avec les séances Discord que vous y ouvrez (les identifiants d'un post de forum ou d'un message, et la date).
+- **Votre contenu** : vos personnages et leurs journaux, vos dossiers et tableaux de groupe, vos bibliothèques, et les adresses de webhook Discord que vous pouvez renseigner sur un personnage ou, comme meneur de jeu, sur un tableau de groupe (conservées chiffrées sur le serveur, et montrées à personne, vous compris), avec les séances Discord que vous y ouvrez (les identifiants d'un post de forum, d'un fil ou d'un message, et la date).
 - **Vos fichiers** : les images que vous envoyez et les archives de vos personnages.
 - **Données techniques** : adresses IP et journaux techniques, traités par le serveur et par Cloudflare.
 

@@ -5,7 +5,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { Simplify } from 'type-fest';
 import { Mongo } from 'meteor/mongo';
-import { sessionFields } from '/imports/api/creature/log/discord/discordSession';
+import { sessionFields, SESSION_CLOSED_FIELDS } from '/imports/api/creature/log/discord/discordSession';
 import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
 const CreatureSettingsSchema = TypedSimpleSchema.from({
@@ -189,6 +189,14 @@ const CreatureSchema = TypedSimpleSchema.from({
     optional: true,
   },
   ...sessionFields('discordSession'),
+  // A session whose thread stopped taking messages: it ended by itself, which
+  // the character's Discord settings say until the next one. Editors only
+  discordSessionClosed: {
+    type: Object,
+    optional: true,
+  },
+  'discordSessionClosed.name': SESSION_CLOSED_FIELDS.name,
+  'discordSessionClosed.at': SESSION_CLOSED_FIELDS.at,
   // The Discord channel connected with "Connect to Discord" (D4): its
   // webhook's id, never its token (discordChannel.ts). For editors only too
   discordChannel: {

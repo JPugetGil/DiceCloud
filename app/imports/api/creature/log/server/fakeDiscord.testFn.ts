@@ -36,6 +36,8 @@ export type FakeRequest = {
   userAgent?: string,
   body: any,
   at: number,
+  // What the fake answered
+  status?: number,
 };
 
 type Reply = { status: number, headers?: Record<string, string>, body?: unknown, delayMs?: number };
@@ -73,6 +75,10 @@ export async function fakeDiscord({ channels = {}, override }: {
   const requests: FakeRequest[] = [];
   const messages = new Map<string, { id: string, channel_id: string, webhook_id: string, [key: string]: unknown }>();
   const threads = new Set<string>();
+  // Threads a user made in a text channel: their channel, and whether they
+  // still take messages (Discord's codes for the others are unknown: these
+  // are plausible ones, which DiceCloud must not count on)
+  const textThreads = new Map<string, { parent: string, state: 'open' | 'archived' | 'locked' | 'deleted' }>();
   let next = BigInt('1300000000000000000');
   const snowflake = () => String(next++);
   const secret = () => `${snowflake()}-${Math.random().toString(36).slice(2)}`;
@@ -223,7 +229,8 @@ export async function fakeDiscord({ channels = {}, override }: {
     }
     return {
       status: 200, headers: { 'Content-Type': 'application/json' },
-      body: webhook ?? { id: request.webhookId, type: 1, channel_id: channelOf(request.webhookId), name: 'Pasted' },
+      // A pasted webhook: in its channel of the fake's server
+      body: webhook ?? { id: request.webhookId, type: 1, channel_id: channelOf(request.webhookId), guild_id: '1500000000000000001', name: 'Pasted' },
     };
   }
 
@@ -240,6 +247,8 @@ export async function fakeDiscord({ channels = {}, override }: {
       return error(400, 50006, 'Cannot send an empty message');
     }
     if (request.method === 'PATCH') {
+      const closed = query.thread_id ? textThreads.get(query.thread_id) : undefined;
+      if (closed && closed.state !== 'open') return closed.state === 'locked' ? error(403, 160005, 'Thread is locked') : error(400, 50083, 'Thread is archived');
       const message = request.messageId && messages.get(request.messageId);
       if (!message || (query.thread_id && message.channel_id !== query.thread_id)) {
         return error(404, 10008, 'Unknown Message');
@@ -249,7 +258,14 @@ export async function fakeDiscord({ channels = {}, override }: {
     }
     if (body?.thread_name && query.thread_id) return error(400, 220002, 'Cannot set both thread_name and thread_id');
     let channel = channelOf(request.webhookId);
-    if (query.thread_id) {
+    const textThread = query.thread_id ? textThreads.get(query.thread_id) : undefined;
+    if (textThread) {
+      if (textThread.state === 'deleted') return error(404, 10003, 'Unknown Channel');
+      if (textThread.parent !== channel) return error(400, 50035, 'Invalid Form Body', { thread_id: { _errors: [{ code: 'THREAD_NOT_IN_CHANNEL' }] } });
+      if (textThread.state === 'archived') return error(400, 50083, 'Thread is archived');
+      if (textThread.state === 'locked') return error(403, 160005, 'Thread is locked');
+      channel = query.thread_id as string;
+    } else if (query.thread_id) {
       if (!threads.has(query.thread_id)) return error(404, 10003, 'Unknown Channel');
       channel = query.thread_id;
     } else if (body?.thread_name) {
@@ -301,6 +317,7 @@ export async function fakeDiscord({ channels = {}, override }: {
         else if (match) reply = answer(request);
         else reply = error(405, 0, '405: Method Not Allowed');
       }
+      request.status = reply.status;
       requests.push(request);
       setTimeout(() => {
         res.writeHead(reply.status, reply.headers);
@@ -365,6 +382,19 @@ export async function fakeDiscord({ channels = {}, override }: {
       if (answer?.type === 4) record.original = { ...answer.data, id: snowflake() };
       return { status: response.status, answer, token };
     },
+    /** A thread a user makes in a webhook's text channel (or another channel's); returns its id */
+    createThread: (channelId: string) => {
+      const id = snowflake();
+      textThreads.set(id, { parent: channelId, state: 'open' });
+      return id;
+    },
+    /** A thread archived, locked or deleted in Discord */
+    closeThread: (id: string, state: 'archived' | 'locked' | 'deleted') => {
+      const thread = textThreads.get(id);
+      if (thread) thread.state = state;
+    },
+    /** The channel a webhook posts in */
+    channelOf,
     /** Deletes a forum post, as a moderator would */
     deleteThread: (id: string) => threads.delete(id),
     deleteMessage: (id: string) => messages.delete(id),

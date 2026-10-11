@@ -160,7 +160,7 @@
     "partySectionTitle": "Le salon d'un groupe",
     "partySectionText": "Sur un tableau de groupe, le maître du jeu peut aussi coller un webhook : les combats du groupe (l'ordre d'initiative tenu à jour, à qui c'est le tour, un résumé à la fin) et les jets et actions de ses personnages y sont publiés. Jamais les points de vie des monstres. Les joueurs voient que le groupe publie sur Discord, jamais son URL.",
     "sessionsTitle": "Séances",
-    "sessionsText": "« Nouvelle séance », sur le tableau de groupe ou dans les réglages Discord d'un personnage, rassemble une partie au même endroit : dans un salon forum, un post à elle, au nom de la date ; dans un salon texte, où un webhook ne peut pas créer de fil, un message d'en-tête. « Fin de séance » revient au salon.",
+    "sessionsText": "« Nouvelle séance », sur le tableau de groupe ou dans les réglages Discord d'un personnage, rassemble une partie au même endroit : dans un salon forum, un post à elle, au nom de la date ; dans un salon texte, un message d'en-tête, ou un fil que vous créez dans le salon et dont vous collez le lien, où vont alors tous les messages, avec les boutons d'un salon connecté. « Fin de séance » revient au salon ; un fil qui n'accepte plus de messages aussi.",
     "previewsTitle": "Aperçus des liens",
     "previewsText": "Un lien vers un personnage public, collé dans Discord, montre son nom, son portrait, sa race, sa classe, son niveau, ses points de vie et sa classe d'armure, avec un bouton vers la fiche. Le lien d'un personnage privé ne montre rien de lui.",
     "errors": {
@@ -172,7 +172,10 @@
       "late": "Discord tarde à répondre : la séance va s'ouvrir dans un instant",
       "failed": "Discord a refusé (erreur {status})",
       "sessionsOff": "Les séances sont désactivées dans les réglages Discord du groupe",
-      "notConfigured": "Ce serveur n'a pas d'application Discord à laquelle se connecter"
+      "notConfigured": "Ce serveur n'a pas d'application Discord à laquelle se connecter",
+      "threadLink": "Ce n'est pas le lien d'un fil Discord : il ressemble à https://discord.com/channels/…/…",
+      "threadOtherServer": "Ce fil est sur un autre serveur Discord que le salon où vont les messages",
+      "threadRefused": "Discord a refusé de publier dans ce fil ({status}) : il doit être un fil du même salon, ouvert et non verrouillé"
     },
     "combatStarts": "**Début du combat**",
     "partySessionApplies": "Ce webhook est aussi celui du groupe « {name} » : ses jets vont dans les séances du groupe, que le maître du jeu ouvre.",
@@ -279,7 +282,17 @@
       "hp": "/pv : voir vos points de vie (vous seul les voyez), ou infliger des dégâts, soigner, fixer des temporaires, ce que le salon apprend",
       "character": "/personnage : choisir votre personnage pour un serveur ; dans le salon de votre groupe, votre seul personnage y est choisi d'office"
     },
-    "installButtons": "Sous un test, un jet de sauvegarde ou un jet d'un seul d20, « Relancer avec avantage » et « avec désavantage ». Sur un salon connecté avec « Connecter à Discord », « Tour suivant » sous le message d'initiative (le meneur de jeu) et « Fin de mon tour » sous la ligne de votre tour. Les jets restent au journal du personnage ; ceux d'un monstre ne sont montrés qu'à son meneur de jeu."
+    "installButtons": "Sous un test, un jet de sauvegarde ou un jet d'un seul d20, « Relancer avec avantage » et « avec désavantage ». Sur un salon connecté avec « Connecter à Discord », « Tour suivant » sous le message d'initiative (le meneur de jeu) et « Fin de mon tour » sous la ligne de votre tour. Les jets restent au journal du personnage ; ceux d'un monstre ne sont montrés qu'à son meneur de jeu.",
+    "sessionThread": "Séance ouverte dans le fil « {name} » : tout y va.",
+    "newSessionHeader": "Message d'en-tête dans le salon",
+    "newSessionHeaderHint": "Dans un salon forum : un post à elle",
+    "newSessionThread": "Dans un fil du salon…",
+    "newSessionThreadHint": "Un endroit à elle, avec les boutons sur un salon connecté",
+    "threadHelp": "Dans Discord, créez un fil dans le salon (clic droit sur un message > Créer un fil, ou l'icône des fils en haut), puis clic droit sur le fil > Copier le lien, et collez le lien ici.",
+    "threadLink": "Lien du fil",
+    "threadOpen": "Y ouvrir la séance",
+    "sessionClosed": "Le fil de « {name} » n'accepte plus de messages : la séance est terminée, et les messages repartent au salon.",
+    "sessionStartedThread": "Séance ouverte dans le fil : « {name} »"
   },
   "legal": {
     "termsLink": "conditions d'utilisation",
