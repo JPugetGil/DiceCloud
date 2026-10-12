@@ -10,11 +10,14 @@
  * answers with the character's card and its reroll buttons, and the roll in
  * its log; "Reroll with advantage"; /check by autocompletion; /hp seen alone,
  * then changed and told; a roll in the channel of the character's pasted
- * webhook posted there once, by the reply; the commands registered on the
+ * webhook posted there once, by the reply, and a check made on the sheet
+ * posted there without a reroll button; the commands registered on the
  * fake with a client credentials token; the Discord page's installation card.
  * And the bot (phase D): /connect, refused to a member who may not manage
  * webhooks, connects the character to a text channel through a webhook the
- * bot creates; "New session" in its form has the bot create
+ * bot creates, where a check made on the sheet comes with its reroll
+ * buttons, refused to an unlinked account and rolling it again for its
+ * player; "New session" in its form has the bot create
  * the thread, and a roll goes there; /connect in a forum's post connects the
  * forum, whose session is a post. Everything is put back.
  *
@@ -120,6 +123,22 @@ main(async () => {
   const customIds = message => [...JSON.stringify(message).matchAll(/"custom_id":"([^"]+)"/g)].map(match => match[1]);
   // The character's log entries since then (the log keeps its latest ones only)
   const loggedSince = since => withDb(db => db.collection('creatureLogs').find({ creatureId, date: { $gte: since } }).toArray());
+  // A check made on the sheet, through its dialog, as a user does; the posts it made to a webhook
+  const checkOnSheet = async webhookId => {
+    const skill = await withDb(db => db.collection('creatureProperties').findOne(
+      { 'root.id': creatureId, type: 'skill', variableName: 'athletics', removed: { $ne: true } }, { projection: { _id: 1 } }));
+    if (!skill) throw new Error('no Athletics skill on the character: run "npm run setup"');
+    const before = fake.requests.length;
+    await visit(editor.page, `/character/${creatureId}`, 3000);
+    await editor.page.locator(`[data-id="check-btn-${skill._id}"]`).first().click();
+    await editor.page.waitForSelector('.dialog-stack .action-dialog', { timeout: 10000 });
+    await pause(1000);
+    await editor.page.locator('.dialog-stack #roll-hex').first().click();
+    await pause(2000);
+    await editor.page.locator('.dialog-stack .done-button').first().click();
+    return waitFor(() => fake.requests.slice(before).find(request => request.method === 'POST' && request.webhookId === webhookId),
+      'the check posted');
+  };
 
   const browsers = [editor.browser];
   let linked = false;
@@ -223,6 +242,14 @@ main(async () => {
       return `channel ${channel}: the reply alone; elsewhere, the reply and the webhook's post`;
     });
 
+    await step('a check made on the sheet goes to the pasted webhook without a reroll button', editor.messages, async () => {
+      const posted = await checkOnSheet(TEXT_ID);
+      if (posted.status !== 204) throw new Error(`the fake answered ${posted.status} ${posted.code}`);
+      if (!JSON.stringify(posted.body).includes('Athletics')) throw new Error(JSON.stringify(posted.body).slice(0, 200));
+      if (customIds(posted.body).length) throw new Error(`buttons ${customIds(posted.body)} on a pasted webhook`);
+      return 'the card, its link to the sheet alone';
+    });
+
     const bot = await editor.page.evaluate(() => !!window.Meteor.settings.public.discordBot);
     const connectCommand = (channel, member = MANAGE_WEBHOOKS) => fake.interact(endpoint, {
       type: 2, application_id: '1600000000000000001', guild_id: GUILD, channel_id: channel.id, channel, locale: 'en-US',
@@ -244,6 +271,31 @@ main(async () => {
           throw new Error(`channel ${JSON.stringify(channel)}`);
         }
         return `"${refused.data.content}" · "${reply}"`;
+      });
+
+      await step('a check made on the sheet goes to the connected channel with its reroll buttons, which roll it again', editor.messages, async () => {
+        const webhookId = fake.botWebhooks[0].id;
+        const posted = await checkOnSheet(webhookId);
+        const [advantage, disadvantage] = customIds(posted.body);
+        if (posted.status !== 204 || !/^dc:reroll:\w+:1$/.test(advantage || '') || !/^dc:reroll:\w+:-1$/.test(disadvantage || '')) {
+          throw new Error(`posted ${posted.status}, buttons ${customIds(posted.body)}`);
+        }
+        const message = { id: '1800000000000000202', flags: 1 << 15, webhook_id: webhookId };
+        // Someone whose Discord account is linked to nobody: refused, for them alone
+        const refused = (await fake.interact(endpoint, {
+          type: 3, ...where(STRANGER, BOT_TEXT), data: { custom_id: disadvantage, component_type: 2 }, message,
+        })).answer;
+        if (refused.data?.flags !== 64) throw new Error(`refused ${JSON.stringify(refused)}`);
+        // The character's player: rolled again, in a new message, in its log
+        const since = new Date();
+        const { answer, token } = await fake.interact(endpoint, {
+          type: 3, ...where(PLAYER, BOT_TEXT), data: { custom_id: advantage, component_type: 2 }, message,
+        });
+        if (answer.type !== 5 || answer.data?.flags) throw new Error(JSON.stringify(answer));
+        const reply = JSON.stringify(await edited(token));
+        if (!reply.includes('Athletics') || !reply.includes('(Advantage)')) throw new Error(reply.slice(0, 300));
+        const logged = await waitFor(async () => (await loggedSince(since)).length, 'the reroll in the log');
+        return `${customIds(posted.body).length} buttons; refused to an unlinked account; rerolled with advantage, ${logged} entry logged`;
       });
 
       await step('"New session": the bot creates the thread, a roll goes into it', editor.messages, async () => {

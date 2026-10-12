@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
-import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
+import CreatureLogs, { logRoll } from '/imports/api/creature/log/CreatureLogs';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import {
   createWebhookSender, discordIntakeIdle, forgetWebhook, setWebhookSender, type WebhookSender,
@@ -404,6 +404,130 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       const toPasted = fake.requests.filter(request => request.webhookId === pasted.id && request.method === 'POST');
       assert.isAtLeast(toPasted.length, 2, 'the initiative message and the turn line');
       assert.lengthOf(customIds(toPasted.map(request => request.body)), 0);
+    });
+  });
+
+  describe('the reroll buttons under a check made in DiceCloud', function () {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const { insertAction } = require('/imports/api/engine/action/methods/insertAction');
+    const { runAction } = require('/imports/api/engine/action/methods/runAction');
+    const { invocationOf } = require('/imports/api/discord/server/interactions/interactionCommands');
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    const OWN = { id: '1700000000000000002', token: 'own-connected-token' };
+    const PARTY = { id: '1700000000000000001', token: 'party-connected-token' };
+
+    /** A check as the sheet's buttons make it, with what its dialog decided */
+    async function appCheck(userId: string, creature: string, variables: Record<string, string>, extra: Record<string, unknown> = {}) {
+      const params = { advantage: 0, ...variables, dc: null };
+      const actionId = await insertAction._execute(invocationOf(userId), {
+        action: {
+          creatureId: creature, task: { subtaskFn: 'check', targetIds: [creature], ...params, ...extra },
+          results: [], taskCount: 0, _decisions: [],
+        },
+      });
+      await runAction._execute(invocationOf(userId), { actionId, decisions: [params] });
+      await discordIntakeIdle();
+      await sender.idle();
+    }
+    const posts = (webhook: { id: string }) => fake.requests.filter(request => request.method === 'POST' && request.webhookId === webhook.id);
+    async function connect(webhook: { id: string, token: string }, channelId: string) {
+      await ConnectedWebhooks.rawCollection().insertOne({
+        _id: webhook.id, webhookId: webhook.id, token: webhook.token, channelId, guildId: GUILD, createdAt: new Date(),
+      });
+    }
+
+    beforeEach(async function () {
+      await connect(PARTY, PARTY_CHANNEL);
+      await connect(OWN, CHANNEL);
+      await Creatures.updateAsync(creatureId, {
+        $set: { discordChannel: { webhookId: OWN.id, guildId: GUILD, channelId: CHANNEL, connectedAt: new Date() } },
+      });
+    });
+
+    it('go under a check and a saving throw on the connected channels, the character\'s and the party\'s, kept once', async function () {
+      await appCheck(playerId, creatureId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      const [own] = posts(OWN);
+      const [party] = posts(PARTY);
+      assert.equal(own.query.with_components, 'true');
+      const ids = customIds(own.body);
+      assert.lengthOf(ids, 2);
+      assert.match(ids[0], /^dc:reroll:\w+:1$/);
+      assert.match(ids[1], /^dc:reroll:\w+:-1$/);
+      assert.deepEqual(customIds(party.body), ids, 'one roll kept for both channels');
+      assert.include(text(own.body), 'Reroll with advantage');
+      const kept = await DiscordRerolls.findOneAsync(ids[0].split(':')[2]);
+      assert.deepInclude(kept, {
+        creatureId, kind: 'check', skillVariableName: 'perception', abilityVariableName: 'wisdom', secret: false,
+      });
+      // A saving throw, as its button makes it
+      await appCheck(playerId, creatureId, { skillVariableName: 'strengthSave', abilityVariableName: 'strength' });
+      const save = customIds(posts(OWN)[1].body);
+      assert.lengthOf(save, 2);
+      assert.equal((await DiscordRerolls.findOneAsync(save[0].split(':')[2]))?.skillVariableName, 'strengthSave');
+    });
+
+    it('roll it again in a new message, logged, for those who may edit the character; the others are refused', async function () {
+      await appCheck(playerId, creatureId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      const [advantage, disadvantage] = customIds(posts(OWN)[0].body);
+      const before = await logCount(creatureId);
+      // Clicked under the webhook's card, in the party's channel
+      const again = await click(advantage, { channel: PARTY_CHANNEL }, { id: '1', flags: 1 << 15, webhook_id: OWN.id });
+      assert.deepEqual(again.answer, { type: 5 }, 'a new message, for everyone');
+      const reply = await edited(again.token);
+      assert.include(text(reply), 'Perception');
+      assert.include(text(reply), '(Advantage)');
+      assert.lengthOf(customIds(reply), 2, 'its own buttons');
+      assert.equal(await logCount(creatureId), before + 1);
+      const refused = await click(disadvantage, { user: OTHER }, { id: '1', flags: 1 << 15 });
+      assert.equal(refused.answer.data.flags, 64);
+      assert.include(refused.answer.data.content, 'Only those who can edit Aria');
+      assert.equal(await logCount(creatureId), before + 1);
+      // A Discord account linked to nobody
+      assert.include(text((await click(disadvantage, { user: STRANGER })).answer), 'not linked');
+    });
+
+    it('never go on a pasted webhook, nor without interactions, nor under a typed roll, a silent check or a made-up variable', async function () {
+      const pasted = { id: '1200000000000000031', token: 'pasted-check' };
+      await Creatures.updateAsync(creatureId, {
+        $unset: { discordChannel: 1 },
+        $set: { 'settings.discordWebhook': `https://discord.com/api/webhooks/${pasted.id}/${pasted.token}`, discordWebhookId: pasted.id },
+      });
+      await appCheck(playerId, creatureId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      const [toPasted] = posts(pasted);
+      assert.exists(toPasted, 'posted');
+      assert.lengthOf(customIds(toPasted.body), 0);
+      assert.lengthOf(customIds(posts(PARTY)[0].body), 2, 'the party\'s connected channel has them');
+      // Without the application's interactions
+      setInteractionsPublicKey(undefined);
+      await appCheck(playerId, creatureId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      assert.lengthOf(customIds(posts(PARTY)[1].body), 0);
+      setInteractionsPublicKey(fake.publicKey);
+      // A roll typed in the log; a check the action keeps quiet
+      await (logRoll as any)._execute(invocationOf(playerId), { roll: '1d20 + 2', creatureId });
+      await appCheck(playerId, creatureId, { skillVariableName: 'perception' }, { silent: true });
+      // A decision whose variable is no variable's name (the client's)
+      await appCheck(playerId, creatureId, { skillVariableName: 'not a variable { }' });
+      await discordIntakeIdle();
+      await sender.idle();
+      assert.lengthOf(customIds(posts(PARTY).slice(2).map(request => request.body)), 0);
+      assert.equal(await DiscordRerolls.find({ creatureId }).countAsync(), 1, 'kept for the first check alone');
+    });
+
+    it('never show a monster\'s check to the players: nothing in the party\'s channel; its game master\'s own channel has them', async function () {
+      const gmOwn = { id: '1700000000000000003', token: 'gm-own-token' };
+      await connect(gmOwn, '1500000000000000004');
+      await Creatures.updateAsync(monsterId, {
+        $set: { discordChannel: { webhookId: gmOwn.id, guildId: GUILD, channelId: '1500000000000000004', connectedAt: new Date() } },
+      });
+      await appCheck(gmId, monsterId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      assert.lengthOf(posts(PARTY), 0);
+      const [own] = posts(gmOwn);
+      const [advantage] = customIds(own.body);
+      assert.match(advantage, /^dc:reroll:/);
+      assert.include(text((await click(advantage, {})).answer), 'Only those who can edit Goblin', 'not the player');
+      const again = await click(advantage, { user: GM, channel: '1500000000000000004' });
+      assert.equal(again.answer.data?.flags, 64, 'for its game master alone');
+      assert.include(text(await edited(again.token)), '(Advantage)');
     });
   });
 

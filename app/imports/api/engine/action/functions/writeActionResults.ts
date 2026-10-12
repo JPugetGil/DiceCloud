@@ -58,8 +58,8 @@ export default async function writeActionResults(action: EngineAction) {
     // Not in the client's simulation of the method: the server's result replaces it
     if (!Meteor.isServer) return;
     // Attacks, spells, checks, rests, damage: on Discord once written, as rolls
-    // typed in the log are
-    postLogToDiscord(log);
+    // typed in the log are; a check with what rolls it again (D7)
+    postLogToDiscord(log, action._rolledCheck && { reroll: action._rolledCheck });
     return trimCreatureLogs(action.creatureId);
   });
 

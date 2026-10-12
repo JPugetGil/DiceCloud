@@ -11,6 +11,9 @@ export interface EngineAction {
   _isSimulation?: boolean;
   _stepThrough?: boolean;
   _decisions?: any[],
+  // The check or saving throw the action itself rolled, as decided: what
+  // Discord's buttons roll again (D7). Kept in memory while it runs, never stored
+  _rolledCheck?: { skillVariableName?: string, abilityVariableName?: string },
   task: Task;
   creatureId: string;
   results: TaskResult[];

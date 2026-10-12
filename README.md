@@ -350,7 +350,10 @@ With the application's **Public Key** too, Discord sends DiceCloud its slash
 commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, in French `/jet`,
 `/test`, `/sauvegarde`, `/pv`, `/personnage`) and the clicks on its buttons
 (reroll with advantage or disadvantage, next turn, end my turn), over HTTP: no
-bot runs. Only for accounts that linked their Discord account.
+bot runs. Only for accounts that linked their Discord account. The reroll
+buttons go under a command's check, saving throw or roll of one d20, and under
+the checks and saving throws made in DiceCloud that a connected channel's
+webhook posts (never a pasted webhook's: Discord refuses them there).
 
 1. In the portal, Installation: Installation Contexts **Guild Install** and
    **User Install**; Install Link "Discord Provided Link"; for each context,

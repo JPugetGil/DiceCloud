@@ -86,9 +86,13 @@ export async function trimCreatureLogs(creatureId) {
  * Posts a log entry, once written, to its creature's Discord webhook if it has
  * one (server/discordWebhooks.ts). On the server only, and without waiting:
  * a method's simulation posts nothing, and a log never waits on Discord.
+ * `reroll`: the check or saving throw it rolled, which Discord's buttons may
+ * roll again (D7)
+ * @param {any} log
+ * @param {{ reroll?: { skillVariableName?: string, abilityVariableName?: string } }} [extras]
  */
-export function postLogToDiscord(log) {
-  if (Meteor.isServer) sendLogToDiscord(log);
+export function postLogToDiscord(log, extras) {
+  if (Meteor.isServer) sendLogToDiscord(log, extras);
 }
 
 /**

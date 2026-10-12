@@ -17,6 +17,9 @@ import type { DiscordChannel } from '/imports/api/creature/log/discord/discordCh
 import { connectedWebhook, forgetConnectedWebhook } from '/imports/api/creature/log/server/connectedWebhooks';
 import { isPastedWebhook, learnPastedChannel, pastedWebhook } from '/imports/api/creature/log/server/pastedWebhooks';
 import { interactionOrigin } from '/imports/api/discord/server/interactions/interactionOrigin';
+import { interactionsPublicKey } from '/imports/api/discord/server/interactions/interactionSignature';
+import { rerollButtonsOf, saveReroll } from '/imports/api/discord/server/interactions/interactionRerolls';
+import { addButtons } from '/imports/api/discord/server/interactions/interactionReplies';
 import { hidesStatsFromPlayers, boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import {
   DISCORD_API, DISCORD_CODES, TEST_API_VARIABLE, createWebhookSender, discordApiBase, discordUserAgent, postMessage,
@@ -49,6 +52,12 @@ export {
  * A webhook Discord no longer knows (404) or whose token it refuses (401) is
  * removed from the characters and the parties that have it, so that it is
  * not called again on every roll.
+ *
+ * A check or a saving throw made in DiceCloud carries the buttons of D7,
+ * "Reroll with advantage / disadvantage", on the webhooks DiceCloud's
+ * application owns (connected, or made by the bot with /connect) when the
+ * application takes interactions: never on a pasted webhook, which Discord
+ * refuses them from. Who may click is checked at the click.
  */
 
 // What this reads of a party's folder (CreatureFolders.js)
@@ -530,6 +539,23 @@ export function statusOf(result: { ok: boolean, status?: number, code?: number }
 
 type LogEntry = { creatureId?: string, content?: LogLine[], date?: Date | string };
 
+// The check or saving throw an entry rolled, which the buttons roll again
+export type RolledCheck = { skillVariableName?: string, abilityVariableName?: string };
+
+/** Whether a channel's messages may carry the buttons of D7: its webhook is the application's, which takes interactions */
+const takesButtons = (channel: Channel) => !channel.pasted && !!interactionsPublicKey();
+
+// A variable's name as the check's decision gave it (the client's): kept only if it is one
+const variableName = (name: unknown) => typeof name === 'string' && /^[\w~#]{1,64}$/.test(name) ? name : undefined;
+
+/** The check to keep for the buttons, its variables' names checked; none without one */
+function rerollOf(reroll?: RolledCheck): RolledCheck | undefined {
+  const skillVariableName = variableName(reroll?.skillVariableName);
+  const abilityVariableName = variableName(reroll?.abilityVariableName);
+  if (!skillVariableName && !abilityVariableName) return undefined;
+  return { ...skillVariableName && { skillVariableName }, ...abilityVariableName && { abilityVariableName } };
+}
+
 type LogCreature = {
   _id: string, name?: string, color?: string, picture?: string, avatarPicture?: string,
   owner?: string, type?: string, settings?: { discordWebhook?: string }, discordChannel?: DiscordChannel,
@@ -599,7 +625,7 @@ async function landingChannel(request: Requester, channel: Channel): Promise<str
   return channel.channelId;
 }
 
-async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender, repliedIn?: string) {
+async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender, repliedIn?: string, reroll?: RolledCheck) {
   const creature = await Creatures.findOneAsync(creatureId, {
     fields: {
       name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, type: 1, 'settings.discordWebhook': 1, discordChannel: 1,
@@ -611,11 +637,17 @@ async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender
   if (!channels.length) return;
   const hiddenIds = await hiddenTargets(creature, log);
   const sheetUrl = Meteor.absoluteUrl(`character/${creature._id}`);
+  // A check rolled again from the buttons: kept once for all the channels that take them
+  const rolled = rerollOf(reroll);
+  const rerollId = rolled && channels.some(takesButtons)
+    ? await saveReroll({ creatureId: creature._id, kind: 'check', ...rolled, secret: false })
+    : undefined;
   for (const channel of channels) {
     const input = { log, creature, language: channel.language, sheetUrl, hiddenIds };
     const embeds = discordMessages(input);
     if (!embeds.length) continue;
     const card = logComponents(input);
+    if (card && rerollId && takesButtons(channel)) addButtons(card, rerollButtonsOf(rerollId, channel.language));
     target.enqueue(channel.webhook, async request => {
       // A command's entry: its reply is in that channel already (D6)
       if (repliedIn && await landingChannel(request, channel) === repliedIn) return;
@@ -638,9 +670,9 @@ async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender
 /**
  * Posts a log entry to its character's Discord webhooks, if it has some.
  * Returns at once: a log never waits on Discord. Once per entry, after it is
- * written.
+ * written; with the check or saving throw it rolled, its buttons (D7)
  */
-export function sendLogToDiscord(log: LogEntry) {
+export function sendLogToDiscord(log: LogEntry, { reroll }: { reroll?: RolledCheck } = {}) {
   // Written by a Discord command (D6): its reply shows it in that channel
   const origin = interactionOrigin();
   origin?.logs.push(log);
@@ -649,7 +681,7 @@ export function sendLogToDiscord(log: LogEntry) {
   if (!target || !creatureId) return;
   const repliedIn = origin?.channelId;
   const next = (intake.get(creatureId) ?? Promise.resolve())
-    .then(() => queueLog(creatureId, log, target, repliedIn))
+    .then(() => queueLog(creatureId, log, target, repliedIn, reroll))
     .catch(e => console.error(e));
   intake.set(creatureId, next);
   next.finally(() => {

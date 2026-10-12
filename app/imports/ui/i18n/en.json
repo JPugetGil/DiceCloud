@@ -297,7 +297,7 @@
       "character": "/character: choose your character for a server; in your party's channel, your only character there is chosen for you",
       "connect": "/connect: in a channel, or in a post of a forum, connects it to a party you lead or a character you may edit (for those who may manage its webhooks)"
     },
-    "installButtons": "Under a check, a saving throw or a roll of one d20, \"Reroll with advantage\" and \"with disadvantage\". On a channel connected with \"Connect to Discord\", \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Rolls stay in the character's log; a monster's are only shown to its game master.",
+    "installButtons": "Under a check, a saving throw or a roll of one d20 made with a command, \"Reroll with advantage\" and \"with disadvantage\"; on a connected channel (with \"Connect to Discord\" or /connect), under the checks and saving throws made in DiceCloud too. There, \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Only those who may edit the character, or its game master, can use them. Rolls stay in the character's log; a monster's are only shown to its game master.",
     "sessionThread": "Session open in the thread “{name}”: everything goes there.",
     "sessionClosed": "The thread of “{name}” no longer accepts messages: the session ended, and messages go to the channel again.",
     "sessionStartedThread": "Session opened in a new thread: “{name}”",

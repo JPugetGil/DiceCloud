@@ -297,7 +297,7 @@
       "character": "/personnage : choisir votre personnage pour un serveur ; dans le salon de votre groupe, votre seul personnage y est choisi d'office",
       "connect": "/connecter : dans un salon, ou dans un post d'un forum, le connecte à un groupe que vous menez ou à un personnage que vous pouvez modifier (pour qui peut en gérer les webhooks)"
     },
-    "installButtons": "Sous un test, un jet de sauvegarde ou un jet d'un seul d20, « Relancer avec avantage » et « avec désavantage ». Sur un salon connecté avec « Connecter à Discord », « Tour suivant » sous le message d'initiative (le meneur de jeu) et « Fin de mon tour » sous la ligne de votre tour. Les jets restent au journal du personnage ; ceux d'un monstre ne sont montrés qu'à son meneur de jeu.",
+    "installButtons": "Sous un test, un jet de sauvegarde ou un jet d'un seul d20 faits avec une commande, « Relancer avec avantage » et « avec désavantage » ; sur un salon connecté (avec « Connecter à Discord » ou /connecter), sous les tests et jets de sauvegarde faits dans DiceCloud aussi. Là, « Tour suivant » sous le message d'initiative (le meneur de jeu) et « Fin de mon tour » sous la ligne de votre tour. Seules les personnes qui peuvent modifier le personnage, ou son meneur de jeu, peuvent s'en servir. Les jets restent au journal du personnage ; ceux d'un monstre ne sont montrés qu'à son meneur de jeu.",
     "sessionThread": "Séance ouverte dans le fil « {name} » : tout y va.",
     "sessionClosed": "Le fil de « {name} » n'accepte plus de messages : la séance est terminée, et les messages repartent au salon.",
     "sessionStartedThread": "Séance ouverte dans un nouveau fil : « {name} »",

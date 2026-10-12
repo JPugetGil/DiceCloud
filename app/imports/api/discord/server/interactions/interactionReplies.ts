@@ -61,6 +61,19 @@ const button = ({ label, customId, style = BUTTON_STYLE.secondary }: ReplyButton
   type: COMPONENT.button, style, label: label.slice(0, 80), custom_id: customId,
 });
 
+/** Puts buttons under a card of D3 (logComponents), beside its link to the sheet */
+export function addButtons<T extends { components: unknown[] }>(card: T, buttons: ReplyButton[]): T {
+  if (!buttons.length) return card;
+  const container = card.components[0] as { components: Record<string, any>[] };
+  let row = container.components.find(component => component.type === COMPONENT.actionRow);
+  if (!row) {
+    row = { type: COMPONENT.actionRow, components: [] };
+    container.components.push(row);
+  }
+  row.components.push(...buttons.map(button));
+  return card;
+}
+
 /**
  * A log entry as a reply: the card of D3 (or its embeds, for an entry too
  * long for one card) with the character's name, which an interaction's
@@ -82,14 +95,7 @@ export function logMessage({ log, creature, language, buttons = [] }: {
     const first = container.components[0];
     const heading = first.type === COMPONENT.section ? first.components[0] : first;
     if (byline) heading.content = `${byline}\n${heading.content}`;
-    if (buttons.length) {
-      let row = container.components.find(component => component.type === COMPONENT.actionRow);
-      if (!row) {
-        row = { type: COMPONENT.actionRow, components: [] };
-        container.components.push(row);
-      }
-      row.components.push(...buttons.map(button));
-    }
+    addButtons(card, buttons);
     return { flags: IS_COMPONENTS_V2, components: card.components, ...NO_MENTIONS };
   }
   const [first] = discordMessages(input);

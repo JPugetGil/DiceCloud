@@ -33,6 +33,15 @@ export default async function applyCheckTask(
     const checkParams = await userInput.check(task);
     const advantage = checkParams.advantage;
 
+    // The action's own check of its creature, as decided, logged: Discord's
+    // buttons may roll it again (writeActionResults)
+    if (task === action.task && targetIds.length === 1 && targetId === action.creatureId && !task.silent) {
+      action._rolledCheck = {
+        ...checkParams.skillVariableName && { skillVariableName: checkParams.skillVariableName },
+        ...checkParams.abilityVariableName && { abilityVariableName: checkParams.abilityVariableName },
+      };
+    }
+
     const skill = checkParams.skillVariableName && await getFromScope(checkParams.skillVariableName, scope) || null;
     const skillBonus = (skill?.value || 0) - (skill?.abilityMod || 0);
 
