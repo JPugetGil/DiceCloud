@@ -9,7 +9,9 @@ import {
 } from '/imports/api/creature/log/server/discordWebhooks';
 import { initiativeIntakeIdle } from '/imports/api/creature/log/server/discordInitiative';
 import { rollInitiative } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
-import { startPartySession, setPartyWebhook } from '/imports/api/creature/creatureFolders/methods/discordMethods';
+import {
+  startPartySession, setPartyWebhook, partySessionAvailability,
+} from '/imports/api/creature/creatureFolders/methods/discordMethods';
 import { startCharacterSession } from '/imports/api/creature/creatures/methods/discordSessionMethods';
 import { fakeDiscord, type FakeDiscord } from '/imports/api/creature/log/server/fakeDiscord.testFn';
 
@@ -18,8 +20,8 @@ import { fakeDiscord, type FakeDiscord } from '/imports/api/creature/log/server/
  * forum (run in one of its posts) to a party or a character, with all its
  * checks, through a webhook the bot creates, one per channel; a forum so
  * connected has its sessions as posts, with the buttons; "New session" in a
- * text channel connected for that holder has the bot create the thread, and
- * says to add the bot when it cannot.
+ * text channel has the bot create the thread, and says to add the bot when
+ * it cannot, with nothing else instead.
  */
 
 if (Meteor.isServer) describe('Discord\'s bot: /connect and new threads (phase D)', function () {
@@ -202,13 +204,14 @@ if (Meteor.isServer) describe('Discord\'s bot: /connect and new threads (phase D
 
   it('"New session" in a connected text channel: the bot creates the thread, and everything goes there', async function () {
     await edited((await connect(`folder:${folderId}`)).token);
-    const opened = await call(startPartySession, gmId, { folderId, newThread: true });
+    const opened = await call(startPartySession, gmId, { folderId });
     assert.equal(opened.kind, 'thread');
     const created = fake.requests.find(request => request.path === `/api/v10/channels/${TEXT}/threads`);
     assert.deepEqual([created?.body?.type, created?.body?.auto_archive_duration], [11, 10080]);
     assert.match(created?.body?.name, /^Session of .+ — The table$/);
     const session = (await folder()).discord.session;
     assert.equal(session.kind, 'thread');
+    assert.deepEqual((await folder()).discord.sessionHistory.map((past: any) => [past.threadId, past.channelId]), [[session.threadId, TEXT]]);
     await settle();
     const before = fake.requests.length;
     await insertCreatureLogWork({ log: { creatureId, content: [{ value: '1d20' }, { value: '1d20 [7]' }, { value: '7' }] } });
@@ -218,11 +221,12 @@ if (Meteor.isServer) describe('Discord\'s bot: /connect and new threads (phase D
     assert.equal(posted[0].query.thread_id, session.threadId);
     // A character connected there too
     await edited((await connect(`creature:${creatureId}`, { user: PLAYER })).token);
+    // What a browser of before 2026-10-12 sends: the same
     const own = await call(startCharacterSession, playerId, { creatureId, newThread: true });
     assert.equal(own.kind, 'thread');
   });
 
-  it('says to add the bot when it cannot create the thread, and never creates one elsewhere', async function () {
+  it('says to add the bot when it cannot create the thread, opens nothing else, and never creates one elsewhere', async function () {
     // Connected (D4) on a server the bot is not on
     await CreatureFolders.updateAsync(folderId, {
       $set: { 'discord.channel': { webhookId: '1700000000000000021', guildId: GUILD, channelId: ABSENT, connectedAt: new Date() } },
@@ -230,28 +234,33 @@ if (Meteor.isServer) describe('Discord\'s bot: /connect and new threads (phase D
     await ConnectedWebhooks.rawCollection().insertOne({
       _id: '1700000000000000021', webhookId: '1700000000000000021', token: 'absent-token', channelId: ABSENT, guildId: GUILD, createdAt: new Date(),
     });
-    let error: any;
-    try {
-      await call(startPartySession, gmId, { folderId, newThread: true });
-    } catch (e) {
-      error = e;
-    }
+    assert.deepEqual(await call(partySessionAvailability, gmId, { folderId }), { newSession: 'noBot' });
+    const failure = async () => {
+      try {
+        await call(startPartySession, gmId, { folderId });
+      } catch (e) {
+        return e as any;
+      }
+      return assert.fail('a session opened');
+    };
+    const error = await failure();
     assert.equal(error?.error, 'discord.botUnavailable');
     assert.include(JSON.stringify(error?.details), '404 10004');
     assert.notProperty((await folder()).discord, 'session');
-    // The other ways stay
-    const header = await call(startPartySession, gmId, { folderId });
-    assert.equal(header.kind, 'channel');
-    // A pasted webhook: no thread by the bot, whatever the client asks
+    await settle();
+    assert.isFalse(fake.requests.some(request => request.webhookId === '1700000000000000021' && request.method === 'POST'),
+      'no header message, no forum post: nothing else instead');
+    // On the server, but refused the permission there
+    await CreatureFolders.updateAsync(folderId, { $set: { 'discord.channel.channelId': DENIED } });
+    await ConnectedWebhooks.updateAsync({ webhookId: '1700000000000000021' }, { $set: { channelId: DENIED } });
+    assert.deepEqual(await call(partySessionAvailability, gmId, { folderId }), { newSession: 'ready' }, 'it sees the channel');
+    assert.include(JSON.stringify((await failure()).details), '403 50013');
+    // A pasted webhook in a text channel the bot sees: its thread, there and nowhere else
     await call(setPartyWebhook, gmId, { folderId, webhook: 'https://discord.com/api/webhooks/1200000000000000031/pasted-token' });
-    error = undefined;
-    try {
-      await call(startPartySession, gmId, { folderId, newThread: true });
-    } catch (e) {
-      error = e;
-    }
-    assert.equal(error?.error, 'discord.botUnavailable');
-    assert.isTrue(fake.requests.filter(request => /\/threads$/.test(request.path))
-      .every(request => request.path === `/api/v10/channels/${ABSENT}/threads`), 'no thread asked anywhere else');
+    const pastedChannel = fake.channelOf('1200000000000000031');
+    fake.botChannels[pastedChannel] = { type: 0, guildId: GUILD };
+    assert.equal((await call(startPartySession, gmId, { folderId })).kind, 'thread');
+    assert.deepEqual(fake.requests.filter(request => /\/threads$/.test(request.path)).map(request => request.path),
+      [ABSENT, DENIED, pastedChannel].map(id => `/api/v10/channels/${id}/threads`), 'no thread asked anywhere else');
   });
 });

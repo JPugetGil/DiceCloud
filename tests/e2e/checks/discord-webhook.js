@@ -20,7 +20,10 @@
  * made-up one goes straight into the database: the app takes only Discord's
  * URLs): nothing reaches Discord. With the fake, the webhook is pasted in the
  * character's form, as a user does. The character's roll leaves as a card with Discord's
- * User-Agent; its "New session" in a text channel posts a header; the test
+ * User-Agent; its "New session" in a text channel the bot cannot reach opens
+ * nothing and says how to fix it; with the bot (`botToken`), a thread the bot
+ * creates, then "Resume a session" reopening it once archived and taking it
+ * off the list once deleted; the test
  * account makes a party board, which the other account joins, and pastes a
  * forum webhook on it; the player sees what the party posts, never where; a
  * roll goes to both channels; the board's "New session" opens a forum post;
@@ -192,29 +195,100 @@ main(async () => {
         return `${card.userAgent}; ${JSON.stringify(card.body.components[0].components[0]).slice(0, 80)}…`;
       });
 
-      await step('its "New session", in a text channel, posts a header message', editor.messages, async () => {
+      // Its Discord settings, in the details' form ("Discord" in either language)
+      const openSettings = async () => {
+        // From the sheet, without a dialog
+        await visit(editor.page, `/character/${creatureId}`, 3000);
         await pushDialog(editor.page, 'creature-form-dialog', { _id: creatureId });
-        // Its Discord section, a panel of the details' form ("Discord" in either language)
         await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
         await editor.page.waitForSelector('[data-id="discord-session-start"]', { timeout: 15000 });
+      };
+      const closeSettings = () => visit(editor.page, `/character/${creatureId}`, 3000);
+      const creatureDiscord = () => withDb(db => db.collection('creatures').findOne({ _id: creatureId }, {
+        projection: { discordSession: 1, discordSessionHistory: 1, discordWebhookChannelKind: 1, discordWebhookChannelId: 1 },
+      }));
+      const startDisabled = () => editor.page.$eval('[data-id="discord-session-start"]', button => button.disabled);
+      const bot = await editor.page.evaluate(() => !!window.Meteor.settings.public.discordBot);
+
+      await step('its "New session", in a text channel the bot cannot reach, opens nothing and says how to fix it', editor.messages, async () => {
+        await openSettings();
         sent();
-        // "New session", then its header message (or, in a forum, its post)
         await editor.page.click('[data-id="discord-session-start"]');
-        await editor.page.click('[data-id="discord-session-header"]');
-        const session = await waitFor(() => withDb(async db => (await db.collection('creatures')
-          .findOne({ _id: creatureId }, { projection: { discordSession: 1 } }))?.discordSession), 'the session');
-        const [refused, header] = sent(TEXT_ID);
-        if (refused?.code !== 220003 || !header || header.body.thread_name || header.query.wait !== 'true') {
-          throw new Error(`requests: ${JSON.stringify([refused, header].map(r => r && [r.status, r.code, r.body?.thread_name]))}`);
+        await editor.page.waitForSelector('[data-id="discord-session-nobot"]', { timeout: 15000 });
+        await settle();
+        const posts = sent(TEXT_ID).filter(request => request.method === 'POST');
+        // A forum's post tried (the channel is not known yet), refused: no header message instead
+        if (posts.length !== 1 || posts[0].code !== 220003) {
+          throw new Error(`requests: ${JSON.stringify(posts.map(r => [r.status, r.code, !!r.body?.thread_name]))}`);
         }
-        if (session.kind !== 'channel' || !session.messageId) throw new Error(`session ${JSON.stringify(session)}`);
-        secrets.push(session.messageId);
-        await editor.page.waitForSelector('[data-id="discord-session-end"]', { timeout: 5000 });
-        const state = (await editor.page.textContent('[data-id="discord-session-state"]')).trim();
-        await editor.page.keyboard.press('Escape');
-        await pause(800);
-        return `${header.body.content} · "${state}"`;
+        const stored = await creatureDiscord();
+        if (stored.discordSession || stored.discordWebhookChannelKind !== 'text') throw new Error(`stored ${JSON.stringify(stored)}`);
+        // Now that the channel is known, "New session" is unavailable, and says why
+        await waitFor(startDisabled, '"New session" unavailable');
+        const alert = (await editor.page.textContent('[data-id="discord-session-nobot-text"]')).trim();
+        const install = await editor.page.getAttribute('[data-id="discord-session-install"]', 'href').catch(() => null);
+        if (bot && !/scope=bot\+applications\.commands&permissions=309774517248/.test(install || '')) throw new Error(`install link ${install}`);
+        if (await editor.page.$eval('[data-id="discord-session-resume"]', button => !button.disabled)) {
+          throw new Error('"Resume a session" offered with no session');
+        }
+        await closeSettings();
+        return `"${alert}"${install ? ' · "Add DiceCloud to a server"' : ''}`;
       });
+
+      if (bot) {
+        let threadId;
+        await step('with the bot on the server, "New session" opens a thread the bot creates, which a roll goes into', editor.messages, async () => {
+          // DiceCloud added to the server: the bot sees the channel
+          const { discordWebhookChannelId: channel } = await creatureDiscord();
+          fake.botChannels[channel] = { type: 0, guildId: '1500000000000000001' };
+          await openSettings();
+          await waitFor(async () => !await startDisabled(), '"New session" available again');
+          sent();
+          await editor.page.click('[data-id="discord-session-start"]');
+          const session = await waitFor(async () => (await creatureDiscord()).discordSession, 'the session');
+          threadId = session.threadId;
+          const created = fake.requests.filter(request => request.path === `/api/v10/channels/${channel}/threads`).at(-1);
+          const [header] = sent(TEXT_ID).filter(request => request.method === 'POST');
+          if (session.kind !== 'thread' || created?.status !== 201 || header?.query.thread_id !== threadId || header.body.thread_name) {
+            throw new Error(`session ${JSON.stringify(session)}; header ${JSON.stringify(header?.query)}`);
+          }
+          secrets.push(threadId);
+          await editor.page.waitForSelector('[data-id="discord-session-end"]', { timeout: 5000 });
+          const state = (await editor.page.textContent('[data-id="discord-session-state"]')).trim();
+          await closeSettings();
+          await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
+          await settle(1);
+          const [roll] = sent(TEXT_ID);
+          if (roll?.query.thread_id !== threadId) throw new Error(`the roll posted with thread_id ${roll?.query.thread_id}`);
+          return `"${created.body.name}" · "${state}"`;
+        });
+
+        await step('"Resume a session" reopens its archived thread with "The session goes on"; a deleted one leaves the list', editor.messages, async () => {
+          await openSettings();
+          await editor.page.click('[data-id="discord-session-end"]');
+          await waitFor(async () => !(await creatureDiscord()).discordSession, 'the session ended');
+          fake.closeThread(threadId, 'archived');
+          sent();
+          await editor.page.click('[data-id="discord-session-resume"]');
+          await editor.page.click(`[data-id="discord-session-resume-item"][data-thread-id="${threadId}"]`);
+          const session = await waitFor(async () => (await creatureDiscord()).discordSession, 'the session resumed');
+          const [goesOn] = sent(TEXT_ID).filter(request => request.method === 'POST');
+          if (session.threadId !== threadId || goesOn?.query.thread_id !== threadId || goesOn.status !== 200) {
+            throw new Error(`session ${JSON.stringify(session)}; posted ${JSON.stringify(goesOn && [goesOn.query, goesOn.status])}`);
+          }
+          await editor.page.click('[data-id="discord-session-end"]');
+          await waitFor(async () => !(await creatureDiscord()).discordSession, 'the session ended again');
+          // Deleted in Discord: resuming it takes it off the list
+          fake.closeThread(threadId, 'deleted');
+          await editor.page.click('[data-id="discord-session-resume"]');
+          await editor.page.click(`[data-id="discord-session-resume-item"][data-thread-id="${threadId}"]`);
+          await waitFor(async () => !(await creatureDiscord()).discordSessionHistory?.length, 'the thread off the list');
+          await waitFor(() => editor.page.$eval('[data-id="discord-session-resume"]', button => button.disabled), 'nothing left to resume');
+          if ((await creatureDiscord()).discordSession) throw new Error('a session in a deleted thread');
+          await closeSettings();
+          return `"${goesOn.body.content}"; the deleted thread taken off the list`;
+        });
+      }
     }
 
     await step(`${OTHER}, a reader, never receives the webhook${fake ? ' nor its session' : ''}`, null, async () => {
@@ -319,9 +393,7 @@ main(async () => {
 
       await step('the board\'s "New session" opens another forum post', editor.messages, async () => {
         const before = fake.threads.size;
-        // "New session", then its header message (or, in a forum, its post)
         await editor.page.click('[data-id="discord-session-start"]');
-        await editor.page.click('[data-id="discord-session-header"]');
         await waitFor(() => fake.threads.size > before, 'a new post');
         await pause(1000);
         const state = (await editor.page.textContent('[data-id="discord-session-state"]')).trim();
@@ -449,8 +521,11 @@ main(async () => {
         }
       };
       if (fake) await attempt(() => call('creatures.discord.setWebhook', { creatureId }));
-      await attempt(() => withDb(db => db.collection('creatures').updateOne(
-        { _id: creatureId }, { $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1 } })));
+      await attempt(() => withDb(db => db.collection('creatures').updateOne({ _id: creatureId }, {
+        $unset: {
+          'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordWebhookChannelKind: 1, discordSessionHistory: 1,
+        },
+      })));
       if (fake) await attempt(() => call('creatures.discord.endSession', { creatureId }));
       if (folderId) {
         if (player) await attempt(() => caller(player.page)('creatureFolders.party.leave', { folderId }));
@@ -459,10 +534,14 @@ main(async () => {
       await attempt(() => call('sharing.setPublic', { docRef, isPublic: false }));
       if (otherId) await attempt(() => call('sharing.updateUserSharePermissions', { docRef, userId: otherId, role: 'none' }));
       const creature = await withDb(db => db.collection('creatures').findOne(
-        { _id: creatureId }, { projection: { public: 1, readers: 1, settings: 1, discordSession: 1, discordWebhookId: 1 } }));
+        { _id: creatureId }, {
+          projection: {
+            public: 1, readers: 1, settings: 1, discordSession: 1, discordWebhookId: 1, discordSessionHistory: 1, discordWebhookChannelKind: 1,
+          },
+        }));
       const folder = folderId && await withDb(db => db.collection('creatureFolders').findOne({ _id: folderId }));
       if (creature.public || creature.readers?.length || creature.settings?.discordWebhook || creature.discordWebhookId
-        || creature.discordSession || folder) {
+        || creature.discordSession || creature.discordSessionHistory || creature.discordWebhookChannelKind || folder) {
         throw new Error(`not put back: ${JSON.stringify({ creature, folder: !!folder })}; ${errors.join('; ')}`);
       }
       if (errors.length) throw new Error(errors.join('; '));

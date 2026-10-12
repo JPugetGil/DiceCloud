@@ -385,12 +385,19 @@ application's Interactions Endpoint URL.
 
 With a bot token too, `discord.botToken`, DiceCloud's bot does two more things,
 by HTTP alone (no process stays connected to Discord): "New session" in a text
-channel connected for a party or a character creates the session's public
-thread itself, and `/connect` (`/connecter`), run in a text channel or in a
+channel, whatever connected it (Connect to Discord, `/connect`, a pasted
+webhook), creates the session's public thread itself, in the channel the
+webhook posts in; and `/connect` (`/connecter`), run in a text channel or in a
 post of a forum by someone who may manage that channel's webhooks, connects it
 to a party they lead or a character they may edit, with a webhook the bot
 creates there: a forum so connected has its sessions as posts, with the
 buttons. The bot reads no message and posts none itself.
+
+A session is a forum's post or, in a text channel, the bot's thread: there is
+no other way. "Resume a session" goes back into one of the last ten sessions
+DiceCloud opened in the channel connected now (kept on the server for the game
+master or the character's editors), with a short "The session goes on" that
+reopens an archived thread; a deleted thread leaves the list.
 
 1. In the portal, Bot: **Reset Token**, into `settings.json` as
    `discord.botToken` (secret, server-only). Leave **Requires OAuth2 Code
@@ -406,8 +413,9 @@ buttons. The bot reads no message and posts none itself.
    Restart DiceCloud after setting the token: the commands, `/connect` among
    them, are registered again.
 
-Without the token nothing changes: "Connect to Discord" and pasted webhooks
-work as before, and the thread of a session is the one the game master makes.
+Without the token, "Connect to Discord", pasted webhooks and the forums'
+sessions work as before, but a text channel takes no session: "New session"
+says to use a forum.
 
 ### The webhooks' key
 

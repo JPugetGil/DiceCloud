@@ -82,6 +82,25 @@ export async function learnPastedChannel(
   return channelId;
 }
 
+/**
+ * Keeps what a character's or a party's pasted webhook's channel is, while it
+ * is still that webhook: a forum, or a text channel, as Discord or its bot
+ * said. "New session" goes straight to the right way, and says at once when
+ * a text channel lacks the bot (discordSessions.ts)
+ */
+export async function rememberPastedKind(
+  holder: { creatureId: string } | { folderId: string }, webhookId: string, kind: 'text' | 'forum',
+) {
+  if ('creatureId' in holder) {
+    const { default: Creatures } = await import('/imports/api/creature/creatures/Creatures');
+    await Creatures.updateAsync({ _id: holder.creatureId, discordWebhookId: webhookId }, { $set: { discordWebhookChannelKind: kind } });
+  } else {
+    const { default: CreatureFolders } = await import('/imports/api/creature/creatureFolders/CreatureFolders');
+    await (CreatureFolders as unknown as Mongo.Collection<any>).updateAsync(
+      { _id: holder.folderId, 'discord.webhookId': webhookId }, { $set: { 'discord.webhookChannelKind': kind } });
+  }
+}
+
 type Counts = { sealed: number, ids: number, unreadable: number };
 
 // A field's value, by its dotted path

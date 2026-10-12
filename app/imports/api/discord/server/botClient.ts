@@ -13,8 +13,10 @@ import type { ExchangedWebhook } from '/imports/api/discord/server/oauthClient';
  * (tools/discord/probe/bot-rest.mjs). It does two things, and only for a
  * channel someone proved their right to:
  *
- * - creates the public thread of a session in a text channel already
- *   connected for that party or character ("New session");
+ * - creates the public thread of a session in the text channel a party's or
+ *   a character's webhook posts in, as Discord says: connected, or pasted
+ *   (whoever holds a webhook's URL may post there already) ("New session",
+ *   discordSessions.ts);
  * - creates DiceCloud's webhook in a channel or a forum where /connect was run
  *   by someone allowed to manage its webhooks.
  *

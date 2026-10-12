@@ -296,17 +296,18 @@ if (Meteor.isServer) describe('A party\'s Discord channel and the sessions', fun
       assert.notEqual((await folder())?.discord.session.threadId, session.threadId);
     });
 
-    it('marks the session with a header message in a text channel, where a webhook cannot open a thread', async function () {
-      const opened = await call(startPartySession, gmId, { folderId, timeZone: 'Europe/Paris' });
-      assert.equal(opened.kind, 'channel');
-      const [refused, header] = await requests(PARTY);
+    it('opens no header message in a text channel any more: without the bot, no session', async function () {
+      let error: any;
+      try {
+        await call(startPartySession, gmId, { folderId, timeZone: 'Europe/Paris' });
+      } catch (e) {
+        error = e;
+      }
+      assert.equal(error?.error, 'discord.noBot');
+      const [refused, ...others] = await requests(PARTY);
       assert.property(refused.body, 'thread_name');
-      assert.notProperty(header.body, 'thread_name');
-      assert.match(header.body.content, /^## Séance du/);
-      const session = (await folder())?.discord.session;
-      assert.equal(session.kind, 'channel');
-      assert.equal(session.messageId, [...fake.messages.keys()][0], 'the header\'s id');
-      assert.notProperty(session, 'threadId');
+      assert.lengthOf(others, 0, 'no header message');
+      assert.notProperty((await folder())?.discord, 'session');
       await roll(memberChar);
       const [message] = await requests(PARTY);
       assert.notProperty(message.query, 'thread_id');
@@ -327,7 +328,6 @@ if (Meteor.isServer) describe('A party\'s Discord channel and the sessions', fun
     });
 
     it('opens no session with sessions turned off, and posts to the channel', async function () {
-      await call(startPartySession, gmId, { folderId });
       await call(setPartyPublishing, gmId, { folderId, publish: { sessions: false } });
       try {
         await call(startPartySession, gmId, { folderId });

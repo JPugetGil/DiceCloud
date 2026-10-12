@@ -155,6 +155,9 @@
 import { computed } from 'vue';
 import { useTheme } from 'vuetify';
 import { Meteor } from 'meteor/meteor';
+import {
+  installUrl as discordInstallUrl, serverInstallUrl as discordServerInstallUrl, accountInstallUrl as discordAccountInstallUrl,
+} from '/imports/ui/discord/discordInstall';
 
 const theme = useTheme();
 
@@ -165,17 +168,12 @@ const widgetTheme = computed(() => theme.current.value.dark ? 'dark' : 'light');
 // Discord's own installation link, which asks where: an account or a server
 const interactions = !!Meteor.settings.public?.discordInteractions;
 const applicationId = Meteor.settings.public?.discordApplicationId;
-const installUrl = applicationId ? `https://discord.com/oauth2/authorize?client_id=${applicationId}` : undefined;
-// With its bot (phase D): on a server, the bot and its four permissions (view
-// the channels, manage webhooks, create public threads, send messages in
-// threads: 309774517248); on an account, the commands alone
+const installUrl = discordInstallUrl();
+// With its bot (phase D): on a server, the bot and its four permissions; on
+// an account, the commands alone
 const bot = !!Meteor.settings.public?.discordBot;
-const serverInstallUrl = applicationId
-  ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=bot+applications.commands&permissions=309774517248&integration_type=0`
-  : undefined;
-const accountInstallUrl = applicationId
-  ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=applications.commands&integration_type=1`
-  : undefined;
+const serverInstallUrl = discordServerInstallUrl();
+const accountInstallUrl = discordAccountInstallUrl();
 const COMMANDS = bot ? ['roll', 'check', 'hp', 'character', 'connect'] : ['roll', 'check', 'hp', 'character'];
 
 // discord.<section>Title and discord.<section>Text

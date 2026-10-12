@@ -19,7 +19,8 @@ import { CreatureSchema } from '/imports/api/creature/creatures/Creatures';
  * So no publication sends the webhook at all, and the ones that list the
  * fields they send leave it out of the settings. The session, the channel
  * and the webhook's id are top-level fields of their own: those publications
- * leave them out.
+ * leave them out. So do the last sessions (`discordSessionHistory`): their
+ * threads' ids and names.
  */
 
 export const WEBHOOK_FIELD = 'settings.discordWebhook';
@@ -31,6 +32,18 @@ export const CHANNEL_FIELD = 'discordChannel';
 // The pasted webhook's id, and its channel: no secret, but its editors' business alone
 export const WEBHOOK_ID_FIELD = 'discordWebhookId';
 export const WEBHOOK_CHANNEL_FIELD = 'discordWebhookChannelId';
+export const WEBHOOK_CHANNEL_KIND_FIELD = 'discordWebhookChannelKind';
+// The last sessions, to resume one: their threads' ids and names
+export const SESSION_HISTORY_FIELD = 'discordSessionHistory';
+
+/**
+ * The top-level fields of Discord that only the character's editors get, and
+ * that no file holds nor sets: an archive, a duplicate, an import
+ */
+export const EDITORS_DISCORD_FIELDS = [
+  SESSION_FIELD, SESSION_CLOSED_FIELD, CHANNEL_FIELD, WEBHOOK_ID_FIELD, WEBHOOK_CHANNEL_FIELD, WEBHOOK_CHANNEL_KIND_FIELD,
+  SESSION_HISTORY_FIELD,
+] as const;
 
 /** A projection for the character's editors: everything but the webhook's URL */
 export const WITHOUT_WEBHOOK_URL = { [WEBHOOK_FIELD]: 0 } as const;
@@ -38,7 +51,7 @@ export const WITHOUT_WEBHOOK_URL = { [WEBHOOK_FIELD]: 0 } as const;
 /** A projection for everyone else: neither the webhook, nor its id, channel and session (every other field kept) */
 export const WITHOUT_WEBHOOK = {
   [WEBHOOK_FIELD]: 0, [SESSION_FIELD]: 0, [SESSION_CLOSED_FIELD]: 0, [CHANNEL_FIELD]: 0, [WEBHOOK_ID_FIELD]: 0,
-  [WEBHOOK_CHANNEL_FIELD]: 0,
+  [WEBHOOK_CHANNEL_FIELD]: 0, [WEBHOOK_CHANNEL_KIND_FIELD]: 0, [SESSION_HISTORY_FIELD]: 0,
 } as const;
 
 /** What a party's players never get of its folder: its Discord webhook and session */
@@ -68,6 +81,8 @@ type WithWebhook = {
   discordWebhookId?: unknown,
   discordWebhookChannelId?: unknown,
   discordSessionClosed?: unknown,
+  discordWebhookChannelKind?: unknown,
+  discordSessionHistory?: unknown,
 };
 
 // A copy without the webhook's URL and those top-level fields; the character itself if it has none
@@ -87,7 +102,7 @@ export function creatureWithoutWebhookUrl<T extends WithWebhook>(creature: T): T
 
 /** A copy of a character for anyone else: without its webhook, its id, channel and session */
 export function creatureWithoutWebhook<T extends WithWebhook>(creature: T): T {
-  return without(creature, [SESSION_FIELD, SESSION_CLOSED_FIELD, CHANNEL_FIELD, WEBHOOK_ID_FIELD, WEBHOOK_CHANNEL_FIELD]);
+  return without(creature, [...EDITORS_DISCORD_FIELDS]);
 }
 
 /**
@@ -98,7 +113,7 @@ export function creatureWithoutWebhook<T extends WithWebhook>(creature: T): T {
  * by its id)
  */
 export function creatureWithoutDiscord<T extends WithWebhook>(creature: T): T {
-  return without(creature, [SESSION_FIELD, SESSION_CLOSED_FIELD, CHANNEL_FIELD, WEBHOOK_ID_FIELD, WEBHOOK_CHANNEL_FIELD]);
+  return without(creature, [...EDITORS_DISCORD_FIELDS]);
 }
 
 /** A copy of a character for whoever `canEdit` says */

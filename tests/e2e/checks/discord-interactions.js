@@ -14,7 +14,7 @@
  * fake with a client credentials token; the Discord page's installation card.
  * And the bot (phase D): /connect, refused to a member who may not manage
  * webhooks, connects the character to a text channel through a webhook the
- * bot creates; "New session" > "New thread" in its form has the bot create
+ * bot creates; "New session" in its form has the bot create
  * the thread, and a roll goes there; /connect in a forum's post connects the
  * forum, whose session is a post. Everything is put back.
  *
@@ -246,12 +246,11 @@ main(async () => {
         return `"${refused.data.content}" · "${reply}"`;
       });
 
-      await step('"New session" > "New thread": the bot creates the thread, a roll goes into it', editor.messages, async () => {
+      await step('"New session": the bot creates the thread, a roll goes into it', editor.messages, async () => {
         await visit(editor.page, `/character/${creatureId}`, 3000);
         await pushDialog(editor.page, 'creature-form-dialog', { _id: creatureId });
         await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
         await editor.page.click('[data-id="discord-session-start"]');
-        await editor.page.click('[data-id="discord-session-newthread"]');
         const session = await waitFor(() => withDb(async db => (await db.collection('creatures')
           .findOne({ _id: creatureId }, { projection: { discordSession: 1 } }))?.discordSession), 'the session');
         const created = fake.requests.find(request => request.path === `/api/v10/channels/${BOT_TEXT}/threads`);

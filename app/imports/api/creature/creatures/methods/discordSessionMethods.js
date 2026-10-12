@@ -7,32 +7,27 @@ import { assertEditPermission } from '/imports/api/creature/creatures/creaturePe
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { parseThreadLink } from '/imports/api/creature/log/discord/discordChannel';
+import {
+  refuseRemovedModes, removedSessionModes, threadIdSchema,
+} from '/imports/api/creature/creatureFolders/methods/discordMethods';
 
 /*
  * A character's own Discord webhook, pasted, and its sessions (D3): "New
- * session" in its Discord settings opens a forum post, or a header message in
- * a text channel, and its log goes there until "End session". For those who
- * may edit the character, as the webhook.
+ * session" in its Discord settings opens a forum post, or in a text channel a
+ * thread the bot creates, and its log goes there until "End session";
+ * "Resume a session" goes back into one of the last ones (discordSessions.ts).
+ * For those who may edit the character, as the webhook.
  */
 
 const rateLimit = { numRequests: 5, timeInterval: 10000 };
 
 const creatureIdSchema = { creatureId: { type: String, max: 32 } };
 
-/** The thread a link names, or an error the interface shows; none without a link */
-function threadOfLink(threadLink) {
-  if (!threadLink?.trim()) return undefined;
-  const thread = parseThreadLink(threadLink);
-  if (!thread) throw boardError('discord.threadLink', 'discord.errors.threadLink');
-  return thread;
-}
-
 async function getEditableCreature(creatureId, userId) {
   const creature = await Creatures.findOneAsync(creatureId, {
     fields: {
       name: 1, owner: 1, writers: 1, readers: 1, public: 1, type: 1, avatarPicture: 1,
-      'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordChannel: 1,
+      'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordWebhookChannelKind: 1, discordChannel: 1,
     },
   });
   await assertEditPermission(creature, userId);
@@ -65,7 +60,10 @@ export const setCharacterWebhook = new ValidatedMethod({
       }
       if (!url) {
         await Creatures.updateAsync(creatureId, {
-          $unset: { 'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordSession: 1 },
+          $unset: {
+            'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordWebhookChannelKind: 1,
+            discordSession: 1, discordSessionHistory: 1,
+          },
         });
         return;
       }
@@ -75,7 +73,9 @@ export const setCharacterWebhook = new ValidatedMethod({
       await Creatures.updateAsync(creatureId, {
         $set: { 'settings.discordWebhook': stored, discordWebhookId: webhookId },
         // Another webhook: the session and the channel were the old one's
-        ...creature.discordWebhookId !== webhookId && { $unset: { discordSession: 1, discordWebhookChannelId: 1 } },
+        ...creature.discordWebhookId !== webhookId && {
+          $unset: { discordSession: 1, discordWebhookChannelId: 1, discordWebhookChannelKind: 1 },
+        },
       });
       // Where it posts, asked of Discord without waiting (D6)
       learnPastedChannel({ creatureId }, /** @type {any} */ (parseWebhookURL(url))).catch(e => console.warn(e));
@@ -83,42 +83,77 @@ export const setCharacterWebhook = new ValidatedMethod({
   },
 });
 
-/** Opens a session on the character's webhook; returns its kind and name */
+/**
+ * The character's channel for its sessions (server only): its webhook,
+ * connected or pasted, unless it has none
+ */
+async function sessionsChannel(creature) {
+  if (Meteor.isServer) {
+    // Imported when called
+    const { characterChannel, characterWebhook } = await import('/imports/api/creature/log/server/discordWebhooks');
+    const webhook = await characterWebhook(creature);
+    if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
+    return characterChannel(creature, webhook);
+  }
+  // Only the server calls it
+  throw new Meteor.Error('server-only', 'The server alone opens sessions');
+}
+
+const timeZoneSchema = { timeZone: { type: String, optional: true, max: 64 } };
+
+/**
+ * Opens a session on the character's webhook: a forum post, or in a text
+ * channel a thread the bot creates. Returns its kind and name
+ */
 export const startCharacterSession = new ValidatedMethod({
   name: 'creatures.discord.startSession',
-  validate: new SimpleSchema({
-    ...creatureIdSchema,
-    timeZone: { type: String, optional: true, max: 64 },
-    // A thread of the channel to hold the session (its link), if one is chosen
-    threadLink: { type: String, optional: true, max: 200 },
-    // A new thread the bot creates in the connected text channel (phase D)
-    newThread: { type: Boolean, optional: true },
-  }).validator(),
+  validate: new SimpleSchema({ ...creatureIdSchema, ...timeZoneSchema, ...removedSessionModes }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ creatureId, timeZone, threadLink, newThread }) {
+  async run({ creatureId, timeZone, threadLink }) {
     const creature = await getEditableCreature(creatureId, this.userId);
-    const thread = threadOfLink(threadLink);
-    // Only in a text channel connected for this character
-    if (newThread && (!creature.discordChannel || creature.discordChannel.kind === 'forum')) {
-      throw boardError('discord.botUnavailable', 'discord.errors.botUnavailable', { status: '–' });
-    }
+    refuseRemovedModes({ threadLink });
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
-      // Imported when called
-      const { characterChannel, characterWebhook, startSession } = await import('/imports/api/creature/log/server/discordWebhooks');
-      // Connected or pasted
-      const webhook = await characterWebhook(creature);
-      if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
-      const channel = await characterChannel(creature, webhook);
-      let session;
-      if (newThread) {
-        const { startBotThreadSession } = await import('/imports/api/discord/server/botSessions');
-        session = await startBotThreadSession(channel, timeZone);
-      } else {
-        session = await startSession(channel, timeZone, thread);
-      }
+      const channel = await sessionsChannel(creature);
+      const { newSession } = await import('/imports/api/creature/log/server/discordSessions');
+      const session = await newSession(channel, timeZone);
       return { kind: session.kind, name: session.name };
+    }
+  },
+});
+
+/** Resumes one of the character's last sessions, of the channel it posts in now */
+export const resumeCharacterSession = new ValidatedMethod({
+  name: 'creatures.discord.resumeSession',
+  validate: new SimpleSchema({ ...creatureIdSchema, ...threadIdSchema, ...timeZoneSchema }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit,
+  async run({ creatureId, threadId, timeZone }) {
+    const creature = await getEditableCreature(creatureId, this.userId);
+    if (Meteor.isServer) {
+      const channel = await sessionsChannel(creature);
+      const { resumeSession } = await import('/imports/api/creature/log/server/discordSessions');
+      const session = await resumeSession(channel, threadId, timeZone);
+      return { kind: session.kind, name: session.name, resumed: true };
+    }
+  },
+});
+
+/** Whether "New session" can work on the character's channel (`noBot`: a text channel without the bot) */
+export const characterSessionAvailability = new ValidatedMethod({
+  name: 'creatures.discord.sessionAvailability',
+  validate: new SimpleSchema(creatureIdSchema).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: { numRequests: 10, timeInterval: 10000 },
+  async run({ creatureId }) {
+    const creature = await getEditableCreature(creatureId, this.userId);
+    if (Meteor.isServer) {
+      const { characterChannel, characterWebhook } = await import('/imports/api/creature/log/server/discordWebhooks');
+      const webhook = await characterWebhook(creature);
+      if (!webhook) return { newSession: 'ready' };
+      const { sessionAvailability } = await import('/imports/api/creature/log/server/discordSessions');
+      return sessionAvailability(await characterChannel(creature, webhook));
     }
   },
 });

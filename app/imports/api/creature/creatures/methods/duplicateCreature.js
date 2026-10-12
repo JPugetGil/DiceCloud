@@ -5,6 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { omit } from 'lodash';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import { EDITORS_DISCORD_FIELDS } from '/imports/api/creature/creatures/webhookVisibility';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
@@ -50,7 +51,7 @@ export async function insertCreatureCopy(archive, { owner, name = undefined }) {
   const withNewIds = docs => (docs || []).map(doc => ({ ...doc, _id: Random.id(), creatureId }));
 
   const creature = {
-    ...omit(archive.creature, ['computeVersion', 'lastComputedAt', 'discordSession', 'discordChannel', 'discordWebhookId', 'discordWebhookChannelId', 'discordSessionClosed']),
+    ...omit(archive.creature, ['computeVersion', 'lastComputedAt', ...EDITORS_DISCORD_FIELDS]),
     _id: creatureId,
     owner,
     type: 'pc',

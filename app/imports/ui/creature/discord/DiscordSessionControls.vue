@@ -13,7 +13,7 @@
       {{ stateText }}
     </p>
     <p class="text-body-small text-medium-emphasis mt-1 mb-0">
-      {{ session?.kind === 'channel' ? $t('discord.sessionTextChannelHint') : $t('discord.characterSessionHint') }}
+      {{ session && session.kind === 'channel' ? $t('discord.sessionOldHint') : $t('discord.sessionsHint') }}
     </p>
     <!-- Its thread stopped taking messages: the session ended by itself -->
     <v-alert
@@ -27,41 +27,42 @@
       {{ $t('discord.sessionClosed', { name: closed.name || '' }) }}
     </v-alert>
     <div class="d-flex flex-wrap ga-2 mt-2">
-      <!-- A header message in the channel (a post of its own in a forum), or a thread of the channel -->
+      <!-- A forum's post, or the thread the bot creates in a text channel -->
+      <v-btn
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-forum-outline"
+        :loading="busy === 'start'"
+        :disabled="disabled || !!busy || noBot"
+        data-id="discord-session-start"
+        @click="start"
+      >
+        {{ $t('discord.newSession') }}
+      </v-btn>
+      <!-- One of the last sessions of this channel -->
       <v-menu location="bottom start">
         <template #activator="{ props: menu }">
           <v-btn
             v-bind="menu"
             variant="tonal"
-            color="primary"
-            prepend-icon="mdi-forum-outline"
+            prepend-icon="mdi-history"
             append-icon="mdi-menu-down"
-            :loading="busy === 'start'"
-            :disabled="disabled || !!busy"
-            data-id="discord-session-start"
+            :loading="busy === 'resume'"
+            :disabled="disabled || !!busy || !resumable.length"
+            data-id="discord-session-resume"
           >
-            {{ $t('discord.newSession') }}
+            {{ $t('discord.resumeSession') }}
           </v-btn>
         </template>
         <v-list density="compact">
           <v-list-item
-            v-if="botThread"
-            :title="$t('discord.newSessionBotThread')"
-            :subtitle="$t('discord.newSessionBotThreadHint')"
-            data-id="discord-session-newthread"
-            @click="emit('start', { newThread: true })"
-          />
-          <v-list-item
-            :title="$t('discord.newSessionHeader')"
-            :subtitle="$t('discord.newSessionHeaderHint')"
-            data-id="discord-session-header"
-            @click="emit('start', {})"
-          />
-          <v-list-item
-            :title="$t('discord.newSessionThread')"
-            :subtitle="$t('discord.newSessionThreadHint')"
-            data-id="discord-session-thread"
-            @click="threadForm = true"
+            v-for="past in resumable"
+            :key="past.threadId"
+            :title="past.name || $t('discord.session')"
+            :subtitle="past.kind === 'forum' ? $t('discord.pastForum') : $t('discord.pastThread')"
+            :data-thread-id="past.threadId"
+            data-id="discord-session-resume-item"
+            @click="resume(past)"
           />
         </v-list>
       </v-menu>
@@ -72,112 +73,145 @@
         :loading="busy === 'end'"
         :disabled="disabled || !!busy"
         data-id="discord-session-end"
-        @click="emit('end')"
+        @click="end"
       >
         {{ $t('discord.endSession') }}
       </v-btn>
     </div>
-    <!-- In a thread: the game master makes it in Discord and pastes its link -->
-    <form
-      v-if="threadForm"
+    <!-- A text channel without the bot: how to give it the thread -->
+    <v-alert
+      v-if="botAlert"
+      type="warning"
+      variant="tonal"
+      density="compact"
       class="mt-3"
-      data-id="discord-thread-form"
-      @submit.prevent="startInThread"
+      data-id="discord-session-nobot"
     >
-      <p class="text-body-small text-medium-emphasis mt-0 mb-2">
-        {{ $t('discord.threadHelp') }}
-      </p>
-      <div class="d-flex flex-wrap align-start ga-2">
-        <v-text-field
-          v-model="threadLink"
-          :label="$t('discord.threadLink')"
-          placeholder="https://discord.com/channels/…/…"
-          variant="outlined"
-          density="compact"
-          autocomplete="off"
-          spellcheck="false"
-          hide-details="auto"
-          class="flex-1-1"
-          style="min-width: 200px;"
-          data-id="discord-thread-link"
-        />
+      <span data-id="discord-session-nobot-text">{{ botAlert }}</span>
+      <div
+        v-if="installLink"
+        class="mt-2"
+      >
         <v-btn
-          type="submit"
           variant="tonal"
-          :disabled="!threadLink.trim() || !!busy"
-          :loading="busy === 'start'"
-          data-id="discord-thread-open"
+          size="small"
+          prepend-icon="mdi-server"
+          :href="installLink"
+          target="_blank"
+          rel="noopener"
+          data-id="discord-session-install"
         >
-          {{ $t('discord.threadOpen') }}
-        </v-btn>
-        <v-btn
-          variant="text"
-          :disabled="!!busy"
-          @click="closeThreadForm"
-        >
-          {{ $t('discord.pasted.cancel') }}
+          {{ $t('discord.installServerButton') }}
         </v-btn>
       </div>
-    </form>
+    </v-alert>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { Meteor } from 'meteor/meteor';
+import { resumableSessions } from '/imports/api/creature/log/discord/discordSession';
+import {
+  startPartySession, resumePartySession, endPartySession, partySessionAvailability,
+} from '/imports/api/creature/creatureFolders/methods/discordMethods';
+import {
+  startCharacterSession, resumeCharacterSession, endCharacterSession, characterSessionAvailability,
+} from '/imports/api/creature/creatures/methods/discordSessionMethods';
+import { serverInstallUrl } from '/imports/ui/discord/discordInstall';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import { sessionStartedText } from '/imports/ui/creature/discord/sessionStartedText';
 
 /**
- * A Discord session (D3) of a party or of a character: whether one is open
- * and where its messages go, with the buttons that open a new one (a header
- * message in the channel, a post of its own in a forum, or a thread of the
- * channel whose link the user pastes) and end it; and, when its thread
- * stopped taking messages, that it ended. The parent calls the methods: it
- * knows whose session it is; `start` comes with `{ threadLink }`, `{
- * newThread: true }` (the bot creates the thread, phase D) or nothing.
+ * The Discord sessions (D3) of a party or of a character: whether one is
+ * open and where its messages go; "New session", a forum's post or, in a
+ * text channel, a thread DiceCloud's bot creates; "Resume a session", one of
+ * the last ones of the channel connected now; "End session"; and, when its
+ * thread stopped taking messages, that it ended. In a text channel the bot
+ * cannot create a thread in, "New session" is unavailable, and says how to
+ * fix it. It calls the methods of its holder: a party's game master, a
+ * character's editors.
  */
 const props = defineProps({
+  // Whose sessions: { folderId } or { creatureId }
+  holder: {
+    type: Object,
+    required: true,
+  },
   // The session of the webhook set now, if one is open
   session: {
     type: Object,
     default: undefined,
   },
-  // 'start' or 'end' while its method runs
-  busy: {
-    type: String,
-    default: undefined,
-  },
-  disabled: Boolean,
   // The last session, ended by itself when its thread closed: { name, at }
   closed: {
     type: Object,
     default: undefined,
   },
-  // A text channel connected for this holder, and a bot on this server
-  // (phase D): DiceCloud creates the session's thread itself
-  botThread: Boolean,
-});
-
-const emit = defineEmits(['start', 'end']);
-
-const threadForm = ref(false);
-const threadLink = ref('');
-
-function closeThreadForm() {
-  threadForm.value = false;
-  threadLink.value = '';
-}
-
-function startInThread() {
-  const link = threadLink.value.trim();
-  if (link) emit('start', { threadLink: link });
-}
-
-// Opened in its thread: the form is done
-watch(() => props.session?.threadId, threadId => {
-  if (threadId && props.session?.kind === 'thread') closeThreadForm();
+  // The last sessions, newest first (discordSession.ts)
+  history: {
+    type: Array,
+    default: () => [],
+  },
+  // The channel connected now: its webhook's id, the channel and its server
+  // when known, and what it is ('text' or 'forum') when known
+  here: {
+    type: Object,
+    required: true,
+  },
+  disabled: Boolean,
 });
 
 const { t } = useI18n();
+
+const methods = computed(() => props.holder.folderId ? {
+  args: { folderId: props.holder.folderId },
+  start: startPartySession, resume: resumePartySession, end: endPartySession, availability: partySessionAvailability,
+} : {
+  args: { creatureId: props.holder.creatureId },
+  start: startCharacterSession, resume: resumeCharacterSession, end: endCharacterSession, availability: characterSessionAvailability,
+});
+
+// The sessions "Resume a session" offers: of this channel, but the one open
+const resumable = computed(() => resumableSessions(props.history, {
+  channelId: props.here.channelId, webhookId: props.here.webhookId, openThreadId: props.session?.threadId,
+}));
+
+// Whether a new session can open: the server asks the bot whether it sees
+// the channel, again whenever the channel changes
+const availability = ref('ready');
+// The bot's refusal the last "New session" met: { status }
+const problem = ref(undefined);
+const noBot = computed(() => availability.value === 'noBot');
+
+// The last question asked: an older answer arriving late is dropped
+let asked = 0;
+watch([
+  () => props.holder.folderId, () => props.holder.creatureId, () => props.here.webhookId, () => props.here.channelId, () => props.here.kind,
+], async () => {
+  problem.value = undefined;
+  const question = ++asked;
+  let answer;
+  try {
+    answer = await methods.value.availability.callAsync(methods.value.args);
+  } catch (error) {
+    console.error(error);
+  }
+  if (question === asked) availability.value = answer?.newSession === 'noBot' ? 'noBot' : 'ready';
+}, { immediate: true });
+
+// This DiceCloud server's bot (phase D), which the link adds to a Discord server
+const discordBot = !!Meteor.settings.public?.discordBot;
+const installLink = computed(() => discordBot && (noBot.value || problem.value) ? serverInstallUrl(props.here.guildId) : undefined);
+
+const botAlert = computed(() => {
+  if (!noBot.value && !problem.value) return undefined;
+  if (!discordBot) return t('discord.noBotHere');
+  if (problem.value) return t('discord.botCannot', { status: problem.value.status || '–' });
+  return t('discord.botMissing');
+});
 
 const stateText = computed(() => {
   const session = props.session;
@@ -186,4 +220,49 @@ const stateText = computed(() => {
   if (session.kind === 'thread') return t('discord.sessionThread', { name: session.name });
   return t('discord.sessionChannel', { name: session.name });
 });
+
+// 'start', 'resume' or 'end' while its method runs
+const busy = ref(undefined);
+
+async function run(name, call) {
+  busy.value = name;
+  try {
+    await call();
+  } catch (error) {
+    // What the server explains is said, not logged
+    if (!error?.details?.i18n) console.error(error);
+    // The bot cannot create the thread: said under the buttons, with the way to fix it
+    if (error?.error === 'discord.botUnavailable' || error?.error === 'discord.noBot') {
+      problem.value = { status: error.details?.i18n?.params?.status };
+    } else {
+      snackbar({ text: boardErrorText(error, t) });
+    }
+  } finally {
+    busy.value = undefined;
+  }
+}
+
+const timeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function start() {
+  run('start', async () => {
+    const opened = await methods.value.start.callAsync({ ...methods.value.args, timeZone: timeZone() });
+    problem.value = undefined;
+    if (opened) snackbar({ text: sessionStartedText(opened, t) });
+  });
+}
+
+function resume(past) {
+  run('resume', async () => {
+    const opened = await methods.value.resume.callAsync({ ...methods.value.args, threadId: past.threadId, timeZone: timeZone() });
+    if (opened) snackbar({ text: sessionStartedText(opened, t) });
+  });
+}
+
+function end() {
+  run('end', async () => {
+    await methods.value.end.callAsync(methods.value.args);
+    snackbar({ text: t('discord.sessionEnded') });
+  });
+}
 </script>

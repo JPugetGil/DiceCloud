@@ -34,6 +34,9 @@ const CHANNEL = { webhookId: '999000111', guildId: '999000222', channelId: '9990
 const PARTY_TOKEN = 'party-secret';
 const PARTY_WEBHOOK = `https://discord.com/api/webhooks/654321/${PARTY_TOKEN}`;
 const PARTY_SESSION = { ...SESSION, webhookId: '654321', threadId: '888000222', messageId: '888000222' };
+// The last sessions, to resume one: their threads' ids and names, the editors' and the game master's alone
+const PAST = { threadId: '777000444', kind: 'thread', name: 'Session of October 1, 2026 — Aria', channelId: '999000333', webhookId: '123456', startedAt: new Date() };
+const PARTY_PAST = { ...PAST, threadId: '888000444', name: 'Session of October 1, 2026 — The table', webhookId: '654321' };
 
 describe('Who gets a character\'s Discord webhook (webhookVisibility)', function () {
   it('lists every setting but the webhook', function () {
@@ -47,9 +50,12 @@ describe('Who gets a character\'s Discord webhook (webhookVisibility)', function
   it('copies a character without its webhook\'s URL for its editors, without anything of it for the others', function () {
     const creature = {
       _id: 'a', settings: { discordWebhook: WEBHOOK, ...OTHER_SETTINGS }, discordSession: SESSION, discordChannel: CHANNEL,
-      discordWebhookId: '123456',
+      discordWebhookId: '123456', discordWebhookChannelKind: 'text', discordSessionHistory: [PAST],
     };
-    const forEditors = { _id: 'a', settings: OTHER_SETTINGS, discordSession: SESSION, discordChannel: CHANNEL, discordWebhookId: '123456' };
+    const forEditors = {
+      _id: 'a', settings: OTHER_SETTINGS, discordSession: SESSION, discordChannel: CHANNEL, discordWebhookId: '123456',
+      discordWebhookChannelKind: 'text', discordSessionHistory: [PAST],
+    };
     assert.deepEqual<object>(creatureWithoutWebhookUrl(creature), forEditors);
     assert.deepEqual<object>(creatureForClient(creature, true), forEditors);
     assert.deepEqual<object>(creatureWithoutWebhook(creature), { _id: 'a', settings: OTHER_SETTINGS });
@@ -92,10 +98,14 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
       discordWebhookId: '123456',
       discordSession: SESSION,
       discordChannel: CHANNEL,
+      discordSessionHistory: [PAST],
     } as any);
     await CreatureFolders.rawCollection().insertOne({
       _id: folderId, name: 'The table', owner: gmId, creatures: [creatureId], members: [memberId], order: 0,
-      discord: { webhook: sealed[1], webhookId: '654321', session: PARTY_SESSION, initiative: { webhookId: '654321', messageId: '888000333' } },
+      discord: {
+        webhook: sealed[1], webhookId: '654321', session: PARTY_SESSION, initiative: { webhookId: '654321', messageId: '888000333' },
+        sessionHistory: [PARTY_PAST],
+      },
       discordPosting: { rolls: true, combat: true },
     } as any);
   });
@@ -149,6 +159,7 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
       assert.equal((await client.creature())?.discordWebhookId, '123456');
       assert.equal((await client.creature())?.discordSession?.threadId, SESSION.threadId);
       assert.equal((await client.creature())?.discordChannel?.channelId, CHANNEL.channelId);
+      assert.equal((await client.creature())?.discordSessionHistory?.[0]?.threadId, PAST.threadId);
     }
     // The owner's own documents too, merged with the sheet's
     const owner = await clientOf(ownerId);
@@ -164,7 +175,7 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
       const client = await clientOf(userId);
       await client.subscribe('singleCharacter', creatureId);
       assert.deepEqual(await client.settings(), OTHER_SETTINGS, `user ${userId}`);
-      for (const field of ['discordSession', 'discordChannel', 'discordWebhookId']) {
+      for (const field of ['discordSession', 'discordChannel', 'discordWebhookId', 'discordSessionHistory']) {
         assert.notProperty(await client.creature(), field, `user ${userId}`);
       }
     }
@@ -176,6 +187,7 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
     const discord = (await gm.folder())?.discord;
     assert.equal(discord?.webhookId, '654321');
     assert.equal(discord?.session?.threadId, PARTY_SESSION.threadId);
+    assert.equal(discord?.sessionHistory?.[0]?.threadId, PARTY_PAST.threadId);
     assert.notProperty(discord, 'webhook');
     const member = await clientOf(memberId);
     await member.subscribe('partyBoard', folderId);
@@ -186,6 +198,7 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
     assert.deepEqual(seen?.discordPosting, { rolls: true, combat: true });
     // Nor the character's session, which the board leaves out for the game master too
     assert.notProperty(await gm.creature(), 'discordSession');
+    assert.notProperty(await gm.creature(), 'discordSessionHistory');
   });
 
   it('never sends it to a game master who only reads the character, from the board or the sheet', async function () {
@@ -218,7 +231,7 @@ if (Meteor.isServer) describe('Publications and the REST API: the webhook\'s id 
     const anonymous = await fetch(Meteor.absoluteUrl(`api/creature/${creatureId}`));
     assert.equal(anonymous.status, 200);
     const text = await anonymous.text();
-    for (const secret of [TOKEN, 'enc1.', SESSION.threadId, CHANNEL.channelId, '123456']) assert.notInclude(text, secret);
+    for (const secret of [TOKEN, 'enc1.', SESSION.threadId, CHANNEL.channelId, '123456', PAST.threadId]) assert.notInclude(text, secret);
     assert.deepEqual(JSON.parse(text).creatures[0].settings, OTHER_SETTINGS);
     const owner = await fetch(Meteor.absoluteUrl(`api/creature/${creatureId}`), {
       headers: { Authorization: `Bearer ${await loginToken(ownerId)}` },

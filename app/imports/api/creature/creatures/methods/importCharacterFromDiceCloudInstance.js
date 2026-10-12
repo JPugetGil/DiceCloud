@@ -2,6 +2,7 @@ import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import { EDITORS_DISCORD_FIELDS } from '/imports/api/creature/creatures/webhookVisibility';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import Experiences from '/imports/api/creature/experience/Experiences';
@@ -60,7 +61,7 @@ async function importApiCreature(apiCreature, userId) {
   creature.dirty = true;
   // Nothing of Discord: a channel is one of this server's webhooks, by its
   // id, and a webhook's URL is sealed by its own method
-  for (const field of ['discordChannel', 'discordSession', 'discordWebhookId', 'discordWebhookChannelId', 'discordSessionClosed']) delete creature[field];
+  for (const field of EDITORS_DISCORD_FIELDS) delete creature[field];
   if (creature.settings) delete creature.settings.discordWebhook;
 
   // Ensure there is only 1 creature being imported

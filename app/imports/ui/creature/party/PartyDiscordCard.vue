@@ -81,12 +81,12 @@
       </v-card-text>
       <v-card-text v-if="webhookId && publishes(folder.discord, 'sessions')">
         <discord-session-controls
+          :holder="{ folderId: folder._id }"
           :session="session"
-          :busy="busy"
           :closed="folder.discord?.sessionClosed"
-          :bot-thread="discordBot && !!folder.discord?.channel && folder.discord.channel.kind !== 'forum'"
-          @start="startSession"
-          @end="endSession"
+          :history="folder.discord?.sessionHistory"
+          :here="here"
+          :disabled="!!busy"
         />
       </v-card-text>
       <v-card-text
@@ -102,9 +102,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import {
-  setPartyWebhook, setPartyPublishing, startPartySession, endPartySession,
-} from '/imports/api/creature/creatureFolders/methods/discordMethods';
+import { setPartyWebhook, setPartyPublishing } from '/imports/api/creature/creatureFolders/methods/discordMethods';
 import { PUBLISH_KINDS, publishes, postingKey } from '/imports/api/creature/log/discord/partyPublishing';
 import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
 import { webhookIdOf } from '/imports/api/creature/log/discord/discordChannel';
@@ -116,14 +114,13 @@ import { bindToThisBrowser } from '/imports/ui/discord/discordNonce';
 import { Meteor } from 'meteor/meteor';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import { sessionStartedText } from '/imports/ui/creature/discord/sessionStartedText';
 
 /**
  * The party's Discord channel (D2, D3). The game master connects it, or
  * pastes its webhook, whose URL the server keeps (they get its id, in the
  * folder's `discord` field, which only they receive), chooses what it
- * posts, and opens and ends the sessions; the players see what the party
- * posts there, so they know where their characters' rolls go.
+ * posts, and opens, resumes and ends the sessions; the players see what the
+ * party posts there, so they know where their characters' rolls go.
  */
 const props = defineProps({
   folder: {
@@ -143,11 +140,19 @@ const { t } = useI18n();
 const webhookId = computed(() => webhookIdOf(props.folder.discord?.channel, props.folder.discord?.webhookId));
 // A session of another webhook is over
 const session = computed(() => sessionOf(props.folder.discord?.session, webhookId.value));
+// The channel it posts in: connected (a text channel unless /connect said a
+// forum), or pasted (its channel and what it is, once Discord said)
+const here = computed(() => {
+  const discord = props.folder.discord;
+  if (!discord?.channel) return { webhookId: webhookId.value, channelId: discord?.webhookChannelId, kind: discord?.webhookChannelKind };
+  const { channelId, guildId, kind = 'text' } = discord.channel;
+  return { webhookId: webhookId.value, channelId, guildId, kind };
+});
 
 // The players' notice: what the party posts, rolls or fights
 const noticeKey = computed(() => postingKey(props.folder.discordPosting));
 
-// 'save', 'remove', 'enabled', a kind, 'start' or 'end' while its method runs
+// 'save', 'remove', 'enabled', a kind, 'connect' or 'disconnect' while its method runs
 const busy = ref(undefined);
 
 async function run(name, call) {
@@ -183,8 +188,6 @@ function setPublishing(name, change) {
 
 // "Connect to Discord" (D4), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
-// Its bot (phase D): new sessions in a thread it creates
-const discordBot = !!Meteor.settings.public?.discordBot;
 
 async function connect() {
   busy.value = 'connect';
@@ -206,25 +209,6 @@ function disconnect() {
   run('disconnect', async () => {
     await discordDisconnect.callAsync({ folderId: props.folder._id });
     snackbar({ text: t('discord.connect.disconnected') });
-  });
-}
-
-function startSession(options = {}) {
-  run('start', async () => {
-    const opened = await startPartySession.callAsync({
-      folderId: props.folder._id,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      ...options,
-    });
-    if (!opened) return;
-    snackbar({ text: sessionStartedText(opened, t) });
-  });
-}
-
-function endSession() {
-  run('end', async () => {
-    await endPartySession.callAsync({ folderId: props.folder._id });
-    snackbar({ text: t('discord.sessionEnded') });
   });
 }
 </script>

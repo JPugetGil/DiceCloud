@@ -117,12 +117,11 @@
         </p>
         <discord-session-controls
           v-else-if="discordWebhookId && editPermission"
+          :holder="{ creatureId: model._id }"
           :session="discordSession"
-          :busy="sessionBusy"
           :closed="model.discordSessionClosed"
-          :bot-thread="discordBot && !!model.discordChannel && model.discordChannel.kind !== 'forum'"
-          @start="startSession"
-          @end="endSession"
+          :history="model.discordSessionHistory"
+          :here="discordHere"
         />
       </form-section>
       <form-section :name="$t('creatureForm.libraries')">
@@ -188,13 +187,10 @@ import DiscordPastedWebhook from '/imports/ui/creature/discord/DiscordPastedWebh
 import { bindToThisBrowser } from '/imports/ui/discord/discordNonce';
 import { discordConnectUrl, discordDisconnect } from '/imports/api/discord/methods/discordOAuthMethods';
 import { webhookIdOf } from '/imports/api/creature/log/discord/discordChannel';
-import {
-  startCharacterSession, endCharacterSession, characterPartyWebhook, setCharacterWebhook,
-} from '/imports/api/creature/creatures/methods/discordSessionMethods';
+import { characterPartyWebhook, setCharacterWebhook } from '/imports/api/creature/creatures/methods/discordSessionMethods';
 import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import { sessionStartedText } from '/imports/ui/creature/discord/sessionStartedText';
 import { useI18n } from 'vue-i18n';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -337,8 +333,15 @@ function selectLibraryCollection(id, val) {
 const { t } = useI18n();
 const discordWebhookId = computed(() => webhookIdOf(props.model.discordChannel, props.model.discordWebhookId));
 const discordSession = computed(() => sessionOf(props.model.discordSession, discordWebhookId.value));
-// 'start' or 'end' while its method runs
-const sessionBusy = ref(undefined);
+// The channel it posts in: connected (a text channel unless /connect said a
+// forum), or pasted (its channel and what it is, once Discord said)
+const discordHere = computed(() => {
+  const channel = props.model.discordChannel;
+  if (!channel) {
+    return { webhookId: discordWebhookId.value, channelId: props.model.discordWebhookChannelId, kind: props.model.discordWebhookChannelKind };
+  }
+  return { webhookId: discordWebhookId.value, channelId: channel.channelId, guildId: channel.guildId, kind: channel.kind ?? 'text' };
+});
 
 // The pasted webhook: 'save' or 'remove' while its method runs
 const pasteBusy = ref(undefined);
@@ -372,8 +375,6 @@ function removePastedWebhook() {
 
 // "Connect to Discord" (D4), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
-// Its bot (phase D): new sessions in a thread it creates
-const discordBot = !!Meteor.settings.public?.discordBot;
 // 'connect' or 'disconnect' while its method runs
 const connectBusy = ref(undefined);
 
@@ -418,37 +419,6 @@ watch([discordWebhookId, editPermission], async ([webhookId, canEdit]) => {
     console.error(error);
   }
 }, { immediate: true });
-
-async function runSession(name, call) {
-  sessionBusy.value = name;
-  try {
-    await call();
-  } catch (error) {
-    console.error(error);
-    snackbar({ text: boardErrorText(error, t) });
-  } finally {
-    sessionBusy.value = undefined;
-  }
-}
-
-function startSession(options = {}) {
-  runSession('start', async () => {
-    const opened = await startCharacterSession.callAsync({
-      creatureId: props.model._id,
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      ...options,
-    });
-    if (!opened) return;
-    snackbar({ text: sessionStartedText(opened, t) });
-  });
-}
-
-function endSession() {
-  runSession('end', async () => {
-    await endCharacterSession.callAsync({ creatureId: props.model._id });
-    snackbar({ text: t('discord.sessionEnded') });
-  });
-}
 
 function showDependencyGraph() {
   dialogStackStore.pushDialogStack({

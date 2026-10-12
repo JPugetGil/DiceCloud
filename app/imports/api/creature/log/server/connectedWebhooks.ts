@@ -171,7 +171,7 @@ export async function connectTarget({ apiBase, target, userId, webhook, kind }: 
     await Creatures.updateAsync(target.creatureId, {
       $set: { discordChannel: channel },
       $unset: {
-        'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1,
+        'settings.discordWebhook': 1, discordWebhookId: 1, discordWebhookChannelId: 1, discordWebhookChannelKind: 1,
         ...previous !== kept.webhookId && { discordSession: 1 },
       },
     });
@@ -186,6 +186,7 @@ export async function connectTarget({ apiBase, target, userId, webhook, kind }: 
         'discord.webhook': 1,
         'discord.webhookId': 1,
         'discord.webhookChannelId': 1,
+        'discord.webhookChannelKind': 1,
         ...!posting && { discordPosting: 1 },
         ...previous !== kept.webhookId && { 'discord.session': 1, 'discord.initiative': 1 },
       },

@@ -5,7 +5,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { Simplify } from 'type-fest';
 import { Mongo } from 'meteor/mongo';
-import { sessionFields, SESSION_CLOSED_FIELDS } from '/imports/api/creature/log/discord/discordSession';
+import { pastSessionFields, sessionFields, SESSION_CLOSED_FIELDS } from '/imports/api/creature/log/discord/discordSession';
 import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
 const CreatureSettingsSchema = TypedSimpleSchema.from({
@@ -197,6 +197,9 @@ const CreatureSchema = TypedSimpleSchema.from({
   },
   'discordSessionClosed.name': SESSION_CLOSED_FIELDS.name,
   'discordSessionClosed.at': SESSION_CLOSED_FIELDS.at,
+  // The last sessions DiceCloud opened for it, newest first, which "Resume a
+  // session" offers again (discordSession.ts). Editors only too
+  ...pastSessionFields('discordSessionHistory'),
   // The Discord channel connected with "Connect to Discord" (D4): its
   // webhook's id, never its token (discordChannel.ts). For editors only too
   discordChannel: {
@@ -216,6 +219,13 @@ const CreatureSchema = TypedSimpleSchema.from({
     type: String,
     optional: true,
     max: 32,
+  },
+  // And what that channel is, once known: a forum, or a text channel where
+  // the bot creates the sessions' threads. For editors only too
+  discordWebhookChannelKind: {
+    type: String,
+    optional: true,
+    allowedValues: ['text', 'forum'],
   },
 })
   .extend(ColorSchema)

@@ -172,12 +172,16 @@ describe('Duplicating a character', function () {
       discordChannel: { webhookId: '1600000000000000001', guildId: '1', channelId: '2', connectedAt: new Date() },
       discordSession: { webhookId: '1600000000000000001', kind: 'channel', messageId: '3', startedAt: new Date() },
       discordWebhookId: '4',
+      discordWebhookChannelKind: 'text',
+      discordSessionHistory: [{ threadId: '5', kind: 'thread', webhookId: '4', startedAt: new Date() }],
     });
     archive.creature.settings.discordWebhook = 'https://discord.com/api/webhooks/4/stolen';
     const restoredId = await restoreCreature(archive, ownerId);
     const restored = await Creatures.findOneAsync(restoredId) as any;
     assert.equal(restored.name, 'Original');
-    for (const field of ['discordChannel', 'discordSession', 'discordWebhookId']) assert.notProperty(restored, field);
+    for (const field of ['discordChannel', 'discordSession', 'discordWebhookId', 'discordWebhookChannelKind', 'discordSessionHistory']) {
+      assert.notProperty(restored, field);
+    }
     assert.notProperty(restored.settings, 'discordWebhook');
     assert.isTrue(restored.settings.hideSpellsTab);
   });

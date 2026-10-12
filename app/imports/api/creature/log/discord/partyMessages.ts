@@ -5,8 +5,8 @@ import { translatorFor, discordLanguage, truncate, DISCORD_LIMITS } from '/impor
  * the initiative message, posted when a fight starts and edited at each turn
  * and change (a line says the fight starts when the game master turned it
  * off); a short line for each turn; a summary at the end; the header that
- * opens a session. Pure: the server posts them (server/discordInitiative.ts,
- * server/discordWebhooks.ts).
+ * opens a session, and the line that resumes one. Pure: the server posts
+ * them (server/discordInitiative.ts, server/discordWebhooks.ts).
  *
  * The players read the channel: as on the party board, nothing here ever
  * gives a monster's hit points away, nor its armor class, nor whether it is
@@ -50,9 +50,22 @@ export function sessionName({ label, date, language, timeZone }: {
   return truncate(name || day, THREAD_NAME_LENGTH);
 }
 
-/** The message that opens a session: the forum post's first, or a header in a text channel */
+/** The message that opens a session: the forum post's first, or the first in its thread */
 export function sessionHeader(name: string, author: { username?: string, avatar_url?: string } = {}) {
   return { ...author, content: `## ${escapeMarkdown(name)}`, ...NO_MENTIONS };
+}
+
+/**
+ * The message that resumes a session in its thread or forum post, "The
+ * session goes on — October 13, 2026": in the language of the channel, the
+ * date in the time zone of the browser that resumed it
+ */
+export function sessionResumed({ date, language, timeZone, author = {} }: {
+  date: Date, language?: string, timeZone?: string, author?: { username?: string, avatar_url?: string },
+}) {
+  const day = sessionDate(date, language, timeZone);
+  const text = translatorFor(discordLanguage(language))('discord.sessionResumedMessage', { date: day }) || day;
+  return { ...author, content: `**${escapeMarkdown(text)}**`, ...NO_MENTIONS };
 }
 
 // A creature of the fight, as the channel shows it: never its stats

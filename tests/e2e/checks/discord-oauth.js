@@ -4,8 +4,9 @@
  * Discord only, as a user clicks through it: "Connect to Discord" for the
  * test character and for a party board (Discord's page, the fake's, which
  * redirects at once), one webhook for the channel they share, a roll posted
- * with it; no client ever receives the webhook's token, its owner's browser
- * included, nor its sealed value; "Link my Discord account", whose token is
+ * with it; the board's "New session" in a thread the bot creates there, which
+ * a deleted thread ends; no client ever receives the webhook's token, its
+ * owner's browser included, nor its sealed value; "Link my Discord account", whose token is
  * dropped, not revoked; the player mentioned on their turn; "Sign in with
  * Discord" for the linked account in one click (prompt=none), its ticket
  * useless in another browser, and a polite refusal for a Discord account
@@ -136,17 +137,25 @@ main(async () => {
       return 'the second webhook deleted, the board on the channel\'s webhook';
     });
 
-    await step('the board\'s session opens in a thread of the connected channel; a closed thread ends it, once', editor.messages, async () => {
-      const thread = fake.createThread('1500000000000000002');
+    await step('the board\'s "New session" opens a thread the bot creates in the connected channel; a deleted thread ends it, once', editor.messages, async () => {
+      const bot = await editor.page.evaluate(() => !!window.Meteor.settings.public.discordBot);
+      // DiceCloud's bot on the server: it sees the channel
+      fake.botChannels['1500000000000000002'] = { type: 0, guildId: '1500000000000000001' };
       await visit(editor.page, `/party/${folderId}`, 4000);
       await removeOverlay(editor.page);
+      if (!bot) {
+        // No bot on this server: no session in a text channel, and the board says why
+        await editor.page.waitForSelector('[data-id="party-discord"] [data-id="discord-session-nobot"]', { timeout: 10000 });
+        const disabled = await editor.page.$eval('[data-id="party-discord"] [data-id="discord-session-start"]', button => button.disabled);
+        if (!disabled) throw new Error('"New session" offered without the bot');
+        return 'no bot token: "New session" unavailable, and the board says why';
+      }
       await editor.page.click('[data-id="party-discord"] [data-id="discord-session-start"]');
-      await editor.page.click('[data-id="discord-session-thread"]');
-      await editor.page.fill('[data-id="discord-thread-link"] input', `https://discord.com/channels/1500000000000000001/${thread}`);
-      await editor.page.click('[data-id="discord-thread-open"]');
       const session = await waitFor(() => withDb(async db => (await db.collection('creatureFolders')
         .findOne({ _id: folderId }))?.discord?.session), 'the session in the thread');
-      if (session.kind !== 'thread' || session.threadId !== thread) throw new Error(`session ${JSON.stringify(session)}`);
+      const thread = session.threadId;
+      const created = fake.requests.find(request => request.path === '/api/v10/channels/1500000000000000002/threads');
+      if (session.kind !== 'thread' || created?.status !== 201) throw new Error(`session ${JSON.stringify(session)}`);
       const webhookId = (await withDb(db => db.collection('creatureFolders').findOne({ _id: folderId }))).discord.channel.webhookId;
       const posts = () => fake.requests.filter(request => request.method === 'POST' && request.webhookId === webhookId);
       let before = posts().length;

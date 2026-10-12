@@ -1,7 +1,7 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
-import { DiscordSessionSchema, SESSION_CLOSED_FIELDS } from '/imports/api/creature/log/discord/discordSession';
+import { DiscordSessionSchema, SESSION_CLOSED_FIELDS, pastSessionFields } from '/imports/api/creature/log/discord/discordSession';
 import { PUBLISH_KINDS } from '/imports/api/creature/log/discord/partyPublishing';
 import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
@@ -162,6 +162,13 @@ let creatureFolderSchema = new SimpleSchema({
     optional: true,
     max: 32,
   },
+  // And what that channel is, once known: a forum, or a text channel where
+  // the bot creates the sessions' threads
+  'discord.webhookChannelKind': {
+    type: String,
+    optional: true,
+    allowedValues: ['text', 'forum'],
+  },
   // Or the channel connected with "Connect to Discord" (D4): its webhook's
   // id, never its token (discordChannel.ts)
   'discord.channel': {
@@ -192,6 +199,9 @@ let creatureFolderSchema = new SimpleSchema({
   },
   'discord.sessionClosed.name': SESSION_CLOSED_FIELDS.name,
   'discord.sessionClosed.at': SESSION_CLOSED_FIELDS.at,
+  // The last sessions DiceCloud opened for the party, newest first, which
+  // "Resume a session" offers again (discordSession.ts)
+  ...pastSessionFields('discord.sessionHistory'),
   'discord.initiative': {
     type: Object,
     optional: true,
