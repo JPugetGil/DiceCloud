@@ -5,6 +5,8 @@ import { EJSON } from 'meteor/ejson';
 import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { insertAction } from '/imports/api/engine/action/methods/insertAction';
+import { runAction } from '/imports/api/engine/action/methods/runAction';
+import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import {
   createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
@@ -220,5 +222,77 @@ if (Meteor.isServer) describe('Action tasks: the server applies the database\'s 
     ]) {
       assert.exists(await refusal(task), task.subtaskFn);
     }
+  });
+});
+
+/*
+ * The results of an action are the server's alone. insertAction stored the
+ * ones the client sent and runAction wrote them with its own, by property id
+ * only: whoever could edit one creature could set any field of any property of
+ * any creature, and write any line in a log.
+ */
+if (Meteor.isServer) describe('Action results: the server ignores the client\'s', function () {
+  this.timeout(30000);
+
+  const [attackerId, attackerCreatureId, victimOwnerId, victimId, victimHitPointsId] = getRandomIds(5);
+
+  before(async function () {
+    await removeAllCreaturesAndProps();
+    await Meteor.users.rawCollection().insertMany([
+      { _id: attackerId, createdAt: new Date(), username: `results-attacker-${attackerId}` },
+      { _id: victimOwnerId, createdAt: new Date(), username: `results-victim-${victimOwnerId}` },
+    ] as any[]);
+    await createTestCreature({ _id: attackerCreatureId, owner: attackerId, props: [] });
+    await createTestCreature({
+      _id: victimId,
+      owner: victimOwnerId,
+      props: [{
+        _id: victimHitPointsId,
+        type: 'attribute',
+        name: 'Hit Points',
+        attributeType: 'healthBar',
+        variableName: 'hitPoints',
+        baseValue: { calculation: '30' },
+      }],
+    });
+  });
+
+  after(async function () {
+    await CreatureLogs.removeAsync({ creatureId: { $in: [attackerCreatureId, victimId] } });
+    await EngineActions.removeAsync({ creatureId: attackerCreatureId });
+    await Meteor.users.removeAsync({ _id: { $in: [attackerId, victimOwnerId] } });
+    await removeAllCreaturesAndProps();
+  });
+
+  it('neither stores nor writes results the client sent, on any creature', async function () {
+    const forged = [{
+      // Required by the action's schema: a forged result passes it
+      propId: victimHitPointsId,
+      targetIds: [victimId],
+      mutations: [{
+        targetIds: [victimId],
+        updates: [{ propId: victimHitPointsId, type: 'attribute', set: { name: 'Forged', damage: 29 } }],
+        contents: [{ name: 'Forged line' }],
+      }],
+    }];
+    const actionId: string = await (insertAction as any)._execute({ userId: attackerId, isSimulation: false }, {
+      action: {
+        creatureId: attackerCreatureId,
+        task: { subtaskFn: 'dealDamage', targetIds: [attackerCreatureId], params: { amount: 1, damageType: 'fire' } },
+        results: forged,
+        taskCount: 0,
+      },
+    });
+    assert.deepEqual((await EngineActions.findOneAsync(actionId) as EngineAction).results, [], 'stored without them');
+
+    // Even if a stored action held some (one stored before the fix)
+    await EngineActions.updateAsync(actionId, { $set: { results: forged as any } }, { bypassCollection2: true } as any);
+    await (runAction as any)._execute({ userId: attackerId, isSimulation: false }, { actionId, decisions: [] });
+
+    const victimHitPoints = await CreatureProperties.findOneAsync(victimHitPointsId) as any;
+    assert.equal(victimHitPoints.name, 'Hit Points');
+    assert.notEqual(victimHitPoints.damage, 29);
+    const logs = await CreatureLogs.find({ creatureId: { $in: [attackerCreatureId, victimId] } }).fetchAsync();
+    assert.notInclude(JSON.stringify(logs), 'Forged line');
   });
 });

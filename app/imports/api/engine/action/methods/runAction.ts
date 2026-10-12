@@ -51,7 +51,9 @@ export const runAction = new ValidatedMethod({
       replayDice: !!this.isSimulation,
     });
 
-    // Apply the action
+    // Apply the action, from no results: whatever the stored action holds is
+    // not trusted (insertAction empties them too)
+    action.results = [];
     await applyAction(action, userInput);
 
     // Persist changes

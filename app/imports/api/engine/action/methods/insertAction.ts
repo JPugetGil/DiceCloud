@@ -53,6 +53,10 @@ export const insertAction = new ValidatedMethod({
     delete action.seed;
     delete action.revealedCursor;
     delete action.insertedAt;
+    // The results are the server's alone. Every caller sends none, and any it
+    // sent would be written as they are (writeActionResults), on whatever
+    // property of whatever creature they name
+    action.results = [];
     if (!this.isSimulation) {
       action.seed = Random.secret();
       // An action left in progress is removed after a while
