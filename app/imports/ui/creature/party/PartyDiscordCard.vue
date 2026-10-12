@@ -84,6 +84,7 @@
           :session="session"
           :busy="busy"
           :closed="folder.discord?.sessionClosed"
+          :bot-thread="discordBot && !!folder.discord?.channel && folder.discord.channel.kind !== 'forum'"
           @start="startSession"
           @end="endSession"
         />
@@ -182,6 +183,8 @@ function setPublishing(name, change) {
 
 // "Connect to Discord" (D4), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
+// Its bot (phase D): new sessions in a thread it creates
+const discordBot = !!Meteor.settings.public?.discordBot;
 
 async function connect() {
   busy.value = 'connect';
@@ -206,12 +209,12 @@ function disconnect() {
   });
 }
 
-function startSession(threadLink) {
+function startSession(options = {}) {
   run('start', async () => {
     const opened = await startPartySession.callAsync({
       folderId: props.folder._id,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      ...threadLink && { threadLink },
+      ...options,
     });
     if (!opened) return;
     snackbar({ text: sessionStartedText(opened, t) });

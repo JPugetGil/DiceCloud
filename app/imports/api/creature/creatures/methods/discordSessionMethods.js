@@ -91,12 +91,18 @@ export const startCharacterSession = new ValidatedMethod({
     timeZone: { type: String, optional: true, max: 64 },
     // A thread of the channel to hold the session (its link), if one is chosen
     threadLink: { type: String, optional: true, max: 200 },
+    // A new thread the bot creates in the connected text channel (phase D)
+    newThread: { type: Boolean, optional: true },
   }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ creatureId, timeZone, threadLink }) {
+  async run({ creatureId, timeZone, threadLink, newThread }) {
     const creature = await getEditableCreature(creatureId, this.userId);
     const thread = threadOfLink(threadLink);
+    // Only in a text channel connected for this character
+    if (newThread && (!creature.discordChannel || creature.discordChannel.kind === 'forum')) {
+      throw boardError('discord.botUnavailable', 'discord.errors.botUnavailable', { status: '–' });
+    }
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
       // Imported when called
@@ -104,7 +110,14 @@ export const startCharacterSession = new ValidatedMethod({
       // Connected or pasted
       const webhook = await characterWebhook(creature);
       if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
-      const session = await startSession(await characterChannel(creature, webhook), timeZone, thread);
+      const channel = await characterChannel(creature, webhook);
+      let session;
+      if (newThread) {
+        const { startBotThreadSession } = await import('/imports/api/discord/server/botSessions');
+        session = await startBotThreadSession(channel, timeZone);
+      } else {
+        session = await startSession(channel, timeZone, thread);
+      }
       return { kind: session.kind, name: session.name };
     }
   },

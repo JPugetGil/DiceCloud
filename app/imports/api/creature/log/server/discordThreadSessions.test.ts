@@ -138,9 +138,9 @@ if (Meteor.isServer) describe('Sessions in a thread of a text channel', function
     await refused({ threadLink: link(thread, '1500000000000000777') }, 'discord.threadOtherServer');
     await refused({ threadLink: link(fake.createThread('1500000000000000555')) }, 'discord.threadRefused');
     await refused({ threadLink: link('1500000000000000444') }, 'discord.threadRefused');
-    const archived = fake.createThread(channel);
-    fake.closeThread(archived, 'archived');
-    await refused({ threadLink: link(archived) }, 'discord.threadRefused');
+    const deleted = fake.createThread(channel);
+    fake.closeThread(deleted, 'deleted');
+    await refused({ threadLink: link(deleted) }, 'discord.threadRefused');
     assert.notProperty((await folder()).discord, 'session', 'no session from a refused thread');
 
     await requests(PARTY);
@@ -181,7 +181,27 @@ if (Meteor.isServer) describe('Sessions in a thread of a text channel', function
     assert.isTrue(ids.some(id => id.startsWith(`dc:next:${folderId}:`)), `buttons ${ids}`);
   });
 
-  for (const state of ['archived', 'locked', 'deleted'] as const) {
+  // As Discord, checked by hand on 2026-10-11: a webhook's message reopens an
+  // archived thread and still goes into a locked one
+  for (const state of ['archived', 'locked'] as const) {
+    it(`keeps a session whose thread is ${state}: Discord still takes the messages there`, async function () {
+      await call(setPartyWebhook, gmId, { folderId, webhook: url(PARTY) });
+      const thread = fake.createThread(fake.channelOf(PARTY.id));
+      await call(startPartySession, gmId, { folderId, threadLink: link(thread) });
+      await requests(PARTY);
+      fake.closeThread(thread, state);
+      await roll(memberChar);
+      const posted = await requests(PARTY);
+      assert.lengthOf(posted, 1);
+      assert.equal(posted[0].query.thread_id, thread);
+      assert.equal(posted[0].status, 204);
+      const discord = (await folder()).discord;
+      assert.equal(discord.session?.threadId, thread);
+      assert.notProperty(discord, 'sessionClosed');
+    });
+  }
+
+  for (const state of ['deleted'] as const) {
     it(`ends a session whose thread is ${state}, once: the messages go back to the channel, a notice says so`, async function () {
       await call(setPartyWebhook, gmId, { folderId, webhook: url(PARTY) });
       const thread = fake.createThread(fake.channelOf(PARTY.id));

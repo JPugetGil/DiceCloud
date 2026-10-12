@@ -37,6 +37,8 @@ const folderIdSchema = { folderId: { type: String, max: 32 } };
 const timeZoneSchema = {
   timeZone: { type: String, optional: true, max: 64 },
   threadLink: { type: String, optional: true, max: 200 },
+  // A new thread the bot creates in the connected text channel (phase D)
+  newThread: { type: Boolean, optional: true },
 };
 
 /** The thread a link names, or an error the interface shows; none without a link */
@@ -146,9 +148,13 @@ export const startPartySession = new ValidatedMethod({
   validate: new SimpleSchema({ ...folderIdSchema, ...timeZoneSchema }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit,
-  async run({ folderId, timeZone, threadLink }) {
+  async run({ folderId, timeZone, threadLink, newThread }) {
     const folder = await getFolderAsGm(folderId, this.userId);
     const thread = threadOfLink(threadLink);
+    // Only in a text channel connected for this party: never one the bot was not shown
+    if (newThread && (!folder.discord?.channel || folder.discord.channel.kind === 'forum')) {
+      throw boardError('discord.botUnavailable', 'discord.errors.botUnavailable', { status: '–' });
+    }
     // The server alone posts: a client may hold the settings without the webhook
     if (Meteor.isServer) {
       // Imported when called
@@ -157,7 +163,14 @@ export const startPartySession = new ValidatedMethod({
       const webhook = await partyWebhook(folder.discord);
       if (!webhook) throw boardError('discord.noWebhook', 'discord.errors.noWebhook');
       if (!publishes(folder.discord, 'sessions')) throw boardError('discord.sessionsOff', 'discord.errors.sessionsOff');
-      const session = await startSession(await partyChannel(folder, webhook), timeZone, thread);
+      const channel = await partyChannel(folder, webhook);
+      let session;
+      if (newThread) {
+        const { startBotThreadSession } = await import('/imports/api/discord/server/botSessions');
+        session = await startBotThreadSession(channel, timeZone);
+      } else {
+        session = await startSession(channel, timeZone, thread);
+      }
       return { kind: session.kind, name: session.name };
     }
   },

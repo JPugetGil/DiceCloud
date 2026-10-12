@@ -153,8 +153,9 @@ main(async () => {
       await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
       const inThread = await waitFor(() => posts().slice(before).find(request => request.status === 204), 'the roll in the thread');
       if (inThread.query.thread_id !== thread) throw new Error(`posted with thread_id ${inThread.query.thread_id}`);
-      // Archived in Discord: the next roll goes back to the channel, the board says why
-      fake.closeThread(thread, 'archived');
+      // Deleted in Discord: the next roll goes back to the channel, the board says why.
+      // (An archived thread is reopened by the message, a locked one still takes it)
+      fake.closeThread(thread, 'deleted');
       before = posts().length;
       await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
       const inChannel = await waitFor(() => posts().slice(before).find(request => request.status === 204), 'the roll in the channel');

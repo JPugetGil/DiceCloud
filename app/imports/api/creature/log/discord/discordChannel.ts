@@ -15,6 +15,9 @@ export type DiscordChannel = {
   guildId: string,
   channelId: string,
   connectedAt: Date,
+  // A forum, connected with /connect (phase D): its sessions are posts.
+  // Otherwise a text channel, as "Connect to Discord" only offers those
+  kind?: 'text' | 'forum',
 };
 
 // The fields of a connected channel, `true as const`: optional in the type it infers
@@ -33,6 +36,11 @@ export const DISCORD_CHANNEL_FIELDS = {
   },
   connectedAt: {
     type: Date,
+  },
+  kind: {
+    type: String,
+    allowedValues: ['text', 'forum'],
+    optional: true as const,
   },
 };
 

@@ -120,6 +120,7 @@
           :session="discordSession"
           :busy="sessionBusy"
           :closed="model.discordSessionClosed"
+          :bot-thread="discordBot && !!model.discordChannel && model.discordChannel.kind !== 'forum'"
           @start="startSession"
           @end="endSession"
         />
@@ -371,6 +372,8 @@ function removePastedWebhook() {
 
 // "Connect to Discord" (D4), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
+// Its bot (phase D): new sessions in a thread it creates
+const discordBot = !!Meteor.settings.public?.discordBot;
 // 'connect' or 'disconnect' while its method runs
 const connectBusy = ref(undefined);
 
@@ -428,12 +431,12 @@ async function runSession(name, call) {
   }
 }
 
-function startSession(threadLink) {
+function startSession(options = {}) {
   runSession('start', async () => {
     const opened = await startCharacterSession.callAsync({
       creatureId: props.model._id,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      ...threadLink && { threadLink },
+      ...options,
     });
     if (!opened) return;
     snackbar({ text: sessionStartedText(opened, t) });

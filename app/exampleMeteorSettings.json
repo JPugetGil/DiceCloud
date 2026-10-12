@@ -25,6 +25,7 @@
     "clientId": "",
     "clientSecret": "",
     "publicKey": "",
+    "botToken": "",
     "tokenKey": ""
   }
 }

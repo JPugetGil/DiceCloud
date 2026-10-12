@@ -42,8 +42,10 @@ export type Interaction = {
   },
   guild_id?: string,
   channel_id?: string,
-  channel?: { id?: string, parent_id?: string },
-  member?: { user?: { id?: string } },
+  channel?: { id?: string, parent_id?: string, type?: number },
+  member?: { user?: { id?: string }, permissions?: string },
+  // What the bot may do where the interaction comes from (phase D)
+  app_permissions?: string,
   user?: { id?: string },
   locale?: string,
   message?: { id?: string, flags?: number, webhook_id?: string },
@@ -359,6 +361,10 @@ export async function handleCommand(interaction: Interaction): Promise<Handled> 
     case 'save': return checkCommand(interaction, linked, 'save');
     case 'hp': return hpCommand(interaction, linked);
     case 'character': return characterCommand(interaction, linked);
+    case 'connect': {
+      const { connectCommand } = await import('/imports/api/discord/server/interactions/interactionConnect');
+      return connectCommand(interaction, linked);
+    }
     default: return reply(textMessage(say(context.language, 'unknownCommand')));
   }
 }
@@ -372,6 +378,16 @@ export async function handleAutocomplete(interaction: Interaction): Promise<Hand
   if (!context.user || !focused) return choices([]);
   const typed = typeof focused.value === 'string' ? focused.value : '';
   const user = context.user;
+  if (focused.name === 'target') {
+    const { connectTargets } = await import('/imports/api/discord/server/interactions/interactionConnect');
+    const query = typed.trim().toLowerCase();
+    return choices((await connectTargets(user))
+      .filter(target => !query || target.name.toLowerCase().includes(query))
+      .map(target => ({
+        name: say(context.language, target.value.startsWith('folder:') ? 'connectChoiceParty' : 'connectChoiceCharacter', { name: target.name }).slice(0, 100),
+        value: target.value,
+      })));
+  }
   if (focused.name === 'character' || focused.name === 'name') {
     return choices(await characterChoices(await candidates(user, context.party), typed));
   }

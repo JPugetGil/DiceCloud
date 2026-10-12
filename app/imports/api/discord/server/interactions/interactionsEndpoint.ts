@@ -7,6 +7,8 @@ import {
 import { handleButton } from '/imports/api/discord/server/interactions/interactionButtons';
 import { RESPONSE, interactionLanguage, say, textMessage } from '/imports/api/discord/server/interactions/interactionReplies';
 import '/imports/api/discord/server/interactions/commandRegistration';
+// The bot (phase D): its setting, which the browser learns of
+import '/imports/api/discord/server/botClient';
 
 /*
  * The Interactions Endpoint URL of DiceCloud's application (D6, D7):

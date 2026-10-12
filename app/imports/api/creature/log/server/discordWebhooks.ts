@@ -290,8 +290,10 @@ export async function writeSession(holder: Holder, session: DiscordSession | und
   }
 }
 
-// Discord's answers to a message for a thread that can no longer take it:
-// deleted, archived for good, locked
+// Discord's answers to a message for a thread that can no longer take it: a
+// deleted one. A webhook's message reopens an archived thread and still goes
+// into a locked one (checked by hand on 2026-10-11); their codes stay here in
+// case Discord changes that
 const THREAD_CLOSED_CODES: number[] = [DISCORD_CODES.unknownChannel, 50083, 160005];
 
 export type SessionResult = { session?: DiscordSession, result: DiscordResult };
@@ -333,8 +335,8 @@ export async function openSession(request: Requester, channel: Channel, {
 }
 
 // A refusal of a message for a thread of a text channel: Discord's codes for a
-// thread that is gone, archived or locked are not all known, so any client
-// error but a rate limit; whether the message itself was the matter is told
+// thread that is gone are not all known, so any client error but a rate
+// limit; whether the message itself was the matter is told
 // by the channel taking it
 export const refusedInThread = (result: DiscordResult) => !result.ok && !result.gone
   && result.status !== undefined && result.status >= 400 && result.status < 500 && result.status !== 429;
@@ -386,8 +388,8 @@ export async function deliver(request: Requester, channel: Channel, message: {
  * master made in Discord and pasted the link of: on the webhook's server, and
  * only if Discord takes the session's header there and says it went into
  * that thread. `refused` says why not: another server, or a thread Discord
- * refused (of another channel, unknown, archived, locked: its codes are not
- * all known)
+ * refused (of another channel, a forum post, unknown or deleted: its codes are
+ * not all known)
  */
 export async function openThreadSession(request: Requester, channel: Channel, { guildId, threadId, date = new Date(), timeZone }: {
   guildId: string, threadId: string, date?: Date, timeZone?: string,

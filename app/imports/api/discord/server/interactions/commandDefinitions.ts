@@ -53,7 +53,7 @@ const ADVANTAGE = option(INTEGER, ['advantage', 'avantage'], ['Advantage or disa
   ],
 });
 
-const command = ([name, frName]: [string, string], [description, frDescription]: [string, string], options: Option[]) => ({
+const command = ([name, frName]: [string, string], [description, frDescription]: [string, string], options: Option[], rest: Record<string, unknown> = {}) => ({
   type: CHAT_INPUT,
   name,
   name_localizations: { fr: frName },
@@ -62,7 +62,11 @@ const command = ([name, frName]: [string, string], [description, frDescription]:
   integration_types: [0, 1],
   contexts: [0, 1, 2],
   options,
+  ...rest,
 });
+
+// Manage Webhooks (1 << 29): who may connect a channel, as Discord shows the command (phase D)
+const MANAGE_WEBHOOKS = String(BigInt(1) << BigInt(29));
 
 export const COMMANDS = [
   command(['roll', 'jet'], ['Roll dice for your character, as the log does', 'Lancer des dés pour votre personnage, comme le journal'], [
@@ -94,10 +98,15 @@ export const COMMANDS = [
   command(['character', 'personnage'], ['Choose your character for this server, or see which it is', 'Choisir votre personnage pour ce serveur, ou voir lequel c\'est'], [
     option(STRING, ['name', 'nom'], ['The character', 'Le personnage'], { autocomplete: true, max_length: 100 }),
   ]),
+  // Phase D: in a server only, and shown to those who may manage its webhooks
+  command(['connect', 'connecter'], ['Connect this channel, or this post\'s forum, to a party or a character', 'Connecter ce salon, ou le forum de ce post, à un groupe ou un personnage'], [
+    option(STRING, ['target', 'cible'], ['The party (its game master) or the character (its editors)', 'Le groupe (son MJ) ou le personnage (ceux qui le modifient)'],
+      { required: true, autocomplete: true, max_length: 100 }),
+  ], { contexts: [0], default_member_permissions: MANAGE_WEBHOOKS }),
 ];
 
 /** What the commands are, by their English names */
-export type CommandName = 'roll' | 'check' | 'save' | 'hp' | 'character';
+export type CommandName = 'roll' | 'check' | 'save' | 'hp' | 'character' | 'connect';
 
 /** The definitions' hash: a change registers them again */
 export function commandsHash(): string {

@@ -175,7 +175,8 @@
       "notConfigured": "This server has no Discord application to connect with",
       "threadLink": "This is not a link to a Discord thread: it looks like https://discord.com/channels/…/…",
       "threadOtherServer": "This thread is on another Discord server than the channel the messages go to",
-      "threadRefused": "Discord refused to post in this thread ({status}): it must be a thread of the same channel, open and not locked"
+      "threadRefused": "Discord refused to post in this thread ({status}): it must be a thread of the channel messages go to. A forum post or another channel's thread won't do",
+      "botUnavailable": "DiceCloud could not create the thread ({status}): add DiceCloud to the server with its permissions (Discord page), or choose a header message or a thread of your own"
     },
     "combatStarts": "**Combat begins**",
     "partySessionApplies": "This webhook is also the one of the party “{name}”: its rolls go into the party's sessions, which the game master opens.",
@@ -202,7 +203,8 @@
       "openChannel": "Open the channel",
       "disconnect": "Disconnect",
       "disconnected": "Disconnected from Discord",
-      "hint": "Discord asks you which channel to post in. For a forum channel, with a post of its own per session, paste a webhook instead: Discord does not offer forums here."
+      "hint": "Discord asks you which channel to post in. For a forum channel, with a post of its own per session, paste a webhook instead: Discord does not offer forums here.",
+      "connectedForum": "Connected to a Discord forum: each session is a post of its own"
     },
     "result": {
       "connected": "Connected to Discord: messages go to the channel you picked",
@@ -271,7 +273,19 @@
         "rerollDisadvantage": "Reroll with disadvantage",
         "nextTurn": "Next turn",
         "endTurn": "End my turn"
-      }
+      },
+      "connectServerOnly": "/connect works in a server's channel, or in a post of its forum.",
+      "connectNoBot": "This DiceCloud has no bot on Discord: connect the channel from DiceCloud (\"Connect to Discord\").",
+      "connectMemberRight": "Only those who may manage this channel's webhooks can connect it.",
+      "connectBotRight": "DiceCloud's bot may not manage this channel's webhooks: add DiceCloud to the server with its permissions (DiceCloud's Discord page), or give its role \"Manage Webhooks\" here.",
+      "connectWhere": "/connect works in a text channel, in one of its threads, or in a post of a forum.",
+      "connectTargetNotFound": "No party you lead nor character of yours is named “{name}”: pick one from the list.",
+      "connectTargetDenied": "You can connect only a party you are the game master of, or a character you may edit.",
+      "connectFailed": "DiceCloud could not connect this channel ({status}): check that its bot is on the server, with \"Manage Webhooks\".",
+      "connectedChannel": "Connected: {name} now posts in this channel.",
+      "connectedForum": "Connected: {name} now posts in this forum, a post of its own for each session.",
+      "connectChoiceParty": "Party: {name}",
+      "connectChoiceCharacter": "Character: {name}"
     },
     "installTitle": "Commands and buttons",
     "installText": "Install DiceCloud on your Discord account, to use its commands anywhere, or on a server you manage. Link your Discord account in your account's settings first: the commands use your characters.",
@@ -280,7 +294,8 @@
       "roll": "/roll: roll dice for your character, as the log does (secret: only you see it)",
       "check": "/check and /save: a skill or ability check, a saving throw, with advantage if you like",
       "hp": "/hp: see your hit points (only you see them), or deal damage, heal, set temporary ones, which the channel is told",
-      "character": "/character: choose your character for a server; in your party's channel, your only character there is chosen for you"
+      "character": "/character: choose your character for a server; in your party's channel, your only character there is chosen for you",
+      "connect": "/connect: in a channel, or in a post of a forum, connects it to a party you lead or a character you may edit (for those who may manage its webhooks)"
     },
     "installButtons": "Under a check, a saving throw or a roll of one d20, \"Reroll with advantage\" and \"with disadvantage\". On a channel connected with \"Connect to Discord\", \"Next turn\" under the initiative message (the game master) and \"End my turn\" under your turn's line. Rolls stay in the character's log; a monster's are only shown to its game master.",
     "sessionThread": "Session open in the thread “{name}”: everything goes there.",
@@ -292,7 +307,12 @@
     "threadLink": "Thread link",
     "threadOpen": "Open the session there",
     "sessionClosed": "The thread of “{name}” no longer accepts messages: the session ended, and messages go to the channel again.",
-    "sessionStartedThread": "Session opened in the thread: “{name}”"
+    "sessionStartedThread": "Session opened in the thread: “{name}”",
+    "newSessionBotThread": "New thread",
+    "newSessionBotThreadHint": "DiceCloud creates it in the channel",
+    "installBot": "With DiceCloud on a server, its bot creates each session's thread in a connected channel, and /connect, run in a channel or in a post of a forum by someone who may manage its webhooks, connects it to a party or a character, with the buttons. The bot only does that: it reads no message and writes none itself.",
+    "installServerButton": "Add DiceCloud to a server",
+    "installAccountButton": "Install on my account"
   },
   "legal": {
     "termsLink": "terms of use",

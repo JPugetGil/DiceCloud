@@ -14,7 +14,7 @@
         >
           mdi-check-circle-outline
         </v-icon>
-        {{ $t('discord.connect.connected') }}
+        {{ $t(channel.kind === 'forum' ? 'discord.connect.connectedForum' : 'discord.connect.connected') }}
       </p>
       <div class="d-flex flex-wrap ga-2 mt-2">
         <v-btn

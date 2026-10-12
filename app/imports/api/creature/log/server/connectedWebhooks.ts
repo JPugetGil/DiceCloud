@@ -93,10 +93,21 @@ export async function releaseWebhook(apiBase: string | undefined, webhookId?: st
 }
 
 /**
+ * DiceCloud's webhook of a channel, while Discord still knows it and the
+ * server can use it: /connect (phase D) reuses it rather than make another
+ */
+export async function liveChannelWebhook(apiBase: string, channelId: string): Promise<ExchangedWebhook | undefined> {
+  const existing = await ConnectedWebhooks.findOneAsync({ channelId });
+  const usable = existing && readable(existing);
+  if (!existing || !usable || !await webhookExists(apiBase, usable)) return undefined;
+  return { ...usable, channelId: existing.channelId, guildId: existing.guildId, ...existing.applicationId && { applicationId: existing.applicationId } };
+}
+
+/**
  * The webhook a new authorization made, or the one its channel had: one per
  * channel. Returns the webhook the target is to point at
  */
-async function oneForTheChannel(apiBase: string, webhook: ExchangedWebhook, userId: string): Promise<ConnectedWebhook> {
+async function oneForTheChannel(apiBase: string, webhook: ExchangedWebhook, userId: string, kind?: DiscordChannel['kind']): Promise<ConnectedWebhook> {
   const existing = await ConnectedWebhooks.findOneAsync({ channelId: webhook.channelId });
   if (existing && existing.webhookId !== webhook.id) {
     // One whose token the server cannot open any more (its key lost) is
@@ -110,7 +121,7 @@ async function oneForTheChannel(apiBase: string, webhook: ExchangedWebhook, user
     // Discord no longer knows it (an admin removed it), or the server cannot
     // use it: the new one replaces it, for everything that pointed at it
     await ConnectedWebhooks.removeAsync(existing._id);
-    await repoint(existing.webhookId, webhook);
+    await repoint(existing.webhookId, webhook, kind);
   } else if (existing) {
     return existing;
   }
@@ -130,8 +141,10 @@ async function oneForTheChannel(apiBase: string, webhook: ExchangedWebhook, user
 
 // What pointed at a webhook now gone points at its channel's new one; the
 // sessions and the fight's message were the old one's
-async function repoint(oldWebhookId: string, webhook: ExchangedWebhook) {
-  const channel = { webhookId: webhook.id, guildId: webhook.guildId, channelId: webhook.channelId, connectedAt: new Date() };
+async function repoint(oldWebhookId: string, webhook: ExchangedWebhook, kind?: DiscordChannel['kind']) {
+  const channel = {
+    webhookId: webhook.id, guildId: webhook.guildId, channelId: webhook.channelId, connectedAt: new Date(), ...kind && { kind },
+  };
   await Creatures.updateAsync(creaturesOf(oldWebhookId),
     { $set: { discordChannel: channel }, $unset: { discordSession: 1 } }, { multi: true });
   const CreatureFolders = await creatureFolders();
@@ -144,12 +157,12 @@ async function repoint(oldWebhookId: string, webhook: ExchangedWebhook) {
  * (or its channel's): it replaces a pasted webhook, and a channel connected
  * before, which is deleted if nothing else points at it
  */
-export async function connectTarget({ apiBase, target, userId, webhook }: {
-  apiBase: string, target: OAuthTarget, userId: string, webhook: ExchangedWebhook,
+export async function connectTarget({ apiBase, target, userId, webhook, kind }: {
+  apiBase: string, target: OAuthTarget, userId: string, webhook: ExchangedWebhook, kind?: DiscordChannel['kind'],
 }): Promise<DiscordChannel> {
-  const kept = await oneForTheChannel(apiBase, webhook, userId);
+  const kept = await oneForTheChannel(apiBase, webhook, userId, kind);
   const channel: DiscordChannel = {
-    webhookId: kept.webhookId, guildId: kept.guildId, channelId: kept.channelId, connectedAt: new Date(),
+    webhookId: kept.webhookId, guildId: kept.guildId, channelId: kept.channelId, connectedAt: new Date(), ...kind && { kind },
   };
   let previous: string | undefined;
   if ('creatureId' in target) {

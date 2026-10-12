@@ -53,12 +53,45 @@
             <p class="mt-4 mb-0">
               {{ $t('discord.installButtons') }}
             </p>
+            <!-- Its bot (phase D): what it does on a server, and /connect -->
+            <p
+              v-if="bot"
+              class="mt-4 mb-0"
+              data-id="discord-bot-text"
+            >
+              {{ $t('discord.installBot') }}
+            </p>
           </v-card-text>
           <v-card-actions
-            v-if="installUrl"
-            class="px-4 pb-4"
+            v-if="applicationId"
+            class="px-4 pb-4 flex-wrap ga-2"
           >
+            <!-- With a bot: a server's link asks for it and its permissions; an account's has none -->
+            <template v-if="bot">
+              <v-btn
+                color="primary"
+                variant="tonal"
+                prepend-icon="mdi-server"
+                :href="serverInstallUrl"
+                target="_blank"
+                rel="noopener"
+                data-id="discord-install-server"
+              >
+                {{ $t('discord.installServerButton') }}
+              </v-btn>
+              <v-btn
+                variant="tonal"
+                prepend-icon="mdi-account"
+                :href="accountInstallUrl"
+                target="_blank"
+                rel="noopener"
+                data-id="discord-install-account"
+              >
+                {{ $t('discord.installAccountButton') }}
+              </v-btn>
+            </template>
             <v-btn
+              v-else
               color="primary"
               variant="tonal"
               prepend-icon="mdi-discord"
@@ -133,7 +166,17 @@ const widgetTheme = computed(() => theme.current.value.dark ? 'dark' : 'light');
 const interactions = !!Meteor.settings.public?.discordInteractions;
 const applicationId = Meteor.settings.public?.discordApplicationId;
 const installUrl = applicationId ? `https://discord.com/oauth2/authorize?client_id=${applicationId}` : undefined;
-const COMMANDS = ['roll', 'check', 'hp', 'character'];
+// With its bot (phase D): on a server, the bot and its four permissions (view
+// the channels, manage webhooks, create public threads, send messages in
+// threads: 309774517248); on an account, the commands alone
+const bot = !!Meteor.settings.public?.discordBot;
+const serverInstallUrl = applicationId
+  ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=bot+applications.commands&permissions=309774517248&integration_type=0`
+  : undefined;
+const accountInstallUrl = applicationId
+  ? `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=applications.commands&integration_type=1`
+  : undefined;
+const COMMANDS = bot ? ['roll', 'check', 'hp', 'character', 'connect'] : ['roll', 'check', 'hp', 'character'];
 
 // discord.<section>Title and discord.<section>Text
 const SECTIONS = ['connectSection', 'partySection', 'sessions', 'mentions', 'signIn', 'previews'];

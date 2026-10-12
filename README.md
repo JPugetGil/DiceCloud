@@ -324,12 +324,14 @@ application's settings, none of them shows and nothing else changes.
        "clientId": "<application id>",
        "clientSecret": "<client secret>",
        "publicKey": "<public key>",
+       "botToken": "<bot token>",
        "tokenKey": "<openssl rand -base64 32>"
      }
    }
    ```
 
    `publicKey` turns the commands on: see [Commands and buttons](#commands-and-buttons).
+   `botToken` adds the bot: see [The bot](#the-bot).
    `tokenKey` encrypts the webhooks' tokens: see [The webhooks' key](#the-webhooks-key).
 
 4. Restart the server.
@@ -378,6 +380,34 @@ To try them in development: a development application, its Public Key in
 server, `cloudflared tunnel --url http://localhost:3000`, whose
 `https://<random>.trycloudflare.com/discord/interactions` is the development
 application's Interactions Endpoint URL.
+
+### The bot
+
+With a bot token too, `discord.botToken`, DiceCloud's bot does two more things,
+by HTTP alone (no process stays connected to Discord): "New session" in a text
+channel connected for a party or a character creates the session's public
+thread itself, and `/connect` (`/connecter`), run in a text channel or in a
+post of a forum by someone who may manage that channel's webhooks, connects it
+to a party they lead or a character they may edit, with a webhook the bot
+creates there: a forum so connected has its sessions as posts, with the
+buttons. The bot reads no message and posts none itself.
+
+1. In the portal, Bot: **Reset Token**, into `settings.json` as
+   `discord.botToken` (secret, server-only). Leave **Requires OAuth2 Code
+   Grant** off, and the privileged intents off: DiceCloud needs none.
+2. Installation > Default Install Settings > **Guild Install**: scopes
+   `applications.commands` and `bot`, permissions **View Channels**, **Manage
+   Webhooks**, **Create Public Threads** and **Send Messages in Threads**
+   (309774517248). User Install stays `applications.commands` alone. The
+   Discord page of DiceCloud then offers "Add DiceCloud to a server" with
+   exactly these, and "Install on my account".
+3. A server's administrator adds DiceCloud with that link: a member named
+   after the application appears, with a role holding the four permissions.
+   Restart DiceCloud after setting the token: the commands, `/connect` among
+   them, are registered again.
+
+Without the token nothing changes: "Connect to Discord" and pasted webhooks
+work as before, and the thread of a session is the one the game master makes.
 
 ### The webhooks' key
 

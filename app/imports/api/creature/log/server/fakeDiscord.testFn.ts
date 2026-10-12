@@ -25,6 +25,12 @@ import { Meteor } from 'meteor/meteor';
  * is given; the client credentials token and the global commands' overwrite;
  * the interaction's own webhook, whose original message and follow-ups it
  * keeps (`interactions`).
+ *
+ * And the bot (phase D), with `Bot <botToken>`: a channel as it sees it, a
+ * public thread it creates in a text channel, a webhook it creates in a
+ * channel or a forum (the application's own). `botChannels` says what each
+ * channel is; `botDenied` refuses the bot there (403, 50013), `botAbsent`
+ * answers as for a server it is not on (404, 10004).
  */
 
 export type FakeRequest = {
@@ -64,10 +70,17 @@ export type FakeAuthorization = {
 type Grant = { scope: string, redirectUri: string, clientId: string, used: boolean, authorization: FakeAuthorization };
 type FakeWebhook = { id: string, token: string, type: 1, application_id: string, channel_id: string, guild_id: string, name: string };
 
-export async function fakeDiscord({ channels = {}, override }: {
+export type FakeBotChannel = { type: number, guildId: string, parentId?: string };
+
+export async function fakeDiscord({ channels = {}, override, botToken = 'fake-bot-token', botChannels = {}, botDenied = [], botAbsent = [] }: {
   channels?: FakeChannels,
   // A reply of its own for some request, before the fake's
   override?: (request: FakeRequest, index: number) => Reply | undefined,
+  // The bot (phase D): its token, the channels it sees, those it may not act in, or is not on
+  botToken?: string,
+  botChannels?: Record<string, FakeBotChannel>,
+  botDenied?: string[],
+  botAbsent?: string[],
 } = {}) {
   // node:http only exists on the server: the client's test bundle drops it
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -217,6 +230,38 @@ export async function fakeDiscord({ channels = {}, override }: {
     return error(405, 0, '405: Method Not Allowed');
   }
 
+  // The bot's requests: a channel, a thread, a webhook
+  function botRequest(request: FakeRequest, authorization: string | undefined, path: string): Reply | undefined {
+    const match = /^\/api\/v10\/channels\/(\d+)(\/threads|\/webhooks)?$/.exec(path);
+    if (!match) return undefined;
+    if (authorization !== `Bot ${botToken}`) return error(401, 0, '401: Unauthorized');
+    const [, channelId, what] = match;
+    const channel = botChannels[channelId];
+    if (botAbsent.includes(channelId)) return error(404, 10004, 'Unknown Guild');
+    if (!channel) return error(404, 10003, 'Unknown Channel');
+    if (request.method === 'GET' && !what) {
+      return { status: 200, headers: { 'Content-Type': 'application/json' }, body: { id: channelId, type: channel.type, guild_id: channel.guildId, ...channel.parentId && { parent_id: channel.parentId } } };
+    }
+    if (request.method !== 'POST') return error(405, 0, '405: Method Not Allowed');
+    if (botDenied.includes(channelId)) return error(403, 50013, 'Missing Permissions');
+    if (what === '/threads') {
+      if (channel.type !== 0) return error(400, 50024, 'Cannot execute action on this channel type');
+      const id = snowflake();
+      textThreads.set(id, { parent: channelId, state: 'open' });
+      botChannels[id] = { type: 11, guildId: channel.guildId, parentId: channelId };
+      return { status: 201, headers: { 'Content-Type': 'application/json' }, body: { id, type: request.body?.type ?? 12, parent_id: channelId, guild_id: channel.guildId, name: request.body?.name } };
+    }
+    if (channel.type !== 0 && channel.type !== 15) return error(400, 50024, 'Cannot execute action on this channel type');
+    const webhook: FakeWebhook = {
+      id: snowflake(), token: secret(), type: 1, application_id: 'bot-application', channel_id: channelId, guild_id: channel.guildId, name: request.body?.name || 'DiceCloud',
+    };
+    oauthWebhooks.set(webhook.id, webhook);
+    if (channel.type === 15) channels[webhook.id] = 'forum';
+    botWebhooks.push(webhook);
+    return { status: 200, headers: { 'Content-Type': 'application/json' }, body: webhook };
+  }
+  const botWebhooks: FakeWebhook[] = [];
+
   // GET or DELETE a webhook with its token
   function webhookItself(request: FakeRequest, token: string): Reply {
     const webhook = oauthWebhooks.get(request.webhookId);
@@ -248,7 +293,11 @@ export async function fakeDiscord({ channels = {}, override }: {
     }
     if (request.method === 'PATCH') {
       const closed = query.thread_id ? textThreads.get(query.thread_id) : undefined;
-      if (closed && closed.state !== 'open') return closed.state === 'locked' ? error(403, 160005, 'Thread is locked') : error(400, 50083, 'Thread is archived');
+      // As Discord, checked by hand on 2026-10-11: a webhook's message reopens
+      // an archived thread and still goes into a locked one; only a deleted
+      // thread refuses it
+      if (closed?.state === 'deleted') return error(404, 10003, 'Unknown Channel');
+      if (closed?.state === 'archived') closed.state = 'open';
       const message = request.messageId && messages.get(request.messageId);
       if (!message || (query.thread_id && message.channel_id !== query.thread_id)) {
         return error(404, 10008, 'Unknown Message');
@@ -262,8 +311,8 @@ export async function fakeDiscord({ channels = {}, override }: {
     if (textThread) {
       if (textThread.state === 'deleted') return error(404, 10003, 'Unknown Channel');
       if (textThread.parent !== channel) return error(400, 50035, 'Invalid Form Body', { thread_id: { _errors: [{ code: 'THREAD_NOT_IN_CHANNEL' }] } });
-      if (textThread.state === 'archived') return error(400, 50083, 'Thread is archived');
-      if (textThread.state === 'locked') return error(403, 160005, 'Thread is locked');
+      // An archived thread is reopened by the message; a locked one still takes it
+      if (textThread.state === 'archived') textThread.state = 'open';
       channel = query.thread_id as string;
     } else if (query.thread_id) {
       if (!threads.has(query.thread_id)) return error(404, 10003, 'Unknown Channel');
@@ -306,7 +355,9 @@ export async function fakeDiscord({ channels = {}, override }: {
       const [id, password] = basic ? Buffer.from(basic, 'base64').toString().split(':') : [];
       let reply = override?.(request, requests.length);
       if (!reply) {
-        if (interactionMatch && interactions.has(interactionMatch[2])) {
+        const botReply = botRequest(request, req.headers.authorization, url.pathname);
+        if (botReply) reply = botReply;
+        else if (interactionMatch && interactions.has(interactionMatch[2])) {
           reply = interactionWebhook(request, interactionMatch[2], !!interactionMatch[3]);
         } else if (req.method === 'PUT' && commandsMatch) reply = overwriteCommands(commandsMatch[1], request, req.headers.authorization);
         else if (req.method === 'GET' && url.pathname === '/oauth2/authorize') reply = authorize(url);
@@ -388,13 +439,16 @@ export async function fakeDiscord({ channels = {}, override }: {
       textThreads.set(id, { parent: channelId, state: 'open' });
       return id;
     },
-    /** A thread archived, locked or deleted in Discord */
+    /** A thread archived, locked or deleted in Discord (only a deleted one refuses a webhook's messages) */
     closeThread: (id: string, state: 'archived' | 'locked' | 'deleted') => {
       const thread = textThreads.get(id);
       if (thread) thread.state = state;
     },
     /** The channel a webhook posts in */
     channelOf,
+    /** The webhooks the bot created (phase D), and the channels it sees */
+    botWebhooks,
+    botChannels,
     /** Deletes a forum post, as a moderator would */
     deleteThread: (id: string) => threads.delete(id),
     deleteMessage: (id: string) => messages.delete(id),

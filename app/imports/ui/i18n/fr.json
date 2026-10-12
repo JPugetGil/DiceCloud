@@ -175,7 +175,8 @@
       "notConfigured": "Ce serveur n'a pas d'application Discord à laquelle se connecter",
       "threadLink": "Ce n'est pas le lien d'un fil Discord : il ressemble à https://discord.com/channels/…/…",
       "threadOtherServer": "Ce fil est sur un autre serveur Discord que le salon où vont les messages",
-      "threadRefused": "Discord a refusé de publier dans ce fil ({status}) : il doit être un fil du même salon, ouvert et non verrouillé"
+      "threadRefused": "Discord a refusé de publier dans ce fil ({status}) : il doit être un fil du salon où vont les messages. Un post de forum ou un fil d'un autre salon ne convient pas",
+      "botUnavailable": "DiceCloud n'a pas pu créer le fil ({status}) : ajoutez DiceCloud au serveur avec ses permissions (page Discord), ou choisissez un message d'en-tête ou un fil à vous"
     },
     "combatStarts": "**Début du combat**",
     "partySessionApplies": "Ce webhook est aussi celui du groupe « {name} » : ses jets vont dans les séances du groupe, que le maître du jeu ouvre.",
@@ -202,7 +203,8 @@
       "openChannel": "Ouvrir le salon",
       "disconnect": "Déconnecter",
       "disconnected": "Déconnecté de Discord",
-      "hint": "Discord vous demande dans quel salon publier. Pour un salon forum, avec un post par séance, collez plutôt un webhook : Discord ne propose pas les forums ici."
+      "hint": "Discord vous demande dans quel salon publier. Pour un salon forum, avec un post par séance, collez plutôt un webhook : Discord ne propose pas les forums ici.",
+      "connectedForum": "Connecté à un forum Discord : chaque séance est un post à elle"
     },
     "result": {
       "connected": "Connecté à Discord : les messages vont dans le salon choisi",
@@ -271,7 +273,19 @@
         "rerollDisadvantage": "Relancer avec désavantage",
         "nextTurn": "Tour suivant",
         "endTurn": "Fin de mon tour"
-      }
+      },
+      "connectServerOnly": "/connecter fonctionne dans un salon d'un serveur, ou dans un post de son forum.",
+      "connectNoBot": "Ce DiceCloud n'a pas de bot sur Discord : connectez le salon depuis DiceCloud (« Connecter à Discord »).",
+      "connectMemberRight": "Seules les personnes qui peuvent gérer les webhooks de ce salon peuvent le connecter.",
+      "connectBotRight": "Le bot de DiceCloud ne peut pas gérer les webhooks de ce salon : ajoutez DiceCloud au serveur avec ses permissions (page Discord de DiceCloud), ou donnez ici à son rôle « Gérer les webhooks ».",
+      "connectWhere": "/connecter fonctionne dans un salon texte, dans un de ses fils, ou dans un post d'un forum.",
+      "connectTargetNotFound": "Aucun groupe que vous menez ni aucun de vos personnages ne s'appelle « {name} » : choisissez dans la liste.",
+      "connectTargetDenied": "Vous ne pouvez connecter qu'un groupe dont vous êtes le meneur de jeu, ou un personnage que vous pouvez modifier.",
+      "connectFailed": "DiceCloud n'a pas pu connecter ce salon ({status}) : vérifiez que son bot est sur le serveur, avec « Gérer les webhooks ».",
+      "connectedChannel": "Connecté : {name} publie désormais dans ce salon.",
+      "connectedForum": "Connecté : {name} publie désormais dans ce forum, un post par séance.",
+      "connectChoiceParty": "Groupe : {name}",
+      "connectChoiceCharacter": "Personnage : {name}"
     },
     "installTitle": "Commandes et boutons",
     "installText": "Installez DiceCloud sur votre compte Discord, pour utiliser ses commandes partout, ou sur un serveur que vous gérez. Liez d'abord votre compte Discord dans les réglages de votre compte : les commandes utilisent vos personnages.",
@@ -280,7 +294,8 @@
       "roll": "/jet : lancer des dés pour votre personnage, comme le journal (secret : vous seul le voyez)",
       "check": "/test et /sauvegarde : un test de compétence ou de caractéristique, un jet de sauvegarde, avec avantage si vous voulez",
       "hp": "/pv : voir vos points de vie (vous seul les voyez), ou infliger des dégâts, soigner, fixer des temporaires, ce que le salon apprend",
-      "character": "/personnage : choisir votre personnage pour un serveur ; dans le salon de votre groupe, votre seul personnage y est choisi d'office"
+      "character": "/personnage : choisir votre personnage pour un serveur ; dans le salon de votre groupe, votre seul personnage y est choisi d'office",
+      "connect": "/connecter : dans un salon, ou dans un post d'un forum, le connecte à un groupe que vous menez ou à un personnage que vous pouvez modifier (pour qui peut en gérer les webhooks)"
     },
     "installButtons": "Sous un test, un jet de sauvegarde ou un jet d'un seul d20, « Relancer avec avantage » et « avec désavantage ». Sur un salon connecté avec « Connecter à Discord », « Tour suivant » sous le message d'initiative (le meneur de jeu) et « Fin de mon tour » sous la ligne de votre tour. Les jets restent au journal du personnage ; ceux d'un monstre ne sont montrés qu'à son meneur de jeu.",
     "sessionThread": "Séance ouverte dans le fil « {name} » : tout y va.",
@@ -292,7 +307,12 @@
     "threadLink": "Lien du fil",
     "threadOpen": "Y ouvrir la séance",
     "sessionClosed": "Le fil de « {name} » n'accepte plus de messages : la séance est terminée, et les messages repartent au salon.",
-    "sessionStartedThread": "Séance ouverte dans le fil : « {name} »"
+    "sessionStartedThread": "Séance ouverte dans le fil : « {name} »",
+    "newSessionBotThread": "Nouveau fil",
+    "newSessionBotThreadHint": "DiceCloud le crée dans le salon",
+    "installBot": "Avec DiceCloud sur un serveur, son bot crée le fil de chaque séance dans un salon connecté, et /connecter, lancée dans un salon ou dans un post d'un forum par une personne qui peut en gérer les webhooks, le connecte à un groupe ou à un personnage, avec les boutons. Le bot ne fait que cela : il ne lit aucun message et n'en écrit aucun lui-même.",
+    "installServerButton": "Ajouter DiceCloud à un serveur",
+    "installAccountButton": "Installer sur mon compte"
   },
   "legal": {
     "termsLink": "conditions d'utilisation",

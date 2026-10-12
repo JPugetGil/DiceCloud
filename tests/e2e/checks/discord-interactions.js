@@ -12,16 +12,21 @@
  * then changed and told; a roll in the channel of the character's pasted
  * webhook posted there once, by the reply; the commands registered on the
  * fake with a client credentials token; the Discord page's installation card.
- * Everything is put back.
+ * And the bot (phase D): /connect, refused to a member who may not manage
+ * webhooks, connects the character to a text channel through a webhook the
+ * bot creates; "New session" > "New thread" in its form has the bot create
+ * the thread, and a roll goes there; /connect in a forum's post connects the
+ * forum, whose session is a post. Everything is put back.
  *
  * Needs a development server that posts to the fake, with a Discord
  * application and the fake's public key in its settings:
  *   DISCORD_WEBHOOK_TEST_API=http://127.0.0.1:3990/api/v10, and `discord`
  *   { clientId, clientSecret, publicKey: INTERACTIONS_PUBLIC_KEY of
- *   lib/fakeDiscord.js }. Otherwise the check says so and skips: nothing
- *   reaches Discord.
+ *   lib/fakeDiscord.js, botToken: "fake-bot-token" }. Otherwise the check
+ *   says so and skips (the bot's steps alone, without the bot token):
+ *   nothing reaches Discord.
  */
-const { openPage, visit } = require('../lib/browser');
+const { openPage, visit, pushDialog } = require('../lib/browser');
 const { withDb, getTestUser } = require('../lib/db');
 const { createChecker, main } = require('../lib/check');
 const { startFakeDiscord, INTERACTIONS_PUBLIC_KEY } = require('../lib/fakeDiscord');
@@ -33,6 +38,13 @@ const STRANGER = '1400000000000000299';
 const GUILD = '1500000000000000201';
 const CHANNEL = '1500000000000000202';
 const TEXT_ID = '1200000000000000201';
+// The bot's server (phase D): a text channel, a forum and one of its posts
+const BOT_TEXT = '1520000000000000201';
+const BOT_FORUM = '1520000000000000202';
+const BOT_POST = '1520000000000000203';
+const MANAGE_WEBHOOKS = String((1n << 10n) | (1n << 29n));
+const ORDINARY = String((1n << 10n) | (1n << 11n));
+const BOT_PERMISSIONS = '309774517248';
 
 async function waitFor(condition, what, timeoutMs = 20000) {
   const end = Date.now() + timeoutMs;
@@ -66,7 +78,13 @@ main(async () => {
 
   let fake;
   try {
-    fake = await startFakeDiscord();
+    fake = await startFakeDiscord({
+      botChannels: {
+        [BOT_TEXT]: { type: 0, guildId: GUILD },
+        [BOT_FORUM]: { type: 15, guildId: GUILD },
+        [BOT_POST]: { type: 11, guildId: GUILD, parentId: BOT_FORUM },
+      },
+    });
     const ready = await editor.page.evaluate(async () => ({
       base: await window.Meteor.callAsync('discord.testApi').catch(() => null),
       interactions: !!window.Meteor.settings.public.discordInteractions,
@@ -205,11 +223,69 @@ main(async () => {
       return `channel ${channel}: the reply alone; elsewhere, the reply and the webhook's post`;
     });
 
+    const bot = await editor.page.evaluate(() => !!window.Meteor.settings.public.discordBot);
+    const connectCommand = (channel, member = MANAGE_WEBHOOKS) => fake.interact(endpoint, {
+      type: 2, application_id: '1600000000000000001', guild_id: GUILD, channel_id: channel.id, channel, locale: 'en-US',
+      member: { user: { id: PLAYER }, permissions: member }, app_permissions: BOT_PERMISSIONS,
+      data: { name: 'connect', options: [option('target', `creature:${creatureId}`)] },
+    });
+    if (!bot) {
+      await step('skipped: the server has no bot token (discord.botToken)', null, async () => 'the bot\'s steps need "botToken": "fake-bot-token"');
+    } else {
+      await step('/connect: a member without "Manage Webhooks" is refused; the bot\'s webhook connects the character', null, async () => {
+        const refused = (await connectCommand({ id: BOT_TEXT, type: 0 }, ORDINARY)).answer;
+        if (refused.data?.flags !== 64 || !/manage this channel's webhooks/.test(refused.data.content)) throw new Error(JSON.stringify(refused));
+        const { answer, token } = await connectCommand({ id: BOT_TEXT, type: 0 });
+        if (answer.type !== 5) throw new Error(JSON.stringify(answer));
+        const reply = (await edited(token)).content;
+        const channel = await waitFor(() => withDb(async db => (await db.collection('creatures')
+          .findOne({ _id: creatureId }, { projection: { discordChannel: 1 } }))?.discordChannel), 'the character connected');
+        if (channel.channelId !== BOT_TEXT || channel.kind !== 'text' || channel.webhookId !== fake.botWebhooks[0]?.id) {
+          throw new Error(`channel ${JSON.stringify(channel)}`);
+        }
+        return `"${refused.data.content}" · "${reply}"`;
+      });
+
+      await step('"New session" > "New thread": the bot creates the thread, a roll goes into it', editor.messages, async () => {
+        await visit(editor.page, `/character/${creatureId}`, 3000);
+        await pushDialog(editor.page, 'creature-form-dialog', { _id: creatureId });
+        await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
+        await editor.page.click('[data-id="discord-session-start"]');
+        await editor.page.click('[data-id="discord-session-newthread"]');
+        const session = await waitFor(() => withDb(async db => (await db.collection('creatures')
+          .findOne({ _id: creatureId }, { projection: { discordSession: 1 } }))?.discordSession), 'the session');
+        const created = fake.requests.find(request => request.path === `/api/v10/channels/${BOT_TEXT}/threads`);
+        if (session.kind !== 'thread' || created?.status !== 201 || created.body.type !== 11) throw new Error(`session ${JSON.stringify(session)}`);
+        const posts = () => fake.requests.filter(request => request.method === 'POST' && request.webhookId === fake.botWebhooks[0].id);
+        const before = posts().length;
+        await call('creatureLogs.methods.logForCreature', { roll: '1d20', creatureId });
+        const roll = await waitFor(() => posts().slice(before).find(request => request.status === 204), 'the roll');
+        if (roll.query.thread_id !== session.threadId) throw new Error(`posted with thread_id ${roll.query.thread_id}`);
+        await call('creatures.discord.endSession', { creatureId });
+        await visit(editor.page, `/character/${creatureId}`, 2000);
+        return `"${created.body.name}", the roll in it`;
+      });
+
+      await step('/connect in a forum\'s post connects the forum: its session is a post', null, async () => {
+        const { token } = await connectCommand({ id: BOT_POST, type: 11, parent_id: BOT_FORUM });
+        const reply = (await edited(token)).content;
+        const channel = await waitFor(() => withDb(async db => {
+          const found = (await db.collection('creatures').findOne({ _id: creatureId }, { projection: { discordChannel: 1 } }))?.discordChannel;
+          return found?.channelId === BOT_FORUM && found;
+        }), 'the forum connected');
+        if (channel.kind !== 'forum') throw new Error(`channel ${JSON.stringify(channel)}`);
+        const opened = await call('creatures.discord.startSession', { creatureId });
+        if (opened?.kind !== 'forum') throw new Error(`session ${JSON.stringify(opened)}`);
+        await call('creatures.discord.endSession', { creatureId });
+        return `"${reply}" · a post: "${opened.name}"`;
+      });
+    }
+
     await step('the commands are registered on the fake with a client credentials token', null, async () => {
       const result = await call('discord.testRegisterCommands', {});
       const commands = [...fake.registeredCommands.values()][0] || [];
       const names = commands.map(command => `/${command.name} (${command.name_localizations?.fr})`).join(', ');
-      if (result?.status !== 'registered' || commands.length !== 5) throw new Error(`${JSON.stringify(result)}; ${names}`);
+      if (result?.status !== 'registered' || commands.length !== 6) throw new Error(`${JSON.stringify(result)}; ${names}`);
       const token = fake.requests.find(request => request.path === '/api/v10/oauth2/token' && request.body?.grant_type === 'client_credentials');
       if (token?.body?.scope !== 'applications.commands.update') throw new Error(`scope ${token?.body?.scope}`);
       return names;
@@ -217,6 +293,14 @@ main(async () => {
 
     await step('the Discord page offers to install the application', editor.messages, async () => {
       await visit(editor.page, '/discord', 3000);
+      if (bot) {
+        // With the bot: a server's link asks for it and its four permissions; an account's has none
+        const server = await editor.page.getAttribute('[data-id="discord-install-server"]', 'href');
+        const account = await editor.page.getAttribute('[data-id="discord-install-account"]', 'href');
+        if (!/client_id=\d+&scope=bot\+applications\.commands&permissions=309774517248&integration_type=0$/.test(server || '')) throw new Error(`server ${server}`);
+        if (!/scope=applications\.commands&integration_type=1$/.test(account || '')) throw new Error(`account ${account}`);
+        return `${server} · ${account}`;
+      }
       const href = await editor.page.getAttribute('[data-id="discord-install-button"]', 'href');
       if (!/^https:\/\/discord\.com\/oauth2\/authorize\?client_id=\d+$/.test(href || '')) throw new Error(`href ${href}`);
       return href;
@@ -232,15 +316,18 @@ main(async () => {
         }
       };
       await attempt(() => call('creatures.discord.setWebhook', { creatureId }));
+      // The bot's connection: its webhooks deleted on the fake once nothing uses them
+      await attempt(() => call('discord.disconnect', { creatureId }));
       // Unlinked through the app: the characters chosen go with it
       if (linked) await attempt(() => call('discord.unlink', {}));
       await attempt(() => withDb(db => db.collection('discordRerolls').deleteMany({ creatureId })));
       const left = await withDb(async db => ({
         account: (await db.collection('users').findOne({ _id: userId }, { projection: { discordAccount: 1 } }))?.discordAccount,
         webhook: (await db.collection('creatures').findOne({ _id: creatureId }, { projection: { discordWebhookId: 1 } }))?.discordWebhookId,
+        channel: (await db.collection('creatures').findOne({ _id: creatureId }, { projection: { discordChannel: 1 } }))?.discordChannel,
         active: await db.collection('discordActiveCharacters').countDocuments({ discordUserId: PLAYER }),
       }));
-      if (left.account || left.webhook || left.active) throw new Error(`left: ${JSON.stringify(left)}; ${errors.join('; ')}`);
+      if (left.account || left.webhook || left.channel || left.active) throw new Error(`left: ${JSON.stringify(left)}; ${errors.join('; ')}`);
       if (errors.length) throw new Error(errors.join('; '));
     });
     await fake?.close();

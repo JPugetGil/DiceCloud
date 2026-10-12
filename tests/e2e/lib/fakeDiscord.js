@@ -46,7 +46,14 @@ const IS_COMPONENTS_V2 = 1 << 15;
  * `channels`: what each webhook id posts into, 'text' unless named 'forum'
  * or 'gone'. Resolves once listening, with the requests and `close`
  */
-async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
+/*
+ * And the bot (phase D), with `Bot fake-bot-token`: a channel as it sees it
+ * (`botChannels`: { [id]: { type, guildId, parentId } }), a public thread it
+ * creates in a text channel, a webhook it creates in a channel or a forum.
+ */
+const BOT_TOKEN = 'fake-bot-token';
+
+async function startFakeDiscord({ channels = {}, port = PORT, botChannels = {} } = {}) {
   const requests = [];
   const messages = new Map();
   const threads = new Set();
@@ -67,6 +74,8 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
   const grants = new Map();
   const accessTokens = new Map();
   const oauthWebhooks = new Map();
+  // The webhooks the bot created (phase D)
+  const botWebhooks = [];
   // Interactions: the commands registered, and per token what became of it
   const registeredCommands = new Map();
   const interactions = new Map();
@@ -140,7 +149,11 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
     }
     if (request.method === 'PATCH') {
       const closed = query.thread_id && textThreads.get(query.thread_id);
-      if (closed && closed.state !== 'open') return closed.state === 'locked' ? error(403, 160005, 'Thread is locked') : error(400, 50083, 'Thread is archived');
+      // As Discord, checked by hand on 2026-10-11: a webhook's message reopens
+      // an archived thread and still goes into a locked one; only a deleted
+      // thread refuses it
+      if (closed?.state === 'deleted') return error(404, 10003, 'Unknown Channel');
+      if (closed?.state === 'archived') closed.state = 'open';
       const message = messages.get(request.messageId);
       if (!message || (query.thread_id && message.channel_id !== query.thread_id)) return error(404, 10008, 'Unknown Message');
       Object.assign(message, body);
@@ -152,8 +165,8 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
     if (textThread) {
       if (textThread.state === 'deleted') return error(404, 10003, 'Unknown Channel');
       if (textThread.parent !== channel) return error(400, 50035, 'Invalid Form Body', { thread_id: { _errors: [{ code: 'THREAD_NOT_IN_CHANNEL' }] } });
-      if (textThread.state === 'archived') return error(400, 50083, 'Thread is archived');
-      if (textThread.state === 'locked') return error(403, 160005, 'Thread is locked');
+      // An archived thread is reopened by the message; a locked one still takes it
+      if (textThread.state === 'archived') textThread.state = 'open';
       channel = query.thread_id;
     } else if (query.thread_id) {
       if (!threads.has(query.thread_id)) return error(404, 10003, 'Unknown Channel');
@@ -198,7 +211,28 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
       const basicAuth = /^Basic (.+)$/.exec(req.headers.authorization || '')?.[1];
       const [id, password] = basicAuth ? Buffer.from(basicAuth, 'base64').toString().split(':') : [];
       let reply;
-      if (interactionMatch && interactions.has(interactionMatch[2])) {
+      const botMatch = /^\/api\/v10\/channels\/(\d+)(\/threads|\/webhooks)?$/.exec(url.pathname);
+      if (botMatch) {
+        // The bot's requests: a channel, a thread, a webhook
+        const [, channelId, what] = botMatch;
+        const channel = botChannels[channelId];
+        if (req.headers.authorization !== `Bot ${BOT_TOKEN}`) reply = error(401, 0, '401: Unauthorized');
+        else if (!channel) reply = error(404, 10003, 'Unknown Channel');
+        else if (req.method === 'GET' && !what) {
+          reply = { status: 200, body: { id: channelId, type: channel.type, guild_id: channel.guildId, ...channel.parentId && { parent_id: channel.parentId } } };
+        } else if (req.method === 'POST' && what === '/threads' && channel.type === 0) {
+          const threadId = snowflake();
+          textThreads.set(threadId, { parent: channelId, state: 'open' });
+          botChannels[threadId] = { type: 11, guildId: channel.guildId, parentId: channelId };
+          reply = { status: 201, body: { id: threadId, type: body?.type ?? 12, parent_id: channelId, guild_id: channel.guildId, name: body?.name } };
+        } else if (req.method === 'POST' && what === '/webhooks' && [0, 15].includes(channel.type)) {
+          const webhook = { id: snowflake(), token: secret(), type: 1, application_id: 'bot-application', channel_id: channelId, guild_id: channel.guildId, name: body?.name || 'DiceCloud' };
+          oauthWebhooks.set(webhook.id, webhook);
+          if (channel.type === 15) channels[webhook.id] = 'forum';
+          botWebhooks.push(webhook);
+          reply = { status: 200, body: webhook };
+        } else reply = error(400, 50024, 'Cannot execute action on this channel type');
+      } else if (interactionMatch && interactions.has(interactionMatch[2])) {
         // The webhook of an interaction: its original message edited, follow-ups posted
         const record = interactions.get(interactionMatch[2]);
         if (interactionMatch[3] && req.method === 'PATCH') {
@@ -264,12 +298,14 @@ async function startFakeDiscord({ channels = {}, port = PORT } = {}) {
     registeredCommands,
     interactions,
     /** A thread a user makes in a text channel; returns its id */
+    botWebhooks,
+    botChannels,
     createThread: channelId => {
       const id = snowflake();
       textThreads.set(id, { parent: channelId, state: 'open' });
       return id;
     },
-    /** A thread archived, locked or deleted in Discord */
+    /** A thread archived, locked or deleted in Discord (only a deleted one refuses a webhook's messages) */
     closeThread: (id, state) => {
       const thread = textThreads.get(id);
       if (thread) thread.state = state;

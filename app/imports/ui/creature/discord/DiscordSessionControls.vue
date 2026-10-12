@@ -45,10 +45,17 @@
         </template>
         <v-list density="compact">
           <v-list-item
+            v-if="botThread"
+            :title="$t('discord.newSessionBotThread')"
+            :subtitle="$t('discord.newSessionBotThreadHint')"
+            data-id="discord-session-newthread"
+            @click="emit('start', { newThread: true })"
+          />
+          <v-list-item
             :title="$t('discord.newSessionHeader')"
             :subtitle="$t('discord.newSessionHeaderHint')"
             data-id="discord-session-header"
-            @click="emit('start')"
+            @click="emit('start', {})"
           />
           <v-list-item
             :title="$t('discord.newSessionThread')"
@@ -125,7 +132,8 @@ import { useI18n } from 'vue-i18n';
  * message in the channel, a post of its own in a forum, or a thread of the
  * channel whose link the user pastes) and end it; and, when its thread
  * stopped taking messages, that it ended. The parent calls the methods: it
- * knows whose session it is; `start` comes with the thread's link, if any.
+ * knows whose session it is; `start` comes with `{ threadLink }`, `{
+ * newThread: true }` (the bot creates the thread, phase D) or nothing.
  */
 const props = defineProps({
   // The session of the webhook set now, if one is open
@@ -144,6 +152,9 @@ const props = defineProps({
     type: Object,
     default: undefined,
   },
+  // A text channel connected for this holder, and a bot on this server
+  // (phase D): DiceCloud creates the session's thread itself
+  botThread: Boolean,
 });
 
 const emit = defineEmits(['start', 'end']);
@@ -158,7 +169,7 @@ function closeThreadForm() {
 
 function startInThread() {
   const link = threadLink.value.trim();
-  if (link) emit('start', link);
+  if (link) emit('start', { threadLink: link });
 }
 
 // Opened in its thread: the form is done

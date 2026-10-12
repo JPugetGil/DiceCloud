@@ -130,6 +130,11 @@ Then:
   in Discord's portal, which checks it at once (main README, "Commands and
   buttons"). In Cloudflare, nothing may stand between Discord and that path:
   no challenge (Bot Fight Mode, WAF, Under Attack mode) and no cache.
+- **Discord's bot** (optional, with the application): its token as
+  `discord.botToken` in `settings.production.json`; in the portal, Default
+  Install Settings > Guild Install with the scopes `applications.commands` and
+  `bot` and the four permissions (main README, "The bot"). Restart: the
+  commands are registered again, `/connect` among them.
 - **The webhooks' key**, with or without the application: `openssl rand
   -base64 32`, as `discord.tokenKey` in `settings.production.json`, and a copy
   in a password manager (main README, "The webhooks' key"). At the next start
