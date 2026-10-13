@@ -17,6 +17,10 @@
     "allowJs": true,
     "checkJs": true,
     "noErrorTruncation": true,
+    // The declarations of node_modules and of Meteor's generated types are
+    // not the app's to fix: checking them found only errors nobody acts on,
+    // and took two thirds of the time
+    "skipLibCheck": true,
     "outDir": "build",
     "paths": {
       "/*": [
@@ -35,10 +39,18 @@
   "vueCompilerOptions": {
     "target": 3
   },
+  // Not the app's code: generated files (the grammar, declared by
+  // grammar.d.ts; the production chunks a local build leaves in public/),
+  // tooling configuration, and public/sw.js, a service worker script served
+  // as is, outside the app's modules
   "exclude": [
     "node_modules",
     "**/node_modules/*",
     ".meteor",
-    "_build"
+    "_build",
+    "public",
+    "imports/parser/grammar.js",
+    "eslint.config.mjs",
+    "rspack.config.js"
   ]
 }

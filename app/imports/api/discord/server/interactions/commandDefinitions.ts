@@ -105,9 +105,6 @@ export const COMMANDS = [
   ], { contexts: [0], default_member_permissions: MANAGE_WEBHOOKS }),
 ];
 
-/** What the commands are, by their English names */
-export type CommandName = 'roll' | 'check' | 'save' | 'hp' | 'character' | 'connect';
-
 /** The definitions' hash: a change registers them again */
 export function commandsHash(): string {
   return crypto.createHash('sha256').update(JSON.stringify(COMMANDS)).digest('hex');

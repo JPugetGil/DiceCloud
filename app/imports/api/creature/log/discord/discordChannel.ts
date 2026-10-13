@@ -1,5 +1,3 @@
-import { sessionOf, type DiscordSession } from '/imports/api/creature/log/discord/discordSession';
-
 /*
  * A Discord channel a character or a party board is connected to with
  * "Connect to Discord" (D4): the webhook DiceCloud's application created
@@ -64,11 +62,4 @@ export function discordChannelUrl(channel?: { guildId?: string, channelId?: stri
  */
 export function webhookIdOf(channel?: DiscordChannel | null, pastedId?: string | null): string | undefined {
   return channel?.webhookId || pastedId || undefined;
-}
-
-/** The session, if it is one of the webhook it posts with now */
-export function currentSession(
-  session: DiscordSession | undefined | null, channel?: DiscordChannel | null, pastedId?: string | null,
-) {
-  return sessionOf(session, webhookIdOf(channel, pastedId));
 }

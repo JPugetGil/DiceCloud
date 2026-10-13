@@ -41,7 +41,6 @@ const iconsSchema = TypedSimpleSchema.from({
 type Icon = InferType<typeof iconsSchema>;
 
 const Icons = new Mongo.Collection<Icon>('icons');
-// @ts-expect-error don't have types for .attachSchema
 Icons.attachSchema(iconsSchema);
 
 if (Meteor.isServer) {

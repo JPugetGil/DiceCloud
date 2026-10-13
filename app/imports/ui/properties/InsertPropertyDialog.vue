@@ -115,7 +115,7 @@
                   <div class="d-flex flex-1-1 flex-column">
                     <tree-node-view :model="libraryNode" />
                     <div class="text-body-small">
-                      {{ libraryNames[libraryNode.ancestors[0].id ] }}
+                      {{ libraryNames[libraryNode.root?.id] }}
                     </div>
                   </div>
                   <template v-if="open">

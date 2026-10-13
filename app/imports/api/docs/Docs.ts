@@ -69,7 +69,6 @@ const schema = new SimpleSchema({});
 schema.extend(DocSchema);
 schema.extend(ChildSchema);
 schema.extend(SoftRemovableSchema);
-// @ts-expect-error No attach schema in types
 Docs.attachSchema(schema);
 
 async function assertDocsEditPermission(userId) {

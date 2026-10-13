@@ -19,7 +19,9 @@
     "check:print-cards": "node checks/print-cards.js",
     "check:discord-webhook": "node checks/discord-webhook.js",
     "check:discord-oauth": "node checks/discord-oauth.js",
-    "check:discord-interactions": "node checks/discord-interactions.js"
+    "check:discord-interactions": "node checks/discord-interactions.js",
+    "check:party-monsters": "node checks/party-monsters.js",
+    "check:licenses": "node checks/licenses.js"
   },
   "dependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -27,6 +29,6 @@
     "playwright": "1.63.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.19"
   }
 }

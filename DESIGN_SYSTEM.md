@@ -210,7 +210,8 @@ label is written in: write labels in sentence case, in English too ("Sign in",
 - **French**: a narrow no-break space (U+202F) before `!`, `?` and `;`, a
   no-break space (U+00A0) before `:` and inside « », in `fr.json`, so the sign
   never starts a line on its own.
-- **Font**: Roboto in three weights, 400, 500 and 700 (`client/main.html`).
+- **Font**: Roboto in three weights, 400, 500 and 700, served with the app
+  (`@fontsource/roboto`, imported by `app/imports/ui/stylesheets/index.js`).
 - **Display font**: Fraunces 600 (SIL Open Font License, French accents
   included) for the logo, the character's name and the titles of cards
   (`.font-display`, and `.v-card-title`, a card toolbar's title and the

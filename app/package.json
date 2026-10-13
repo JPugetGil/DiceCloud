@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "test": "meteor test --once --driver-package meteortesting:mocha --port 3100 --raw-logs",
     "typecheck": "node ../tests/types/checkTypes.mjs",
+    "cycles": "node ../tests/cycles/checkCycles.mjs",
     "build": "meteor build ../build --architecture os.linux.x86_64"
   },
   "engines": {

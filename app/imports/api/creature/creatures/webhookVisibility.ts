@@ -54,11 +54,12 @@ export const WITHOUT_WEBHOOK = {
   [WEBHOOK_CHANNEL_FIELD]: 0, [WEBHOOK_CHANNEL_KIND_FIELD]: 0, [SESSION_HISTORY_FIELD]: 0,
 } as const;
 
-/** What a party's players never get of its folder: its Discord webhook and session */
+/**
+ * What a party's players never get of its folder: its Discord webhook and
+ * session (its game master gets all but the pasted URL, `discord.webhook`:
+ * boardFolderFields in initiativeCreatures.js, a module without imports)
+ */
 export const PARTY_DISCORD_FIELD = 'discord';
-
-/** What its game master never gets either: the pasted URL */
-export const PARTY_WEBHOOK_FIELD = 'discord.webhook';
 
 /**
  * The fields of the settings but the webhook, for a publication that lists

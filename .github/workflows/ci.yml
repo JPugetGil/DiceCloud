@@ -43,13 +43,29 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('app/package-lock.json') }}
+          key: npm-${{ runner.os }}-${{ hashFiles('app/package-lock.json', 'tests/cycles/package-lock.json') }}
 
       - name: Install npm packages
         run: meteor npm ci
 
+      # Production dependencies only, high and critical advisories only. The
+      # development tools never reach the server nor the browser (the
+      # Dockerfile prunes the bundle's npm packages), and a moderate advisory
+      # can be out of reach: pbkdf2 3.1.3 (moderate, a browser polyfill no
+      # client code loads) is bundled inside meteor-node-stubs 1.2.30, its
+      # latest release, where npm cannot replace it. Run `meteor npm audit`
+      # locally for the full list
+      - name: Audit production dependencies
+        run: meteor npm audit --omit=dev --audit-level=high
+
       - name: Lint
         run: meteor npm run lint
+
+      # madge has its own package: its TypeScript peer is not the app's
+      - name: Import cycles (no new cycle)
+        run: |
+          meteor npm ci --prefix ../tests/cycles
+          meteor npm run cycles
 
       # Client tests would need a browser driver: the tests that matter run on
       # the server

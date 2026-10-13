@@ -51,6 +51,10 @@ export async function restoreCreature(archive, userId) {
   // character limit counts those, and a file can say anything
   archive.creature.owner = userId;
   archive.creature.type = 'pc';
+  // Shared with no one: the file's readers and writers would get rights on it
+  // (a copy starts unshared too, insertCreatureCopy)
+  archive.creature.readers = [];
+  archive.creature.writers = [];
   // Nor any Discord webhook or channel, which a file could name
   archive.creature = creatureWithoutDiscord(archive.creature);
 

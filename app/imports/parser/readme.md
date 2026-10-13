@@ -1,14 +1,12 @@
-The grammer.js file is built separately from the rest of the build process
-to rebuild the grammar after changing grammar.ne:
+# The formula grammar
 
-make sure Nearley in installed
+`grammar.js` is generated from `grammar.ne` by nearley's compiler, one of the
+app's dependencies. After changing `grammar.ne`, from `app/`:
 
-`npm install -g nearley`
+```sh
+meteor npx nearleyc imports/parser/grammar.ne -o imports/parser/grammar.js
+```
 
-compile
-
-`nearleyc grammar.ne -o grammar.js`
-
-To make this happen as part of the build process, a Meteor build plugin needs to
-created that can compile `.ne` files to `.js` and include them where ever
-they need to be imported.
+then commit both files. The build does not compile `.ne` files itself: that
+would take a build plugin. Neither ESLint nor the type check reads the
+generated file; `grammar.d.ts` declares what it exports.

@@ -186,6 +186,24 @@ describe('Duplicating a character', function () {
     assert.isTrue(restored.settings.hideSpellsTab);
   });
 
+  it('restores a file without the readers and writers it names: a file made by hand gave anyone rights', async function () {
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports */
+    const { restoreCreature } = require('/imports/api/creature/archive/methods/restoreCreatureFromFile');
+    const archive = JSON.parse(JSON.stringify(await as(getCreatureArchive, ownerId, { creatureId: originalId })));
+    await removeCreatureWork(originalId);
+    // Its readers come from the character; a writer and `public` are added by hand
+    assert.deepEqual(archive.creature.readers, [readerId, copierId]);
+    Object.assign(archive.creature, { writers: [copierId], public: true });
+    const restoredId = await restoreCreature(archive, ownerId);
+    assert.equal(restoredId, originalId);
+    const restored = await Creatures.findOneAsync(restoredId) as any;
+    assert.equal(restored.owner, ownerId);
+    assert.deepEqual(restored.readers, []);
+    assert.deepEqual(restored.writers, []);
+    // Public stays: it shows only the restorer's own character, as they can anyway
+    assert.isTrue(restored.public);
+  });
+
   it('restores an archive of a character that still exists as a copy, log included', async function () {
     const archive = JSON.parse(JSON.stringify(await as(getCreatureArchive, ownerId, { creatureId: originalId })));
     const copyId = await insertCreatureCopy(archive, { owner: ownerId });

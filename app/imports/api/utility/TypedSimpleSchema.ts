@@ -2,7 +2,7 @@
 // definition uses them, whichever entry point or test file loads first
 import '/imports/api/simpleSchemaConfig';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
-import type { SimpleSchemaDefinition } from 'simpl-schema';
+import type { SchemaDefinition, SchemaDefinitionType } from 'simpl-schema';
 import type {
   FieldToCalculate, CalculatedOnlyField
 } from '/imports/api/properties/subSchemas/computedField';
@@ -11,8 +11,15 @@ import type {
 } from '/imports/api/properties/subSchemas/inlineCalculationField';
 import type { Simplify } from 'type-fest';
 
+// The types createPropertySchema replaces with the computed fields' subschemas
+type ComputedFieldType = 'fieldToCompute' | 'computedOnlyField'
+  | 'inlineCalculationFieldToCompute' | 'computedOnlyInlineCalculationField';
+
 // It DOES NOT support a constructor with multiple schemas.
-export type Definition = Exclude<SimpleSchemaDefinition, any[]>;
+export type Definition = {
+  [key: string]: SchemaDefinitionType | SchemaDefinitionType[]
+    | (Omit<SchemaDefinition, 'type'> & { type: ComputedFieldType }),
+};
 
 // This is a no-op wrapper, effectively implementing a phantom type.
 export class TypedSimpleSchema<T> extends SimpleSchema {

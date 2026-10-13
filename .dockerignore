@@ -17,5 +17,7 @@ build
 tests
 tools
 
-# Production scripts and their secrets (.env)
+# Production scripts and their secrets (.env), but for the bundle pruning the
+# build runs
 deploy
+!deploy/prune-bundle.sh

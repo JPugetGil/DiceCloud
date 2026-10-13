@@ -8,7 +8,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
  * thread DiceCloud's bot creates (no other way since 2026-10-12). "Resume a
  * session" opens one of the last ones again (`PastSession`). "End session"
  * goes back to the channel; so does a thread that no longer takes messages,
- * which leaves a notice (`SessionClosed`). Kept with the webhook, and like it
+ * which leaves a notice (`SESSION_CLOSED_FIELDS`). Kept with the webhook, and like it
  * only for those who may change it: the editors of the character, the game
  * master of the party.
  *
@@ -75,8 +75,6 @@ export type DiscordSession = {
 };
 
 /** A session that ended by itself, its thread no longer taking messages: shown until the next one */
-export type SessionClosed = { name?: string, at: Date };
-
 export const SESSION_CLOSED_FIELDS = {
   name: { type: String, optional: true as const, max: STORAGE_LIMITS.name },
   at: { type: Date },

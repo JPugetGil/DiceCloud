@@ -142,9 +142,14 @@ function cancel() {
   replacing.value = false;
 }
 
-// The parent calls `done` once saved: the same webhook again changes no id
+// The parent calls `done` once saved. A first webhook: the watch on webhookId
+// empties the field when the masked webhook replaces the form, in the same
+// render. Emptied here before that, the field animated its label one frame
+// later, often once it had left the page ("scale(NaN)" in the console). A
+// replaced one: the same webhook again changes no id, so `done` goes back to
+// the masked webhook, the form leaving as the field empties
 function save() {
   const value = url.value.trim();
-  if (value) emit('save', value, cancel);
+  if (value) emit('save', value, () => { if (props.webhookId) cancel(); });
 }
 </script>

@@ -9,7 +9,6 @@
 export const CARD = Object.freeze({ width: 63, height: 88 });
 export const COLUMNS = 3;
 export const ROWS = 3;
-export const CARDS_PER_SHEET = COLUMNS * ROWS;
 
 /**
  * The papers, in millimetres, with the margins that centre a 3 x 3 grid of
@@ -58,15 +57,6 @@ export function cropMarks(paper, { length = 5, gap = 1 } = {}) {
     marks.push({ x1: round2(right), y1: y, x2: round2(right + reach(width - right + gap)), y2: y });
   }
   return marks;
-}
-
-/** Cards, nine to a sheet */
-export function toSheets(cards) {
-  const sheets = [];
-  for (let i = 0; i < cards.length; i += CARDS_PER_SHEET) {
-    sheets.push(cards.slice(i, i + CARDS_PER_SHEET));
-  }
-  return sheets;
 }
 
 /**

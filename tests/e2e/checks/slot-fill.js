@@ -1,14 +1,21 @@
 #!/usr/bin/env node
 /**
+ * The dialogs that list library nodes.
+ *
  * Opens a library slot in test mode (the slot fill dialog with a dummy slot, as
  * the library page does) and checks that it lists the fillers the database holds
  * for it. The dialog once passed vue-meteor-tracker's `sub` ref to
  * subscriptionData() instead of the handle, so it never saw the subscription's
  * filter and every slot showed an empty list ("Explore the Library!" in the
  * Libraries of Vexus); fillers whose requirements failed were also offered.
- *
  * Needs a library with slots and fillers that the test account can use, for
  * example after subscribing it to a library collection; skipped otherwise.
+ *
+ * Then the library tab of the insert property dialog lists a node of a library
+ * of the test account's own, under that library's name. It read the library
+ * from `ancestors`, which only nodes imported from database version 2 still
+ * carry: any other node broke the list. The library and its node go straight
+ * into the database, and are removed at the end.
  */
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
@@ -46,17 +53,40 @@ async function findSlotWithFillers(userId) {
   });
 }
 
+// A library of the test account's, with one note made in the app: no `ancestors`
+const LIBRARY_ID = 'e2eInsertDialogLib';
+const NODE_ID = 'e2eInsertDialogNot';
+const LIBRARY_NAME = 'E2E insert dialog library';
+
+async function removeOwnLibrary() {
+  await withDb(async db => {
+    await db.collection('libraryNodes').deleteMany({ 'root.id': LIBRARY_ID });
+    await db.collection('libraries').deleteOne({ _id: LIBRARY_ID });
+  });
+}
+
+async function insertOwnLibrary(userId) {
+  await removeOwnLibrary();
+  await withDb(async db => {
+    await db.collection('libraries').insertOne({
+      _id: LIBRARY_ID, name: LIBRARY_NAME, owner: userId, readers: [], writers: [], public: false,
+    });
+    await db.collection('libraryNodes').insertOne({
+      _id: NODE_ID, type: 'note', name: 'E2E insert dialog note', tags: [], libraryTags: [],
+      root: { collection: 'libraries', id: LIBRARY_ID }, parentId: LIBRARY_ID, left: 1, right: 2,
+      searchable: true,
+    });
+  });
+}
+
 main(async () => {
   const { userId } = await getTestUser();
   const slot = await findSlotWithFillers(userId);
-  const { step, finish } = createChecker('Slot fill dialog');
+  const { step, finish } = createChecker('Library node dialogs');
+  const { browser, page, messages } = await openPage();
   if (!slot) {
     console.log('  - skipped: the test account can use no library slot with fillers');
-    finish();
-    return;
-  }
-  const { browser, page, messages } = await openPage();
-  await step(`"${slot.name}" lists its ${slot.count} filler(s)`, messages, async () => {
+  } else await step(`"${slot.name}" lists its ${slot.count} filler(s)`, messages, async () => {
     await visit(page, '/library', 3000);
     await page.evaluate(id => new Promise(r => window.Meteor.subscribe('libraryNode', id, { onReady: r })), slot.id);
     const dummySlot = await page.evaluate(id => window.Meteor.connection._stores.libraryNodes._getCollection().findOne(id), slot.id);
@@ -72,6 +102,22 @@ main(async () => {
       throw new Error(`shows ${shown} and hides ${hidden}, expected ${slot.count} in all`);
     }
     return `${shown} shown, ${hidden} with requirements not met`;
+  });
+  await step('the insert property dialog lists a library\'s note, under the library\'s name', messages, async () => {
+    await insertOwnLibrary(userId);
+    try {
+      await visit(page, '/library', 3000);
+      await pushDialog(page, 'InsertPropertyDialog', { forcedType: 'note' });
+      const dialog = page.locator('.dialog-stack .dialog-component').last();
+      // Type, Create, Library
+      await dialog.locator('.v-tab').nth(2).click({ timeout: 15000 });
+      const panel = await page.waitForSelector(`[data-id="${NODE_ID}"]`, { timeout: 15000 });
+      const text = (await panel.innerText()).replace(/\s+/g, ' ');
+      if (!text.includes(LIBRARY_NAME)) throw new Error(`the result reads "${text}"`);
+      return `"${text}"`;
+    } finally {
+      await removeOwnLibrary();
+    }
   });
   await browser.close();
   finish();

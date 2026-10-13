@@ -4,6 +4,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { Meteor } from 'meteor/meteor';
 import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
+import { PARTY_DISCORD_FIELD } from '/imports/api/creature/creatures/webhookVisibility';
 
 // Cursors and nothing else: their observers keep them up to date. This used
 // to be an autorun, which every change to a folder reran, every turn of a
@@ -44,7 +45,7 @@ Meteor.publish('characterList', function () {
     // master
     CreatureFolders.find(
       { $or: [{ owner: userId }, { members: userId }] },
-      { fields: { inviteToken: 0, initiativeStats: 0, discord: 0 } },
+      { fields: { inviteToken: 0, initiativeStats: 0, [PARTY_DISCORD_FIELD]: 0 } },
     ),
   ];
 });

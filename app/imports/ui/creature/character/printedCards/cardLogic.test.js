@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import {
-  CARD, PAPERS, paperMargins, defaultPaper, cropMarks, toSheets, fitFontSize, paginate,
+  CARD, PAPERS, paperMargins, defaultPaper, cropMarks, fitFontSize, paginate,
   nearestAncestor, selectSpells, selectItems, itemRarity, itemCharges, spellUses,
   componentCodes, capitalizeFirst, itemKind, packCards, mirrorPlacement, cardColor,
 } from './cardLogic';
@@ -39,11 +39,6 @@ describe('Printable cards: sheets', function () {
         if (vertical) assert.include([0, 1, 2, 3].map(i => Math.round((x + i * CARD.width) * 100) / 100), mark.x1);
       }
     }
-  });
-
-  it('puts nine cards on a sheet', function () {
-    assert.deepEqual(toSheets([...Array(20).keys()]).map(sheet => sheet.length), [9, 9, 2]);
-    assert.deepEqual(toSheets([]), []);
   });
 });
 

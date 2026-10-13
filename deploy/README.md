@@ -68,10 +68,17 @@ up the daily backup. Then:
    - `CLOUDFLARE_TUNNEL_TOKEN`: the tunnel's token;
    - `MAIL_URL`: the SMTP server, see `.env.example`;
    - `MAIL_FROM`: the sender, on the domain authenticated with the SMTP
+     service (see "Emails" below).
 2. Copy the settings file from your computer:
    `scp app/settings.production.json <user>@<server>:~/DiceCloud/app/`.
-   Its `galaxy.meteor.com` section is ignored here: `MAIL_URL` comes from
-   `.env`.
+   That is where `SETTINGS_FILE` in `.env` looks by default
+   (`../app/settings.production.json`, relative to `deploy/`); git ignores it
+   and the image never contains it. Its `galaxy.meteor.com` section is ignored
+   here: `MAIL_URL` comes from `.env`.
+
+   Its `s3` section is required: the files players upload (portraits,
+   character archives) go to that bucket. Without it, they are stored inside
+   the app's container and lost the next time `start` or `update` recreates it.
 3. `./dicecloud.sh start`. The first build takes 10 to 20 minutes; later ones
    reuse what has not changed.
 
@@ -133,8 +140,10 @@ Then:
 - **Discord's bot** (optional, with the application): its token as
   `discord.botToken` in `settings.production.json`; in the portal, Default
   Install Settings > Guild Install with the scopes `applications.commands` and
-  `bot` and the four permissions (main README, "The bot"). Restart: the
-  commands are registered again, `/connect` among them.
+  `bot` and the four permissions (main README, "The bot"). Restart, so that
+  the app reads the token. The commands need no new registration: `/connect`
+  is registered with the others, and until the token is set it answers that
+  the bot is missing.
 - **The webhooks' key**, with or without the application: `openssl rand
   -base64 32`, as `discord.tokenKey` in `settings.production.json`, and a copy
   in a password manager (main README, "The webhooks' key"). At the next start
@@ -145,7 +154,7 @@ Then:
   domains and dedicated IPs > Domains), then add the records it gives in
   Cloudflare, its DKIM records as **DNS only**: proxied, they hide the keys
   that receiving servers check signatures with.
-- Once everything works, stop Galaxy and the Atlas cluster.
+- Coming from Galaxy and Atlas: stop them once everything works here.
 
 ### The import kit on S3
 
@@ -185,7 +194,7 @@ was off runs when it starts again.
   latest is more than 36 hours old.
 - `./dicecloud.sh backup`: one more, now.
 - `journalctl -u dicecloud-backup`: the backup log.
-- `./dicecloud.sh restore /srv/dicecloud/backups/dicecloud-<date>.archive.gz`:
+- `./dicecloud.sh restore /srv/dicecloud/backups/dicecloud-<date>_<time>.archive.gz`:
   replaces the database with that backup, after backing the current one up.
 
 A disk failure, a theft or a fire takes the backups along with the machine. To
@@ -206,6 +215,9 @@ character, board and channel has to be connected to Discord again.
   The previous image is kept.
 - `./dicecloud.sh logs` (or `logs mongo`, `logs cloudflared`): follows a log.
 - `./dicecloud.sh stop`, then `start`.
+- `DICECLOUD_YES=1 ./dicecloud.sh <command>` answers "yes" to its
+  confirmations (`restore`, `import`), for scripts; `DICECLOUD_ENV_FILE=<file>`
+  reads another settings file than `deploy/.env`.
 
 The containers restart on their own after a crash or a reboot. Ubuntu installs
 its security updates itself; a kernel update needs a reboot now and then

@@ -31,7 +31,6 @@ export default function createPropertySchema<D extends Definition>(definition: D
           `computed field: '${key}' of '${def.type}' is expected to be optional`
         );
       }
-      //@ts-expect-error removeBeforeCompute is an extension of SimpleSchema
       if (def.removeBeforeCompute) {
         console.warn(
           `computed field: '${key}' of '${def.type}' should not be removed before computation`

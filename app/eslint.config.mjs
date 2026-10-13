@@ -51,4 +51,17 @@ export default [
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  // nachocodoner:reactive-publish stays (AsyncTracker, subscription data), but
+  // its this.autorun in a publication leaks: every rerun leaves the previous
+  // run's observers sending documents until the subscription stops (found
+  // 2026-10-08, upstream fix unmerged)
+  {
+    files: ['**/server/**/*.{js,ts}'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: 'CallExpression[callee.object.type="ThisExpression"][callee.property.name="autorun"]',
+        message: 'this.autorun leaks observers on every rerun: publish through reactivePublication (imports/api/utility/server/reactivePublication.js).',
+      }],
+    },
+  },
 ];

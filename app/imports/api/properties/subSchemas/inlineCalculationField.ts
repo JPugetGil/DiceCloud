@@ -52,7 +52,6 @@ function computedOnlyInlineCalculationField(field) {
       type: String,
       optional: true,
       max: STORAGE_LIMITS.inlineCalculationField,
-      // @ts-expect-error removeBeforeCompute is an extension of SimpleSchema
       removeBeforeCompute: true,
     },
     [`${field}.inlineCalculations`]: {

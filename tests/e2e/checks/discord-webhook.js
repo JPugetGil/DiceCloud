@@ -76,6 +76,31 @@ async function waitFor(condition, what, timeoutMs = 15000) {
   }
 }
 
+/**
+ * Holds the page's animation frames back, as a busy or hidden tab does, then
+ * returns what lets them go. Saving a pasted webhook used to clear its field
+ * just before the field left the page: Vuetify's label animation then ran,
+ * one frame later, on a detached field and logged "Invalid keyframe value
+ * for property transform: translate(0px, 0px) scale(NaN)". It failed now and
+ * then, when the page took the new webhook before the next frame; held
+ * frames make that happen every time.
+ */
+async function holdFrames(page, ms = 600) {
+  await page.evaluate(ms => {
+    const { requestAnimationFrame, cancelAnimationFrame } = window;
+    window.e2eFrames = { requestAnimationFrame, cancelAnimationFrame };
+    window.requestAnimationFrame = callback => setTimeout(() => requestAnimationFrame.call(window, callback), ms);
+    window.cancelAnimationFrame = id => clearTimeout(id);
+  }, ms);
+  return async () => {
+    await pause(ms + 400);
+    await page.evaluate(() => {
+      if (window.e2eFrames) Object.assign(window, window.e2eFrames);
+      delete window.e2eFrames;
+    });
+  };
+}
+
 // A page's preview, as Discord reads its HTML
 async function preview(path) {
   const response = await fetch(`${BASE_URL}${path}`, { headers: { 'User-Agent': DISCORDBOT } });
@@ -153,8 +178,10 @@ main(async () => {
         await pushDialog(editor.page, 'creature-form-dialog', { _id: creatureId });
         await editor.page.getByRole('button', { name: 'Discord', exact: true }).click({ timeout: 15000 });
         await editor.page.fill('[data-id="creature-discord-webhook"] input', webhookUrl);
+        const releaseFrames = await holdFrames(editor.page);
         await editor.page.click('[data-id="creature-discord-save"]');
         masked = (await (await editor.page.waitForSelector('[data-id="creature-discord-masked"]', { timeout: 10000 })).textContent()).trim();
+        await releaseFrames();
         if (!masked.endsWith(TEXT_ID.slice(-4))) throw new Error(`shown "${masked}"`);
         // The sheet again, without the dialog
         await visit(editor.page, `/character/${creatureId}`, 3000);
@@ -351,11 +378,13 @@ main(async () => {
         await visit(editor.page, `/party/${folderId}`, 4000);
         await removeOverlay(editor.page);
         await editor.page.fill('[data-id="party-discord-webhook"] input', partyWebhook);
+        const releaseFrames = await holdFrames(editor.page);
         await editor.page.click('[data-id="party-discord-save"]');
         const saved = await waitFor(() => withDb(async db => (await db.collection('creatureFolders').findOne({ _id: folderId }))?.discordPosting),
           'the webhook saved');
         if (JSON.stringify(saved) !== JSON.stringify({ rolls: true, combat: true })) throw new Error(`posting ${JSON.stringify(saved)}`);
         await editor.page.waitForSelector('[data-id="party-discord-enabled"]', { timeout: 5000 });
+        await releaseFrames();
 
         player = await openPage({ username: OTHER });
         browsers.push(player.browser);

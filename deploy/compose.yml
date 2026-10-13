@@ -14,6 +14,8 @@ services:
   # A replica set of one: Meteor then keeps pages live with change streams
   # instead of polling. Nothing outside these containers reaches it.
   mongo:
+    # Not 8.x: MongoDB 8 refuses to start on Linux kernels 6.19 to 7.0.13
+    # (SERVER-121912), and Ubuntu's kernels keep their upstream version number
     image: mongo:7.0
     restart: unless-stopped
     logging: *logging
@@ -84,7 +86,10 @@ services:
   # Publishes the app at ROOT_URL with no port open on the router. Its public
   # hostname and target (http://dicecloud:3000) are set on Cloudflare's side
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    # A chosen release, not `latest`: a new tunnel version arrives only when this
+    # line changes (releases: github.com/cloudflare/cloudflared/releases).
+    # Cloudflare supports a release for about a year: move it up now and then
+    image: cloudflare/cloudflared:2026.10.0
     restart: unless-stopped
     logging: *logging
     profiles: [tunnel]

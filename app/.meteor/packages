@@ -36,3 +36,7 @@ quave:synced-cron
 simple:json-routes
 aldeed:simple-schema
 rspack
+# The test driver of `meteor npm test`. Its packages are test-only (absent from
+# `meteor run` and the build); listing it keeps .meteor/versions the same
+# whether the last command was `meteor test` or `meteor run`
+meteortesting:mocha

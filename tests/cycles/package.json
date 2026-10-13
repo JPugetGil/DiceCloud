@@ -1,0 +1,13 @@
+{
+  "name": "dicecloud-import-cycles",
+  "private": true,
+  "description": "Fails when the app's imports gain a cycle: see checkCycles.mjs",
+  "type": "module",
+  "devDependencies": {
+    "madge": "^8.0.0",
+    "typescript": "~5.9.3"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

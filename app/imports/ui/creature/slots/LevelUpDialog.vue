@@ -56,14 +56,6 @@
             <template #default="{ open }">
               <div class="d-flex align-center flex-grow-0 mr-2">
                 <v-checkbox
-                  v-if="libraryNode._disabledByAlreadyAdded"
-                  class="my-0 py-0"
-                  hide-details
-                  :model-value="true"
-                  disabled
-                />
-                <v-checkbox
-                  v-else
                   v-model="selectedNodeIds"
                   class="my-0 py-0"
                   hide-details
@@ -187,7 +179,6 @@ import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/ui/library/LibraryNodeExpansionContent.vue';
 import PropertyTags from '/imports/ui/properties/viewers/shared/PropertyTags.vue';
 import { difference, isEqual, debounce } from 'lodash';
-import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const dialogStackStore = useDialogStackStore();
@@ -269,27 +260,6 @@ const filledLevels = computed(() => {
   ).sort((a, b) => a - b);
 });
 
-const alreadyAdded = autorun(() => {
-  let added = new Set();
-  if (!model.value?.unique) return added;
-  let ancestorId;
-  if (model.value.unique === 'uniqueInSlot') {
-    ancestorId = model.value._id;
-  } else if (model.value.unique === 'uniqueInCreature') {
-    ancestorId = props.creatureId;
-  }
-  CreatureProperties.find({
-    ...getFilter.descendants(ancestorId),
-    libraryNodeId: { $exists: true },
-    removed: { $ne: true },
-  }, {
-    fields: { libraryNodeId: 1 },
-  }).forEach(prop => {
-    added.add(prop.libraryNodeId);
-  });
-  return added;
-}).result;
-
 const totalQuantitySelected = autorun(() => {
   let quantitySelected = 0;
   LibraryNodes.find({
@@ -340,9 +310,6 @@ const matchingNodes = autorun(() => {
       quantityToFill > spaceLeft.value
     ) {
       node._disabledByQuantityFilled = true;
-    }
-    if (alreadyAdded.value.has(node._id)) {
-      node._disabledByAlreadyAdded = true;
     }
   });
   nodes.sort((a, b) => a.level - b.level);
@@ -453,8 +420,7 @@ function openPropertyDetails(id) {
 
 function isDisabled(node) {
   const selected = selectedNodeIds.value.includes(node._id);
-  return node._disabledByAlreadyAdded
-    || (node._disabledByQuantityFilled && !selected)
+  return (node._disabledByQuantityFilled && !selected)
     || (filledLevels.value.includes(node.level || node.cache?.node?.level || 0) && !selected);
 }
 </script>

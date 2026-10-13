@@ -10,7 +10,9 @@
     "key": "<AWS access key>",
     "secret": "<AWS secret key>",
     "bucket": "<AWS bucket name>",
-    "region": "eu-west-3"
+    "region": "eu-west-3",
+    "endpoint": "",
+    "storagePricePerGB": null
   },
   "packages": {
     "service-configuration": {
@@ -26,6 +28,8 @@
     "clientSecret": "",
     "publicKey": "",
     "botToken": "",
-    "tokenKey": ""
+    "tokenKey": "",
+    "oldTokenKeys": [],
+    "registerCommands": false
   }
 }

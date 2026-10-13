@@ -88,13 +88,14 @@ settings, a JSON document. Locally, copy `app/exampleMeteorSettings.json` to
 | Environment variable | |
 |----------------------|---|
 | `ROOT_URL` | The instance's public address, such as `https://dd-dc.hemoreg.me`: links in emails and Google sign-in use it |
-| `MONGO_URL` | The MongoDB database. Meteor 3.5 follows changes through change streams, so no oplog URL is needed |
+| `MONGO_URL` | The MongoDB database. On a replica set (one member is enough), Meteor 3.5 follows changes through change streams, so no oplog URL is needed; on a standalone server it polls the database instead, without a warning |
 | `PORT` | The port the server listens on |
 | `METEOR_SETTINGS` | The settings, as JSON |
 | `MAIL_URL` | The SMTP server that sends password reset and email verification messages, such as `smtps://<user>:<password>@<server>:465`. Without it, the server prints those emails in its log |
 | `MAIL_FROM` | Those messages' sender, such as `DiceCloud <no-reply@example.com>`: a domain the SMTP service has authenticated. Default: `no-reply@<the ROOT_URL host>` |
 | `DEFAULT_LIBRARIES` | Comma-separated ids of the libraries new users are subscribed to |
 | `DEFAULT_LIBRARY_COLLECTIONS` | Comma-separated ids of the library collections new users are subscribed to |
+| `HTTP_FORWARDED_COUNT` | Behind proxies, how many: the visitor's address is then that many entries from the end of `X-Forwarded-For` (rate limits use it). `1` behind the Cloudflare tunnel of `deploy/` |
 
 | Setting | |
 |---------|---|
@@ -103,8 +104,7 @@ settings, a JSON document. Locally, copy `app/exampleMeteorSettings.json` to
 | `s3` | File storage, see [File storage (AWS S3)](#file-storage-aws-s3) |
 | `public.legal` | Who runs the instance, see [Privacy policy and terms of use](#privacy-policy-and-terms-of-use) |
 | `public.disallowCreatureApiImport` | `true` to turn off importing characters from another DiceCloud instance |
-| `public.maintenanceMode` | `{ "reason": "<text>" }` sends everyone but admins to a maintenance page showing the reason |
-| `galaxy.meteor.com.env` | Environment variables for a deployment to Galaxy (`meteor deploy --settings`) |
+| `public.maintenanceMode` | `{ "reason": "<text>" }` sends everyone to a maintenance page showing the reason, but admins, who are sent to the administration page; signing in still works |
 
 Project layout
 --------------
@@ -225,13 +225,25 @@ in `tests/types/baseline.txt`: the check fails only on errors that list doesn't
 hold. After fixing some, `meteor npm run typecheck -- --update` removes them
 from it.
 
-GitHub Actions (`.github/workflows/ci.yml`) runs the lint, the unit tests on the
-server and the type check on every push to `develop` and every pull request.
+`meteor npm run cycles` in `app/` fails when the imports gain a cycle: a cycle
+makes the order modules initialise in depend on which loads first, and has
+crashed `meteor run` at startup while the tests and the build passed. The
+imports already on a cycle are listed in `tests/cycles/baseline.txt`; after
+removing some, `meteor npm run cycles -- --update` takes them out of it. It
+needs `meteor npm ci` in `tests/cycles` first (madge, the tool it uses, lives
+there).
 
-`tests/e2e/` holds Playwright checks that drive a running development server:
-pages, the character sheet, action targets, docs navigation, every property
-form, dialogs, login services, and colour contrast (the theme palette and an
-axe-core audit). See [tests/e2e/README.md](tests/e2e/README.md).
+GitHub Actions (`.github/workflows/ci.yml`) runs, on every push to `develop`
+and every pull request: an audit of the production dependencies (high and
+critical advisories), the lint, the import cycles check, the unit tests on the
+server and the type check.
+
+`tests/e2e/` holds 17 Playwright checks that drive a running development
+server: pages, the character sheet, action targets, docs navigation, every
+property form, dialogs, login services, colour contrast (the theme palette and
+an axe-core audit), the library dialogs, printed cards, Discord (webhooks,
+sign-in, commands and buttons), monsters on a party board and the licences.
+See [tests/e2e/README.md](tests/e2e/README.md).
 
 Design system
 -------------
@@ -243,10 +255,14 @@ Running with Docker
 -------------------
 
 The `Dockerfile` builds the app in this repository with Meteor and runs it on
-Node 24.15.0, the version Meteor 3.5.2 builds with. `docker-compose.yml` starts
-it next to a MongoDB container: set `ROOT_URL` in it, and `MAIL_URL` to send
-emails, then run `docker compose up --build`. Pass the settings in
-`METEOR_SETTINGS`. To record which commit is running,
+Node 24.15.0, the version Meteor 3.5.2 builds with. [deploy/](deploy/README.md)
+runs it in production on one machine with Docker Compose: the app, MongoDB 7.0
+as a replica set of one, a Cloudflare tunnel and daily backups, all driven by
+`deploy/dicecloud.sh`. Its README is the installation guide.
+
+To run the image another way, give it `ROOT_URL`, `MONGO_URL` (a replica set:
+on a standalone MongoDB, Meteor polls the database), `MAIL_URL`, and the
+settings as JSON in `METEOR_SETTINGS`. To record which commit is running,
 build with `--build-arg CONTAINER_VERSION=$(git rev-parse --short HEAD)`.
 
 Sign in with Google
@@ -347,8 +363,9 @@ counts the servers DiceCloud is connected to.
 ### Commands and buttons
 
 With the application's **Public Key** too, Discord sends DiceCloud its slash
-commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, in French `/jet`,
-`/test`, `/sauvegarde`, `/pv`, `/personnage`) and the clicks on its buttons
+commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, and `/connect`,
+which needs the bot; in French `/jet`, `/test`, `/sauvegarde`, `/pv`,
+`/personnage`, `/connecter`) and the clicks on its buttons
 (reroll with advantage or disadvantage, next turn, end my turn), over HTTP: no
 bot runs. Only for accounts that linked their Discord account. The reroll
 buttons go under a command's check, saving throw or roll of one d20, and under
@@ -413,8 +430,9 @@ reopens an archived thread; a deleted thread leaves the list.
    exactly these, and "Install on my account".
 3. A server's administrator adds DiceCloud with that link: a member named
    after the application appears, with a role holding the four permissions.
-   Restart DiceCloud after setting the token: the commands, `/connect` among
-   them, are registered again.
+   Restart DiceCloud after setting the token, so that it reads it. The
+   commands need no new registration: `/connect` is registered with the
+   others, and until the token is set it answers that the bot is missing.
 
 Without the token, "Connect to Discord", pasted webhooks and the forums'
 sessions work as before, but a text channel takes no session: "New session"
@@ -451,8 +469,9 @@ File storage (AWS S3)
 ---------------------
 
 Uploaded images and character archives go to an S3 bucket when the settings
-hold its credentials; otherwise they stay on the server's disk, which a
-container platform such as Galaxy wipes on every deploy. The bucket is private:
+hold its credentials; otherwise they stay on the server's disk, inside the
+container with Docker, which `deploy/`'s `start` and `update` recreate: they
+are lost. The bucket is private:
 the app reads the files itself and serves them to the browser.
 
 ```json
@@ -503,6 +522,7 @@ the pages show a warning.
 }
 ```
 
-The texts describe this code base and its hosting (Galaxy, MongoDB Atlas, AWS
-S3 in Paris, Google sign-in). Review them, and update `LAST_UPDATED` in both
-files, whenever that changes.
+The texts describe this code base and its hosting: a server in France behind a
+Cloudflare tunnel, AWS S3 in Paris, Brevo for the emails, Google sign-in and
+Discord. Review them, and update `LAST_UPDATED` in both files, whenever that
+changes.
