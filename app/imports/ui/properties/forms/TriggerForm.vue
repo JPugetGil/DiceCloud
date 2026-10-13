@@ -22,7 +22,8 @@
         <smart-select
           :label="$t('forms.trigger.event')"
           style="flex-basis: 300px;"
-          :hint="$t('forms.trigger.eventHint')"
+          :hint="turnEvent ? $t('forms.trigger.turnEventHint') : $t('forms.trigger.eventHint')"
+          :persistent-hint="turnEvent"
           :items="eventOptions"
           :model-value="model.event"
           :error-messages="errors.event"
@@ -110,8 +111,9 @@ import {
   actionPropertyTypeOptions as ACTION_PROPERTY_TYPE_OPTIONS,
 } from '/imports/api/properties/Triggers';
 import { translateOr } from '/imports/ui/i18n';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
   model: {
     type: [Object, Array],
     default: () => ({}),
@@ -130,6 +132,8 @@ const toItems = (options, group) => Object.keys(options).map(value => ({
   title: translateOr(`triggers.${group}.${value}`, options[value]),
 }));
 const eventOptions = toItems(EVENT_OPTIONS, 'event');
+// The creature's turn, in a party's initiative tracker: said under the event
+const turnEvent = computed(() => props.model.event === 'turnStart' || props.model.event === 'turnEnd');
 const timingOptions = toItems(TIMING_OPTIONS, 'timing');
 const actionPropertyTypeOptions = toItems(ACTION_PROPERTY_TYPE_OPTIONS, 'actionPropertyType');
 

@@ -130,6 +130,7 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import doActionApi from '/imports/ui/creature/actions/doAction';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useI18n } from 'vue-i18n';
+import resetMessage from '/imports/ui/properties/viewers/shared/resetMessage';
 
 const { t } = useI18n();
 
@@ -161,13 +162,8 @@ const targetTypes = {
 };
 
 const reset = computed(() => {
-  const resetType = props.model.reset;
-  if (resetType === 'shortRest') {
-    return t('viewers.resetShortRest');
-  } else if (resetType === 'longRest') {
-    return t('viewers.resetLongRest');
-  }
-  return undefined;
+  const key = resetMessage(props.model.reset);
+  return key && t(key);
 });
 
 const totalUses = computed(() => {

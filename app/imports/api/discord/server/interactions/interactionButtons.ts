@@ -61,9 +61,9 @@ function stale(interaction: Interaction, language: Parameters<typeof say>[0]): H
 }
 
 // The tracker's methods, imported when called: they import the folders and the log
-async function advance(folder: FolderDoc, userId: string) {
+async function advance(folder: FolderDoc) {
   const { advanceTracker } = await import('/imports/api/creature/creatureFolders/methods/initiativeMethods');
-  return advanceTracker(folder, 1, userId);
+  return advanceTracker(folder, 1);
 }
 
 async function readFolder(folderId: string): Promise<FolderDoc | undefined> {
@@ -134,7 +134,7 @@ export async function handleButton(interaction: Interaction): Promise<Handled> {
       // The initiative message is edited in place, as at every turn
       response: { type: RESPONSE.deferredUpdate },
       after: async () => {
-        await advance(folder, user._id);
+        await advance(folder);
       },
     };
   }
@@ -156,7 +156,7 @@ export async function handleButton(interaction: Interaction): Promise<Handled> {
       // The line's button goes: the turn is over
       response: { type: RESPONSE.updateMessage, data: { components: [] } },
       after: async () => {
-        await advance(folder, folder.owner || user._id);
+        await advance(folder);
       },
     };
   }

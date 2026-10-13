@@ -15,6 +15,12 @@ const eventOptions = {
   anyRest: 'Short or long rest',
   longRest: 'Long rest',
   shortRest: 'Short rest',
+  // The creature's turn, in a party's initiative tracker (runTurnEvent). Like
+  // the rests, events of the creature as a whole: the computation links their
+  // triggers to no property (computeTrigger), the engine looks them up when
+  // the event happens (applyEventTriggers)
+  turnStart: 'Start of turn',
+  turnEnd: 'End of turn',
 }
 
 const timingOptions = {

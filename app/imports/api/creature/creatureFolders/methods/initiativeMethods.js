@@ -22,13 +22,6 @@ import {
 
 const rateLimit = { numRequests: 10, timeInterval: 5000 };
 
-let startCreatureTurn;
-if (Meteor.isServer) {
-  // require(), not import: the server alone counts durations down
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  ({ startCreatureTurn } = require('/imports/api/creature/creatureFolders/server/startCreatureTurn'));
-}
-
 /**
  * Tells the party's Discord channel, if it has one, that the tracker changed
  * (D2): 'start', 'turn', 'update' or 'end' with the tracker as it was. On the
@@ -44,19 +37,25 @@ export function tellDiscord(folderId, change, ended) {
 }
 
 /**
- * The turn of the entry at `turn` starts: its creature's effects count a
- * round down, unless the game master turned that off for the party
+ * The turn passed: the turn of `ended` ends, then the turn of `started`
+ * starts, each `{ entry, round }`, with their creatures' turn events (their
+ * effects lose a round, their triggers fire, what resets on the event
+ * resets), once each (server/turnEvents.ts). On the server, once the tracker
+ * is written
  */
-async function startTurn(folder, entries, turn, userId) {
-  if (!Meteor.isServer || folder.trackDurations === false) return;
-  const entry = initiativeOrder(entries)[turn];
-  if (!entry?.creatureId) return;
-  try {
-    await startCreatureTurn(entry.creatureId, userId);
-  } catch (error) {
-    // The turn still moves on
-    console.error(error);
-  }
+async function passTurn(folderId, turnPass) {
+  if (!Meteor.isServer) return;
+  // require(), not import: the server alone runs the turn events, through the
+  // engine, which is read when called, once every collection is defined
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { passTurn: runPass } = require('/imports/api/creature/creatureFolders/server/turnEvents');
+  await runPass(folderId, turnPass);
+}
+
+// An entry without the rounds its turn started and ended in: a new fight
+function withoutTurnMarks(entry) {
+  const { startedRound, endedRound, ...rest } = entry; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return rest;
 }
 
 async function getOwnFolder(folderId, userId) {
@@ -117,7 +116,8 @@ export const rollInitiative = new ValidatedMethod({
     }
     for (const entry of previous) {
       if (entry.creatureId) continue;
-      entries.push(Number.isFinite(entry.initiative) ? entry : rolled(entry));
+      const handAdded = withoutTurnMarks(entry);
+      entries.push(Number.isFinite(handAdded.initiative) ? handAdded : rolled(handAdded));
     }
     await CreatureFolders.updateAsync(folderId, {
       $set: {
@@ -127,7 +127,8 @@ export const rollInitiative = new ValidatedMethod({
         },
       },
     });
-    await startTurn(folder, entries, 0, userId);
+    // Rolled again during a fight, round 1 starts again: so does its first turn
+    await passTurn(folderId, { started: { entry: initiativeOrder(entries)[0], round: 1 } });
     // Rolled again during a fight, the same message shows the new order
     tellDiscord(folderId, folder.initiative?.round ? 'turn' : 'start');
   },
@@ -373,16 +374,27 @@ export const removeInitiativeEntry = new ValidatedMethod({
     const index = order.findIndex(entry => entry._id === entryId);
     if (index === -1) return;
     let turn = tracker.turn || 0;
+    let round = tracker.round || 0;
+    // The creature whose turn it is goes: the turn passes to the next one
+    const active = round > 0 && index === turn;
     if (index < turn) turn -= 1;
-    const remaining = order.length - 1;
-    if (turn >= remaining) turn = 0;
+    const entries = tracker.entries.filter(entry => entry._id !== entryId);
+    if (turn >= entries.length) {
+      turn = 0;
+      // The last of the round went: the next round starts
+      if (active && entries.length) round += 1;
+    }
     await CreatureFolders.updateAsync(folderId, {
       $set: {
-        'initiative.entries': tracker.entries.filter(entry => entry._id !== entryId),
+        'initiative.entries': entries,
         'initiative.turn': Math.max(turn, 0),
+        ...round !== (tracker.round || 0) && { 'initiative.round': round },
       },
       $unset: { [`initiativeStats.${entryId}`]: 1 },
     });
+    if (active && entries.length) {
+      await passTurn(folderId, { started: { entry: initiativeOrder(entries)[turn], round } });
+    }
     tellDiscord(folderId, 'update');
   },
 });
@@ -393,9 +405,10 @@ const stillAt = value => value === undefined || value === null ? { $exists: fals
 /**
  * Moves the folder's tracker to the next (1) or the previous (-1) turn,
  * across rounds, if it is still where it was when the folder was read: two
- * clicks on Discord's "Next turn" move it once (D7). Returns whether it moved
+ * clicks on Discord's "Next turn" move it once (D7). Returns whether it moved.
+ * Whoever moves it, the turn events are the same (passTurn)
  */
-export async function advanceTracker(folder, step, userId) {
+export async function advanceTracker(folder, step) {
   const tracker = folder.initiative;
   const count = tracker?.entries?.length || 0;
   if (!count) return false;
@@ -430,8 +443,15 @@ export async function advanceTracker(folder, step, userId) {
     $set: { 'initiative.round': round, 'initiative.turn': turn },
   });
   if (!updated) return false;
-  // Going back a turn gives no round back
-  if (step === 1) await startTurn(folder, tracker.entries, turn, userId);
+  // Forward, the turn of the creature that had it ends, then the turn of the
+  // one that gets it starts. Going back a turn gives nothing back, and going
+  // forward again starts nothing a second time
+  if (step === 1) {
+    await passTurn(folder._id, {
+      ...tracker.round && { ended: { entry: order[tracker.turn || 0], round: tracker.round } },
+      started: { entry: order[turn], round },
+    });
+  }
   tellDiscord(folder._id, tracker.round ? 'turn' : 'start');
   return true;
 }
@@ -447,7 +467,7 @@ export const advanceInitiative = new ValidatedMethod({
   rateLimit,
   async run({ folderId, step }) {
     const folder = await getOwnFolder(folderId, this.userId);
-    await advanceTracker(folder, step, this.userId);
+    await advanceTracker(folder, step);
   },
 });
 

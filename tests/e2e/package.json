@@ -21,6 +21,7 @@
     "check:discord-oauth": "node checks/discord-oauth.js",
     "check:discord-interactions": "node checks/discord-interactions.js",
     "check:party-monsters": "node checks/party-monsters.js",
+    "check:turn-events": "node checks/turn-events.js",
     "check:licenses": "node checks/licenses.js"
   },
   "dependencies": {

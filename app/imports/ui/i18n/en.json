@@ -815,6 +815,8 @@
     "reset": "Reset",
     "shortRest": "Short rest",
     "longRest": "Long rest",
+    "turnStart": "Start of turn",
+    "turnEnd": "End of turn",
     "nameRequired": "Name is required",
     "shortRestTitle": "Short rest",
     "longRestTitle": "Long rest",
@@ -1682,6 +1684,7 @@
       "timingHint": "When this trigger will fire",
       "event": "Event",
       "eventHint": "What causes this trigger to fire",
+      "turnEventHint": "In a party's initiative tracker, for each creature in it",
       "conditionHint": "A calculation to determine if this trigger should fire",
       "eventType": "Event type",
       "eventTypeHint": "Which action event causes this trigger to fire"
@@ -1757,7 +1760,9 @@
       "damageProperty": "Trigger damaged or healed",
       "anyRest": "Short or long rest",
       "longRest": "Long rest",
-      "shortRest": "Short rest"
+      "shortRest": "Short rest",
+      "turnStart": "Start of turn",
+      "turnEnd": "End of turn"
     },
     "timing": {
       "before": "Before",
@@ -1852,6 +1857,8 @@
   "viewers": {
     "resetShortRest": "Reset on a short rest",
     "resetLongRest": "Reset on a long rest",
+    "resetTurnStart": "Reset at the start of each turn",
+    "resetTurnEnd": "Reset at the end of each turn",
     "castSpell": "Cast spell",
     "applyAction": "Apply action",
     "toHit": "To hit",
@@ -1980,6 +1987,8 @@
     "shortRest": "Short rest",
     "longRest": "Long rest",
     "nothingRestored": "Nothing to restore",
+    "turnStart": "Start of turn",
+    "turnEnd": "End of turn",
     "restoredUse": "{name} **{change}** use",
     "restoredUses": "{name} **{change}** uses",
     "usesRestored": "Restored {count} uses",
@@ -2019,7 +2028,8 @@
     "effectEnded": "Ended: its duration ran out",
     "untypedDamageAmount": "**{amount}** damage",
     "actionAbandoned": "Action abandoned after its dice were rolled: {name}",
-    "actedBy": "{name}'s action"
+    "actedBy": "{name}'s action",
+    "choiceNotMade": "Choice not made"
   },
   "health": {
     "change": "{name}",

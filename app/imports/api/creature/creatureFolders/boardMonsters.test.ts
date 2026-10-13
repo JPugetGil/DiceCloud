@@ -464,7 +464,10 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       assert.isNotEmpty(trackers, 'the tracker reached the player');
       for (const message of trackers) {
         for (const entry of message.fields.initiative.entries) {
-          assert.hasAllKeys(entry, ['_id', 'creatureId', 'name', 'bonus', 'roll', 'initiative']);
+          assert.includeMembers(Object.keys(entry), ['_id', 'creatureId', 'name', 'bonus', 'roll', 'initiative']);
+          // And the rounds its turn started and ended in (turn events), which tell nothing of it
+          assert.includeMembers(['_id', 'creatureId', 'name', 'bonus', 'roll', 'initiative', 'startedRound', 'endedRound'],
+            Object.keys(entry));
         }
       }
 

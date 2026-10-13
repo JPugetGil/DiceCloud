@@ -113,6 +113,9 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
     case 'reset':
       check(task.eventName, String);
       return task;
+    // Never a client's: the server alone makes it, for the creatures of an
+    // initiative tracker whose turn starts or ends (runTurnEvent)
+    case 'turnEvent':
     default:
       throw new Meteor.Error('validation-error', 'Unknown task');
   }

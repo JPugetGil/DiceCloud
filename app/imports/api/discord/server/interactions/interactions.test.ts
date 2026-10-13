@@ -377,6 +377,123 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       assert.include(followUp.content, 'no longer current');
     });
 
+    describe('with turn events (phase 3.1)', function () {
+      /* eslint-disable @typescript-eslint/no-require-imports */
+      const { turnEventsIdle } = require('/imports/api/creature/creatureFolders/server/turnEvents');
+      const { reloadCachedProperties } = require('/imports/api/engine/loadCreatures');
+      const { default: computeCreature } = require('/imports/api/engine/computeCreature');
+      /* eslint-enable @typescript-eslint/no-require-imports */
+      const connected = { id: '1700000000000000001', token: 'connected-token' };
+      const entriesAt = (round: number, turn: number) => ({
+        initiative: { round, turn, entries: [{ _id: 'e1', creatureId, initiative: 15 }, { _id: 'e2', creatureId: monsterId, initiative: 10 }] },
+      });
+      const entries = async (id: string) => (await CreatureLogs.find({ creatureId: id }, { sort: { date: 1 } }).fetchAsync() as any[])
+        .map(log => log.content.filter(line => !line.silenced).map(line => line.name));
+      // The party's channel: what it was sent, as text
+      const partyPosts = () => fake.requests.filter(request => request.webhookId === connected.id && request.method === 'POST')
+        .map(request => text(request.body));
+      async function settle() {
+        await turnEventsIdle();
+        await discordIntakeIdle();
+        await initiativeIntakeIdle();
+        await sender.idle();
+      }
+
+      beforeEach(async function () {
+        await ConnectedWebhooks.rawCollection().insertOne({
+          _id: connected.id, webhookId: connected.id, token: connected.token, channelId: PARTY_CHANNEL, guildId: GUILD, createdAt: new Date(),
+        });
+        // Aria's turn ends with a reminder; the goblin's starts with its legendary actions back
+        await CreatureProperties.rawCollection().insertMany([
+          {
+            _id: Random.id(), type: 'trigger', name: 'Bardic reminder', event: 'turnEnd', timing: 'after',
+            root: { collection: 'creatures', id: creatureId }, left: 1000, right: 1001,
+          },
+          {
+            _id: Random.id(), type: 'trigger', name: 'Goblin boss shouts', event: 'turnStart', timing: 'after',
+            root: { collection: 'creatures', id: monsterId }, left: 1000, right: 1001,
+          },
+          {
+            _id: Random.id(), type: 'attribute', attributeType: 'resource', name: 'Legendary Actions', variableName: 'legendaryActions',
+            baseValue: { calculation: '3' }, damage: 3, reset: 'turnStart', root: { collection: 'creatures', id: monsterId }, left: 1002, right: 1003,
+          },
+        ] as any[]);
+        for (const id of [creatureId, monsterId]) {
+          await computeCreature(id);
+          await reloadCachedProperties(id);
+        }
+      });
+
+      it('"End my turn": Aria\'s turn ends and the goblin\'s starts, once; Aria\'s entry reaches the party, the goblin\'s never', async function () {
+        await CreatureFolders.updateAsync(folderId, { $set: entriesAt(2, 0) });
+        const ended = await click(`dc:end:${folderId}:e1:2`);
+        assert.deepEqual(ended.answer, { type: 7, data: { components: [] } });
+        await waitFor(async () => (await entries(monsterId)).length, 'the goblin\'s turn to start');
+        // Clicked again: no longer current, nothing happens twice
+        await click(`dc:end:${folderId}:e1:2`);
+        await settle();
+        assert.deepEqual(await entries(creatureId), [['End of turn', 'Bardic reminder']]);
+        // Its legendary actions back, silently
+        assert.deepEqual(await entries(monsterId), [['Start of turn', 'Goblin boss shouts']]);
+        assert.equal((await CreatureProperties.findOneAsync({ 'root.id': monsterId, variableName: 'legendaryActions' }) as any).damage, 0);
+        const posts = partyPosts();
+        assert.lengthOf(posts.filter(post => post.includes('Bardic reminder')), 1, 'Aria\'s entry, once');
+        assert.isFalse(posts.some(post => post.includes('Goblin boss shouts') || post.includes('Legendary')), 'never the goblin\'s');
+      });
+
+      it('a turn whose only change is a reset: the resource is back, with no entry and nothing on Discord', async function () {
+        const reaction = Random.id();
+        await CreatureProperties.rawCollection().insertOne({
+          _id: reaction, type: 'attribute', attributeType: 'resource', name: 'Reaction', variableName: 'reaction',
+          baseValue: { calculation: '1' }, damage: 1, reset: 'turnStart', root: { collection: 'creatures', id: creatureId }, left: 1002, right: 1003,
+        } as any);
+        await computeCreature(creatureId);
+        await reloadCachedProperties(creatureId);
+        // The goblin's turn (nothing at its end), then Aria's, whose start only resets
+        await CreatureFolders.updateAsync(folderId, { $set: entriesAt(1, 1) });
+        await click(`dc:next:${folderId}:1:1`, { user: GM });
+        await waitFor(async () => (await CreatureProperties.findOneAsync(reaction) as any)?.damage === 0, 'Aria\'s reaction back');
+        await settle();
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await settle();
+        assert.include((await CreatureFolders.findOneAsync(folderId) as any).initiative, { round: 2, turn: 0 });
+        const posts = partyPosts();
+        assert.isNotEmpty(posts, 'the turn did reach the party (its initiative message)');
+        assert.isFalse(posts.some(post => post.includes('Start of turn') || post.includes('Reaction')), 'nothing on Discord');
+        assert.lengthOf(await entries(creatureId), 0, 'no entry in Aria\'s log');
+      });
+
+      it('"Next turn" clicked twice at once: one move, one turn start', async function () {
+        await CreatureFolders.updateAsync(folderId, { $set: entriesAt(1, 0) });
+        const next = `dc:next:${folderId}:1:0`;
+        const clicks = await Promise.all([click(next, { user: GM }), click(next, { user: GM })]);
+        assert.isTrue(clicks.some(({ answer }) => answer.type === 6), 'one moves the turn');
+        await waitFor(async () => (await entries(monsterId)).length, 'the goblin\'s turn to start');
+        await settle();
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await settle();
+        assert.include((await CreatureFolders.findOneAsync(folderId) as any).initiative, { round: 1, turn: 1 });
+        assert.lengthOf(await entries(monsterId), 1);
+        assert.lengthOf(await entries(creatureId), 1);
+      });
+
+      it('the board and Discord at once: one move, one turn start', async function () {
+        await CreatureFolders.updateAsync(folderId, { $set: entriesAt(1, 0) });
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { advanceInitiative } = require('/imports/api/creature/creatureFolders/methods/initiativeMethods');
+        await Promise.all([
+          click(`dc:next:${folderId}:1:0`, { user: GM }),
+          advanceInitiative._execute({ userId: gmId }, { folderId, step: 1 }),
+        ]);
+        await waitFor(async () => (await entries(monsterId)).length, 'the goblin\'s turn to start');
+        await settle();
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await settle();
+        assert.include((await CreatureFolders.findOneAsync(folderId) as any).initiative, { round: 1, turn: 1 });
+        assert.lengthOf(await entries(monsterId), 1);
+      });
+    });
+
     it('go on the initiative messages of a connected channel, never on a pasted webhook\'s', async function () {
       const connected = { id: '1700000000000000001', token: 'connected-token' };
       await ConnectedWebhooks.rawCollection().insertOne({

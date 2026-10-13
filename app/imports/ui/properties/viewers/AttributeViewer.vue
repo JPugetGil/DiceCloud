@@ -151,6 +151,7 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 import { useI18n } from 'vue-i18n';
+import resetMessage from '/imports/ui/properties/viewers/shared/resetMessage';
 import useUnits from '/imports/ui/composables/useUnits';
 import { getAttributeUnit } from '/imports/api/utility/units';
 
@@ -193,13 +194,8 @@ const damagePropertyLoading = ref(false);
 const dialogStackStore = useDialogStackStore();
 
 const reset = computed(() => {
-  let reset = props.model.reset
-  if (reset === 'shortRest'){
-    return t('viewers.resetShortRest');
-  } else if (reset === 'longRest'){
-    return t('viewers.resetLongRest');
-  }
-  return undefined;
+  const key = resetMessage(props.model.reset);
+  return key && t(key);
 });
 
 const proficiencyIcon = computed(() => {

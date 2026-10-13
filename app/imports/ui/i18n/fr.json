@@ -815,6 +815,8 @@
     "reset": "Réinitialisation",
     "shortRest": "Repos court",
     "longRest": "Repos long",
+    "turnStart": "Début du tour",
+    "turnEnd": "Fin du tour",
     "nameRequired": "Le nom est obligatoire",
     "shortRestTitle": "Repos court",
     "longRestTitle": "Repos long",
@@ -1682,6 +1684,7 @@
       "timingHint": "Quand ce déclencheur se déclenche",
       "event": "Événement",
       "eventHint": "Ce qui déclenche ce déclencheur",
+      "turnEventHint": "Dans le suivi d'initiative d'un groupe, pour chaque créature qui y figure",
       "conditionHint": "Un calcul qui détermine si ce déclencheur doit se déclencher",
       "eventType": "Type d'événement",
       "eventTypeHint": "L'événement d'action qui déclenche ce déclencheur"
@@ -1757,7 +1760,9 @@
       "damageProperty": "Déclencheur blessé ou soigné",
       "anyRest": "Repos court ou long",
       "longRest": "Repos long",
-      "shortRest": "Repos court"
+      "shortRest": "Repos court",
+      "turnStart": "Début du tour",
+      "turnEnd": "Fin du tour"
     },
     "timing": {
       "before": "Avant",
@@ -1852,6 +1857,8 @@
   "viewers": {
     "resetShortRest": "Réinitialisé lors d'un repos court",
     "resetLongRest": "Réinitialisé lors d'un repos long",
+    "resetTurnStart": "Réinitialisé au début de chaque tour",
+    "resetTurnEnd": "Réinitialisé à la fin de chaque tour",
     "castSpell": "Lancer le sort",
     "applyAction": "Appliquer l'action",
     "toHit": "Pour toucher",
@@ -1980,6 +1987,8 @@
     "shortRest": "Repos court",
     "longRest": "Repos long",
     "nothingRestored": "Rien à récupérer",
+    "turnStart": "Début du tour",
+    "turnEnd": "Fin du tour",
     "restoredUse": "{name} **{change}** utilisation",
     "restoredUses": "{name} **{change}** utilisations",
     "usesRestored": "{count} utilisations récupérées",
@@ -2019,7 +2028,8 @@
     "effectEnded": "Terminé : sa durée est écoulée",
     "untypedDamageAmount": "**{amount}** dégâts",
     "actionAbandoned": "Action abandonnée après le jet des dés : {name}",
-    "actedBy": "Action de {name}"
+    "actedBy": "Action de {name}",
+    "choiceNotMade": "Choix non fait"
   },
   "health": {
     "change": "{name}",

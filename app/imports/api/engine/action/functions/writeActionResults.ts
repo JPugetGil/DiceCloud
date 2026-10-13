@@ -15,7 +15,12 @@ import { hiddenFrom } from '/imports/api/creature/creatureFolders/boardMonsters'
 import { logLine, msg, withoutHiddenStats } from '/imports/api/creature/log/logMessages';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
-export default async function writeActionResults(action: EngineAction) {
+/**
+ * Writes what an action did: its changes to the properties, its log entry
+ * (with `log` false, none: a turn event whose every line is silenced,
+ * runTurnEvent), then recomputes the creatures it changed
+ */
+export default async function writeActionResults(action: EngineAction, { log: writeLog = true }: { log?: boolean } = {}) {
   if (!action._id) throw new Meteor.Error('type-error', 'Action does not have an _id');
   // Take the log's id before any write starts: in the client's simulation, a
   // write still in flight is the current method invocation, and an id drawn
@@ -52,10 +57,10 @@ export default async function writeActionResults(action: EngineAction) {
     actionId: action._id,
     date: new Date(),
   };
-  const gmLogsPromise = Meteor.isServer && shownContents.length < logContents.length
+  const gmLogsPromise = writeLog && Meteor.isServer && shownContents.length < logContents.length
     ? writeHiddenTargetLogs(action, logContents, shownContents, hiddenIds)
     : undefined;
-  const logPromise = CreatureLogs.insertAsync(log).then(() => {
+  const logPromise = writeLog && CreatureLogs.insertAsync(log).then(() => {
     // Not in the client's simulation of the method: the server's result replaces it
     if (!Meteor.isServer) return;
     // Attacks, spells, checks, rests, damage: on Discord once written, as rolls

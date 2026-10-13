@@ -42,8 +42,8 @@ describe('Effect durations', function () {
   });
 
   describe('in the initiative tracker', function () {
-    const [gmId, playerId, folderId, heroId, strangerHeroId] =
-      [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
+    const [gmId, playerId, outsiderId, folderId, heroId, strangerHeroId] =
+      [Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
     const [blessId, hasteId, rageId, childId, readOnlyBuffId] =
       [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
     const as = (method, args, userId = gmId) => method._execute({ userId }, { folderId, ...args });
@@ -55,7 +55,7 @@ describe('Effect durations', function () {
       await Creatures.removeAsync({ _id: { $in: [heroId, strangerHeroId] } });
       await CreatureProperties.removeAsync({ 'root.id': { $in: [heroId, strangerHeroId] } });
       await CreatureLogs.removeAsync({ creatureId: { $in: [heroId, strangerHeroId] } });
-      await Meteor.users.removeAsync({ _id: { $in: [gmId, playerId] } });
+      await Meteor.users.removeAsync({ _id: { $in: [gmId, playerId, outsiderId] } });
     }
 
     beforeEach(async function () {
@@ -64,11 +64,13 @@ describe('Effect durations', function () {
       await Meteor.users.rawCollection().insertMany([
         { _id: gmId, createdAt: new Date() },
         { _id: playerId, createdAt: new Date() },
+        { _id: outsiderId, createdAt: new Date() },
       ] as any[]);
       await Creatures.rawCollection().insertMany([
-        // The game master edits the hero, and only reads the stranger's
+        // A player's character, which its game master edits, as joining makes it
         { _id: heroId, name: 'Hero', owner: playerId, readers: [], writers: [gmId] },
-        { _id: strangerHeroId, name: 'Stranger', owner: playerId, readers: [gmId], writers: [] },
+        // The character of someone outside the party, which the game master reads
+        { _id: strangerHeroId, name: 'Stranger', owner: outsiderId, readers: [gmId], writers: [] },
       ] as any[]);
       const root = (id: string) => ({ collection: 'creatures', id });
       await CreatureProperties.rawCollection().insertMany([
@@ -89,7 +91,7 @@ describe('Effect durations', function () {
         },
       ] as any[]);
       await CreatureFolders.rawCollection().insertOne({
-        _id: folderId, name: 'Table', owner: gmId, members: [], creatures: [heroId, strangerHeroId], order: 0,
+        _id: folderId, name: 'Table', owner: gmId, members: [playerId], creatures: [heroId, strangerHeroId], order: 0,
         initiative: {
           round: 1,
           turn: 0,
@@ -115,16 +117,23 @@ describe('Effect durations', function () {
       assert.isTrue((await buff(childId))?.removed, 'gone with Haste');
       assert.isUndefined((await buff(rageId))?.durationSpent, 'no duration: not counted');
       const log = await CreatureLogs.findOneAsync({ creatureId: heroId });
-      assert.deepEqual(log?.content?.map(line => line.name), ['Haste']);
+      assert.deepEqual(log?.content?.map(line => line.name), ['Start of turn', 'Haste']);
 
-      // Going back gives no round back; a new round ends Bless
+      // Going back gives no round back, and forward again counts nothing twice
       await as(advanceInitiative, { step: -1 });
       assert.equal((await buff(blessId))?.durationSpent, 1);
       await as(advanceInitiative, { step: 1 });
+      assert.equal((await buff(blessId))?.durationSpent, 1, 'its turn started once this round');
+      assert.isNotTrue((await buff(blessId))?.removed, 'its turn started once this round');
+      // The hero's turn of round 2 ends Bless
+      await as(advanceInitiative, { step: 1 });
+      await as(advanceInitiative, { step: 1 });
+      await as(advanceInitiative, { step: 1 });
+      assert.include((await CreatureFolders.findOneAsync(folderId))?.initiative, { round: 2, turn: 1 });
       assert.isTrue((await buff(blessId))?.removed);
     });
 
-    it('leaves the creatures the game master can\'t edit alone', async function () {
+    it('leaves the characters of someone outside the party alone', async function () {
       await as(advanceInitiative, { step: 1 });
       await as(advanceInitiative, { step: 1 });
       const shield = await buff(readOnlyBuffId);

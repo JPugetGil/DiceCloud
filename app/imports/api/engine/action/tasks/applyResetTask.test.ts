@@ -119,3 +119,109 @@ describe('Rest summary', function () {
     assert.equal(title.value, '- Wizard Hit Dice d6 **+4** (4/4)');
   });
 });
+
+/*
+ * The triggers of a rest (phase 3.1): they never fired, so the 31 rest
+ * triggers of the Vexus libraries did nothing (Portent Roll Reset, Trance,
+ * Exhaustion Long Rest, Wild Shape Removal...). Modelled on them: a long rest
+ * fires the long rest's and "short or long rest"'s, a short rest the short
+ * rest's and "short or long rest"'s; those timed before fire before the rest
+ * restores anything, the others after it
+ */
+describe('Rest triggers', function () {
+  this.timeout(8000);
+  const [wizardId, portentId, fontId, anyRestId, beforeId, afterId] = getRandomIds(6);
+
+  const wizard: TestCreature = {
+    _id: wizardId,
+    props: [
+      {
+        type: 'attribute', name: 'Foretelling Roll 1', attributeType: 'utility', variableName: 'foretellingRoll1',
+        baseValue: { calculation: '20' },
+      },
+      {
+        type: 'attribute', name: 'Foretelling Roll 2', attributeType: 'utility', variableName: 'foretellingRoll2',
+        baseValue: { calculation: '20' },
+      },
+      {
+        type: 'attribute', name: 'Ki', attributeType: 'resource', variableName: 'ki',
+        baseValue: { calculation: '3' }, damage: 3, reset: 'shortRest',
+      },
+      // As the Myriad Academy for Wizards has it
+      {
+        _id: portentId, type: 'trigger', name: 'Portent Roll Reset', event: 'longRest', timing: 'after',
+        children: [
+          {
+            type: 'adjustment', silent: true, operation: 'set', stat: 'foretellingRoll1', target: 'self',
+            amount: { calculation: '1d20' },
+          },
+          { type: 'note', name: 'Portent 1' },
+          {
+            type: 'adjustment', silent: true, operation: 'set', stat: 'foretellingRoll2', target: 'self',
+            amount: { calculation: '1d20' },
+          },
+          { type: 'note', name: 'Portent 2' },
+        ],
+      },
+      { _id: fontId, type: 'trigger', name: 'Font of Inspiration', event: 'shortRest', timing: 'after' },
+      { _id: anyRestId, type: 'trigger', name: 'RestTrigger', event: 'anyRest', timing: 'after' },
+      // Ki is spent: before the rest, it is; after the rest, it is not
+      {
+        _id: beforeId, type: 'trigger', name: 'Ki spent before the rest', event: 'shortRest', timing: 'before',
+        condition: { calculation: 'ki < 3' },
+      },
+      {
+        _id: afterId, type: 'trigger', name: 'Ki spent after the rest', event: 'shortRest', timing: 'after',
+        condition: { calculation: 'ki < 3' },
+      },
+      // Not a trigger of the creature as a whole: never fired by a rest
+      { type: 'trigger', name: 'On a check', event: 'check', timing: 'after' },
+    ],
+  };
+
+  async function restWizard(eventName: string) {
+    const actionId = await EngineActions.insertAsync({
+      creatureId: wizardId, results: [], taskCount: 0,
+      task: { subtaskFn: 'reset', targetIds: [wizardId], eventName },
+    } as any);
+    const action = await EngineActions.findOneAsync(actionId);
+    if (!action) throw 'Action is expected to exist';
+    await applyAction(action, inputProvider, { simulate: true });
+    return action;
+  }
+  const names = (action) => allLogContent(action).map(line => line.name);
+  const setUpdates = action => action.results.flatMap(result => result.mutations)
+    .flatMap(mutation => mutation.updates || []).filter(update => update.set);
+
+  before(async function () {
+    await removeAllCreaturesAndProps();
+    await createTestCreature(wizard);
+  });
+
+  it('fires the long rest\'s triggers, and those of any rest, after it: "Portent Roll Reset" rolls the portents', async function () {
+    const action = await restWizard('longRest');
+    const lines = names(action);
+    assert.equal(lines[0], 'Long rest', 'the rest\'s title first');
+    assert.includeMembers(lines, ['Portent Roll Reset', 'Portent 1', 'Portent 2', 'RestTrigger']);
+    assert.notInclude(lines, 'Font of Inspiration', 'a short rest\'s trigger');
+    assert.notInclude(lines, 'On a check');
+    // The test dice roll a d20 as 10: both portents are set to it
+    const portents = setUpdates(action).map(update => update.set.value);
+    assert.deepEqual(portents, [10, 10]);
+    // After the rest: its summary comes before the triggers
+    assert.isAbove(lines.indexOf('Portent Roll Reset'), lines.indexOf('Long rest'));
+  });
+
+  it('fires the short rest\'s and any rest\'s triggers, those timed before ahead of the rest, the others after it', async function () {
+    const lines = names(await restWizard('shortRest'));
+    assert.includeMembers(lines, ['Font of Inspiration', 'RestTrigger', 'Ki spent before the rest']);
+    assert.notInclude(lines, 'Ki spent after the rest', 'ki is restored once the rest is over');
+    assert.notInclude(lines, 'Portent Roll Reset', 'a long rest\'s trigger');
+    assert.isBelow(lines.indexOf('Ki spent before the rest'), lines.indexOf('Font of Inspiration'));
+  });
+
+  it('fires no trigger on an event that is no rest (an event action\'s reset), nor on an object\'s own key', async function () {
+    assert.deepEqual(names(await restWizard('dawnTrigger')), []);
+    assert.deepEqual(names(await restWizard('constructor')), []);
+  });
+});

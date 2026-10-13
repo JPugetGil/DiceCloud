@@ -122,6 +122,19 @@ let creatureFolderSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // The round in which its turn last started, and ended: its creature's turn
+  // events happen once a round, however the turn goes back and forth
+  // (server/turnEvents.ts)
+  'initiative.entries.$.startedRound': {
+    type: SimpleSchema.Integer,
+    min: 0,
+    optional: true,
+  },
+  'initiative.entries.$.endedRound': {
+    type: SimpleSchema.Integer,
+    min: 0,
+    optional: true,
+  },
   // The game master shows the players the creatures' hit points and armor class
   'initiative.showStats': {
     type: Boolean,

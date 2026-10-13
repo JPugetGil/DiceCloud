@@ -40,15 +40,14 @@ const resetOptions = autorun(() => {
     type: 'action',
     actionType: 'event',
   }, true);
-  const defaultEvents = [
-    {
-      title: t('common.shortRest'),
-      value: 'shortRest',
-    }, {
-      title: t('common.longRest'),
-      value: 'longRest',
-    }
-  ];
-  return [...defaultEvents, ...eventActions];
+  // The rests, and the turn of the creature in a party's initiative tracker
+  const defaultEvents = ['shortRest', 'longRest', 'turnStart', 'turnEnd'].map(value => ({
+    title: t(`common.${value}`),
+    value,
+  }));
+  // An event action of the same name (Tameran's "Start Turn") resets the same
+  // properties: listed once
+  const actionEvents = eventActions.filter(event => !defaultEvents.some(({ value }) => value === event.value));
+  return [...defaultEvents, ...actionEvents];
 }).result;
 </script>

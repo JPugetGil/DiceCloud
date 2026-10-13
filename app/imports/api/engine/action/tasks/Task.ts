@@ -1,7 +1,8 @@
 import { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 
-type Task = PropTask | DamagePropTask | DealDamageTask | ItemAsAmmoTask | CheckTask | ResetTask | CastSpellTask;
+type Task = PropTask | DamagePropTask | DealDamageTask | ItemAsAmmoTask | CheckTask | ResetTask | CastSpellTask
+  | TurnEventTask;
 
 export default Task;
 
@@ -67,6 +68,24 @@ export type ResetTask = BaseTask & {
   // One and only one target
   targetIds: [string];
 }
+
+/**
+ * A creature's turn starts or ends in a party's initiative tracker: its
+ * effects lose a round (at the start), its triggers of that event fire, and
+ * what resets on that event resets (applyTurnEventTask). The server alone
+ * makes this task, for the creatures of the tracker (runTurnEvent):
+ * taskFromDatabase refuses it, so a client can never send it
+ */
+export type TurnEventTask = BaseTask & {
+  subtaskFn: 'turnEvent';
+  eventName: TurnEventName;
+  // One and only one target: the creature whose turn it is
+  targetIds: [string];
+  // Whether its effects count a round down: the party's choice (trackDurations)
+  countDurations?: boolean;
+}
+
+export type TurnEventName = 'turnStart' | 'turnEnd';
 
 export type CastSpellTask = BaseTask & {
   prop: CreaturePropertyTypes['spell'];

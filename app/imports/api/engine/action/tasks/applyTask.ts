@@ -7,7 +7,7 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyProperties from '/imports/api/engine/action/applyProperties';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import applyCheckTask from '/imports/api/engine/action/tasks/applyCheckTask';
-import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
+import applyResetTask, { applyTurnEventTask } from '/imports/api/engine/action/tasks/applyResetTask';
 import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellTask';
 import applyDealDamageTask from '/imports/api/engine/action/tasks/applyDealDamageTask';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
@@ -56,6 +56,8 @@ export default async function applyTask(
         return await applyCastSpellTask(task, action, result, inputProvider);
       case 'dealDamage':
         return await applyDealDamageTask(task, action, result, inputProvider);
+      case 'turnEvent':
+        return await applyTurnEventTask(task, action, result, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }
