@@ -8,6 +8,9 @@ import '/imports/api/users/methods/addEmail';
 import '/imports/api/users/methods/removeEmail';
 import '/imports/api/users/methods/searchUsers';
 import '/imports/api/users/methods/setUserRole';
+import {
+  subscribeToLibrary, subscribeToLibraryCollection,
+} from '/imports/api/users/methods/librarySubscriptions';
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
 import { DISTANCE_UNITS, WEIGHT_UNITS } from '/imports/api/utility/units';
@@ -323,69 +326,9 @@ if (Meteor.isServer) {
   });
 }
 
-Meteor.users.subscribeToLibrary = new ValidatedMethod({
-  name: 'users.subscribeToLibrary',
-  validate: new SimpleSchema({
-    libraryId: {
-      type: String,
-      max: 32,
-    },
-    subscribe: {
-      type: Boolean,
-    },
-  }).validator(),
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 2000,
-  },
-  async run({ libraryId, subscribe }) {
-    if (!this.userId) throw 'Can only subscribe if logged in';
-    if (subscribe) {
-      await Libraries.updateAsync({ _id: libraryId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
-      return await Meteor.users.updateAsync(this.userId, {
-        $addToSet: { subscribedLibraries: libraryId },
-      });
-    } else {
-      await Libraries.updateAsync({ _id: libraryId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
-      return await Meteor.users.updateAsync(this.userId, {
-        $pullAll: { subscribedLibraries: libraryId },
-      });
-    }
-  }
-});
-
-Meteor.users.subscribeToLibraryCollection = new ValidatedMethod({
-  name: 'users.subscribeToLibraryCollection',
-  validate: new SimpleSchema({
-    libraryCollectionId: {
-      type: String,
-      max: 32,
-    },
-    subscribe: {
-      type: Boolean,
-    },
-  }).validator(),
-  mixins: [RateLimiterMixin],
-  rateLimit: {
-    numRequests: 5,
-    timeInterval: 5000,
-  },
-  async run({ libraryCollectionId, subscribe }) {
-    if (!this.userId) throw 'Can only subscribe if logged in';
-    if (subscribe) {
-      await LibraryCollections.updateAsync({ _id: libraryCollectionId }, { $inc: { subscriberCount: 1 } }, () => {/**/ });
-      return await Meteor.users.updateAsync(this.userId, {
-        $addToSet: { subscribedLibraryCollections: libraryCollectionId },
-      });
-    } else {
-      await LibraryCollections.updateAsync({ _id: libraryCollectionId }, { $inc: { subscriberCount: -1 } }, () => {/**/ });
-      return await Meteor.users.updateAsync(this.userId, {
-        $pullAll: { subscribedLibraryCollections: libraryCollectionId },
-      });
-    }
-  }
-});
+// In a module of their own, which the tests load without the users' schema
+Meteor.users.subscribeToLibrary = subscribeToLibrary;
+Meteor.users.subscribeToLibraryCollection = subscribeToLibraryCollection;
 
 Meteor.users.findUserByUsernameOrEmail = new ValidatedMethod({
   name: 'users.findUserByUsernameOrEmail',

@@ -9,7 +9,7 @@ import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import {
   createWebhookSender, discordIntakeIdle, forgetWebhook, setWebhookSender, type WebhookSender,
 } from '/imports/api/creature/log/server/discordWebhooks';
-import { initiativeIntakeIdle } from '/imports/api/creature/log/server/discordInitiative';
+import { initiativeIntakeIdle, initiativeRows } from '/imports/api/creature/log/server/discordInitiative';
 import {
   rollInitiative, advanceInitiative, endInitiative, addInitiativeEntry, setInitiativeEntryOut,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
@@ -180,6 +180,59 @@ if (Meteor.isServer) describe('A party\'s Discord channel and the sessions', fun
       const after = await folder();
       assert.notProperty(after, 'discord');
       assert.notProperty(after, 'discordPosting', 'the players are told it no longer posts');
+    });
+  });
+
+  // Whose a monster is, and not its type alone, makes it the game master's:
+  // a player brought one of theirs before joining took player characters only
+  describe('the owners', function () {
+    const memberMonster = Random.id();
+    beforeEach(async function () {
+      await Creatures.rawCollection().insertOne({
+        _id: memberMonster, name: 'Imp', type: 'monster', owner: memberId, readers: [], writers: [gmId], settings: {},
+      } as any);
+      await CreatureFolders.updateAsync(folderId, { $addToSet: { creatures: memberMonster } });
+    });
+    afterEach(async function () {
+      await settle();
+      await Creatures.removeAsync(memberMonster);
+      await CreatureLogs.removeAsync({ creatureId: memberMonster });
+    });
+    const hitPointsLine = (targetId: string, value: string) => ({
+      ...logLine({ name: msg('logs.attributeDamaged', { type: 'Health bar' }), value }), targetIds: [targetId],
+    });
+
+    it('posts a player\'s monster\'s roll as theirs, without the game master\'s monster\'s hit points', async function () {
+      await roll(memberMonster, [
+        { name: 'Claw', value: 'Sharp' },
+        hitPointsLine(monster, '-7 Hit Points'),
+        hitPointsLine(memberMonster, '-2 Hit Points'),
+      ]);
+      const [card, ...more] = await requests(PARTY);
+      assert.exists(card, 'the party\'s channel gets it, as a character\'s');
+      assert.lengthOf(more, 0);
+      assert.equal(card.body.username, 'Imp');
+      assert.notInclude(texts(card.body), '-7 Hit Points', 'never the game master\'s goblin\'s');
+      assert.include(texts(card.body), '-2 Hit Points', 'its own');
+    });
+
+    it('leaves the game master\'s monster\'s hit points out of their own character\'s roll', async function () {
+      await roll(gmChar, [{ name: 'Staff', value: 'Old' }, hitPointsLine(monster, '-7 Hit Points')]);
+      const [card] = await requests(PARTY);
+      assert.notInclude(texts(card.body), '-7 Hit Points', 'the players read the channel');
+    });
+
+    it('names the player on their monster\'s turn, not on the game master\'s', async function () {
+      const rows = await initiativeRows({
+        round: 1, turn: 0,
+        entries: [
+          { _id: 'a', creatureId: memberMonster, initiative: 15 },
+          { _id: 'b', creatureId: monster, initiative: 10 },
+        ],
+      } as any, gmId);
+      assert.deepInclude(rows[0], { name: 'Imp', character: true, ownerId: memberId });
+      assert.deepInclude(rows[1], { name: 'Goblin', character: false });
+      assert.notProperty(rows[1], 'ownerId');
     });
   });
 

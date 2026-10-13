@@ -5,12 +5,15 @@
 // static import here would evaluate alongside imports/startup/both, before
 // collection2 is loaded, and define its collections without their schema.
 import '/imports/startup/both';
+// Static, unlike the modules below: SyncedCron reads its options in its own
+// Meteor.startup, which runs while this module awaits them. It defines no
+// collection, so it needs no collection2
+import './syncedCronConfig';
 
 // Package configuration
 await import('./simpleRestConfig');
 await import('./limitLoginTokens');
 await import('./accountsEmailConfig');
-await import('./syncedCronConfig');
 await import('./publicationRateLimit');
 
 // REST routes, publications, cron jobs and methods

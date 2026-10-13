@@ -76,13 +76,27 @@ Libraries.attachSchema(LibrarySchema);
 
 export default Libraries;
 
+/**
+ * A new library of the user's: its name and description. Everything else is
+ * set by its own method, which checks who may set it: its sharing and licence
+ * by the owner, its language and `showInMarket` by an editor once it exists,
+ * `recommended` by an admin, `subscriberCount` by the subscriptions. The client
+ * could send them all here, and a library listed itself first in the browser
+ * with as many subscribers as it liked: any other field is ignored
+ */
 const insertLibrary = new ValidatedMethod({
   name: 'libraries.insert',
   mixins: [
     simpleSchemaMixin,
+    RateLimiterMixin,
   ],
-  schema: LibrarySchema.omit('owner', 'recommended'),
-  async run(library) {
+  schema: LibrarySchema.pick('name', 'description'),
+  schemaValidatorOptions: { clean: true, filter: true },
+  rateLimit: {
+    numRequests: 5,
+    timeInterval: 5000,
+  },
+  async run({ name, description }) {
     if (!this.userId) {
       throw new Meteor.Error('Libraries.methods.insert.denied',
         'You need to be logged in to insert a library');
@@ -90,8 +104,7 @@ const insertLibrary = new ValidatedMethod({
     if (Meteor.isServer) {
       await assertCanCreateLibrary(this.userId);
     }
-    library.owner = this.userId;
-    return await Libraries.insertAsync(library);
+    return await Libraries.insertAsync({ name, description, owner: this.userId });
   },
 });
 

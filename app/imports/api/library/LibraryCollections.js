@@ -64,13 +64,24 @@ LibraryCollections.attachSchema(LibraryCollectionSchema);
 
 export default LibraryCollections;
 
+/**
+ * A new collection of the user's: its name, description and libraries. As
+ * for a library (libraries.insert), any other field the client sends is
+ * ignored: each is set by its own method
+ */
 const insertLibraryCollection = new ValidatedMethod({
   name: 'libraryCollections.insert',
   mixins: [
     simpleSchemaMixin,
+    RateLimiterMixin,
   ],
-  schema: LibraryCollectionSchema.omit('owner', 'recommended'),
-  async run(libraryCollection) {
+  schema: LibraryCollectionSchema.pick('name', 'description', 'libraries'),
+  schemaValidatorOptions: { clean: true, filter: true },
+  rateLimit: {
+    numRequests: 5,
+    timeInterval: 5000,
+  },
+  async run({ name, description, libraries }) {
     if (!this.userId) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',
         'You need to be logged in to insert a library');
@@ -78,15 +89,16 @@ const insertLibraryCollection = new ValidatedMethod({
     if (Meteor.isServer) {
       await assertCanCreateLibrary(this.userId);
     }
-    libraryCollection.owner = this.userId;
-    return await LibraryCollections.insertAsync(libraryCollection);
+    return await LibraryCollections.insertAsync({ name, description, libraries, owner: this.userId });
   },
 });
 
 const updateLibraryCollection = new ValidatedMethod({
   name: 'libraryCollections.update',
+  // The rate limit below did nothing without its mixin
   mixins: [
     simpleSchemaMixin,
+    RateLimiterMixin,
   ],
   schema: {
     _id: {

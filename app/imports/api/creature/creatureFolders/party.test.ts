@@ -9,14 +9,15 @@ import {
   leaveParty, removePartyMember,
 } from '/imports/api/creature/creatureFolders/methods/partyMethods';
 import { updateInitiativeEntry } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
+import { openAs, refusal } from '/imports/api/utility/ddpClient.testFn';
 
 describe('Parties', function () {
   const [gmId, playerId, otherPlayerId, strangerId] = [Random.id(), Random.id(), Random.id(), Random.id()];
   const userIds = [gmId, playerId, otherPlayerId, strangerId];
   const folderId = Random.id();
-  const [gmNpc, hero, sidekick, otherHero, strangersCharacter] =
-    [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
-  const creatureIds = [gmNpc, hero, sidekick, otherHero, strangersCharacter];
+  const [gmNpc, hero, sidekick, otherHero, strangersCharacter, playersMonster, playersNpc] =
+    [Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
+  const creatureIds = [gmNpc, hero, sidekick, otherHero, strangersCharacter, playersMonster, playersNpc];
   const as = (method, userId: string, args: object) => method._execute({ userId }, args);
   const folder = () => CreatureFolders.findOneAsync(folderId);
   const creature = (id: string) => Creatures.findOneAsync(id);
@@ -53,6 +54,9 @@ describe('Parties', function () {
       character(sidekick, playerId),
       character(otherHero, otherPlayerId),
       character(strangersCharacter, strangerId),
+      // The player is the game master of a party of their own, with its monster
+      { ...character(playersMonster, playerId), type: 'monster' },
+      { ...character(playersNpc, playerId), type: 'npc' },
     ] as any[]);
     await CreatureFolders.rawCollection().insertOne({
       _id: folderId, name: 'The table', owner: gmId, creatures: [gmNpc], members: [], order: 0,
@@ -111,6 +115,48 @@ describe('Parties', function () {
     assert.lengthOf((await folder())?.members || [], 1);
 
     await assertRefused(as(joinParty, gmId, { token, creatureIds: [] }), 'the game master can\'t join');
+  });
+
+  it('takes only player characters: a player\'s monster or non-player character is refused, over DDP', async function () {
+    const token = await invite();
+    const player = await openAs(playerId);
+    try {
+      for (const creatureId of [playersMonster, playersNpc]) {
+        const error = await refusal(player.call('creatureFolders.party.join', { token, creatureIds: [hero, creatureId] }));
+        assert.equal(error?.error, 'party.denied', 'refused');
+        assert.equal(error?.details?.i18n?.key, 'party.errors.playerCharactersOnly', 'with a message in the player\'s language');
+      }
+      assert.deepEqual((await folder())?.creatures, [gmNpc], 'nothing joined');
+      assert.notInclude((await creature(playersMonster))?.writers, gmId, 'the game master may not edit it');
+
+      // A member adds none either
+      await player.call('creatureFolders.party.join', { token, creatureIds: [hero] });
+      const error = await refusal(player.call('creatureFolders.party.setMyCharacters', {
+        folderId, creatureIds: [hero, playersMonster],
+      }));
+      assert.equal(error?.details?.i18n?.key, 'party.errors.playerCharactersOnly');
+      assert.sameMembers((await folder())?.creatures || [], [gmNpc, hero]);
+      assert.notInclude((await creature(playersMonster))?.writers, gmId);
+    } finally {
+      player.close();
+    }
+  });
+
+  it('lets a member take out a monster they brought before, by saving their player characters', async function () {
+    const token = await invite();
+    await as(joinParty, playerId, { token, creatureIds: [hero] });
+    // As joining left it before it took player characters only
+    await CreatureFolders.updateAsync(folderId, { $addToSet: { creatures: playersMonster } });
+    await Creatures.updateAsync(playersMonster, { $addToSet: { writers: gmId } });
+    const player = await openAs(playerId);
+    try {
+      // What the dialog sends now: the player characters it lists
+      await player.call('creatureFolders.party.setMyCharacters', { folderId, creatureIds: [hero] });
+    } finally {
+      player.close();
+    }
+    assert.sameMembers((await folder())?.creatures || [], [gmNpc, hero]);
+    assert.notInclude((await creature(playersMonster))?.writers, gmId, 'the game master no longer edits it');
   });
 
   it('shows members the party\'s characters, never those of someone outside it', async function () {

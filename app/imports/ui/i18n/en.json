@@ -455,7 +455,10 @@
     "joinMoreHint": "You are already a player of this party. Choose more characters to bring, or open the board.",
     "join": "Join the party",
     "bringCharacters": "Bring them",
-    "joined": "Welcome to {name}"
+    "joined": "Welcome to {name}",
+    "errors": {
+      "playerCharactersOnly": "Only player characters can join a party, not monsters or non-player characters."
+    }
   },
   "combat": {
     "trackDurations": "Count effect durations",

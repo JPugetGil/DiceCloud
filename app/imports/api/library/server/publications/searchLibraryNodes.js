@@ -9,21 +9,26 @@ import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
 
+// The nodes selected in the property dialog, with what is under them, so that
+// they stay while the search changes; of libraries the user may view only
 Meteor.publish('selectedLibraryNodes', async function (selectedNodeIds) {
-  check(selectedNodeIds, Array);
+  check(selectedNodeIds, [String]);
   // Limit to 20 selected nodes
   if (selectedNodeIds.length > 20) {
     selectedNodeIds = selectedNodeIds.slice(0, 20);
   }
-  let libraryViewPermissions = {};
+  const viewableLibraries = new Set();
   const nodes = [];
   // Check view permissions of all libraries
   for (let id of selectedNodeIds) {
     let node = await LibraryNodes.findOneAsync(id);
     if (!node) continue;
     nodes.push(node);
-    let libraryId = node.ancestors[0].id;
-    if (libraryViewPermissions[id]) {
+    // The library it is in now, `root`: the `ancestors` of database version 2,
+    // which only imported libraries still carry, can name the one it was in
+    // before a move, and a node made since has none
+    let libraryId = node.root?.id;
+    if (viewableLibraries.has(libraryId)) {
       continue;
     } else {
       let library = await Libraries.findOneAsync(libraryId, {
@@ -38,13 +43,13 @@ Meteor.publish('selectedLibraryNodes', async function (selectedNodeIds) {
         }
       });
       await assertViewPermission(library, this.userId);
-      libraryViewPermissions[id] = true;
+      viewableLibraries.add(libraryId);
     }
   }
   // Return all nodes and their children
   return [LibraryNodes.find({
     $or: [
-      { _id: { $in: selectedNodeIds } },
+      { _id: { $in: nodes.map(node => node._id) } },
       { ...getFilter.descendantsOfAll(nodes) },
     ],
   })];

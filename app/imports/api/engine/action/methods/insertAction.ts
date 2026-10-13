@@ -6,8 +6,9 @@ import EngineActions, { EngineAction, ActionSchema } from '/imports/api/engine/a
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
 import removeActions from '/imports/api/engine/action/functions/removeActions';
-import taskFromDatabase from '/imports/api/engine/action/functions/taskFromDatabase';
+import taskFromDatabase, { TargetIds } from '/imports/api/engine/action/functions/taskFromDatabase';
 import { Meteor } from 'meteor/meteor';
+import { check, Match } from 'meteor/check';
 
 export const insertAction = new ValidatedMethod({
   name: 'actions.insertAction',
@@ -22,6 +23,10 @@ export const insertAction = new ValidatedMethod({
   run: async function ({ action }: { action: EngineAction }) {
     const creature = await getCreature(action.creatureId);
     await assertEditPermission(creature, this.userId);
+
+    // At most MAX_TASK_TARGETS targets, checked before any of them is read
+    // (taskFromDatabase checks them again with the rest of the task)
+    check(action.task?.targetIds, Match.Maybe(TargetIds));
 
     // Every targeted creature must exist and be editable by the user. In practice
     // the target is the acting creature itself (rests, attribute and skill

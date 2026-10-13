@@ -20,7 +20,7 @@ import { interactionOrigin } from '/imports/api/discord/server/interactions/inte
 import { interactionsPublicKey } from '/imports/api/discord/server/interactions/interactionSignature';
 import { rerollButtonsOf, saveReroll } from '/imports/api/discord/server/interactions/interactionRerolls';
 import { addButtons } from '/imports/api/discord/server/interactions/interactionReplies';
-import { hidesStatsFromPlayers, boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { hidesStatsFromPlayers, hiddenFrom, boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import {
   DISCORD_API, DISCORD_CODES, TEST_API_VARIABLE, createWebhookSender, discordApiBase, discordUserAgent, postMessage,
   type DiscordResult, type Requester, type WebhookSender,
@@ -569,30 +569,33 @@ type LogCreature = {
 export async function logChannels(creature: LogCreature): Promise<Channel[]> {
   const channels: Channel[] = [];
   const known = (destination: Destination) => channels.some(channel => sameDestination(destinationOf(channel), destination));
-  if (!hidesStatsFromPlayers(creature)) {
-    const CreatureFolders = await creatureFolders();
-    const parties = await CreatureFolders.find(
-      {
-        creatures: creature._id,
-        $or: [{ 'discord.webhook': { $exists: true } }, { 'discord.channel.webhookId': { $exists: true } }],
+  // Not the game master's monsters and non-player characters, which nothing
+  // public shows: neither their stats nor their rolls. That is their owner's
+  // to decide, not their type's (hidesStatsFromPlayers): a player's monster in
+  // the party posts like their characters
+  const CreatureFolders = await creatureFolders();
+  const parties = await CreatureFolders.find(
+    {
+      creatures: creature._id,
+      $or: [{ 'discord.webhook': { $exists: true } }, { 'discord.channel.webhookId': { $exists: true } }],
+    },
+    {
+      fields: {
+        name: 1, owner: 1, members: 1, 'discord.webhook': 1, 'discord.webhookId': 1, 'discord.webhookChannelId': 1,
+        'discord.channel': 1, 'discord.enabled': 1, 'discord.publish': 1,
       },
-      {
-        fields: {
-          name: 1, owner: 1, members: 1, 'discord.webhook': 1, 'discord.webhookId': 1, 'discord.webhookChannelId': 1,
-          'discord.channel': 1, 'discord.enabled': 1, 'discord.publish': 1,
-        },
-      },
-    ).fetchAsync();
-    for (const party of parties) {
-      // The table's characters only: the game master's and the players'.
-      // Another's character the game master put in the folder never joined
-      if (![party.owner, ...party.members || []].includes(creature.owner)) continue;
-      // Unless the game master turned the party's rolls off: then the
-      // character's own webhook, if it is the same, posts as its own
-      if (!publishes(party.discord, 'rolls')) continue;
-      const webhook = await partyWebhook(party.discord);
-      if (webhook && !known(webhook)) channels.push(await partyChannel(party, webhook));
-    }
+    },
+  ).fetchAsync();
+  for (const party of parties) {
+    if (hidesStatsFromPlayers(creature, party.owner)) continue;
+    // The table's characters only: the game master's and the players'.
+    // Another's character the game master put in the folder never joined
+    if (![party.owner, ...party.members || []].includes(creature.owner)) continue;
+    // Unless the game master turned the party's rolls off: then the
+    // character's own webhook, if it is the same, posts as its own
+    if (!publishes(party.discord, 'rolls')) continue;
+    const webhook = await partyWebhook(party.discord);
+    if (webhook && !known(webhook)) channels.push(await partyChannel(party, webhook));
   }
   const own = await characterWebhook(creature);
   if (own && !known(own)) channels.push(await characterChannel(creature, own));
@@ -600,15 +603,16 @@ export async function logChannels(creature: LogCreature): Promise<Channel[]> {
 }
 
 // Of the creatures a log entry acted on, those of a game master whose stats
-// the players never see: monsters and non-player characters
+// the players never see: monsters and non-player characters, unless the
+// creature that acted is one of the same owner's (hiddenFrom)
 async function hiddenTargets(creature: LogCreature, log: LogEntry): Promise<string[]> {
-  if (hidesStatsFromPlayers(creature)) return [];
   const targetIds = uniq((log.content || []).flatMap(line => line?.targetIds || []))
     .filter(id => id !== creature._id);
   if (!targetIds.length) return [];
-  return Creatures.find(
-    { _id: { $in: targetIds }, type: { $in: [...GM_CREATURE_TYPES] } }, { fields: { _id: 1 } },
-  ).mapAsync(target => target._id);
+  const targets = await Creatures.find(
+    { _id: { $in: targetIds }, type: { $in: [...GM_CREATURE_TYPES] } }, { fields: { type: 1, owner: 1 } },
+  ).fetchAsync() as { _id: string, type?: string, owner?: string }[];
+  return targets.filter(target => hiddenFrom(creature, target)).map(target => target._id);
 }
 
 // One lookup at a time per character: its entries keep their order

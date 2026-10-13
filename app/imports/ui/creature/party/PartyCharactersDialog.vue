@@ -30,6 +30,8 @@ import PartyCharacterPicker from '/imports/ui/creature/party/PartyCharacterPicke
 import { setMyPartyCharacters } from '/imports/api/creature/creatureFolders/methods/partyMethods';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
+import { useI18n } from 'vue-i18n';
 
 /** A player chooses which of their characters they bring to a party */
 const props = defineProps({
@@ -44,6 +46,7 @@ const props = defineProps({
 });
 
 const dialogStackStore = useDialogStackStore();
+const { t } = useI18n();
 const selectedIds = ref([...props.creatureIds]);
 const saving = ref(false);
 
@@ -54,7 +57,7 @@ async function save() {
     await dialogStackStore.popDialogStack();
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: boardErrorText(error, t) });
   } finally {
     saving.value = false;
   }

@@ -59,7 +59,38 @@ export function boardError(code, key, params = {}) {
   return new Meteor.Error(code, englishMessage(key, params), details);
 }
 
-/** Whether the players of a party see only the creature's name, picture and conditions */
-export function hidesStatsFromPlayers(creature) {
-  return GM_CREATURE_TYPES.includes(creature?.type);
+const isGmType = creature => GM_CREATURE_TYPES.includes(creature?.type);
+
+/**
+ * Whether the players of the party whose game master is `gmId` see only the
+ * creature's name, picture and conditions: it is one of that game master's
+ * monsters or non-player characters. The type alone does not make it one: any
+ * user owns monsters, as the game master of a party of their own. Another
+ * user's monster in the folder (a player could bring one before joining was
+ * limited to player characters) is that user's creature, shown like their
+ * characters, and never passes for one of the game master's.
+ * @param {{ type?: string, owner?: string } | undefined | null} creature
+ * @param {string | undefined | null} gmId
+ */
+export function hidesStatsFromPlayers(creature, gmId) {
+  return isGmType(creature) && !!gmId && creature?.owner === gmId;
+}
+
+/**
+ * Whether the target's stats stay out of the actor's log: the target is a
+ * monster or a non-player character, and the actor is not one of the same
+ * owner's. Only those creatures' logs are their game master's alone: they
+ * never go to a party's Discord channel (discordWebhooks.ts), and the players
+ * do not read them. A player's character, the game master's own included,
+ * posts there, and its readers may not see the target: it never shows the
+ * target's stats. A monster of another owner hides them too: a user could
+ * otherwise act with a monster of their own to read the game master's.
+ * Symmetric: the actor's stats are hidden from the target's log by the same
+ * rule, with the roles swapped.
+ * @param {{ type?: string, owner?: string } | undefined | null} actor
+ * @param {{ type?: string, owner?: string } | undefined | null} target
+ */
+export function hiddenFrom(actor, target) {
+  if (!target || !isGmType(target)) return false;
+  return !(isGmType(actor) && !!actor?.owner && actor.owner === target.owner);
 }

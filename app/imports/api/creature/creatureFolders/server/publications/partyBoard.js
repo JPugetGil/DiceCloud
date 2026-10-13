@@ -89,11 +89,15 @@ Meteor.publish('partyBoard', function (folderId) {
       CreatureFolders, { _id: folderId, 'initiative.showStats': true }, { fields: { _id: 1 } },
     );
     const creatures = await Creatures.find(
-      partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1, type: 1, templateId: 1 } },
+      partyCreaturesFilter(folder, userId), { fields: { computeVersion: 1, type: 1, templateId: 1, owner: 1 } },
     ).fetchAsync();
     const creatureIds = creatures.map(creature => creature._id);
-    // Those whose stats the viewer sees: all of them for the game master
-    const shown = role === 'gm' ? creatures : creatures.filter(creature => !hidesStatsFromPlayers(creature));
+    // Those whose stats the viewer sees: all of them for the game master; for
+    // a player, all but the game master's own monsters and non-player
+    // characters, by their owner and not their type alone
+    const shown = role === 'gm'
+      ? creatures
+      : creatures.filter(creature => !hidesStatsFromPlayers(creature, folder.owner));
     const shownIds = shown.map(creature => creature._id);
     const conditionsOnlyIds = creatureIds.filter(id => !shownIds.includes(id));
     // The bestiary templates of the game master's monsters: their type line and

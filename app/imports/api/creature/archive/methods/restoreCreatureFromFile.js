@@ -14,6 +14,7 @@ import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
 import { insertCreatureCopy } from '/imports/api/creature/creatures/methods/duplicateCreature';
 import { creatureWithoutDiscord } from '/imports/api/creature/creatures/webhookVisibility';
+import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 
 let migrateArchive;
@@ -60,6 +61,9 @@ export async function restoreCreature(archive, userId) {
     // Add all the properties
     if (archive.properties && archive.properties.length) {
       await batchInsertAsync(CreatureProperties, archive.properties);
+      // A version 2 archive's `order` seeded left and right alike
+      // (migrateProperty2To3): the tree is built from the parents, in that order
+      await rebuildNestedSets(CreatureProperties, archive.creature._id);
     }
     if (archive.experiences && archive.experiences.length) {
       await batchInsertAsync(Experiences, archive.experiences);

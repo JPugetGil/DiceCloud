@@ -40,10 +40,11 @@ type Tracker = NonNullable<PartyFolderDoc['initiative']>;
 
 /**
  * The tracker's creatures in initiative order, as the channel shows them:
- * their current names, whether each is a character of the party, its
+ * their current names, whether each is a character of the party (all but the
+ * monsters and non-player characters of `gmId`, its game master), its
  * conditions (the buffs its libraries tag `condition`)
  */
-export async function initiativeRows(tracker: Tracker | undefined): Promise<InitiativeRow[]> {
+export async function initiativeRows(tracker: Tracker | undefined, gmId: string | undefined): Promise<InitiativeRow[]> {
   const order = initiativeOrder(tracker?.entries || []);
   const ids = order.map(entry => entry.creatureId).filter((id): id is string => !!id);
   const creatures = ids.length ? await Creatures.find(
@@ -63,8 +64,8 @@ export async function initiativeRows(tracker: Tracker | undefined): Promise<Init
       ...entry._id && { entryId: entry._id },
       ...Number.isFinite(entry.initiative) && { initiative: entry.initiative },
       ...entry.out && { out: true },
-      character: !!creature && !hidesStatsFromPlayers(creature),
-      ...creature && !hidesStatsFromPlayers(creature) && creature.owner && { ownerId: creature.owner },
+      character: !!creature && !hidesStatsFromPlayers(creature, gmId),
+      ...creature && !hidesStatsFromPlayers(creature, gmId) && creature.owner && { ownerId: creature.owner },
       conditions: conditions
         .filter(condition => condition.root?.id === entry.creatureId && condition.name)
         .map(condition => condition.name as string),
@@ -98,7 +99,7 @@ async function showInitiative(request: Requester, channel: Channel, folderId: st
   const tracker = folder?.initiative;
   if (!folder || !tracker?.round) return;
   const message = initiativeMessage({
-    rows: await initiativeRows(tracker), round: tracker.round, turn: tracker.turn || 0, language: channel.language,
+    rows: await initiativeRows(tracker, folder.owner), round: tracker.round, turn: tracker.turn || 0, language: channel.language,
     ...interactive(folder, channel) && {
       components: [buttonRow([{ label: label(channel, 'nextTurn'), customId: `dc:next:${folderId}:${tracker.round}:${tracker.turn || 0}`, style: 1 }])],
     },
@@ -137,7 +138,7 @@ async function showInitiative(request: Requester, channel: Channel, folderId: st
  */
 async function endFight(request: Requester, channel: Channel, folderId: string, tracker: Tracker) {
   const folder = await readFolder(folderId);
-  const rows = await initiativeRows(tracker);
+  const rows = await initiativeRows(tracker, folder?.owner);
   const round = tracker.round || 0;
   const stored = folder?.discord?.initiative;
   if (stored?.webhookId === channel.webhook.id && publishes(folder?.discord, 'initiative')) {
@@ -205,7 +206,7 @@ async function queueChange(folderId: string, change: InitiativeChange, ended: Tr
   // Whose turn it is now, for its line
   let line: ReturnType<typeof turnLine>;
   if (change !== 'update' && on('turns')) {
-    const rows = await initiativeRows(folder.initiative);
+    const rows = await initiativeRows(folder.initiative, folder.owner);
     const row = rows[folder.initiative?.turn || 0];
     const endTurn = interactive(folder, channel) && row?.character && row.entryId
       ? [buttonRow([{ label: label(channel, 'endTurn'), customId: `dc:end:${folderId}:${row.entryId}:${folder.initiative?.round}` }])]

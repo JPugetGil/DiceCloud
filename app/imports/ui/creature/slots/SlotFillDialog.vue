@@ -260,6 +260,7 @@ import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import TreeNodeView from '/imports/ui/properties/treeNodeViews/TreeNodeView.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue'
 import evaluateSlotFillerConditions from '/imports/ui/creature/slots/slotFillerConditions';
+import { alreadyAddedSelector, isAlreadyAdded } from '/imports/ui/creature/slots/alreadyAddedFillers';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodeExpansionContent from '/imports/ui/library/LibraryNodeExpansionContent.vue';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
@@ -350,25 +351,13 @@ const libraryNodeFilter = autorun(() => {
   return EJSON.parse(filterString);
 }).result;
 
+// The fillers the slot's `unique` setting disables: those it, or the
+// creature, already holds a copy of
 const alreadyAdded = autorun(() => {
-  let added = new Set();
-  if (!model.value || !model.value.unique) return added;
-  let rootId;
-  if (model.value.unique === 'uniqueInSlot') {
-    rootId = model.value._id;
-  } else if (model.value.unique === 'uniqueInCreature') {
-    rootId = props.creatureId;
-  }
-  CreatureProperties.find({
-    'root.id': rootId,
-    libraryNodeId: { $exists: true },
-    removed: { $ne: true },
-  }, {
-    fields: { libraryNodeId: 1 },
-  }).forEach(prop => {
-    added.add(prop.libraryNodeId);
-  });
-  return added;
+  const selector = alreadyAddedSelector(model.value, props.creatureId);
+  if (!selector) return new Set();
+  return new Set(CreatureProperties.find(selector, { fields: { libraryNodeId: 1 } })
+    .map(prop => prop.libraryNodeId));
 }).result;
 
 const totalQuantitySelected = autorun(() => {
@@ -413,7 +402,7 @@ const matchingNodes = autorun(() => {
       node._disabled = true;
       node._disabledByQuantityFilled = true;
     }
-    if (alreadyAdded.value?.has(node._id)) {
+    if (alreadyAdded.value && isAlreadyAdded(node, alreadyAdded.value)) {
       node._disabled = true;
       node._disabledByAlreadyAdded = true;
     }

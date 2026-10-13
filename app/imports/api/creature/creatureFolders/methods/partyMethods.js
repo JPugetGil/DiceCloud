@@ -7,6 +7,7 @@ import CreatureFolders, { MAX_PARTY_MEMBERS } from '/imports/api/creature/creatu
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { removeCharacters } from '/imports/api/creature/creatureFolders/removeFromFolders';
+import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
 
 /*
  * Parties: a game master invites players to their folder's party board with a
@@ -47,15 +48,20 @@ async function getFolderByToken(token) {
   return folder;
 }
 
-// The user's own characters among `creatureIds`, refusing any other
+// The user's own player characters among `creatureIds`, refusing any other.
+// Not their monsters nor their non-player characters: those are a game
+// master's, whose stats the players never see (boardMonsters.js)
 async function getOwnCharacterIds(creatureIds, userId) {
   const owned = await Creatures.find(
-    { _id: { $in: creatureIds }, owner: userId }, { fields: { _id: 1 } },
-  ).mapAsync(creature => creature._id);
+    { _id: { $in: creatureIds }, owner: userId }, { fields: { type: 1 } },
+  ).fetchAsync();
   if (owned.length !== new Set(creatureIds).size) {
     throw new Meteor.Error('party.denied', 'You can only bring your own characters to a party');
   }
-  return owned;
+  if (owned.some(creature => creature.type !== 'pc')) {
+    throw boardError('party.denied', 'party.errors.playerCharactersOnly');
+  }
+  return owned.map(creature => creature._id);
 }
 
 async function memberCharacterIds(folder, userId) {

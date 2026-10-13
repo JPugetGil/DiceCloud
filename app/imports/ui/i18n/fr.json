@@ -455,7 +455,10 @@
     "joinMoreHint": "Vous êtes déjà joueur de ce groupe. Choisissez d'autres personnages à amener, ou ouvrez le tableau.",
     "join": "Rejoindre le groupe",
     "bringCharacters": "Les amener",
-    "joined": "Bienvenue dans {name}"
+    "joined": "Bienvenue dans {name}",
+    "errors": {
+      "playerCharactersOnly": "Seuls les personnages joueurs peuvent rejoindre un groupe, pas les monstres ni les personnages non joueurs."
+    }
   },
   "combat": {
     "trackDurations": "Décompter la durée des effets",

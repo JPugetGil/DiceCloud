@@ -2,7 +2,17 @@ import { check, Match } from 'meteor/check';
 import { Meteor } from 'meteor/meteor';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import { hasAncestorRelationship } from '/imports/api/parenting/parentingFunctions';
+import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import type Task from '/imports/api/engine/action/tasks/Task';
+
+// The creatures a task may target: as many as a fight holds. The engine
+// applies the task to each, and recomputes each, so a list without a bound
+// held the server for as long as the client liked
+export const MAX_TASK_TARGETS = MAX_INITIATIVE_ENTRIES;
+
+/** A task's target ids: strings, at most MAX_TASK_TARGETS of them */
+export const TargetIds = Match.Where(value => Array.isArray(value)
+  && value.length <= MAX_TASK_TARGETS && value.every(id => typeof id === 'string'));
 
 const FiniteNumber = Match.Where(value => typeof value === 'number' && Number.isFinite(value));
 // Absent, undefined or null. In an object, Match.Maybe makes the key
@@ -34,7 +44,7 @@ const OptionalString = maybe(String);
  */
 export default async function taskFromDatabase(task: Task, creatureId: string): Promise<Task> {
   check(task, Match.ObjectIncluding({
-    targetIds: [String],
+    targetIds: TargetIds,
     silent: maybe(Boolean),
   }));
   switch (task.subtaskFn) {

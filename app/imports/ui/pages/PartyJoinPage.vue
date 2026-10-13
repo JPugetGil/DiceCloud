@@ -105,6 +105,7 @@ import { postingKey } from '/imports/api/creature/log/discord/partyPublishing';
 import PartyCharacterPicker from '/imports/ui/creature/party/PartyCharacterPicker.vue';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useAppStore } from '/imports/ui/stores/app';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 
 /** Where a party's invitation link leads: join it with some of your characters */
 const route = useRoute();
@@ -142,7 +143,7 @@ async function join() {
     await router.push(`/party/${folderId}`);
   } catch (e) {
     console.error(e);
-    snackbar({ text: e.reason || e.message });
+    snackbar({ text: boardErrorText(e, t) });
   } finally {
     joining.value = false;
   }

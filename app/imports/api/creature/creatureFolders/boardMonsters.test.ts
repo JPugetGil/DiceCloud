@@ -486,6 +486,37 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
     }
   });
 
+  it('shows the players a monster another player brought as that player\'s, not as the game master\'s', async function () {
+    // Before joining took player characters only, a player could bring a
+    // monster they own, as the game master of a party of their own
+    const [goblinId] = await add();
+    const impId = Random.id();
+    await createTestCreature({
+      _id: impId, name: 'Imp', owner: strangerId, type: 'monster',
+      props: [{
+        type: 'attribute', attributeType: 'healthBar', name: 'Hit Points',
+        variableName: 'hitPoints', baseValue: { calculation: '13' },
+      }],
+    });
+    await CreatureFolders.updateAsync(folderId, { $addToSet: { members: strangerId, creatures: impId } });
+    const impHitPoints = await hitPoints(impId);
+    const impVariables = await CreatureVariables.findOneAsync({ _creatureId: impId }) as any;
+    const goblinHitPoints = await hitPoints(goblinId);
+    const player = await openAs(playerId);
+    try {
+      await player.subscribe('partyBoard', folderId);
+      assert.isNotEmpty(about(player.messages, 'creatureProperties', impHitPoints._id), 'its hit points, as a character\'s');
+      assert.isNotEmpty(about(player.messages, 'creatureVariables', impVariables._id), 'its variables');
+      assert.isEmpty(about(player.messages, 'creatureProperties', goblinHitPoints._id), 'never the game master\'s goblin\'s');
+    } finally {
+      player.connection.disconnect();
+      await CreatureFolders.updateAsync(folderId, { $pull: { members: strangerId, creatures: impId } });
+      await CreatureProperties.removeAsync({ 'root.id': impId });
+      await CreatureVariables.removeAsync({ _creatureId: impId });
+      await Creatures.removeAsync(impId);
+    }
+  });
+
   it('gives a monster\'s sheet the licence of its bestiary', async function () {
     const [goblinId] = await add();
     const gm = await openAs(gmId);

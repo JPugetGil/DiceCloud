@@ -222,7 +222,11 @@ function chooseCharacters() {
     elementId: 'party-my-characters',
     data: {
       folderId: props.folder._id,
-      creatureIds: props.creatures.filter(creature => creature.owner === userId).map(creature => creature._id),
+      // Player characters only, which the dialog lists and a party takes: a
+      // monster brought before that rule leaves the party when it is saved
+      creatureIds: props.creatures
+        .filter(creature => creature.owner === userId && creature.type === 'pc')
+        .map(creature => creature._id),
     },
   });
 }

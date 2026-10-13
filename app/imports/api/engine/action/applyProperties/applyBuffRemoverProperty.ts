@@ -94,6 +94,13 @@ function removeBuff(buff: any, prop, result: TaskResult) {
 function buffRemoverMatchTags(buffRemover, prop) {
   let matched = false;
   const propTags = getEffectivePropTags(prop);
+  // A buff with any tag of a NOT group is never removed. This was checked
+  // inside the forEach below, whose `return false` only left its callback, and
+  // with intersection(), an array, always true: NOT removed those buffs too
+  if (buffRemover.extraTags?.some(extra => extra.operation === 'NOT'
+    && intersection(extra.tags || [], propTags).length)) {
+    return false;
+  }
   // Check the target tags
   if (
     !buffRemover.targetTags?.length ||
@@ -101,7 +108,7 @@ function buffRemoverMatchTags(buffRemover, prop) {
   ) {
     matched = true;
   }
-  // Check the extra tags
+  // Or all the tags of one of the OR groups
   buffRemover.extraTags?.forEach(extra => {
     if (extra.operation === 'OR') {
       if (matched) return;
@@ -110,13 +117,6 @@ function buffRemoverMatchTags(buffRemover, prop) {
         difference(extra.tags, propTags).length === 0
       ) {
         matched = true;
-      }
-    } else if (extra.operation === 'NOT') {
-      if (
-        extra.tags.length &&
-        intersection(extra.tags, propTags)
-      ) {
-        return false;
       }
     }
   });

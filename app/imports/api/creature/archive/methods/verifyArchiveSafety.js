@@ -1,13 +1,13 @@
-import { slice } from 'lodash';
 import { PER_CREATURE_LOG_LIMIT } from '/imports/api/creature/log/CreatureLogs';
 import { Meteor } from 'meteor/meteor';
 
 export default function verifyArchiveSafety({ creature, properties, experiences, logs }) {
   const creatureId = creature._id;
 
-  // Check lengths of arrays
+  // As many log entries as a character keeps, the first ones: in place, since
+  // the caller inserts this array. A copy cut here left it whole
   if (logs.length > PER_CREATURE_LOG_LIMIT) {
-    logs = slice(logs, 0, PER_CREATURE_LOG_LIMIT);
+    logs.splice(PER_CREATURE_LOG_LIMIT);
   }
 
   // Check that everything belongs to the right creature

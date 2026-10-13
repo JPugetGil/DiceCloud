@@ -11,6 +11,7 @@ import { getCreature, reloadCachedProperties } from '/imports/api/engine/loadCre
 import { Meteor } from 'meteor/meteor';
 import { DDP } from 'meteor/ddp';
 import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
+import { hiddenFrom } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { logLine, msg, withoutHiddenStats } from '/imports/api/creature/log/logMessages';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
@@ -91,7 +92,8 @@ export default async function writeActionResults(action: EngineAction) {
 
 /**
  * The whole entry, in the own log of each game master's creature that the
- * actor's log leaves something out of: who acted, then every line. Server
+ * actor's log leaves something out of: who acted, then every line, but those
+ * of another target hidden from it, another owner's (hiddenFrom). Server
  * only: the client's simulation has nothing hidden to show
  */
 async function writeHiddenTargetLogs(action: EngineAction, contents: any[], shown: any[], hiddenIds: string[]) {
@@ -99,9 +101,15 @@ async function writeHiddenTargetLogs(action: EngineAction, contents: any[], show
   const heading = logLine({ name: msg('logs.actedBy', { name: actor?.name || '?' }) });
   for (const targetId of hiddenIds) {
     if (!contents.some(line => !shown.includes(line) && line.targetIds?.includes(targetId))) continue;
+    const target = await getCreature(targetId);
+    const othersHidden: string[] = [];
+    for (const otherId of hiddenIds) {
+      if (otherId !== targetId && hiddenFrom(target, await getCreature(otherId))) othersHidden.push(otherId);
+    }
+    const targetContents = withoutHiddenStats(contents, othersHidden);
     const log = {
       // The log keeps 32 lines at most: the heading only where it fits
-      content: contents.length < STORAGE_LIMITS.logContentCount ? [heading, ...contents] : contents,
+      content: targetContents.length < STORAGE_LIMITS.logContentCount ? [heading, ...targetContents] : targetContents,
       creatureId: targetId,
       creatureName: actor?.name,
       actionId: action._id,

@@ -10,6 +10,8 @@ import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import {
   createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
+import { MAX_TASK_TARGETS } from '/imports/api/engine/action/functions/taskFromDatabase';
+import { openAs, refusal as refusalOf } from '/imports/api/utility/ddpClient.testFn';
 
 /*
  * insertAction stores the task the server will apply: the properties it names
@@ -294,5 +296,57 @@ if (Meteor.isServer) describe('Action results: the server ignores the client\'s'
     assert.notEqual(victimHitPoints.damage, 29);
     const logs = await CreatureLogs.find({ creatureId: { $in: [attackerCreatureId, victimId] } }).fetchAsync();
     assert.notInclude(JSON.stringify(logs), 'Forged line');
+  });
+});
+
+/*
+ * An action's targets come from the client: the task is a blackbox in the
+ * action's schema. insertAction read and checked every one, then the engine
+ * applied the task to every one and recomputed every one, so a list of
+ * thousands held the server. A fight holds 64 creatures: so many targets at most.
+ */
+if (Meteor.isServer) describe('Action targets: at most as many as a fight holds', function () {
+  this.timeout(30000);
+
+  const [ownerId, creatureId] = getRandomIds(2);
+
+  before(async function () {
+    await removeAllCreaturesAndProps();
+    await Meteor.users.rawCollection().insertOne(
+      { _id: ownerId, createdAt: new Date(), username: `targets-owner-${ownerId}` } as any,
+    );
+    await createTestCreature({ _id: creatureId, owner: ownerId, props: [] });
+  });
+
+  after(async function () {
+    await EngineActions.removeAsync({ creatureId });
+    await Meteor.users.removeAsync(ownerId);
+    await removeAllCreaturesAndProps();
+  });
+
+  it('refuses a task with more than 64 targets, over DDP, and stores nothing', async function () {
+    const client = await openAs(ownerId);
+    // The user may edit every target: only their number is refused
+    const insert = (count: number) => client.call('actions.insertAction', {
+      action: {
+        creatureId,
+        task: { subtaskFn: 'dealDamage', targetIds: new Array(count).fill(creatureId), params: { amount: 1 } },
+        results: [],
+        taskCount: 0,
+      },
+    });
+    try {
+      const actionId = await insert(64);
+      assert.lengthOf((await EngineActions.findOneAsync(actionId) as EngineAction).task.targetIds, 64);
+      await EngineActions.removeAsync({ creatureId });
+
+      const error = await refusalOf(insert(65));
+      assert.exists(error, '65 targets are refused');
+      assert.equal(error.error, 400, 'by the check of the targets');
+      assert.equal(await EngineActions.find({ creatureId }).countAsync(), 0, 'nothing stored');
+      assert.equal(MAX_TASK_TARGETS, 64, 'a fight\'s creatures');
+    } finally {
+      client.close();
+    }
   });
 });

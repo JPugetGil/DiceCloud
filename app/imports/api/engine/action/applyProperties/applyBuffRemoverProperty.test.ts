@@ -2,6 +2,7 @@ import { assert } from 'chai';
 import { Meteor } from 'meteor/meteor';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import {
   allMutations,
   createTestCreature,
@@ -13,7 +14,8 @@ import {
 
 const [
   creatureId, otherCreatureId, buffId, removeParentBuffId, removeTargetBuffsId, buffEffectId,
-  removeParentBuffUntargetedId,
+  removeParentBuffUntargetedId, taggedCreatureId, shieldBuffId, hexBuffId, poisonedBuffId,
+  removeMagicNotCurseId, removeCurseOrPoisonId,
 ] = getRandomIds(100);
 
 const actionTestCreature: TestCreature = {
@@ -67,6 +69,33 @@ const actionOtherCreature: TestCreature = {
   ],
 };
 
+// Buffs tagged for the removers' tags: magic, magic and curse, poison
+const taggedCreature: TestCreature = {
+  _id: taggedCreatureId,
+  props: [
+    { _id: shieldBuffId, type: 'buff', name: 'Shield of Faith', tags: ['magic'] },
+    { _id: hexBuffId, type: 'buff', name: 'Hex', tags: ['magic', 'curse'] },
+    { _id: poisonedBuffId, type: 'buff', name: 'Poisoned', tags: ['poison'] },
+    // The removers, on the same creature: they target it
+    {
+      _id: removeMagicNotCurseId,
+      type: 'buffRemover',
+      target: 'target',
+      removeAll: true,
+      targetTags: ['magic'],
+      extraTags: [{ _id: 'not-curse', operation: 'NOT', tags: ['curse'] }],
+    },
+    {
+      _id: removeCurseOrPoisonId,
+      type: 'buffRemover',
+      target: 'target',
+      removeAll: true,
+      targetTags: ['curse'],
+      extraTags: [{ _id: 'or-poison', operation: 'OR', tags: ['poison'] }],
+    },
+  ],
+};
+
 describe('Apply Buff Remover Properties', function () {
   // Increase timeout
   this.timeout(8000);
@@ -75,6 +104,20 @@ describe('Apply Buff Remover Properties', function () {
     await removeAllCreaturesAndProps();
     await createTestCreature(actionTestCreature);
     await createTestCreature(actionOtherCreature);
+    await createTestCreature(taggedCreature);
+  });
+
+  const removedIds = (action: EngineAction) => allMutations(action).flatMap(mutation => mutation.removals || [])
+    .map(removal => removal.propId);
+
+  it('removes the buffs with the target tags, but none with a tag of a NOT group', async function () {
+    const action = await runActionById(removeMagicNotCurseId, [taggedCreatureId]);
+    assert.deepEqual(removedIds(action), [shieldBuffId], 'magic, but not the cursed Hex');
+  });
+
+  it('removes the buffs with the target tags or those of an OR group', async function () {
+    const action = await runActionById(removeCurseOrPoisonId, [taggedCreatureId]);
+    assert.sameMembers(removedIds(action), [hexBuffId, poisonedBuffId]);
   });
 
   it('removes a parent buff', async function () {

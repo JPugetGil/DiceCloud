@@ -10,6 +10,7 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { assertCanCreateCharacter } from '/imports/api/users/assertRolePermissions';
+import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 
 let migrateApiCreature;
@@ -78,6 +79,9 @@ async function importApiCreature(apiCreature, userId) {
     // Add all the properties
     if (apiCreature.creatureProperties && apiCreature.creatureProperties.length) {
       await batchInsertAsync(CreatureProperties, apiCreature.creatureProperties);
+      // Version 2's `order` seeded left and right alike (migrateProperty2To3):
+      // the tree is built from the parents, in that order
+      await rebuildNestedSets(CreatureProperties, creatureId);
     }
     if (apiCreature.experiences && apiCreature.experiences.length) {
       await batchInsertAsync(Experiences, apiCreature.experiences);
