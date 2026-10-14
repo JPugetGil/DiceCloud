@@ -18,6 +18,7 @@ import Context from '/imports/parser/types/Context';
 import applySavingThrowProperty from '/imports/api/engine/action/applyProperties/applySavingThrowProperty';
 import { Meteor } from 'meteor/meteor';
 import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyDamageProperty(
@@ -54,9 +55,7 @@ export default async function applyDamageProperty(
   // roll the dice only and store that string
   await recalculateCalculation(prop.amount, action, 'compile', inputProvider);
   const { result: rolled } = await resolve('roll', prop.amount.valueNode, scope, context, inputProvider);
-  if (rolled.parseType !== 'constant') {
-    logValue.push(toString(rolled));
-  }
+  const rolledText = rolled.parseType !== 'constant' ? toString(rolled) : undefined;
   result.appendParserContextErrors(context, damageTargets);
 
   // Reset the errors so we don't log the same errors twice
@@ -149,10 +148,15 @@ export default async function applyDamageProperty(
   }
 
   if (damageTargets && damageTargets.length) {
-    // Iterate through all the targets
-    for (const target of damageTargets) {
+    // A line for each target, with what it took: its resistances, and how its
+    // players read it when the actor is hidden from them, the damage dealt
+    // and nothing of the roll (logViews.ts). The dice, rolled once for all of
+    // them, on the first
+    for (const [index, target] of damageTargets.entries()) {
       let damageToApply = damage || 0;
       let saved = false;
+      const targetLog: LogPart[] = index === 0 && rolledText ? [rolledText] : [];
+      const multipliers: LogPart[] = [];
 
       // If there is a saving throw, apply that first
       if (prop.save) {
@@ -162,13 +166,13 @@ export default async function applyDamageProperty(
         }, action, result, inputProvider);
         if (await getConstantValueFromScope('~saveSucceeded', scope)) {
           // Log the total damage
-          logValue.push(toString(reduced));
+          targetLog.push(toString(reduced));
           // Log the save damage
           const damageText = damageFunctionText(prop.save);
           if (damageText) {
-            logValue.push(damageText);
+            targetLog.push(damageText);
           } else {
-            logValue.push(
+            targetLog.push(
               msg('logs.damageOnSave'),
               prop.save.damageFunction?.calculation ?? '',
               saveRoll
@@ -184,22 +188,42 @@ export default async function applyDamageProperty(
         targetId: target,
         damage: damageToApply,
         damageProp: prop,
-        logValue
+        logValue: multipliers,
       });
+      targetLog.push(...multipliers);
 
       // A game master's creature hit by a player's character: the damage
       // dealt, not what it did to its hit points, which the log leaves out
       // (hiddenStats.ts)
       if ((await hiddenTargets(action.creatureId, [target])).length) {
-        logValue.push(amountMessage(damageToApply, saved));
+        targetLog.push(amountMessage(damageToApply, saved));
       }
+
+      // Before the hit points it takes: the next target's lines come after
+      // this one's. A mutation of its own, which names this target alone
+      const lineResult = index === 0 ? result : new TaskResult([target]);
+      if (index > 0) action.results.push(lineResult);
+      if (targetLog.length) lineResult.mutations.push({
+        targetIds: [target],
+        contents: [{
+          ...logLine({
+            name: logName,
+            value: targetLog,
+            inline: true,
+            ...prop.silent && { silenced: true },
+          }),
+          targetView: logLine({ name: logName, value: [...multipliers, amountMessage(damageToApply, saved)] }),
+        }],
+      });
 
       // Deal the damage to the target
       await dealDamage(
         action, prop, result, inputProvider, target, prop.damageType, damageToApply
       );
     }
+    return await applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
   } else {
+    if (rolledText) logValue.push(rolledText);
     // There are no targets, just log the result
     logValue.push(amountMessage(damage));
     if (prop.save) {
@@ -291,6 +315,29 @@ function multiplierAppliesTo(damageProp, multiplierType) {
   }
 }
 
+// The DC of the Constitution save that keeps a creature concentrating
+export const concentrationDc = (damage: number) => Math.max(10, Math.floor(damage / 2));
+
+/**
+ * Whether the creature concentrates: its `concentration` variable, a toggle
+ * that is on (the libraries' "Concentration" checkbox) or a true constant
+ */
+async function isConcentrating(creatureId: string) {
+  const scope = await getVariables(creatureId);
+  const variable = await getFromScope('concentration', scope);
+  if (variable?.type === 'toggle') {
+    return !variable.inactive && !!(variable.enabled || (!variable.disabled && variable.condition?.value));
+  }
+  return !!await getConstantValueFromScope('concentration', scope);
+}
+
+/**
+ * Deals damage (or healing) to a creature through its health bars, in their
+ * damage (or healing) order, temporary hit points first. A creature that
+ * concentrates and takes damage is reminded of its saving throw, after its
+ * health bars' lines, whoever dealt it: a damage property, the health bar's
+ * buttons (dealDamage task)
+ */
 export async function dealDamage(
   action: EngineAction, prop: any, result: TaskResult, userInput: InputProvider,
   targetId: string, damageType: string, amount: number
@@ -332,7 +379,7 @@ export async function dealDamage(
   let damageLeft = totalDamage;
   if (damageType === 'healing') damageLeft = -totalDamage;
   for (const healthBar of healthBars) {
-    if (damageLeft === 0) return;
+    if (damageLeft === 0) break;
     // Do the damage
     const damageAdded = await applyTask(action, {
       targetIds: [targetId],
@@ -353,6 +400,23 @@ export async function dealDamage(
     ) {
       damageLeft = 0;
     }
+  }
+  if (damageType !== 'healing' && amount > 0 && await isConcentrating(targetId)) {
+    const reminder = new TaskResult([targetId]);
+    action.results.push(reminder);
+    reminder.mutations.push({
+      targetIds: [targetId],
+      contents: [{
+        ...logLine({
+          name: msg('logs.concentration'),
+          value: msg('logs.concentrationCheck', { dc: concentrationDc(amount) }),
+          inline: true,
+          ...prop?.silent && { silenced: true },
+        }),
+        // The target's own saving throw to make
+        targetView: WHOLE,
+      }],
+    });
   }
   return totalDamage;
 }

@@ -1,6 +1,8 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { DamagePropTask } from '/imports/api/engine/action/tasks/Task';
+import { DamagePropTask, ReceivedDamageTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 import { applyTriggers } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
@@ -44,7 +46,12 @@ export default async function applyDamagePropTask(
     result.pushScope['~attributeDamaged'] = targetProp;
   }
 
-  // Run the before triggers which may change scope properties
+  // Run the before triggers which may change scope properties. Only the
+  // acting creature's own: a trigger of another creature's is not one of its
+  // properties (applyTriggers), and nothing runs a target's `before` damage
+  // triggers on its behalf while the action changes the damage in flight
+  // (two in the Vexus libraries, Voices from Beyond and Ominous Will). Its
+  // `after` ones run once the action is written (ReceivedDamageTask)
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.before', userInput);
 
   // Create a new result after triggers have run
@@ -106,12 +113,16 @@ export default async function applyDamagePropTask(
         set: { damage, value: newValue },
         type: targetProp.type,
       }],
-      contents: [logLine({
-        name: title,
-        value: msg('logs.attributeSet', { name: getPropertyTitle(targetProp), from: targetProp.value, to: value }),
-        inline: true,
-        ...(task.silent || isHidden(targetProp)) && { silenced: true },
-      })]
+      // The target's own attribute: its players read the line whole
+      contents: [{
+        ...logLine({
+          name: title,
+          value: msg('logs.attributeSet', { name: getPropertyTitle(targetProp), from: targetProp.value, to: value }),
+          inline: true,
+          ...(task.silent || isHidden(targetProp)) && { silenced: true },
+        }),
+        targetView: WHOLE,
+      }]
     });
     if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
   } else if (operation === 'increment') {
@@ -137,19 +148,71 @@ export default async function applyDamagePropTask(
           inc: { damage: increment, value: -increment },
           type: targetProp.type,
         }],
-        contents: [logLine({
-          name: msg(increment >= 0 ? 'logs.attributeDamaged' : 'logs.attributeRestored', { type: attributeType }),
-          value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
-          inline: true,
-          ...(task.silent || isHidden(targetProp)) && { silenced: true },
-        })]
+        contents: [{
+          ...logLine({
+            name: msg(increment >= 0 ? 'logs.attributeDamaged' : 'logs.attributeRestored', { type: attributeType }),
+            value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
+            inline: true,
+            ...(task.silent || isHidden(targetProp)) && { silenced: true },
+          }),
+          targetView: WHOLE,
+        }]
       });
       if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
     }
   }
-  await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.after', userInput);
-  await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.afterChildren', userInput);
+  if (targetId === action.creatureId) {
+    await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.after', userInput);
+    await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.afterChildren', userInput);
+  } else if (damage !== undefined && hasAfterTriggers(targetProp)) {
+    // Another creature's: its triggers are its own properties, which this
+    // action does not apply. They fire on its behalf once the action is
+    // written, with what it took (ReceivedDamageTask, writeActionResults)
+    (action._receivedDamage ??= []).push({
+      targetId, propId: targetProp._id, operation, value,
+    });
+  }
   return increment;
+}
+
+// Whether the attribute has damage triggers that fire after it changes
+const hasAfterTriggers = (prop: any) => !!(prop.damageTriggerIds?.after?.length
+  || prop.damageTriggerIds?.afterChildren?.length);
+
+// What a change to an attribute puts in the scope of its triggers
+function damageScope(operation: 'increment' | 'set', value: number) {
+  if (operation === 'set') return { '~set': { value } };
+  return value >= 0 ? { '~damage': { value } } : { '~healing': { value: -value } };
+}
+
+/**
+ * What another creature's action did to the attributes of a creature: its
+ * own damage triggers then fire, on its behalf, as when it damages itself,
+ * those timed after the change and after its children, with `~damage`,
+ * `~healing` or `~set`, and `~attributeDamaged`, in their scope. Its `before`
+ * triggers do not: they would change the damage of an action already
+ * written. The server alone makes this task, once the action is written
+ * (writeActionResults); taskFromDatabase refuses it
+ */
+export async function applyReceivedDamageTask(
+  task: ReceivedDamageTask, action: EngineAction, result: TaskResult, userInput: InputProvider,
+): Promise<void> {
+  const creatureId = task.targetIds[0];
+  if (task.targetIds.length !== 1 || creatureId !== action.creatureId) {
+    throw new Meteor.Error('wrong-number-of-targets', 'A creature\'s triggers fire on its own behalf alone');
+  }
+  for (const [index, change] of task.params.changes.entries()) {
+    const prop = await getSingleProperty(creatureId, change.propId);
+    if (!prop) continue;
+    const step = index === 0 ? result : new TaskResult(task.targetIds);
+    step.pushScope = { ...damageScope(change.operation, change.value), '~attributeDamaged': { _propId: prop._id } };
+    if (step !== result) action.results.push(step);
+    await applyTriggers(action, prop, [creatureId], 'damageTriggerIds.after', userInput);
+    await applyTriggers(action, prop, [creatureId], 'damageTriggerIds.afterChildren', userInput);
+    const done = new TaskResult(task.targetIds);
+    done.popScope = { '~damage': 1, '~healing': 1, '~set': 1, '~attributeDamaged': 1 };
+    action.results.push(done);
+  }
 }
 
 // A utility attribute is never displayed (a tutorial's progress, a counter):

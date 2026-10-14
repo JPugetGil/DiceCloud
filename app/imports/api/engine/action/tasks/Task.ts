@@ -2,7 +2,7 @@ import { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/c
 import { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 type Task = PropTask | DamagePropTask | DealDamageTask | ItemAsAmmoTask | CheckTask | ResetTask | CastSpellTask
-  | TurnEventTask;
+  | TurnEventTask | ReceivedDamageTask;
 
 export default Task;
 
@@ -86,6 +86,28 @@ export type TurnEventTask = BaseTask & {
 }
 
 export type TurnEventName = 'turnStart' | 'turnEnd';
+
+/** A change another creature's action made to one of a creature's attributes */
+export type ReceivedDamage = {
+  targetId: string;
+  propId: string;
+  operation: 'increment' | 'set';
+  // As its triggers read it: damage when positive, healing when negative
+  value: number;
+};
+
+/**
+ * Another creature's action changed some of a creature's attributes: its own
+ * damage triggers fire, on its behalf (applyReceivedDamageTask). The server
+ * alone makes this task, once that action is written (writeActionResults):
+ * taskFromDatabase refuses it, so a client can never send it
+ */
+export type ReceivedDamageTask = BaseTask & {
+  subtaskFn: 'receivedDamage';
+  // One and only one target: the creature whose attributes changed
+  targetIds: [string];
+  params: { changes: Omit<ReceivedDamage, 'targetId'>[] };
+}
 
 export type CastSpellTask = BaseTask & {
   prop: CreaturePropertyTypes['spell'];

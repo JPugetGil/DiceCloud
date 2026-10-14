@@ -15,11 +15,29 @@
           icon
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission"
-          @click.stop="doAction"
+          @click.stop="doAction('auto')"
         >
           <property-icon
             :model="model"
           />
+        </v-btn>
+      </property-field>
+      <!-- Its targets chosen first, outside a fight too; a spell's in its cast dialog -->
+      <property-field
+        v-if="context.creatureId && model.type !== 'spell' && model.target !== 'self'"
+        :name="$t('targetPicker.target')"
+        center
+      >
+        <v-btn
+          variant="outlined"
+          class="ma-2"
+          icon
+          data-id="target-action-button"
+          :aria-label="$t('targetPicker.target')"
+          :disabled="model.insufficientResources || !context.editPermission"
+          @click.stop="doAction('always')"
+        >
+          <v-icon>mdi-target</v-icon>
         </v-btn>
       </property-field>
       <property-field
@@ -175,7 +193,8 @@ const usesLeft = computed(() => {
   return Math.max(totalUses.value - (props.model.usesUsed || 0), 0);
 });
 
-async function doAction() {
+// 'auto': the target picker opens by itself during a fight; 'always': "Target…"
+async function doAction(chooseTargets) {
   if (props.model.type === 'spell') {
     return dialogStackStore.pushDialogStack({
       component: 'cast-spell-with-slot-dialog',
@@ -190,8 +209,9 @@ async function doAction() {
   await doActionApi({
     creatureId: props.model.root.id,
     propId: props.model._id,
-    elementId: 'do-action-button',
+    elementId: chooseTargets === 'always' ? 'target-action-button' : 'do-action-button',
     targetIds: [],
+    chooseTargets,
   }).catch((e) => {
     console.error(e);
     snackbar({ text: e.message || e.reason || e.toString() });

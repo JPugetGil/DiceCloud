@@ -10,15 +10,30 @@ import computeCreature from '/imports/api/engine/computeCreature';
 import { getCreature, reloadCachedProperties } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
 import { DDP } from 'meteor/ddp';
+import { Random } from 'meteor/random';
 import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
-import { hiddenFrom } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { GM_CREATURE_TYPES, hiddenFrom } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { logLine, msg, withoutHiddenStats } from '/imports/api/creature/log/logMessages';
+import { inTargetView, withoutView } from '/imports/api/creature/log/logViews';
+import applyAction from '/imports/api/engine/action/functions/applyAction';
+import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
+import type { ReceivedDamage } from '/imports/api/engine/action/tasks/Task';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+
+let getActionDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getActionDiceRoller;
+if (Meteor.isServer) {
+  // require(), not import: the client runs this module too (the method's
+  // simulation), and a static import would bundle node:crypto into it
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  ({ getActionDiceRoller } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
+}
 
 /**
  * Writes what an action did: its changes to the properties, its log entry
  * (with `log` false, none: a turn event whose every line is silenced,
- * runTurnEvent), then recomputes the creatures it changed
+ * runTurnEvent), then recomputes the creatures it changed. On the server, the
+ * creatures it acted on then get their entries (writeReceivedLogs), after
+ * their own damage triggers fired
  */
 export default async function writeActionResults(action: EngineAction, { log: writeLog = true }: { log?: boolean } = {}) {
   if (!action._id) throw new Meteor.Error('type-error', 'Action does not have an _id');
@@ -45,9 +60,9 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   // non-player character, logs the damage dealt and not what it did to the
   // creature's hit points, capped by what it had left: the players read the
   // character's log (hiddenStats.ts). The creature's own log, its game
-  // master's, gets the whole entry
+  // master's, gets the whole entry (writeReceivedLogs)
   const hiddenIds = await hiddenTargets(action.creatureId, allTargetIds);
-  const shownContents = withoutHiddenStats(logContents, hiddenIds);
+  const shownContents = fitLog(withoutHiddenStats(logContents, hiddenIds).map(withoutView));
 
   // Write the log
   const log = {
@@ -57,9 +72,6 @@ export default async function writeActionResults(action: EngineAction, { log: wr
     actionId: action._id,
     date: new Date(),
   };
-  const gmLogsPromise = writeLog && Meteor.isServer && shownContents.length < logContents.length
-    ? writeHiddenTargetLogs(action, logContents, shownContents, hiddenIds)
-    : undefined;
   const logPromise = writeLog && CreatureLogs.insertAsync(log).then(() => {
     // Not in the client's simulation of the method: the server's result replaces it
     if (!Meteor.isServer) return;
@@ -73,7 +85,7 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   // in the subscription, rather than waiting for oplog tailing to catch up
   const bulkWritePromise = await bulkWrite(creaturePropUpdates, CreatureProperties, true);
 
-  await Promise.all([engineActionPromise, logPromise, bulkWritePromise, gmLogsPromise]);
+  await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
 
   // A removed buff goes with everything under it, as when it is removed from
   // the sheet, and can be restored the same way. The sequential writes above
@@ -91,37 +103,147 @@ export default async function writeActionResults(action: EngineAction, { log: wr
     await reloadCachedProperties(creatureId);
     await computeCreature(creatureId);
   });
+  await Promise.all(recomputePromises);
 
-  return Promise.all(recomputePromises);
+  // Server only: the client's simulation has none of the targets' triggers,
+  // and the server's entries replace whatever it would show
+  if (Meteor.isServer && writeLog) {
+    await writeReceivedLogs(action, logContents, hiddenIds, action._receivedDamage ?? []);
+  }
+}
+
+// The game master's creatures, whose own log is the game master's alone
+const isGmCreature = (creature: { type?: string } | undefined) => GM_CREATURE_TYPES.includes(creature?.type as string);
+
+/**
+ * The entry each creature the action acted on gets in its own log, which
+ * its readers read, and which posts to its Discord channels where the
+ * actor's entry does not (sendLogToDiscord's `besides`): "Goblin 1 → you",
+ * then what concerns it (writeReceivedLog). First, the creature's own damage
+ * triggers fire, on its behalf, for what the action did to its attributes
+ * (ReceivedDamageTask): their lines end its entry.
+ *
+ * A creature of the actor's owner gets none, its owner reads the actor's
+ * entry already, unless that entry or this one hides something: the game
+ * master's own character, whose log the party's Discord channel shows,
+ * hitting one of their monsters (`hiddenIds`, the targets whose stats the
+ * actor's entry leaves out), or hit by one; or unless its triggers had
+ * something to say
+ */
+async function writeReceivedLogs(action: EngineAction, contents: any[], hiddenIds: string[], received: ReceivedDamage[]) {
+  const actor = await getCreature(action.creatureId);
+  if (!actor) return;
+  const targetIds = uniq([
+    ...contents.flatMap(line => line.targetIds || []),
+    ...received.map(change => change.targetId),
+  ]).filter(id => id && id !== action.creatureId);
+  // Each read once: every entry reads the other targets, a fight holds 64
+  const targets = new Map<string, Acting>();
+  for (const targetId of targetIds) {
+    const target = await getCreature(targetId);
+    if (target) targets.set(targetId, target);
+  }
+  for (const targetId of targetIds) {
+    const target = targets.get(targetId);
+    if (!target) continue;
+    const changes = received.filter(change => change.targetId === targetId);
+    const triggered = changes.length ? await fireReceivedDamageTriggers(targetId, changes) : [];
+    const actorHidden = hiddenFrom(target, actor);
+    const sameTable = target.owner === actor.owner && !actorHidden && !hiddenIds.includes(targetId);
+    if (sameTable && !triggered.some(line => !line.silenced)) continue;
+    const lines = [...receivedLines(contents, actor, target, [...targets.values()]), ...triggered];
+    if (!lines.length) continue;
+    await writeReceivedLog(action, actor, target, lines);
+  }
+}
+
+// The creatures an entry is about, as read here
+type Acting = { _id: string, name?: string, type?: string, owner?: string };
+
+/**
+ * The lines a creature the action acted on reads of it:
+ * - a game master's monster or non-player character, the whole entry, as its
+ *   game master reads it in the actor's log, but the stats of the other
+ *   targets hidden from it (another owner's);
+ * - any other, the lines that concern it, as the players of a target the
+ *   actor is hidden from read them (logViews.ts): a game master's monster
+ *   acting on a player's character.
+ */
+function receivedLines(contents: any[], actor: Acting, target: Acting, targets: Acting[]): any[] {
+  const othersHidden = targets.filter(other => other._id !== target._id && hiddenFrom(target, other))
+    .map(other => other._id);
+  const actorHidden = hiddenFrom(target, actor);
+  const lines = isGmCreature(target) && !actorHidden
+    ? contents
+    : contents.filter(line => line.targetIds?.includes(target._id));
+  const shown = actorHidden
+    ? lines.map(inTargetView).filter(line => line !== undefined)
+    : lines.map(withoutView);
+  return withoutHiddenStats(shown, othersHidden);
+}
+
+async function writeReceivedLog(action: EngineAction, actor: Acting, target: Acting, lines: any[]) {
+  const heading = logLine({
+    name: msg('logs.receivedFrom', { name: actor.name || '?', target: target.name || '?' }),
+  });
+  const log = {
+    content: fitLog([heading, ...lines]),
+    creatureId: target._id,
+    creatureName: actor.name,
+    actionId: action._id,
+    received: { fromCreatureId: actor._id, ...action._id && { actionId: action._id } },
+    date: new Date(),
+  };
+  await CreatureLogs.insertAsync(log);
+  // Not where the actor's entry goes: once in a party's channel
+  postLogToDiscord(log, { besides: actor._id });
+  await trimCreatureLogs(target._id);
 }
 
 /**
- * The whole entry, in the own log of each game master's creature that the
- * actor's log leaves something out of: who acted, then every line, but those
- * of another target hidden from it, another owner's (hiddenFrom). Server
- * only: the client's simulation has nothing hidden to show
+ * A creature's own damage triggers fire, on its behalf, for what another
+ * creature's action did to its attributes (ReceivedDamageTask), as when it
+ * damages itself. Like a turn event (runTurnEvent): an action in memory, its
+ * dice from a secret of its own, nobody asked anything; what it changes is
+ * written and computed. Its lines, which the creature's received entry ends
+ * with
  */
-async function writeHiddenTargetLogs(action: EngineAction, contents: any[], shown: any[], hiddenIds: string[]) {
-  const actor = await getCreature(action.creatureId);
-  const heading = logLine({ name: msg('logs.actedBy', { name: actor?.name || '?' }) });
-  for (const targetId of hiddenIds) {
-    if (!contents.some(line => !shown.includes(line) && line.targetIds?.includes(targetId))) continue;
-    const target = await getCreature(targetId);
-    const othersHidden: string[] = [];
-    for (const otherId of hiddenIds) {
-      if (otherId !== targetId && hiddenFrom(target, await getCreature(otherId))) othersHidden.push(otherId);
-    }
-    const targetContents = withoutHiddenStats(contents, othersHidden);
-    const log = {
-      // The log keeps 32 lines at most: the heading only where it fits
-      content: targetContents.length < STORAGE_LIMITS.logContentCount ? [heading, ...targetContents] : targetContents,
-      creatureId: targetId,
-      creatureName: actor?.name,
-      actionId: action._id,
-      date: new Date(),
-    };
-    await CreatureLogs.insertAsync(log);
-    postLogToDiscord(log);
-    await trimCreatureLogs(targetId);
+async function fireReceivedDamageTriggers(targetId: string, changes: ReceivedDamage[]): Promise<any[]> {
+  const pass: EngineAction = {
+    _id: Random.id(),
+    creatureId: targetId,
+    task: {
+      subtaskFn: 'receivedDamage',
+      targetIds: [targetId],
+      params: { changes: changes.map(({ propId, operation, value }) => ({ propId, operation, value })) },
+    },
+    results: [],
+    taskCount: 0,
+  };
+  const rollDice = getActionDiceRoller({ _id: pass._id as string, seed: Random.secret() });
+  try {
+    await applyAction(pass, getAutomaticInputProvider(pass, rollDice));
+  } catch (e) {
+    // The action is written already: a trigger that fails costs its lines
+    console.error(e);
+    return [];
   }
+  const lines = pass.results.flatMap(result => result.mutations.flatMap(mutationToLogUpdates)).map(withoutView);
+  const changed = pass.results.some(result => result.mutations.some(
+    mutation => mutation.updates?.length || mutation.inserts?.length || mutation.removals?.length,
+  ));
+  if (changed) await writeActionResults(pass, { log: false });
+  return lines;
+}
+
+/**
+ * The lines of an entry, as many as a log keeps (STORAGE_LIMITS): an action
+ * with many targets can say more. The first ones, then how many more there
+ * were
+ */
+function fitLog<T>(lines: T[]): T[] {
+  const max = STORAGE_LIMITS.logContentCount;
+  if (lines.length <= max) return lines;
+  const kept = lines.slice(0, max - 1);
+  return [...kept, logLine({ value: msg('logs.linesOmitted', { count: lines.length - kept.length }) }) as T];
 }

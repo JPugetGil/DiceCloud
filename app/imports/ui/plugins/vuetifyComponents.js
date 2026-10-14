@@ -59,6 +59,8 @@ export {
   VParallax,
   VProgressCircular,
   VProgressLinear,
+  VRadio,
+  VRadioGroup,
   VResponsive,
   VRow,
   VScaleTransition,

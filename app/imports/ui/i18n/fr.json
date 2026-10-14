@@ -313,7 +313,8 @@
     "sessionResumedMessage": "Suite de la séance — {date}",
     "noBotHere": "Dans un salon texte, chaque séance a un fil que crée le bot de DiceCloud, et ce serveur DiceCloud n'en a pas. Utilisez un salon forum, où chaque séance a son propre post.",
     "botMissing": "Dans un salon texte, le bot de DiceCloud crée le fil de chaque séance, et il n'est pas sur ce serveur Discord ou ne voit pas le salon. Ajoutez DiceCloud au serveur, ou utilisez un salon forum, où chaque séance a son propre post.",
-    "botCannot": "DiceCloud n'a pas pu créer le fil de la séance ({status}). Ajoutez DiceCloud au serveur, ou donnez au rôle DiceCloud les permissions « Voir le salon » et « Créer des fils publics » dans ce salon."
+    "botCannot": "DiceCloud n'a pas pu créer le fil de la séance ({status}). Ajoutez DiceCloud au serveur, ou donnez au rôle DiceCloud les permissions « Voir le salon » et « Créer des fils publics » dans ce salon.",
+    "receivedFrom": "{name} → {target}"
   },
   "legal": {
     "termsLink": "conditions d'utilisation",
@@ -2029,7 +2030,9 @@
     "untypedDamageAmount": "**{amount}** dégâts",
     "actionAbandoned": "Action abandonnée après le jet des dés : {name}",
     "actedBy": "Action de {name}",
-    "choiceNotMade": "Choix non fait"
+    "choiceNotMade": "Choix non fait",
+    "receivedFrom": "{name} → vous",
+    "linesOmitted": "Et {count} lignes de plus"
   },
   "health": {
     "change": "{name}",
@@ -2213,5 +2216,31 @@
     "unnamed": "Personnage sans nom",
     "hitPoints": "PV {value}/{total}",
     "armorClass": "CA {ac}"
+  },
+  "targetPicker": {
+    "errors": {
+      "singleTarget": "Cette action ne prend qu'une seule cible"
+    },
+    "title": "Cibles",
+    "titleFor": "{name} : cibles",
+    "target": "Cibler…",
+    "targetCreature": "Cibler {name}",
+    "untargetCreature": "Ne plus cibler {name}",
+    "noTarget": "Sans cible",
+    "noTargetHint": "Annoncer seulement, sans rien appliquer",
+    "characters": "Personnages",
+    "monsters": "Monstres",
+    "shortcuts": "Raccourcis",
+    "allCharacters": "Tous les personnages",
+    "allMonsters": "Tous les monstres",
+    "me": "Moi",
+    "meSuffix": "(moi)",
+    "none": "Aucune",
+    "areaHint": "Une zone d'effet : cochez les créatures qui s'y trouvent",
+    "loading": "Chargement du groupe",
+    "unnamed": "Sans nom",
+    "applyTo": "Appliquer à {count} cible | Appliquer à {count} cibles",
+    "applyWithoutTarget": "Annoncer sans cible",
+    "targetCount": "{count} cible | {count} cibles"
   }
 }

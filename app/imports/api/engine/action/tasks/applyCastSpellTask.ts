@@ -5,6 +5,7 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import applyActionProperty from '../applyProperties/applyActionProperty';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applySpellProperty(
   task: CastSpellTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -66,6 +67,7 @@ export default async function applySpellProperty(
   result.appendLog({
     name: message,
     silenced: prop.silent,
+    targetView: WHOLE,
   }, targetIds);
 
   // Add the slot level to the scope

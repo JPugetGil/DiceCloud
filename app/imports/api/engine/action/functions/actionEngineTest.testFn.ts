@@ -42,6 +42,7 @@ export async function createTestCreature(creature: TestCreature) {
     name: creature.name || 'Test Creature',
     owner: creature.owner || Random.id(),
     ...creature.type && { type: creature.type },
+    ...creature.writers && { writers: creature.writers },
     dirty: true,
   } as any);
   const propsInserted = propsFromForest(creature.props, creature._id).map(prop => {
@@ -64,6 +65,8 @@ export type TestCreature = {
   owner?: string;
   // 'pc' by default; a game master's 'monster' or 'npc'
   type?: 'pc' | 'npc' | 'monster';
+  // Who else may edit it: a party's game master, once its player joined
+  writers?: string[];
   props: ForestProp[];
 }
 
@@ -123,8 +126,10 @@ export function allMutations(action: EngineAction, { withMessages = false } = {}
   return mutations;
 }
 
+// The English text alone: not the messages, nor how a target's players read
+// the line (targetView, logViews.ts), which the tests of those check
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const withoutMessages = ({ i18n, ...english }: LogContent) => english;
+const withoutMessages = ({ i18n, targetView, ...english }: LogContent) => english;
 
 /**
  * Get all the updates in all mutations in the result of an Engine Action

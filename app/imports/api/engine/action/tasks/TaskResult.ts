@@ -1,6 +1,7 @@
 import Context from '../../../../parser/types/Context';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { logLine, msg, type LogI18n } from '/imports/api/creature/log/logMessages';
+import type { TargetView } from '/imports/api/creature/log/logViews';
 
 /**
  * The result of running a task containing all the changes that need to be made to the listed
@@ -96,4 +97,7 @@ export type LogContent = {
   silenced?: boolean;
   // The line's messages, to show it in the reader's language (logMessages)
   i18n?: LogI18n;
+  // How it shows to the players of a target the acting creature is hidden
+  // from; not there without one. In memory only (logViews.ts)
+  targetView?: TargetView;
 }

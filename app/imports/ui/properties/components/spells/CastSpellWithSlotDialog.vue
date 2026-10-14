@@ -147,6 +147,48 @@
       </template>
     </split-list-layout>
     <template #actions>
+      <!-- Its targets (phase 2.1): preselected during a fight, chosen with "Target…" otherwise -->
+      <v-menu
+        v-if="spellTargeted"
+        v-model="targetMenu"
+        :close-on-content-click="false"
+        location="top"
+      >
+        <template #activator="{ props: menuProps }">
+          <v-btn
+            v-bind="menuProps"
+            variant="text"
+            prepend-icon="mdi-target"
+            class="text-none"
+            data-id="cast-spell-targets"
+          >
+            {{ targetLabel }}
+          </v-btn>
+        </template>
+        <v-card
+          max-width="380"
+          data-id="cast-spell-target-picker"
+        >
+          <v-card-text>
+            <div
+              v-if="!targetsReady"
+              class="d-flex justify-center pa-2"
+            >
+              <v-progress-circular
+                indeterminate
+                :aria-label="$t('targetPicker.loading')"
+              />
+            </div>
+            <target-picker
+              v-else
+              v-model="targetIds"
+              :candidates="targetCandidateList"
+              :actor-id="creatureId"
+              :single="selectedSpell?.target !== 'multipleTargets'"
+            />
+          </v-card-text>
+        </v-card>
+      </v-menu>
       <v-spacer />
       <v-btn
         variant="text"
@@ -186,8 +228,16 @@ import { find } from 'lodash';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
+import TargetPicker from '/imports/ui/creature/actions/targets/TargetPicker.vue';
+import {
+  isFighting, partiesOf, targetCandidates, withPartyBoards,
+} from '/imports/ui/creature/actions/targets/targetCandidates';
+import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
+const targetStore = useTargetSelectionStore();
+const { t } = useI18n();
 
 const slotFilter = {
   type: 'attribute',
@@ -346,6 +396,44 @@ onMounted(() => {
   }
 });
 
+// The spell's targets, as the target picker gives them (phase 2.1): during a
+// fight its last targets, or the board's pick; none outside a fight, unless
+// chosen. The parties' boards hold the creatures it may target: those
+// fighting, which the sheet follows too, and all of them once the menu opens
+const spellTargeted = computed(() => !!selectedSpell.value && selectedSpell.value.target !== 'self');
+const targetMenu = ref(false);
+const lookedAround = ref(false);
+watch(targetMenu, open => { if (open) lookedAround.value = true; });
+const fighting = autorun(() => isFighting(props.creatureId)).result;
+const targetParties = autorun(() => {
+  if (!props.creatureId) return [];
+  Meteor.subscribe('characterParties', props.creatureId);
+  return partiesOf(props.creatureId, { fighting: !lookedAround.value });
+}).result;
+const targetsReady = autorun(() => (targetParties.value || [])
+  .map(party => Meteor.subscribe('partyBoard', party._id))
+  .every(handle => handle.ready())).result;
+const targetCandidateList = autorun(() => targetCandidates(props.creatureId, targetParties.value || [])).result;
+const targetIds = ref([]);
+watch([selectedSpellId, targetsReady], ([spellId, ready]) => {
+  if (!ready) return;
+  targetIds.value = fighting.value ? targetStore.preselection({
+    propId: spellId,
+    folderIds: (targetParties.value || []).map(party => party._id),
+    candidateIds: (targetCandidateList.value || []).map(creature => creature._id),
+    single: selectedSpell.value?.target !== 'multipleTargets',
+  }) : [];
+}, { immediate: true });
+const targetLabel = computed(() => {
+  const ids = targetIds.value;
+  if (!ids.length) return fighting.value ? t('targetPicker.noTarget') : t('targetPicker.target');
+  if (ids.length === 1) {
+    return (targetCandidateList.value || []).find(creature => creature._id === ids[0])?.name
+      || t('targetPicker.targetCount', { count: 1 }, 1);
+  }
+  return t('targetPicker.targetCount', { count: ids.length }, ids.length);
+});
+
 function clearBooleanFilters() {
   for (let key in booleanFilters.value) {
     booleanFilters.value[key].enabled = false;
@@ -396,12 +484,14 @@ async function cast() {
   if (!spell || spell.type !== 'spell') {
     return;
   }
-  await doAction({
+  const spellTargetIds = spell.target === 'self' ? [] : [...targetIds.value];
+  if (spell.target !== 'self') targetStore.remember(spellId, spellTargetIds);
+  await withPartyBoards(spellTargetIds.length ? targetParties.value || [] : [], () => doAction({
     creatureId: props.creatureId,
     task: {
       subtaskFn: 'castSpell',
       prop: spell,
-      targetIds: [],
+      targetIds: spellTargetIds,
       params: {
         slotId,
         ritual,
@@ -410,7 +500,7 @@ async function cast() {
     },
     elementId: 'cast-spell-dialog-btn',
     replaceDialog: true,
-  }).catch(error => {
+  })).catch(error => {
     snackbar({ text: error.reason || error.message || error.toString() });
     console.error(error);
   });

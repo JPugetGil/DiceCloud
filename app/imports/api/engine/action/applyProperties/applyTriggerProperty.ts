@@ -6,6 +6,7 @@ import recalculateInlineCalculations from '/imports/api/engine/action/functions/
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { Meteor } from 'meteor/meteor';
+import { nameOnly } from '/imports/api/creature/log/logViews';
 
 export default async function applyTriggerProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput
@@ -24,9 +25,11 @@ export default async function applyTriggerProperty(
     if (!prop.condition.value) return;
   }
 
+  // A target's players read its name: its description is the actor's
   const logContent: LogContent & { silenced: boolean | undefined } = {
     name: getPropertyTitle(prop),
     silenced: prop.silent,
+    targetView: nameOnly({ name: getPropertyTitle(prop) }),
   }
 
   // Add the trigger description to the log

@@ -5,6 +5,7 @@ import recalculateInlineCalculations from '/imports/api/engine/action/functions/
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
 import { Meteor } from 'meteor/meteor';
+import { nameOnly } from '/imports/api/creature/log/logViews';
 
 export default async function applyNoteProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -18,7 +19,12 @@ export default async function applyNoteProperty(
   const logContent: LogContent & { silenced: boolean | undefined; } = {
     silenced: prop.silent,
   };
-  if (prop.name) logContent.name = prop.name;
+  if (prop.name) {
+    logContent.name = prop.name;
+    // A target's players read its name: its text is the actor's, often a
+    // stat block's, with its numbers ("DC 13, 7 (2d6) poison damage")
+    logContent.targetView = nameOnly({ name: prop.name });
+  }
   if (prop.summary?.text) {
     await recalculateInlineCalculations(prop.summary, action, 'reduce', inputProvider);
     logContent.value = prop.summary.value;

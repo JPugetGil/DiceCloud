@@ -23,6 +23,7 @@ import { applyAfterTasksSkipChildren } from '/imports/api/engine/action/function
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyBuffProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -96,10 +97,13 @@ async function logBuff(prop, targetIds, action, userInput, result) {
     await recalculateInlineCalculations(prop.description, action, 'reduce', userInput, extraScope);
     logValue = prop.description?.value;
   }
+  // Its target's players read it whole: the buff lands on their sheet, its
+  // description's numbers with it
   result.appendLog({
     name: getPropertyTitle(prop),
     ...logValue && { value: logValue },
     silenced: prop.silent,
+    targetView: WHOLE,
   }, targetIds);
 }
 

@@ -15,7 +15,7 @@
           :color="model.color || 'primary'"
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission"
-          @click.stop="handleDoAction"
+          @click.stop="handleDoAction('auto')"
         >
           <template v-if="rollBonus && !rollBonusTooLong">
             {{ rollBonus }}
@@ -45,6 +45,25 @@
           </div>
         </div>
       </div>
+      <!-- Its targets chosen first, outside a fight too (the picker opens by itself during one) -->
+      <v-btn
+        v-if="targeted"
+        variant="text"
+        icon
+        size="small"
+        class="flex-grow-0"
+        :disabled="model.insufficientResources || !context.editPermission"
+        :aria-label="$t('targetPicker.target')"
+        :data-id="`${model._id}-target-button`"
+        @click.stop="handleDoAction('always')"
+      >
+        <v-icon>mdi-target</v-icon>
+        <v-tooltip
+          activator="parent"
+          location="top"
+          :text="$t('targetPicker.target')"
+        />
+      </v-btn>
     </div>
     <div class="px-3 pb-3">
       <template
@@ -143,6 +162,9 @@ const propertyName = computed(() => {
   return getPropertyName(props.model.type);
 });
 
+// An action on others: one target, several (multipleTargets), not itself alone
+const targeted = computed(() => props.model.target !== 'self');
+
 const cardClasses = computed(() => {
   return {
     'text-disabled': props.model.insufficientResources,
@@ -181,13 +203,15 @@ const children = autorun(() => {
 }).result;
 
 
-async function handleDoAction() {
+// 'auto': the target picker opens by itself during a fight; 'always': "Target…"
+async function handleDoAction(chooseTargets) {
   doActionLoading.value = true;
   await doAction({
     propId: props.model._id,
     creatureId: props.model.root.id,
-    elementId: `${props.model._id}-do-action-button`,
+    elementId: chooseTargets === 'always' ? `${props.model._id}-target-button` : `${props.model._id}-do-action-button`,
     targetIds: [],
+    chooseTargets,
   }).catch((e) => {
     console.error(e);
   }).finally(() => {

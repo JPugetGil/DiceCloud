@@ -177,6 +177,7 @@ import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useI18n } from 'vue-i18n';
 import useBuildProgress from '/imports/ui/composables/useBuildProgress';
+import useCharacterParties from '/imports/ui/composables/useCharacterParties';
 
 const { t } = useI18n();
 
@@ -198,6 +199,9 @@ const creature = autorun(() => Creatures.findOne(props.creatureId, {
 })).result;
 
 const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
+
+// Its parties, for the target picker of its actions
+useCharacterParties(() => props.creatureId);
 
 // The phone's navigation bar: four tabs, and More for the rest
 const TABS = [

@@ -128,8 +128,11 @@ export function translateLogLine<T extends { name?: string, value?: string, i18n
 
 // The lines that change a creature's attribute: their amount is capped by
 // what it has left ("−7 Hit Points" on a goblin with 7), or they give its
-// value ("Hit Points set from 7 to 0")
-const ATTRIBUTE_CHANGE_KEYS = ['logs.attributeDamaged', 'logs.attributeRestored', 'logs.attributeSet'];
+// value ("Hit Points set from 7 to 0"); and the reminder of a creature that
+// concentrates, which says it does (dealDamage)
+const ATTRIBUTE_CHANGE_KEYS = [
+  'logs.attributeDamaged', 'logs.attributeRestored', 'logs.attributeSet', 'logs.concentrationCheck',
+];
 
 // The message keys a line is made of: its name's, its value's parts'
 function messageKeys(line: { i18n?: LogI18n }): string[] {

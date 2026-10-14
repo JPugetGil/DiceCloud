@@ -60,6 +60,22 @@ let CreatureLogSchema = new SimpleSchema({
     optional: true,
     max: STORAGE_LIMITS.name,
   },
+  // An entry about what another creature's action did to this one, in its
+  // own log: who acted, and the action (writeActionResults). The phases to
+  // come add what undoes it
+  received: {
+    type: Object,
+    optional: true,
+  },
+  'received.fromCreatureId': {
+    type: String,
+    max: 32,
+  },
+  'received.actionId': {
+    type: String,
+    max: 32,
+    optional: true,
+  },
 });
 
 CreatureLogs.attachSchema(CreatureLogSchema);
@@ -87,9 +103,10 @@ export async function trimCreatureLogs(creatureId) {
  * one (server/discordWebhooks.ts). On the server only, and without waiting:
  * a method's simulation posts nothing, and a log never waits on Discord.
  * `reroll`: the check or saving throw it rolled, which Discord's buttons may
- * roll again (D7)
+ * roll again (D7). `besides`: the creature whose own entry tells the same,
+ * whose channels this one leaves alone (a received entry, writeActionResults)
  * @param {any} log
- * @param {{ reroll?: { skillVariableName?: string, abilityVariableName?: string } }} [extras]
+ * @param {{ reroll?: { skillVariableName?: string, abilityVariableName?: string }, besides?: string }} [extras]
  */
 export function postLogToDiscord(log, extras) {
   if (Meteor.isServer) sendLogToDiscord(log, extras);

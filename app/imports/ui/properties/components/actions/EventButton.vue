@@ -55,6 +55,7 @@ async function doAction() {
     creatureId: props.model.root.id,
     elementId: `event-btn-${props.model._id}`,
     targetIds: [],
+    chooseTargets: 'auto',
   }).catch(error => {
     snackbar({ text: error.reason || error.message || error.toString() });
     console.error(error);

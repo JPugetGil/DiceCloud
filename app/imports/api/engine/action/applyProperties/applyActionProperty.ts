@@ -16,6 +16,7 @@ import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { Meteor } from 'meteor/meteor';
 import { logLine, msg, withAdvantage } from '/imports/api/creature/log/logMessages';
+import { nameAndTotal, nameOnly } from '/imports/api/creature/log/logViews';
 
 export default async function applyActionProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -41,10 +42,14 @@ export default async function applyActionProperty(
   if (prop.summary?.text) {
     await recalculateInlineCalculations(prop.summary, action, 'reduce', userInput);
   }
+  // A target the actor is hidden from reads its name: its summary is often
+  // its stat block's, "+4 to hit, 5 (1d6 + 2) slashing damage" (logViews.ts)
+  const title = getPropertyTitle(prop);
   result.appendLog({
-    name: getPropertyTitle(prop),
+    name: title,
     ...prop.summary && { value: prop.summary.value },
     silenced: prop.silent,
+    targetView: nameOnly({ name: title }),
   }, targetIds);
 
   // Check Uses
@@ -134,12 +139,14 @@ async function applyAttackToTarget(
       criticalMiss ? 'logs.criticalMiss' :
         result >= targetArmor ? 'logs.hit' : 'logs.miss');
 
-    contents.push(logLine({
+    const line = logLine({
       name: withAdvantage(name, advantage),
       value: `${resultPrefix}\n**${result}**`,
       inline: true,
       ...prop.silent && { silenced: true },
-    }));
+    });
+    // The target's players read the result, not the roll and its bonus
+    contents.push({ ...line, targetView: nameAndTotal(line, result) });
 
     if (criticalMiss || result < targetArmor) {
       taskResult.pushScope['~attackMiss'] = { value: true };
@@ -152,12 +159,14 @@ async function applyAttackToTarget(
       value: msg('logs.noArmor'),
       inline: true,
       ...prop.silent && { silenced: true },
-    }), logLine({
+    }));
+    const line = logLine({
       name: msg(criticalHit ? 'logs.criticalHit' : criticalMiss ? 'logs.criticalMiss' : 'logs.toHit'),
       value: `${resultPrefix}\n**${result}**`,
       inline: true,
       ...prop.silent && { silenced: true },
-    }));
+    });
+    contents.push({ ...line, targetView: nameAndTotal(line, result) });
   }
   if (contents.length) {
     taskResult.mutations.push({

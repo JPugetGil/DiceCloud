@@ -3,22 +3,21 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import { DealDamageTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { applyDamageMultipliers, dealDamage } from '/imports/api/engine/action/applyProperties/applyDamageProperty';
-import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import { getVariables } from '/imports/api/engine/loadCreatures';
 import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 import { Meteor } from 'meteor/meteor';
 
-// The DC of the Constitution save that keeps a creature concentrating
-export const concentrationDc = (damage: number) => Math.max(10, Math.floor(damage / 2));
+// Where it was first: dealDamage now reminds any creature it damages
+export { concentrationDc } from '/imports/api/engine/action/applyProperties/applyDamageProperty';
 
 /**
  * Damage or healing typed in by hand (the health bar's Damage and Healing
  * buttons), dealt the way a damage property deals it: through the creature's
  * health bars in their damage order, temporary hit points first, running
  * their damage triggers. A creature that concentrates (a `concentration`
- * toggle or constant that is on) is reminded of its saving throw.
- * Its immunities, resistances and vulnerabilities to the damage's type
- * apply, as they do to a damage property's.
+ * toggle or constant that is on) is reminded of its saving throw
+ * (dealDamage). Its immunities, resistances and vulnerabilities to the
+ * damage's type apply, as they do to a damage property's.
  */
 export default async function applyDealDamageTask(
   task: DealDamageTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -42,40 +41,17 @@ export default async function applyDealDamageTask(
   if (healing) amountMessage = msg('logs.healingAmount', { amount });
   else if (damageType) amountMessage = msg('logs.damageAmount', { amount, type: damageTypeMessage(damageType) });
   else amountMessage = msg('logs.untypedDamageAmount', { amount });
-  result.appendLog(logLine({
-    name: msg(healing ? 'logs.healing' : 'logs.damage'),
-    value: [amountMessage, ...logValue],
-    inline: true,
-    silenced: task.silent,
-  }), [targetId]);
+  // Typed in by whoever deals it: no roll to hide from the target's players
+  result.appendLog({
+    ...logLine({
+      name: msg(healing ? 'logs.healing' : 'logs.damage'),
+      value: [amountMessage, ...logValue],
+      inline: true,
+      silenced: task.silent,
+    }),
+    targetView: WHOLE,
+  }, [targetId]);
 
-  // dealDamage only reads `healing` from the type
-  await dealDamage(action, { damageType }, result, inputProvider, targetId, damageType || '', amount);
-
-  if (!healing && amount > 0) {
-    if (await isConcentrating(targetId)) {
-      // After the health bars' lines
-      const reminder = new TaskResult(task.targetIds);
-      action.results.push(reminder);
-      reminder.appendLog(logLine({
-        name: msg('logs.concentration'),
-        value: msg('logs.concentrationCheck', { dc: concentrationDc(amount) }),
-        inline: true,
-        silenced: task.silent,
-      }), [targetId]);
-    }
-  }
-}
-
-/**
- * Whether the creature concentrates: its `concentration` variable, a toggle
- * that is on (the libraries' "Concentration" checkbox) or a true constant
- */
-async function isConcentrating(creatureId: string) {
-  const scope = await getVariables(creatureId);
-  const variable = await getFromScope('concentration', scope);
-  if (variable?.type === 'toggle') {
-    return !variable.inactive && !!(variable.enabled || (!variable.disabled && variable.condition?.value));
-  }
-  return !!await getConstantValueFromScope('concentration', scope);
+  // dealDamage only reads `healing` from the type, and whether it is silent
+  await dealDamage(action, { damageType, silent: task.silent }, result, inputProvider, targetId, damageType || '', amount);
 }

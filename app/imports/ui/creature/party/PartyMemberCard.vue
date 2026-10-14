@@ -32,6 +32,25 @@
         {{ subtitle }}
       </v-card-subtitle>
       <template #append>
+        <!-- Preselected in the target picker of the next actions (Q1) -->
+        <v-btn
+          v-if="canTarget"
+          variant="text"
+          icon
+          size="small"
+          :color="targeted ? 'primary' : undefined"
+          :aria-pressed="targeted ? 'true' : 'false'"
+          :aria-label="targeted ? $t('targetPicker.untargetCreature', { name: creature.name }) : $t('targetPicker.targetCreature', { name: creature.name })"
+          :data-id="`party-target-${creature._id}`"
+          @click="targetStore.toggleBoardTarget(folderId, creature._id)"
+        >
+          <v-icon>{{ targeted ? 'mdi-target-account' : 'mdi-target' }}</v-icon>
+          <v-tooltip
+            activator="parent"
+            location="top"
+            :text="targeted ? $t('targetPicker.untargetCreature', { name: creature.name }) : $t('targetPicker.targetCreature', { name: creature.name })"
+          />
+        </v-btn>
         <!-- A monster's lore, from its bestiary entry: the game master's -->
         <v-menu
           v-if="lore"
@@ -200,6 +219,7 @@ import removeCreature from '/imports/api/creature/creatures/methods/removeCreatu
 import { monsterTags } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import userColorProps from '/imports/ui/utility/userColor';
+import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
 
 /**
  * One character on a party board: who they are, the stats a table needs at
@@ -217,6 +237,11 @@ const props = defineProps({
   },
   // Their turn in the initiative tracker
   hasTurn: Boolean,
+  // The party's folder, whose "Target" pick this card sets
+  folderId: {
+    type: String,
+    default: undefined,
+  },
 });
 
 const { t } = useI18n();
@@ -237,6 +262,12 @@ watch(() => props.hasTurn, hasTurn => {
 });
 
 const canEdit = autorun(() => hasEditPermission(props.creature, Meteor.user())).result;
+
+// "Target": whom the user may target, those they may edit for now (phase 2.1,
+// targetCandidates)
+const targetStore = useTargetSelectionStore();
+const canTarget = computed(() => !!props.folderId && canEdit.value);
+const targeted = computed(() => targetStore.boardTargets(props.folderId).includes(props.creature._id));
 
 // A player sees the other players' characters on the board, not their sheets
 const userId = autorun(() => Meteor.userId()).result;

@@ -8,6 +8,7 @@ import { applyDefaultAfterPropTasks, applyTaskToEachTarget } from '/imports/api/
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyBuffRemoverProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -21,6 +22,7 @@ export default async function applyBuffRemoverProperty(
     result.appendLog({
       name: getPropertyTitle(prop),
       silenced: prop.silent,
+      targetView: WHOLE,
     }, task.targetIds)
   }
 
@@ -83,10 +85,12 @@ function removeBuff(buff: any, prop, result: TaskResult) {
   result.mutations.push({
     targetIds: result.targetIds,
     removals: [{ propId: buff._id }],
+    // A buff of the target's: its players read which
     contents: [{
       name: 'Removed', i18n: { name: { key: 'logs.removed' } },
       value: `${buff.name || 'Buff'}`,
       ...prop.silent && { silenced: true },
+      targetView: WHOLE,
     }],
   });
 }

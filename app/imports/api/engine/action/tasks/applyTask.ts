@@ -1,7 +1,7 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import Task, { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask } from './Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
-import applyDamagePropTask from '/imports/api/engine/action/tasks/applyDamagePropTask';
+import applyDamagePropTask, { applyReceivedDamageTask } from '/imports/api/engine/action/tasks/applyDamagePropTask';
 import applyItemAsAmmoTask from '/imports/api/engine/action/tasks/applyItemAsAmmoTask';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyProperties from '/imports/api/engine/action/applyProperties';
@@ -58,6 +58,8 @@ export default async function applyTask(
         return await applyDealDamageTask(task, action, result, inputProvider);
       case 'turnEvent':
         return await applyTurnEventTask(task, action, result, inputProvider);
+      case 'receivedDamage':
+        return await applyReceivedDamageTask(task, action, result, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }

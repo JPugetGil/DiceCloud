@@ -9,6 +9,7 @@ import { ItemAsAmmoTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getPropertyChildren } from '/imports/api/engine/loadCreatures';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: EngineAction, result: TaskResult, userInput): Promise<void> {
   const prop = task.prop;
@@ -52,6 +53,7 @@ export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: 
         name: getPropertyTitle(item) || 'Ammo',
         inline: false,
         ...prop?.silent && { silenced: true },
+        targetView: WHOLE,
       }]
     },
   });

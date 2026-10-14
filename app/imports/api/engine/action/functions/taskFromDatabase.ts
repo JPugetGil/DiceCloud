@@ -4,6 +4,7 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import { hasAncestorRelationship } from '/imports/api/parenting/parentingFunctions';
 import { MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
 import type Task from '/imports/api/engine/action/tasks/Task';
+import { englishMessage } from '/imports/api/creature/log/logMessages';
 
 // The creatures a task may target: as many as a fight holds. The engine
 // applies the task to each, and recomputes each, so a list without a bound
@@ -48,8 +49,11 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
     silent: maybe(Boolean),
   }));
   switch (task.subtaskFn) {
-    case undefined:
-      return { ...task, prop: await propertyOf(creatureId, task.prop) };
+    case undefined: {
+      const prop = await propertyOf(creatureId, task.prop);
+      assertTargetCount(prop, task.targetIds);
+      return { ...task, prop };
+    }
     case 'castSpell': {
       check(task.params, {
         slotId: OptionalString,
@@ -60,6 +64,7 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
       if (prop.type !== 'spell') {
         throw new Meteor.Error('validation-error', 'Only a spell can be cast');
       }
+      assertTargetCount(prop, task.targetIds);
       return { ...task, prop };
     }
     case 'consumeItemAsAmmo': {
@@ -113,12 +118,27 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
     case 'reset':
       check(task.eventName, String);
       return task;
-    // Never a client's: the server alone makes it, for the creatures of an
-    // initiative tracker whose turn starts or ends (runTurnEvent)
+    // Never a client's: the server alone makes them, for the creatures of an
+    // initiative tracker whose turn starts or ends (runTurnEvent), and for
+    // the creatures an action changed, whose damage triggers then fire
+    // (writeActionResults)
     case 'turnEvent':
+    case 'receivedDamage':
     default:
       throw new Meteor.Error('validation-error', 'Unknown task');
   }
+}
+
+/**
+ * An action or a spell for a single target takes one at most: the target
+ * picker offers one (TargetPicker.vue), and the engine would apply it to all
+ * it is given. In English, and in the reader's language through its details
+ */
+function assertTargetCount(prop: { target?: string }, targetIds: string[]) {
+  if (prop.target !== 'singleTarget' || targetIds.length <= 1) return;
+  const key = 'targetPicker.errors.singleTarget';
+  // any: Meteor's types say details are a string; DDP sends any EJSON value
+  throw new Meteor.Error('too-many-targets', englishMessage(key), { i18n: { key } } as any);
 }
 
 /**

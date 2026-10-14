@@ -3,11 +3,10 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
 import { getActionDiceRoller } from '/imports/api/engine/action/functions/userInput/server/actionDice';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
-import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';
 
 /*
@@ -68,29 +67,6 @@ export async function hasTurnEventWork(
   );
 }
 
-/** The input of a turn event, which nobody gives: see above */
-function automaticInput(action: EngineAction, rollDice: InputProvider['rollDice']): InputProvider {
-  return {
-    rollDice,
-    async choose(choices) {
-      const result = new TaskResult([action.creatureId]);
-      result.appendLog(logLine({
-        name: msg('logs.choiceNotMade'),
-        value: choices.map(choice => getPropertyTitle(choice as any)).join(', '),
-        silenced: false,
-      }), [action.creatureId]);
-      action.results.push(result);
-      return [];
-    },
-    async advantage(suggested) {
-      return suggested;
-    },
-    async check(suggested) {
-      return suggested;
-    },
-  };
-}
-
 const changes = (action: EngineAction) => action.results.some(result => result.mutations.some(
   mutation => mutation.updates?.length || mutation.inserts?.length || mutation.removals?.length,
 ));
@@ -125,7 +101,7 @@ export async function applyTurnEvent(
     taskCount: 0,
   };
   const rollDice = getActionDiceRoller({ _id: action._id, seed: Random.secret() });
-  await applyAction(action, automaticInput(action, rollDice));
+  await applyAction(action, getAutomaticInputProvider(action, rollDice));
   const shown = shownLines(action);
   if (!shown && !changes(action)) return 'unchanged';
   if (shown) {

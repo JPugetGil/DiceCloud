@@ -7,6 +7,7 @@ import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';
 import { getSingleProperty } from '../../../api/engine/loadCreatures';
+import { targetPicking } from '/imports/ui/creature/actions/targets/targetCandidates';
 import { Meteor } from 'meteor/meteor';
 
 type BaseDoActionParams = {
@@ -14,6 +15,10 @@ type BaseDoActionParams = {
   elementId: string;
   callback?: (action: EngineAction) => void;
   replaceDialog?: boolean;
+  // Whether the target picker opens first, for an action on targets
+  // (targetPicking): by itself during a fight ('auto'), or in a fight or out
+  // of one ('always': "Target…")
+  chooseTargets?: 'auto' | 'always';
 }
 
 type DoTaskParams = BaseDoActionParams & {
@@ -36,9 +41,12 @@ type DoActionParams = BaseDoActionParams & {
  *
  * The simulation's dice come from the server, one roll at a time (drawDice), from a seed that the
  * client never sees; the server replays them from that seed when it applies the action.
+ *
+ * With `chooseTargets`, an action on targets opens the target picker first (TargetPickerDialog),
+ * which then calls this again with the targets chosen.
  */
 export default async function doAction({
-  propId, creatureId, elementId, task, targetIds, callback, replaceDialog
+  propId, creatureId, elementId, task, targetIds, callback, replaceDialog, chooseTargets,
 }: DoActionParams | DoTaskParams): Promise<any | void> {
   const dialogStackStore = useDialogStackStore();
   if (!task) {
@@ -46,6 +54,8 @@ export default async function doAction({
     if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
     const prop = await getSingleProperty(creatureId, propId);
     if (!prop) throw new Meteor.Error('not-found', 'Property not found');
+    const picking = targetPicking(creatureId, prop, chooseTargets);
+    if (picking) return pickTargets({ creatureId, propId, elementId, callback, ...picking });
     task = {
       prop,
       targetIds,
@@ -100,6 +110,27 @@ export default async function doAction({
       });
     });
   }
+}
+
+/**
+ * Opens the target picker, which applies the action once the targets are
+ * chosen; resolves when it closes, whether it applied it or not
+ */
+function pickTargets({ creatureId, propId, elementId, callback, single, fighting, preselect }: {
+  creatureId: string, propId: string, elementId: string, callback?: (action: EngineAction) => void,
+  single: boolean, fighting: boolean, preselect: boolean,
+}) {
+  return new Promise<void>(resolve => {
+    useDialogStackStore().pushDialogStack({
+      component: 'target-picker-dialog',
+      elementId,
+      data: { creatureId, propId, single, fighting, preselect },
+      callback(action: EngineAction) {
+        resolve();
+        return callback?.(action);
+      },
+    });
+  });
 }
 
 const callActionMethod = (action: EngineAction) => {

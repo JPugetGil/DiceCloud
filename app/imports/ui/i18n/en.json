@@ -313,7 +313,8 @@
     "sessionResumedMessage": "The session goes on — {date}",
     "noBotHere": "In a text channel, each session gets a thread DiceCloud's bot creates, and this DiceCloud server has no bot. Use a forum channel, where each session gets a post of its own.",
     "botMissing": "In a text channel, DiceCloud's bot creates each session's thread, and it is not on this Discord server or cannot see the channel. Add DiceCloud to the server, or use a forum channel, where each session gets a post of its own.",
-    "botCannot": "DiceCloud could not create the session's thread ({status}). Add DiceCloud to the server, or give the DiceCloud role the “View Channel” and “Create Public Threads” permissions in this channel."
+    "botCannot": "DiceCloud could not create the session's thread ({status}). Add DiceCloud to the server, or give the DiceCloud role the “View Channel” and “Create Public Threads” permissions in this channel.",
+    "receivedFrom": "{name} → {target}"
   },
   "legal": {
     "termsLink": "terms of use",
@@ -2029,7 +2030,9 @@
     "untypedDamageAmount": "**{amount}** damage",
     "actionAbandoned": "Action abandoned after its dice were rolled: {name}",
     "actedBy": "{name}'s action",
-    "choiceNotMade": "Choice not made"
+    "choiceNotMade": "Choice not made",
+    "receivedFrom": "{name} → you",
+    "linesOmitted": "And {count} more lines"
   },
   "health": {
     "change": "{name}",
@@ -2213,5 +2216,31 @@
     "unnamed": "Unnamed character",
     "hitPoints": "HP {value}/{total}",
     "armorClass": "AC {ac}"
+  },
+  "targetPicker": {
+    "errors": {
+      "singleTarget": "This action takes a single target"
+    },
+    "title": "Targets",
+    "titleFor": "{name}: targets",
+    "target": "Target…",
+    "targetCreature": "Target {name}",
+    "untargetCreature": "Stop targeting {name}",
+    "noTarget": "No target",
+    "noTargetHint": "Announce it only, applying nothing",
+    "characters": "Characters",
+    "monsters": "Monsters",
+    "shortcuts": "Shortcuts",
+    "allCharacters": "All characters",
+    "allMonsters": "All monsters",
+    "me": "Me",
+    "meSuffix": "(me)",
+    "none": "None",
+    "areaHint": "An area: tick the creatures in it",
+    "loading": "Loading the party",
+    "unnamed": "Unnamed",
+    "applyTo": "Apply to {count} target | Apply to {count} targets",
+    "applyWithoutTarget": "Announce without a target",
+    "targetCount": "{count} target | {count} targets"
   }
 }

@@ -167,6 +167,8 @@ describe('Apply Damage Properties', function () {
       targetCreatureId, targetCreature2Id
     ]);
     assert.exists(action);
+    // A damage line for each target, with what it took: the dice, rolled
+    // once, on the first's; the second took nothing more to say
     assert.deepEqual(allMutations(action), [{
       contents: [
         {
@@ -175,10 +177,7 @@ describe('Apply Damage Properties', function () {
           value: '2d6 [3, 4] + 7',
         }
       ],
-      targetIds: [
-        targetCreatureId,
-        targetCreature2Id,
-      ],
+      targetIds: [targetCreatureId],
     }, {
       contents: [
         {

@@ -629,15 +629,33 @@ async function landingChannel(request: Requester, channel: Channel): Promise<str
   return channel.channelId;
 }
 
-async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender, repliedIn?: string, reroll?: RolledCheck) {
-  const creature = await Creatures.findOneAsync(creatureId, {
-    fields: {
-      name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, type: 1, 'settings.discordWebhook': 1, discordChannel: 1,
-      discordWebhookChannelId: 1,
-    },
-  }) as LogCreature | undefined;
+// What the channels of a creature's log read of it
+const LOG_CREATURE_FIELDS = {
+  name: 1, color: 1, picture: 1, avatarPicture: 1, owner: 1, type: 1, 'settings.discordWebhook': 1, discordChannel: 1,
+  discordWebhookChannelId: 1,
+};
+
+/**
+ * Where a creature's log goes, but where the log of `besides` goes too: an
+ * entry that tells what another's action did to the creature posts where
+ * that action's own entry does not, once in a party's channel (2.1). A game
+ * master's monster posts in none of its party's, its target's entry does
+ */
+async function channelsBesides(channels: Channel[], besides?: string): Promise<Channel[]> {
+  if (!besides) return channels;
+  const other = await Creatures.findOneAsync(besides, { fields: LOG_CREATURE_FIELDS }) as LogCreature | undefined;
+  if (!other) return channels;
+  const theirs = await logChannels(other);
+  return channels.filter(channel => !theirs.some(their => sameDestination(destinationOf(their), destinationOf(channel))));
+}
+
+async function queueLog(
+  creatureId: string, log: LogEntry, target: WebhookSender, repliedIn?: string, reroll?: RolledCheck, besides?: string,
+) {
+  const creature = await Creatures.findOneAsync(creatureId, { fields: LOG_CREATURE_FIELDS }) as LogCreature | undefined;
   if (!creature) return;
-  const channels = (await logChannels(creature)).filter(channel => !target.isGone(channel.webhook));
+  const channels = (await channelsBesides(await logChannels(creature), besides))
+    .filter(channel => !target.isGone(channel.webhook));
   if (!channels.length) return;
   const hiddenIds = await hiddenTargets(creature, log);
   const sheetUrl = Meteor.absoluteUrl(`character/${creature._id}`);
@@ -674,9 +692,10 @@ async function queueLog(creatureId: string, log: LogEntry, target: WebhookSender
 /**
  * Posts a log entry to its character's Discord webhooks, if it has some.
  * Returns at once: a log never waits on Discord. Once per entry, after it is
- * written; with the check or saving throw it rolled, its buttons (D7)
+ * written; with the check or saving throw it rolled, its buttons (D7); not
+ * where the log of `besides` goes (channelsBesides)
  */
-export function sendLogToDiscord(log: LogEntry, { reroll }: { reroll?: RolledCheck } = {}) {
+export function sendLogToDiscord(log: LogEntry, { reroll, besides }: { reroll?: RolledCheck, besides?: string } = {}) {
   // Written by a Discord command (D6): its reply shows it in that channel
   const origin = interactionOrigin();
   origin?.logs.push(log);
@@ -685,7 +704,7 @@ export function sendLogToDiscord(log: LogEntry, { reroll }: { reroll?: RolledChe
   if (!target || !creatureId) return;
   const repliedIn = origin?.channelId;
   const next = (intake.get(creatureId) ?? Promise.resolve())
-    .then(() => queueLog(creatureId, log, target, repliedIn, reroll))
+    .then(() => queueLog(creatureId, log, target, repliedIn, reroll, besides))
     .catch(e => console.error(e));
   intake.set(creatureId, next);
   next.finally(() => {

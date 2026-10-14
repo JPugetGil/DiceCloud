@@ -80,6 +80,7 @@
               >
                 <party-member-card
                   :creature="creature"
+                  :folder-id="folderId"
                   :has-turn="creature._id === activeCreatureId"
                 />
               </v-col>
@@ -150,6 +151,7 @@
                 >
                   <party-member-card
                     :creature="creature"
+                    :folder-id="folderId"
                     :has-turn="creature._id === activeCreatureId"
                   />
                 </v-col>

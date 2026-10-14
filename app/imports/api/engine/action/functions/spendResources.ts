@@ -10,10 +10,11 @@ import { hasAncestorRelationship } from '/imports/api/parenting/parentingFunctio
 export default async function spendResources(
   action: EngineAction, prop, targetIds: string[], result: TaskResult, userInput
 ) {
-  // Use uses
+  // Use uses: the acting creature's, whom the line is about. Not the
+  // targets', whose log would tell their players a monster's uses left
   if (prop.usesLeft) {
     result.mutations.push({
-      targetIds,
+      targetIds: [action.creatureId],
       updates: [{
         propId: prop._id,
         inc: { usesUsed: 1, usesLeft: -1 },

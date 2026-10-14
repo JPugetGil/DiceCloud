@@ -215,8 +215,20 @@ type Entry = {
   fields: DiscordField[],
 };
 
+// Discord's wording of the log's messages that address the log's reader: a
+// channel's readers are the whole table, and the heading of what a monster
+// did to a character names the character ("Goblin 1 → Lyra", not "→ you")
+const DISCORD_WORDING: Record<string, string> = {
+  'logs.receivedFrom': 'discord.receivedFrom',
+};
+
+/** The log's messages as a channel reads them (DISCORD_WORDING) */
+export function forChannel(translate: Translate): Translate {
+  return (key, params) => translate(DISCORD_WORDING[key] ?? key, params);
+}
+
 function logEntry({ log, creature, language, hiddenIds = [] }: MessageInput): Entry | undefined {
-  const translate = translatorFor(discordLanguage(language));
+  const translate = forChannel(translatorFor(discordLanguage(language)));
   const lines: ShownLine[] = withTotals(withoutHiddenStats(visibleLines(log.content), hiddenIds)
     .map(line => translateLogLine(line, translate)));
   if (!lines.length) return undefined;

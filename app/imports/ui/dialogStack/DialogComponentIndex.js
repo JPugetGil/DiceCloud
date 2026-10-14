@@ -46,6 +46,7 @@ const LibraryImportDialog = defineAsyncComponent(() => import('/imports/ui/libra
 const PartyCharactersDialog = defineAsyncComponent(() => import('/imports/ui/creature/party/PartyCharactersDialog.vue'));
 const MonsterPickerDialog = defineAsyncComponent(() => import('/imports/ui/creature/party/MonsterPickerDialog.vue'));
 const ShareDialog = defineAsyncComponent(() => import('/imports/ui/sharing/ShareDialog.vue'));
+const TargetPickerDialog = defineAsyncComponent(() => import('/imports/ui/creature/actions/targets/TargetPickerDialog.vue'));
 const UsernameDialog = defineAsyncComponent(() => import('/imports/ui/user/UsernameDialog.vue'));
 
 export default {
@@ -82,6 +83,7 @@ export default {
   SelectLibraryNodeDialog,
   ShareDialog,
   SlotFillDialog,
+  TargetPickerDialog,
   TransferOwnershipDialog,
   UsernameDialog,
 };

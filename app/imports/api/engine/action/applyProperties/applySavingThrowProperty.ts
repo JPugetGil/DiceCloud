@@ -9,6 +9,7 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import { Meteor } from 'meteor/meteor';
 
@@ -41,13 +42,18 @@ export default async function applySavingThrowProperty(
     return await applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
   }
 
+  // Its DC, and below the target's roll: the target's players read both
+  // whole (logViews.ts)
   const dc = Number(prop.dc?.value ?? 0);
-  result.appendLog(logLine({
-    name: getPropertyTitle(prop),
-    value: msg('logs.dc', { dc }),
-    inline: true,
-    silenced: prop.silent,
-  }), saveTargetIds);
+  result.appendLog({
+    ...logLine({
+      name: getPropertyTitle(prop),
+      value: msg('logs.dc', { dc }),
+      inline: true,
+      silenced: prop.silent,
+    }),
+    targetView: WHOLE,
+  }, saveTargetIds);
 
   const targetId = saveTargetIds[0];
 
@@ -65,11 +71,15 @@ export default async function applySavingThrowProperty(
   const save = prop.stat ? await getFromScope(prop.stat, await getVariables(targetId)) : undefined;
 
   if (!save) {
-    result.appendLog(logLine({
-      name: msg('logs.saveError'),
-      value: msg('logs.noSave', { stat: prop.stat }),
-      silenced: prop.silent,
-    }), [targetId]);
+    // What the target's sheet lacks: its own
+    result.appendLog({
+      ...logLine({
+        name: msg('logs.saveError'),
+        value: msg('logs.noSave', { stat: prop.stat }),
+        silenced: prop.silent,
+      }),
+      targetView: WHOLE,
+    }, [targetId]);
     return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
   }
 
@@ -116,11 +126,14 @@ export default async function applySavingThrowProperty(
     result.pushScope['~saveFailed'] = { value: true };
     result.pushScope['~saveSucceeded'] = { value: false };
   }
-  result.appendLog(logLine({
-    name: msg(saveSuccess ? 'logs.saveSucceeded' : 'logs.saveFailed'),
-    value: [...rollParts, resultPrefix, `**${resultValue}**`],
-    inline: true,
-    silenced: prop.silent,
-  }), [targetId]);
+  result.appendLog({
+    ...logLine({
+      name: msg(saveSuccess ? 'logs.saveSucceeded' : 'logs.saveFailed'),
+      value: [...rollParts, resultPrefix, `**${resultValue}**`],
+      inline: true,
+      silenced: prop.silent,
+    }),
+    targetView: WHOLE,
+  }, [targetId]);
   return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
 }

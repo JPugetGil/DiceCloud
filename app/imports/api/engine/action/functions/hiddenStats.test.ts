@@ -97,18 +97,21 @@ if (Meteor.isServer) describe('The log of a player\'s character hitting a game m
 
     const goblinLog = await latestLog(goblinId);
     assert.isDefined(goblinLog, 'its game master reads the whole entry in the monster\'s log');
-    assert.equal(goblinLog?.content[0].name, 'Aria\'s action');
+    assert.equal(goblinLog?.content[0].name, 'Aria → you');
     assert.include(text(goblinLog), '\u22127 Hit Points');
     assert.equal(goblinLog?.creatureName, 'Aria');
   });
 
-  it('keeps every line when the character hits another character', async function () {
+  it('keeps every line when the character hits another character, who gets them too', async function () {
     const action = await runActionById(swordId, [allyId]);
     await writeActionResults(action);
     const heroLog = await latestLog(heroId);
     assert.include(text(heroLog), '\u22127 Hit Points');
     assert.notInclude(text(heroLog), '**9** slashing damage', 'as before');
-    assert.isUndefined(await latestLog(allyId), 'no entry of its own');
+    // Another player's character (phase 2.1): an entry of its own, whole
+    const allyLog = await latestLog(allyId);
+    assert.equal(allyLog?.content[0].name, 'Aria → you');
+    assert.include(text(allyLog), '\u22127 Hit Points');
   });
 
   it('keeps every line in a monster\'s own log, its game master\'s', async function () {

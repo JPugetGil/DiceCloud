@@ -1,7 +1,7 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
-import Task from './tasks/Task';
+import Task, { type ReceivedDamage } from './tasks/Task';
 import { Mongo } from 'meteor/mongo';
 
 const EngineActions = new Mongo.Collection<EngineAction>('actions');
@@ -14,6 +14,10 @@ export interface EngineAction {
   // The check or saving throw the action itself rolled, as decided: what
   // Discord's buttons roll again (D7). Kept in memory while it runs, never stored
   _rolledCheck?: { skillVariableName?: string, abilityVariableName?: string },
+  // What it did to the attributes of other creatures that have damage
+  // triggers, which then fire on their behalf (ReceivedDamageTask). In memory
+  // only, while it runs and is written
+  _receivedDamage?: ReceivedDamage[],
   task: Task;
   creatureId: string;
   results: TaskResult[];
