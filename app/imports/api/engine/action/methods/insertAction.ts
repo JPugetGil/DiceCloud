@@ -7,7 +7,7 @@ import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
 import removeActions from '/imports/api/engine/action/functions/removeActions';
 import taskFromDatabase, { TargetIds } from '/imports/api/engine/action/functions/taskFromDatabase';
-import { Meteor } from 'meteor/meteor';
+import assertMayTarget from '/imports/api/engine/action/functions/assertMayTarget';
 import { check, Match } from 'meteor/check';
 
 export const insertAction = new ValidatedMethod({
@@ -28,21 +28,18 @@ export const insertAction = new ValidatedMethod({
     // (taskFromDatabase checks them again with the rest of the task)
     check(action.task?.targetIds, Match.Maybe(TargetIds));
 
-    // Every targeted creature must exist and be editable by the user. In practice
-    // the target is the acting creature itself (rests, attribute and skill
-    // buttons); targeting other creatures was only possible inside tabletops,
-    // which have been removed.
-    if (action.task.targetIds) for (const targetId of action.task.targetIds) {
-      const target = await getCreature(targetId);
-      if (!target) {
-        throw new Meteor.Error('not-found', 'Target creature does not exist');
-      }
-      await assertEditPermission(target, this.userId);
-    }
-
-    // The properties the task names are the database's, not the client's
-    // copies, which only its simulation applies
     if (!this.isSimulation) {
+      // Every targeted creature must exist, and the user may target it: one
+      // they may edit (the acting creature itself, for rests, attribute and
+      // skill buttons; the game master's party characters), or a player
+      // character of a party they play in (assertMayTarget). On the server
+      // only: the browser cannot judge the parties, and would refuse a
+      // target the server takes
+      for (const targetId of action.task.targetIds || []) {
+        await assertMayTarget(creature, await getCreature(targetId), this.userId, action.task);
+      }
+      // The properties the task names are the database's, not the client's
+      // copies, which only its simulation applies
       action.task = await taskFromDatabase(action.task, action.creatureId);
     }
 

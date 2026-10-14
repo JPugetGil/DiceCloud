@@ -2,7 +2,8 @@ import { get } from 'lodash';
 
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import { getPropertyDescendants, getVariables } from '/imports/api/engine/loadCreatures';
+import { getCreature, getPropertyDescendants, getVariables } from '/imports/api/engine/loadCreatures';
+import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import resolve from '/imports/parser/resolve';
 import map from '/imports/parser/map';
 import toString from '/imports/parser/toString';
@@ -23,7 +24,7 @@ import { applyAfterTasksSkipChildren } from '/imports/api/engine/action/function
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
-import { WHOLE } from '/imports/api/creature/log/logViews';
+import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';
 
 export default async function applyBuffProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -54,7 +55,20 @@ export default async function applyBuffProperty(
     await crystallizeVariables(action, propList, task, result);
   }
 
+  const actor = propList.length > MAX_FOREIGN_BUFF_PROPERTIES ? await getCreature(action.creatureId) : undefined;
   for (const target of targetIds) {
+    // The target's line first, in a mutation that names it: appended to the
+    // result's latest mutation, the line of each target after the first named
+    // the one before it, whose copy that mutation inserted
+    const lineMutation: Mutation = { targetIds: [target], contents: [] };
+    result.mutations.push(lineMutation);
+
+    // Too large for another's creature: nothing copied, and the line says so
+    if (actor && await isAnothers(actor, target)) {
+      lineMutation.contents?.push(tooLargeLine(prop, propList.length));
+      continue;
+    }
+
     // Create a per-target mutation
     const mutation: Mutation = { targetIds: [target], contents: [] };
 
@@ -86,7 +100,37 @@ export default async function applyBuffProperty(
   await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
 }
 
-// Logged once per target, where `~target` reads that target's variables
+/**
+ * The most properties a buff copied to another's creature holds, itself and
+ * all under it (phase 2.2 of the monsters): a player may now put buffs on the
+ * other players' characters, which hold no more than a sheet's worth of what
+ * a library would give. The libraries' largest are well under it: 39 for a
+ * buff on a target (Lycanthrope: Weretiger), 49 on oneself (Wild Shape: Ice
+ * Spider Queen), in Vexus and the SRD 5.1 bestiary (2026-10-14)
+ */
+export const MAX_FOREIGN_BUFF_PROPERTIES = 100;
+
+// Another user's creature than the actor's: another owner's, as far as the
+// creatures are known (the client's simulation may lack the target)
+async function isAnothers(actor: { _id?: string, owner?: string }, targetId: string) {
+  if (targetId === actor._id) return false;
+  const target = await getCreature(targetId);
+  return !target || target.owner !== actor.owner;
+}
+
+// The line of a buff too large to copy to the target. Its players read only
+// its name when the actor is hidden from them (logViews.ts)
+function tooLargeLine(prop, count: number) {
+  const line = logLine({
+    name: getPropertyTitle(prop),
+    value: msg('logs.buffTooLarge', { count, max: MAX_FOREIGN_BUFF_PROPERTIES }),
+    ...prop.silent && { silenced: true },
+  });
+  return { ...line, targetView: nameOnly(line) };
+}
+
+// Logged once per target, where `~target` reads that target's variables: in
+// the result's latest mutation, the target's own
 async function logBuff(prop, targetIds, action, userInput, result) {
   //Log the buff
   let logValue = prop.description?.value

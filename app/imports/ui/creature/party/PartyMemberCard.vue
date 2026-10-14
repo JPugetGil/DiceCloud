@@ -220,6 +220,8 @@ import { monsterTags } from '/imports/api/creature/creatureFolders/boardMonsters
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import userColorProps from '/imports/ui/utility/userColor';
 import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
+import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
+import { partyTargetable } from '/imports/api/creature/creatureFolders/party';
 
 /**
  * One character on a party board: who they are, the stats a table needs at
@@ -263,15 +265,20 @@ watch(() => props.hasTurn, hasTurn => {
 
 const canEdit = autorun(() => hasEditPermission(props.creature, Meteor.user())).result;
 
-// "Target": whom the user may target, those they may edit for now (phase 2.1,
-// targetCandidates)
-const targetStore = useTargetSelectionStore();
-const canTarget = computed(() => !!props.folderId && canEdit.value);
-const targeted = computed(() => targetStore.boardTargets(props.folderId).includes(props.creature._id));
-
 // A player sees the other players' characters on the board, not their sheets
 const userId = autorun(() => Meteor.userId()).result;
 const isOwner = computed(() => props.creature.owner === userId.value);
+
+// "Target": whom the user may target (targetCandidates): those they may edit,
+// and the table's player characters (phase 2.2), not the game master's
+// monsters for a player
+const targetStore = useTargetSelectionStore();
+const folder = autorun(() => props.folderId && CreatureFolders.findOne(props.folderId, {
+  fields: { owner: 1, members: 1, creatures: 1, archived: 1 },
+})).result;
+const canTarget = computed(() => !!props.folderId
+  && (canEdit.value || partyTargetable(folder.value, userId.value, props.creature)));
+const targeted = computed(() => targetStore.boardTargets(props.folderId).includes(props.creature._id));
 
 const isMonster = computed(() => props.creature.type === 'monster');
 // The bestiary entry it was copied from, which the board publishes to the game master

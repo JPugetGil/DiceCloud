@@ -134,10 +134,13 @@ const ATTRIBUTE_CHANGE_KEYS = [
   'logs.attributeDamaged', 'logs.attributeRestored', 'logs.attributeSet', 'logs.concentrationCheck',
 ];
 
-// The message keys a line is made of: its name's, its value's parts'
+// The message keys a line is made of: its name's, its value's parts', and
+// those of the messages they hold ("Lyra · Hit points damaged", namingTargets)
 function messageKeys(line: { i18n?: LogI18n }): string[] {
-  const parts = [line.i18n?.name, ...line.i18n?.value ?? []];
-  return parts.flatMap(part => isMessage(part) ? [part.key] : []);
+  const keysOf = (part: LogParam | undefined): string[] => isMessage(part)
+    ? [part.key, ...Object.values(part.params ?? {}).flatMap(keysOf)]
+    : [];
+  return [line.i18n?.name, ...line.i18n?.value ?? []].flatMap(keysOf);
 }
 
 /**
@@ -151,6 +154,39 @@ export function withoutHiddenStats<T extends { i18n?: LogI18n, targetIds?: strin
   if (!hiddenIds.length) return lines;
   return lines.filter(line => !(line.targetIds?.some(id => hiddenIds.includes(id))
     && messageKeys(line).some(key => ATTRIBUTE_CHANGE_KEYS.includes(key))));
+}
+
+// The longest name a stored line takes (LogContentSchema): the creatures' and
+// the properties' own limit
+const LINE_NAME_MAX = 128;
+
+/** A line's English name, cut to what a log stores; its message stays whole */
+export function fitLineName(name: string): string {
+  return name.length <= LINE_NAME_MAX ? name : `${name.slice(0, LINE_NAME_MAX - 1)}…`;
+}
+
+/**
+ * An action's lines as its actor's log shows them, when the action acted on
+ * several creatures: each line about one of them alone names it, "Lyra ·
+ * Failed save", where three "Failed save" said nothing of whose they were (a
+ * breath on three characters). The lines stay in the engine's order, which
+ * may interleave the targets (an attack's rolls, then each one's damage).
+ * Lines about several of them, about the actor alone, or without a name, stay
+ * as they are; so does the entry of an action on one creature or none. Each
+ * target's own entry (writeActionResults) is about it alone, and names none.
+ * `nameOf`: a target's name, from its id
+ */
+export function namingTargets<T extends { name?: string, i18n?: LogI18n, targetIds?: string[] }>(
+  lines: T[], targetIds: string[] | undefined, nameOf: (id: string) => string | undefined,
+): T[] {
+  const targets = [...new Set(targetIds || [])];
+  if (targets.length < 2) return lines;
+  return lines.map(line => {
+    const [subject, ...others] = line.targetIds || [];
+    if (!subject || others.length || !targets.includes(subject) || !line.name) return line;
+    const name = msg('logs.forTarget', { target: nameOf(subject) || '?', name: line.i18n?.name ?? line.name });
+    return { ...line, name: fitLineName(toEnglish(name)), i18n: { ...line.i18n, name } };
+  });
 }
 
 /**

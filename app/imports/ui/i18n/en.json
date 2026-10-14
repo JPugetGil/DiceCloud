@@ -2032,7 +2032,9 @@
     "actedBy": "{name}'s action",
     "choiceNotMade": "Choice not made",
     "receivedFrom": "{name} → you",
-    "linesOmitted": "And {count} more lines"
+    "linesOmitted": "And {count} more lines",
+    "forTarget": "{target} · {name}",
+    "buffTooLarge": "Too large for another's creature: {count} properties, {max} at most"
   },
   "health": {
     "change": "{name}",
@@ -2219,7 +2221,8 @@
   },
   "targetPicker": {
     "errors": {
-      "singleTarget": "This action takes a single target"
+      "singleTarget": "This action takes a single target",
+      "denied": "You may not target this creature with this action"
     },
     "title": "Targets",
     "titleFor": "{name}: targets",

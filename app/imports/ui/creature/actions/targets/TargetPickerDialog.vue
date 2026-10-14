@@ -60,6 +60,8 @@ import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
+import { useI18n } from 'vue-i18n';
 
 /**
  * The target picker before an action (phase 2.1 of the monsters, Q1): by
@@ -87,6 +89,7 @@ const props = defineProps({
 
 const dialogStackStore = useDialogStackStore();
 const targetStore = useTargetSelectionStore();
+const { t } = useI18n();
 
 const propName = autorun(() => props.propId && CreatureProperties.findOne(props.propId, { fields: { name: 1 } })?.name).result;
 
@@ -133,7 +136,7 @@ async function confirm() {
     }));
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: boardErrorText(error, t) });
   } finally {
     busy.value = false;
   }

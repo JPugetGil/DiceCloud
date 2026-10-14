@@ -4,6 +4,7 @@ import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { getCreature } from '/imports/api/engine/loadCreatures';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '../functions/writeActionResults';
+import assertMayTarget from '/imports/api/engine/action/functions/assertMayTarget';
 import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/userInput/getReplayChoicesInputProvider';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
@@ -37,7 +38,16 @@ export const runAction = new ValidatedMethod({
     if (!action) throw new Meteor.Error('not-found', 'Action not found');
 
     // Permissions
-    await assertEditPermission(await getCreature(action.creatureId), this.userId);
+    const creature = await getCreature(action.creatureId);
+    await assertEditPermission(creature, this.userId);
+    // The targets again, as insertAction checked them: since then, the user
+    // may have left the party, or the game master removed them from it. On
+    // the server only, as there
+    if (!this.isSimulation) {
+      for (const targetId of action.task.targetIds || []) {
+        await assertMayTarget(creature, await getCreature(targetId), this.userId, action.task);
+      }
+    }
 
     // Replay the user's decisions as user input, and the dice from the
     // action's secret seed: the dice the server gave the client (drawDice),

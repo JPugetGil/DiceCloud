@@ -227,6 +227,7 @@ import SpellListTile from '/imports/ui/properties/components/spells/SpellListTil
 import { find } from 'lodash';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
 import TargetPicker from '/imports/ui/creature/actions/targets/TargetPicker.vue';
@@ -501,7 +502,7 @@ async function cast() {
     elementId: 'cast-spell-dialog-btn',
     replaceDialog: true,
   })).catch(error => {
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: boardErrorText(error, t) });
     console.error(error);
   });
 }

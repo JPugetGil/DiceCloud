@@ -53,8 +53,14 @@ import { runAction } from '/imports/api/engine/action/methods/runAction';
 import ActionLogPreview from '/imports/ui/log/ActionLogPreview.vue';
 import mutationToLogUpdates from '/imports/api/engine/action/functions/mutationToLogUpdates';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+import { namingTargets } from '/imports/api/creature/log/logMessages';
+import Creatures from '/imports/api/creature/creatures/Creatures';
+import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
+import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
+const { t } = useI18n();
 
 const props = defineProps({
   actionId: {
@@ -86,6 +92,8 @@ let serverDiceRoller = undefined;
 
 const action = autorun(() => EngineActions.findOne(props.actionId)).result;
 
+// As the actor's log will read it: an action on several creatures names each
+// one in the lines about it alone (namingTargets), from the party's boards
 const simulatedLog = computed(() => {
   const actionRes = actionResult.value;
   const content = [];
@@ -95,7 +103,8 @@ const simulatedLog = computed(() => {
     });
   });
   return {
-    content,
+    content: namingTargets(content, actionRes?.task?.targetIds,
+      id => Creatures.findOne(id, { fields: { name: 1 } })?.name),
     creatureId: actionRes?.creatureId,
   };
 });
@@ -189,7 +198,12 @@ const finishAction = async () => {
 
 onMounted(() => {
   serverDiceRoller = getServerDiceRoller(props.actionId);
-  startAction({ stepThrough: false });
+  // The server may refuse the action as it applies it: a target no longer
+  // in reach (a player who left the party since, assertMayTarget)
+  startAction({ stepThrough: false }).catch(error => {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  });
 });
 
 </script>

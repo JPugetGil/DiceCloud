@@ -3,15 +3,18 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { partyLetsTarget } from '/imports/api/creature/creatureFolders/party';
 
 /*
- * Whom an action may target, as the target picker offers it (phase 2.1 of
- * the monsters): the creatures of the parties its creature plays in that the
- * server lets the user target. In 2.1, those the user may edit
- * (insertAction): the game master's monsters and the party's characters for
- * the game master (joining makes them an editor of the characters), a
- * player's own characters for the player. Phases 2.2 and 2.3 widen it, here
- * and on the server alike: the other players' characters, the monsters.
+ * Whom an action may target, as the target picker offers it (phases 2.1 and
+ * 2.2 of the monsters): the creatures of the parties its creature plays in
+ * that the server lets the user target (assertMayTarget). Those the user may
+ * edit: the game master's monsters and the party's characters for the game
+ * master (joining makes them an editor of the characters), a player's own
+ * characters for the player. And the table's player characters, for whoever
+ * sits at it, with a character of the table (partyLetsTarget): a player heals
+ * or buffs the other players' characters. Not the game master's monsters for
+ * a player, until phase 2.3.
  *
  * Reads what the sheet subscribes to (useCharacterParties): the parties
  * (characterParties) and their boards (partyBoard), which hold their
@@ -70,9 +73,12 @@ export function targetCandidates(actorId, parties, user = Meteor.user()) {
     fields: { name: 1, picture: 1, avatarPicture: 1, color: 1, type: 1, owner: 1, writers: 1 },
   }).fetch();
   const byId = new Map(creatures.map(creature => [creature._id, creature]));
+  const actor = byId.get(actorId);
+  const mayTarget = creature => creature._id === actorId || hasEditPermission(creature, user)
+    || parties.some(party => partyLetsTarget(party, user?._id, actor, creature));
   return ids
     .map((id, index) => ({ creature: byId.get(id), index }))
-    .filter(({ creature }) => creature && (creature._id === actorId || hasEditPermission(creature, user)))
+    .filter(({ creature }) => creature && mayTarget(creature))
     .sort((a, b) => {
       if (a.creature._id === actorId) return -1;
       if (b.creature._id === actorId) return 1;

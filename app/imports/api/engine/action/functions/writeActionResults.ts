@@ -13,7 +13,9 @@ import { DDP } from 'meteor/ddp';
 import { Random } from 'meteor/random';
 import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
 import { GM_CREATURE_TYPES, hiddenFrom } from '/imports/api/creature/creatureFolders/boardMonsters';
-import { logLine, msg, withoutHiddenStats } from '/imports/api/creature/log/logMessages';
+import {
+  fitLineName, logLine, msg, namingTargets, withoutHiddenStats,
+} from '/imports/api/creature/log/logMessages';
 import { inTargetView, withoutView } from '/imports/api/creature/log/logViews';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
@@ -62,7 +64,11 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   // character's log (hiddenStats.ts). The creature's own log, its game
   // master's, gets the whole entry (writeReceivedLogs)
   const hiddenIds = await hiddenTargets(action.creatureId, allTargetIds);
-  const shownContents = fitLog(withoutHiddenStats(logContents, hiddenIds).map(withoutView));
+  // An action on several creatures names each one in the lines about it alone
+  const targetNames = await creatureNames(action.task?.targetIds);
+  const shownContents = fitLog(namingTargets(
+    withoutHiddenStats(logContents, hiddenIds).map(withoutView), action.task?.targetIds, id => targetNames.get(id),
+  ));
 
   // Write the log
   const log = {
@@ -110,6 +116,19 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   if (Meteor.isServer && writeLog) {
     await writeReceivedLogs(action, logContents, hiddenIds, action._receivedDamage ?? []);
   }
+}
+
+/**
+ * The names of the creatures an action acted on, by id, when it acted on
+ * several: its actor's entry names them (namingTargets). On the client, those
+ * it has (the party's boards)
+ */
+async function creatureNames(targetIds: string[] = []): Promise<Map<string, string | undefined>> {
+  const ids = uniq(targetIds);
+  const names = new Map<string, string | undefined>();
+  if (ids.length < 2) return names;
+  for (const id of ids) names.set(id, (await getCreature(id))?.name);
+  return names;
 }
 
 // The game master's creatures, whose own log is the game master's alone
@@ -183,9 +202,11 @@ function receivedLines(contents: any[], actor: Acting, target: Acting, targets: 
 }
 
 async function writeReceivedLog(action: EngineAction, actor: Acting, target: Acting, lines: any[]) {
-  const heading = logLine({
+  const received = logLine({
     name: msg('logs.receivedFrom', { name: actor.name || '?', target: target.name || '?' }),
   });
+  // A name as long as a creature's own, and "→ you" after it
+  const heading = { ...received, name: fitLineName(received.name ?? '') };
   const log = {
     content: fitLog([heading, ...lines]),
     creatureId: target._id,

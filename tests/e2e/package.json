@@ -23,6 +23,7 @@
     "check:party-monsters": "node checks/party-monsters.js",
     "check:turn-events": "node checks/turn-events.js",
     "check:party-targeting": "node checks/party-targeting.js",
+    "check:party-heal": "node checks/party-heal.js",
     "check:licenses": "node checks/licenses.js"
   },
   "dependencies": {

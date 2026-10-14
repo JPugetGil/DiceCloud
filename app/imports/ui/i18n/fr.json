@@ -2032,7 +2032,9 @@
     "actedBy": "Action de {name}",
     "choiceNotMade": "Choix non fait",
     "receivedFrom": "{name} → vous",
-    "linesOmitted": "Et {count} lignes de plus"
+    "linesOmitted": "Et {count} lignes de plus",
+    "forTarget": "{target} · {name}",
+    "buffTooLarge": "Trop grand pour la créature d'un autre : {count} propriétés, {max} au plus"
   },
   "health": {
     "change": "{name}",
@@ -2219,7 +2221,8 @@
   },
   "targetPicker": {
     "errors": {
-      "singleTarget": "Cette action ne prend qu'une seule cible"
+      "singleTarget": "Cette action ne prend qu'une seule cible",
+      "denied": "Vous ne pouvez pas cibler cette créature avec cette action"
     },
     "title": "Cibles",
     "titleFor": "{name} : cibles",

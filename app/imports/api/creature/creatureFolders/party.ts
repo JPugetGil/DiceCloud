@@ -9,7 +9,11 @@ export type PartyFolder = {
   owner?: string,
   members?: string[],
   creatures?: string[],
+  archived?: boolean,
 };
+
+// What the party's rule reads of a creature
+type PartyCreature = { _id?: string, owner?: string, type?: string };
 
 /** 'gm' for the folder's owner, 'member' for a player who joined, undefined otherwise */
 export function getPartyRole(
@@ -35,4 +39,42 @@ export function partyCreaturesFilter(folder: PartyFolder, userId: string) {
     return { _id, $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }] };
   }
   return { _id, owner: { $in: [folder.owner, ...(folder.members || [])] } };
+}
+
+/**
+ * Whether the party lets a user act with one of its creatures on another,
+ * beyond what the user may edit (phase 2.2 of the monsters): during play,
+ * whoever sits at the table — its game master or a member — may apply an
+ * action or a spell of their character to the table's player characters
+ * (healing, buffs, support spells). The folder is not archived and holds
+ * both; the user sits at its table; the actor and the target belong to
+ * someone who does; the target is a player character, never a monster nor a
+ * non-player character, whose stats the players don't see (phase 2.3). That
+ * the user may edit the actor, and that the task is one an action applies
+ * (assertMayTarget), are checked apart. The server's rule
+ * (assertMayTarget.ts), and what the target picker offers (targetCandidates)
+ */
+export function partyLetsTarget(
+  folder: PartyFolder | undefined | null, userId: string | undefined | null,
+  actor: PartyCreature | undefined | null, target: PartyCreature | undefined | null,
+): boolean {
+  return !!folder && partyTargetable(folder, userId, target) && isTablesCreature(folder, actor);
+}
+
+/**
+ * The target's half of partyLetsTarget: whether the creature is one of the
+ * party's that those at its table may target, with any character of the
+ * table. A board's "Target" (PartyMemberCard), which no actor has chosen yet
+ */
+export function partyTargetable(
+  folder: PartyFolder | undefined | null, userId: string | undefined | null, target: PartyCreature | undefined | null,
+): boolean {
+  if (!folder || folder.archived || !getPartyRole(folder, userId)) return false;
+  return isTablesCreature(folder, target) && target?.type === 'pc';
+}
+
+// In the folder, and belonging to its game master or one of its members
+function isTablesCreature(folder: PartyFolder, creature: PartyCreature | undefined | null): boolean {
+  if (!creature?._id || !creature.owner || !(folder.creatures || []).includes(creature._id)) return false;
+  return [folder.owner, ...(folder.members || [])].includes(creature.owner);
 }

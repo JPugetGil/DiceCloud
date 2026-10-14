@@ -252,12 +252,14 @@ if (Meteor.isServer) describe('A monster acting on a player\'s character: the ch
       assert.include(text(log), '9883** fire damage');
       for (const canary of CANARIES) assert.notInclude(text(log), canary);
     }
-    // The monster's entry has both, a damage line each
+    // The monster's entry has both, a damage line each, naming whose they are
+    // (phase 2.2)
     const goblinLog = await latestLog(goblinId);
-    assert.lengthOf(goblinLog.content.filter((line: any) => line.name === 'Failed save'), 2);
-    assert.lengthOf(goblinLog.content.filter((line: any) => line.name === 'Damage'), 2);
-    assert.deepEqual(goblinLog.content.filter((line: any) => line.name === 'Damage').map((line: any) => line.targetIds),
-      [[lyraId], [ariaId]]);
+    assert.deepEqual(goblinLog.content.filter((line: any) => / · Failed save$/.test(line.name)).map((line: any) => line.name),
+      ['Lyra · Failed save', 'Aria · Failed save']);
+    const damage = goblinLog.content.filter((line: any) => / · Damage$/.test(line.name));
+    assert.deepEqual(damage.map((line: any) => line.name), ['Lyra · Damage', 'Aria · Damage']);
+    assert.deepEqual(damage.map((line: any) => line.targetIds), [[lyraId], [ariaId]]);
   });
 
   it('fires the character\'s own damage triggers on its behalf, with ~healing in their scope', async function () {
