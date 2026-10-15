@@ -6,15 +6,16 @@ import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { partyLetsTarget } from '/imports/api/creature/creatureFolders/party';
 
 /*
- * Whom an action may target, as the target picker offers it (phases 2.1 and
- * 2.2 of the monsters): the creatures of the parties its creature plays in
+ * Whom an action may target, as the target picker offers it (phases 2.1 to
+ * 2.3 of the monsters): the creatures of the parties its creature plays in
  * that the server lets the user target (assertMayTarget). Those the user may
  * edit: the game master's monsters and the party's characters for the game
  * master (joining makes them an editor of the characters), a player's own
  * characters for the player. And the table's player characters, for whoever
  * sits at it, with a character of the table (partyLetsTarget): a player heals
- * or buffs the other players' characters. Not the game master's monsters for
- * a player, until phase 2.3.
+ * or buffs the other players' characters. And the game master's monsters and
+ * non-player characters for a player, unless the game master turned that off
+ * (playersTargetMonsters): the server tells the player the results alone.
  *
  * Reads what the sheet subscribes to (useCharacterParties): the parties
  * (characterParties) and their boards (partyBoard), which hold their

@@ -126,10 +126,11 @@ export function allMutations(action: EngineAction, { withMessages = false } = {}
   return mutations;
 }
 
-// The English text alone: not the messages, nor how a target's players read
-// the line (targetView, logViews.ts), which the tests of those check
+// The English text alone: not the messages, nor how the players of a target,
+// or those a target is hidden from, read the line (targetView,
+// hiddenTargetView, logViews.ts), which the tests of those check
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const withoutMessages = ({ i18n, targetView, ...english }: LogContent) => english;
+const withoutMessages = ({ i18n, targetView, hiddenTargetView, ...english }: LogContent) => english;
 
 /**
  * Get all the updates in all mutations in the result of an Engine Action

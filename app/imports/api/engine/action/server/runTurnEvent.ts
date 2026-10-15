@@ -4,7 +4,7 @@ import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
-import { getActionDiceRoller } from '/imports/api/engine/action/functions/userInput/server/actionDice';
+import { getActionDiceRoller, getHiddenDiceRoller } from '/imports/api/engine/action/functions/userInput/server/actionDice';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';
@@ -100,8 +100,8 @@ export async function applyTurnEvent(
     results: [],
     taskCount: 0,
   };
-  const rollDice = getActionDiceRoller({ _id: action._id, seed: Random.secret() });
-  await applyAction(action, getAutomaticInputProvider(action, rollDice));
+  const dice = { _id: action._id, seed: Random.secret() };
+  await applyAction(action, getAutomaticInputProvider(action, getActionDiceRoller(dice), getHiddenDiceRoller(dice)));
   const shown = shownLines(action);
   if (!shown && !changes(action)) return 'unchanged';
   if (shown) {

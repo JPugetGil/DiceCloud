@@ -542,7 +542,7 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
           results: [], taskCount: 0, _decisions: [],
         },
       });
-      await runAction._execute(invocationOf(userId), { actionId, decisions: [params] });
+      await runAction._execute(invocationOf(userId), { actionId, decisions: [{ kind: 'check', value: params }] });
       await discordIntakeIdle();
       await sender.idle();
     }

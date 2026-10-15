@@ -1,5 +1,6 @@
 import { createHmac } from 'node:crypto';
 import { Meteor } from 'meteor/meteor';
+import { Random } from 'meteor/random';
 import getDeterministicDiceRoller, {
   diceCount, drawDiceAt, type DiceRequest,
 } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
@@ -35,17 +36,36 @@ const TWO_TO_THE_64 = BigInt(2) ** BigInt(64);
  * a d0, and still takes its position.
  */
 export function seededDie(seed: string, position: number, faces: number): number {
+  return dieOf(seed, `${position}`, faces);
+}
+
+// The die of an HMAC message, its next blocks ":1", ":2"... when all four
+// words of one are rejected
+function dieOf(seed: string, message: string, faces: number): number {
   if (!(faces >= 2)) return 1;
   const size = BigInt(faces);
   const limit = TWO_TO_THE_64 - TWO_TO_THE_64 % size;
   for (let block = 0; ; block += 1) {
-    const message = block ? `${position}:${block}` : `${position}`;
-    const digest = createHmac('sha256', seed).update(message).digest();
+    const digest = createHmac('sha256', seed).update(block ? `${message}:${block}` : message).digest();
     for (let offset = 0; offset < digest.length; offset += WORD_BYTES) {
       const word = digest.readBigUInt64BE(offset);
       if (word < limit) return Number(word % size) + 1;
     }
   }
+}
+
+/**
+ * Die number `n` (counted from 0) that an action rolls for a target hidden
+ * from its actor's readers, a game master's monster's saving throw against a
+ * player's character (phase 2.3 of the monsters): HMAC-SHA256(seed,
+ * "h:<targetId>:<n>"), between 1 and `faces`, as seededDie draws them. A
+ * stream of its own, which drawDice never serves: the actor's dice are numbers,
+ * "<position>" or "<position>:<block>", which never start with "h". The player
+ * cannot draw the monster's d20 in advance, and the actor's dice keep their
+ * positions whether the monster rolls or not.
+ */
+export function hiddenDie(seed: string, targetId: string, n: number, faces: number): number {
+  return dieOf(seed, `h:${targetId}:${n}`, faces);
 }
 
 /**
@@ -77,6 +97,35 @@ type ActionWithDice = { _id?: string, seed?: string };
 export function drawActionDiceAt(action: ActionWithDice, cursor: number, dice: DiceRequest): number[][] {
   if (action.seed) return drawSeededDiceAt(action.seed, cursor, dice);
   return drawDiceAt(action._id as string, cursor, dice);
+}
+
+/**
+ * InputProvider.rollHiddenDice for an action: the dice of each hidden target
+ * from its stream's first (hiddenDie), on the server alone. An action
+ * inserted before actions had a seed, whose dice the client knows from its
+ * id, rolls them from a secret drawn now: they are rolled once, by runAction
+ */
+export function getHiddenDiceRoller(
+  action: ActionWithDice,
+): (targetId: string, dice: DiceRequest) => Promise<number[][]> {
+  const seed = action.seed || Random.secret();
+  const rolled = new Map<string, number>();
+  return async (targetId, dice) => {
+    let n = rolled.get(targetId) ?? 0;
+    const values = dice.map(({ number, diceSize }) => {
+      if (number > 100) {
+        throw new Meteor.Error('Too many dice', 'can only roll up to 100 dice at once');
+      }
+      const roll: number[] = [];
+      for (let i = 0; i < number; i++) {
+        roll.push(hiddenDie(seed, targetId, n, diceSize));
+        n += 1;
+      }
+      return roll;
+    });
+    rolled.set(targetId, n);
+    return values;
+  };
 }
 
 /**

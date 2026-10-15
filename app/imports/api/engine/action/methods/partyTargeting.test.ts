@@ -47,8 +47,9 @@ if (Meteor.isServer) {
  * may apply an action or a spell of their character to the table's other
  * player characters, whose sheets they may not edit: Aria heals Lyra. Never
  * a check, a rest, an attribute changed or damage typed in; never the game
- * master's monsters (phase 2.3); never a creature of someone outside the
- * table; and not once they left the party, even with the action under way.
+ * master's monsters once the game master turned that off (phase 2.3); never a
+ * creature of someone outside the table; and not once they left the party,
+ * even with the action under way.
  * Through DDP, as a browser calls the methods.
  */
 
@@ -302,11 +303,19 @@ if (Meteor.isServer) describe('A player targets the other players\' characters o
     assert.isString(await insert(ariaPlayer, ariaId, { ...tasks.reset, targetIds: [ariaId] }));
   });
 
-  it('refuses the game master\'s monsters and non-player characters, until phase 2.3', async function () {
-    for (const targetId of [goblinId, npcId]) {
-      const error = await refusal(insert(ariaPlayer, ariaId, propTask(cureId, [targetId])));
-      assert.equal(error?.details?.i18n?.key, DENIED, targetId === goblinId ? 'the goblin' : 'the innkeeper');
+  it('refuses the game master\'s monsters and non-player characters once the game master turns that off (2.3)', async function () {
+    await CreatureFolders.updateAsync(folderId, { $set: { playersTargetMonsters: false } });
+    try {
+      for (const targetId of [goblinId, npcId]) {
+        const error = await refusal(insert(ariaPlayer, ariaId, propTask(cureId, [targetId])));
+        assert.equal(error?.details?.i18n?.key, DENIED, targetId === goblinId ? 'the goblin' : 'the innkeeper');
+      }
+    } finally {
+      await CreatureFolders.updateAsync(folderId, { $unset: { playersTargetMonsters: 1 } });
     }
+    // On by default (monsterTargeting.test.ts)
+    assert.isString(await insert(ariaPlayer, ariaId, propTask(cureId, [goblinId])));
+    await EngineActions.removeAsync({ creatureId: ariaId });
   });
 
   it('refuses the character of someone outside the table, whoever put it in the folder', async function () {
@@ -375,11 +384,13 @@ if (Meteor.isServer) describe('The party\'s rule for targeting (partyLetsTarget)
     assert.isFalse(partyLetsTarget(folder, ariaPlayerId, ariaPc, pc(zedId, lyraPlayerId)), 'a target not in the party');
     assert.isFalse(partyLetsTarget(folder, ariaPlayerId, ariaPc, pc(strayId, outsiderId)), 'a target of someone else\'s');
     assert.isFalse(partyLetsTarget(folder, ariaPlayerId, pc(ariaId, outsiderId), lyraPc), 'an actor of someone else\'s');
-    assert.isFalse(partyLetsTarget(folder, ariaPlayerId, ariaPc, { _id: goblinId, owner: gmId, type: 'monster' }), 'a monster');
-    assert.isFalse(partyLetsTarget(folder, ariaPlayerId, ariaPc, { _id: goblinId, owner: gmId, type: 'npc' }), 'an npc');
+    // The game master's monsters and non-player characters once turned off (2.3)
+    const off = { ...folder, playersTargetMonsters: false };
+    assert.isFalse(partyLetsTarget(off, ariaPlayerId, ariaPc, { _id: goblinId, owner: gmId, type: 'monster' }), 'a monster');
+    assert.isFalse(partyLetsTarget(off, ariaPlayerId, ariaPc, { _id: goblinId, owner: gmId, type: 'npc' }), 'an npc');
     assert.isFalse(partyLetsTarget(folder, ariaPlayerId, ariaPc, { _id: lyraId, owner: lyraPlayerId }), 'a creature of no type');
     assert.isFalse(partyTargetable(folder, outsiderId, lyraPc));
-    assert.isFalse(partyTargetable(folder, ariaPlayerId, { _id: goblinId, owner: gmId, type: 'monster' }));
+    assert.isFalse(partyTargetable(off, ariaPlayerId, { _id: goblinId, owner: gmId, type: 'monster' }));
   });
 });
 

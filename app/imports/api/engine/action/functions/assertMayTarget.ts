@@ -25,8 +25,10 @@ type Targeted = { _id: string, owner?: string, type?: string, writers?: string[]
  * - they may edit the target, as before;
  * - or the party lets them (partyLetsTarget): a folder, not archived, holds
  *   both, the user sits at its table, the actor and the target are the
- *   table's, and the target is a player character. And the user may edit the
- *   actor, and the task applies an action or a spell (PARTY_TASKS).
+ *   table's, and the target is a player character, or the game master's
+ *   monster or non-player character while the game master lets the players
+ *   target them (playersTargetMonsters). And the user may edit the actor, and
+ *   the task applies an action or a spell (PARTY_TASKS).
  *
  * Called by insertAction, and again by runAction: the user may have left the
  * party, or been removed from it, since. The refusal names no creature: the
@@ -45,7 +47,7 @@ export default async function assertMayTarget(
     creatures: { $all: [actor._id, target._id] },
     archived: { $ne: true },
     $or: [{ owner: userId }, { members: userId }],
-  }, { fields: { owner: 1, members: 1, creatures: 1, archived: 1 } }).fetchAsync() as PartyFolder[];
+  }, { fields: { owner: 1, members: 1, creatures: 1, archived: 1, playersTargetMonsters: 1 } }).fetchAsync() as PartyFolder[];
   if (folders.some(folder => partyLetsTarget(folder, userId, actor, target))) return;
   throw refusal();
 }

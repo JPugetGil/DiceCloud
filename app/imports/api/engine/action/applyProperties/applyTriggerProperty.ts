@@ -6,7 +6,7 @@ import recalculateInlineCalculations from '/imports/api/engine/action/functions/
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { Meteor } from 'meteor/meteor';
-import { nameOnly } from '/imports/api/creature/log/logViews';
+import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';
 
 export default async function applyTriggerProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput
@@ -25,11 +25,15 @@ export default async function applyTriggerProperty(
     if (!prop.condition.value) return;
   }
 
-  // A target's players read its name: its description is the actor's
+  // A target's players read its name: its description is the actor's. The
+  // actor's own readers read it whole, when it is the actor's trigger: a
+  // target's own triggers fire in a pass of their own, on its behalf
+  // (ReceivedDamageTask), and never show to those it is hidden from
   const logContent: LogContent & { silenced: boolean | undefined } = {
     name: getPropertyTitle(prop),
     silenced: prop.silent,
     targetView: nameOnly({ name: getPropertyTitle(prop) }),
+    ...prop.root?.id === action.creatureId && { hiddenTargetView: WHOLE },
   }
 
   // Add the trigger description to the log

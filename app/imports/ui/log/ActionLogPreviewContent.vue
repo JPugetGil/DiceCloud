@@ -109,7 +109,10 @@ const contentByTargetId = autorun(() => {
       }
       currentContent = {
         targetIds: contentItem.targetIds,
-        targetCreatures: contentItem.targetIds?.map(getCreature) ?? [],
+        // Those the client has: a party's monster leaves with its board's
+        // subscription, which the target picker ends once the action ran,
+        // while the action's dialog still shows its log
+        targetCreatures: (contentItem.targetIds?.map(getCreature) ?? []).filter(Boolean),
         content: [contentItem],
       };
     } else {

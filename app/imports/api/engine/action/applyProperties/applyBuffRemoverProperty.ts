@@ -9,6 +9,8 @@ import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { WHOLE } from '/imports/api/creature/log/logViews';
+import { logLine, msg } from '/imports/api/creature/log/logMessages';
+import { targetSight } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyBuffRemoverProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -18,11 +20,12 @@ export default async function applyBuffRemoverProperty(
   const targetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
 
   if (prop.name) {
-    // Log Name
+    // Log Name: the actor's own property's
     result.appendLog({
       name: getPropertyTitle(prop),
       silenced: prop.silent,
       targetView: WHOLE,
+      hiddenTargetView: WHOLE,
     }, task.targetIds)
   }
 
@@ -37,10 +40,12 @@ export default async function applyBuffRemoverProperty(
         name: 'Error', i18n: { name: { key: 'logs.error' } },
         value: 'Buff remover does not have a parent buff to remove',
         silenced: prop.silent,
+        hiddenTargetView: WHOLE,
       }, task.targetIds);
       return;
     }
-    removeBuff(nearestBuff, prop, result);
+    // The actor's own buff
+    removeBuff(nearestBuff, prop, result, true);
     return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
   }
 
@@ -56,6 +61,13 @@ export default async function applyBuffRemoverProperty(
     throw 'At this step, only a single target is supported'
   }
   const targetId = targetIds[0];
+
+  // A target hidden from the actor's readers, which the browser's simulation
+  // leaves to the server: its buffs unread, none removed on a guess
+  const sight = await targetSight(action, targetId, userInput);
+  if (sight === 'unresolved') {
+    return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  }
 
   // Remove the target's buffs that match the tags
   const allBuffs = await getPropertiesOfType(targetId, 'buff');
@@ -81,19 +93,29 @@ export default async function applyBuffRemoverProperty(
   return await applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
 }
 
-function removeBuff(buff: any, prop, result: TaskResult) {
+function removeBuff(buff: any, prop, result: TaskResult, actorsOwn = false) {
   result.mutations.push({
     targetIds: result.targetIds,
     removals: [{ propId: buff._id }],
-    // A buff of the target's: its players read which
+    // A buff of the target's: its players read which. The readers it is
+    // hidden from read the name of a condition, which the board shows them
+    // (partyBoard.js), and "An effect" for any other buff: its effects are
+    // its game master's (phase 2.3 of the monsters)
     contents: [{
       name: 'Removed', i18n: { name: { key: 'logs.removed' } },
       value: `${buff.name || 'Buff'}`,
       ...prop.silent && { silenced: true },
       targetView: WHOLE,
+      hiddenTargetView: actorsOwn || isCondition(buff) ? WHOLE : logLine({
+        name: msg('logs.removed'), value: msg('logs.anEffect'),
+      }),
     }],
   });
 }
+
+// A condition, as the board shows it to the players: a buff its library tags
+// `condition` (conditions.js)
+const isCondition = (buff: any) => !!buff.tags?.includes('condition');
 
 function buffRemoverMatchTags(buffRemover, prop) {
   let matched = false;

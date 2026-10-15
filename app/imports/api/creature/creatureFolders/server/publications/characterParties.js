@@ -17,8 +17,9 @@ const schema = new SimpleSchema({
  * whether a fight is on. characterCombat without its `round > 0`: the picker
  * opens by itself during a fight, and from "Target…" outside one, and then
  * subscribes to each party's board (partyBoard) for the creatures it offers.
- * For those who play the character (who can edit it); the folder's
- * invitation token stays out.
+ * For those who play the character (who can edit it), with whether the game
+ * master lets the players target the monsters; the folder's invitation token
+ * stays out.
  */
 Meteor.publish('characterParties', function (creatureId) {
   try {
@@ -40,7 +41,7 @@ Meteor.publish('characterParties', function (creatureId) {
       creatures: creatureId,
       archived: { $ne: true },
     }, {
-      fields: { name: 1, owner: 1, members: 1, creatures: 1, initiative: 1 },
+      fields: { name: 1, owner: 1, members: 1, creatures: 1, initiative: 1, playersTargetMonsters: 1 },
     }));
   });
 });

@@ -40,8 +40,6 @@ imports/api/docs/server/publications.js: TS2790: The operand of a 'delete' opera
 imports/api/engine/action/EngineActions.ts: TS2578: Unused '@ts-expect-error' directive.
 imports/api/engine/action/functions/recalculateInlineCalculations.ts: TS2305: Module '"/imports/api/properties/subSchemas/inlineCalculationField"' has no exported member 'InlineCalculation'.
 imports/api/engine/action/functions/spendResources.ts: TS2769: No overload matches this call.
-imports/api/engine/action/functions/userInput/saveInputChoices.ts: TS2322: Type '(...args: any[]) => Promise<void | string[] | number[][] | Advantage | CheckParams>' is not assignable to type '((suggestedParams: CheckParams) => Promise<CheckParams>) & ((suggestedAdvantage: Advantage) => Promise<Advantage>) & ((dice: { number: number; diceSize: number; }[]) => Promise<number[][]>) & ((choices: ({ _id: string; } & Record<string, any>)[], quantity?: [min: number, max: number] | undefined) => Promise<string[]>) & ((task: Task) => Promise<void>)'.
-imports/api/engine/action/functions/userInput/saveInputChoices.ts: TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
 imports/api/engine/computation/buildComputation/parseCalculationFields.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
 imports/api/engine/computation/buildComputation/tests/computeInactiveStatus.testFn.js: TS2554: Expected 3 arguments, but got 1.
 imports/api/engine/computation/buildComputation/tests/computeSlotQuantityFilled.testFn.js: TS2554: Expected 3 arguments, but got 1.

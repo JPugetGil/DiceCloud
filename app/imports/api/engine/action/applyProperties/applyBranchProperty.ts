@@ -8,6 +8,7 @@ import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getPropertyChildren } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyBranchProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -27,6 +28,8 @@ export default async function applyBranchProperty(
           name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: 'If branch does not have a condition set',
           silenced: prop.silent,
+          // The actor's own property's error
+          hiddenTargetView: WHOLE,
         }, targets);
         return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
@@ -47,6 +50,8 @@ export default async function applyBranchProperty(
           name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: 'Index branch does not have a condition set',
           silenced: prop.silent,
+          // The actor's own property's error
+          hiddenTargetView: WHOLE,
         }, targets);
         return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
@@ -57,6 +62,8 @@ export default async function applyBranchProperty(
           name: 'Branch error', i18n: { name: { key: 'logs.branchError' } },
           value: `Index did not resolve into a valid number, got \`${prop.condition?.value}\` instead`,
           silenced: prop.silent,
+          // The actor's own property's error
+          hiddenTargetView: WHOLE,
         }, targets);
         return await applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }

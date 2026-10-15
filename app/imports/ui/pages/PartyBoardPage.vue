@@ -141,6 +141,20 @@
                   </v-btn>
                 </template>
               </div>
+              <!-- Whether the players may target the monsters: the game master's -->
+              <v-switch
+                v-if="role === 'gm'"
+                :model-value="folder.playersTargetMonsters !== false"
+                :label="$t('monsters.playersTarget')"
+                :hint="$t('monsters.playersTargetHint')"
+                persistent-hint
+                color="primary"
+                density="compact"
+                class="mb-3"
+                :loading="switching"
+                data-id="party-players-target-monsters"
+                @update:model-value="setPlayersTarget"
+              />
               <v-row density="compact">
                 <v-col
                   v-for="creature in ordered(monsters)"
@@ -205,7 +219,7 @@ import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrd
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
-import { endEncounter } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
+import { endEncounter, setPlayersTargetMonsters } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
 import { MAX_BOARD_MONSTERS } from '/imports/api/creature/creatureFolders/boardMonsters';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 
@@ -282,6 +296,20 @@ async function endTheEncounter() {
     snackbar({ text: boardErrorText(error, t) });
   } finally {
     ending.value = false;
+  }
+}
+
+// The players target the monsters, or not (phase 2.3 of the monsters)
+const switching = ref(false);
+async function setPlayersTarget(value) {
+  switching.value = true;
+  try {
+    await setPlayersTargetMonsters.callAsync({ folderId: folderId.value, playersTargetMonsters: !!value });
+  } catch (error) {
+    console.error(error);
+    snackbar({ text: boardErrorText(error, t) });
+  } finally {
+    switching.value = false;
   }
 }
 

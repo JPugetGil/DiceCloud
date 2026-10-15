@@ -270,11 +270,11 @@ const userId = autorun(() => Meteor.userId()).result;
 const isOwner = computed(() => props.creature.owner === userId.value);
 
 // "Target": whom the user may target (targetCandidates): those they may edit,
-// and the table's player characters (phase 2.2), not the game master's
-// monsters for a player
+// the table's player characters (phase 2.2), and the game master's monsters
+// unless the game master turned that off (phase 2.3)
 const targetStore = useTargetSelectionStore();
 const folder = autorun(() => props.folderId && CreatureFolders.findOne(props.folderId, {
-  fields: { owner: 1, members: 1, creatures: 1, archived: 1 },
+  fields: { owner: 1, members: 1, creatures: 1, archived: 1, playersTargetMonsters: 1 },
 })).result;
 const canTarget = computed(() => !!props.folderId
   && (canEdit.value || partyTargetable(folder.value, userId.value, props.creature)));

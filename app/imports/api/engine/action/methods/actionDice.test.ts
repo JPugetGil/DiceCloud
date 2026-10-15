@@ -105,6 +105,10 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     creatureId, 'content.i18n.name.key': 'logs.actionAbandoned',
   }).fetchAsync();
 
+  // The dice of an action played as the client does: its rollDice decisions
+  const diceDecided = (action: EngineAction) => (action._decisions || [])
+    .filter(({ kind }) => kind === 'rollDice').map(({ value }) => value) as number[][][];
+
   /**
    * Plays an action as the client does (doAction, ActionDialog): its dice
    * from the server, the user's choices recorded as decisions
@@ -210,7 +214,7 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     const shown = allLogContent(played).map(({ name, value }) => ({ name, value }));
     // The attack's d20 and the damage's 4d10 (8d10 on a critical hit), drawn
     // one roll at a time: the decisions of rollDice
-    const dice = played._decisions?.filter(Array.isArray) as number[][][];
+    const dice = diceDecided(played);
     assert.lengthOf(dice, 2);
     const d20 = dice[0][0][0];
     const damageDice = dice[1][0];
@@ -221,7 +225,9 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
       drawSeededDiceAt(seed!, 1, [{ number: damageDice.length, diceSize: 10 }]),
     ]);
     // A client that changes the dice it sends back gains nothing
-    const decisions = played._decisions!.map(decision => Array.isArray(decision) ? decision.map(roll => roll.map(() => 20)) : decision);
+    const decisions = played._decisions!.map(({ kind, value }) => kind === 'rollDice'
+      ? { kind, value: (value as number[][]).map(roll => roll.map(() => 20)) }
+      : { kind, value });
 
     await execute(runAction, ownerId, { actionId, decisions });
     const log = await CreatureLogs.findOneAsync({ creatureId, actionId });
@@ -242,7 +248,7 @@ if (Meteor.isServer) describe('Action dice: a secret seed, drawn by the server',
     const played = await playOnClient(actionId);
     const shown = allLogContent(played).map(({ name, value }) => ({ name, value }));
     // 20d6, then their 20 new rolls at once; 20d6, then their 20 explosions
-    const dice = played._decisions?.filter(Array.isArray) as number[][][];
+    const dice = diceDecided(played);
     assert.deepEqual(dice.map(roll => roll[0].length), [20, 20, 20, 20]);
     // The action's sequence, drawn by the server
     const { seed } = await EngineActions.findOneAsync(actionId) as EngineAction;

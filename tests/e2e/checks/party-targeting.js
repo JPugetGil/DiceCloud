@@ -303,8 +303,11 @@ main(async () => {
       browsers.push(player.browser);
       await visit(player.page, `/character/${characterId}`, 6000);
       await removeOverlay(player.page);
-      const log = await player.page.evaluate(() => document.querySelector('.character-log')?.innerText || '');
-      if (!log.includes(`${goblinName} →`)) throw new Error(`the character's log reads "${log.replace(/\s+/g, ' ').slice(0, 200)}"`);
+      // The goblin's latest entry alone: the character's log holds the
+      // character's own entries too, of other checks (its rolls' bonuses)
+      const entryId = (await latestReceived(characterId, goblinId))?._id;
+      const log = await player.page.evaluate(id => document.querySelector(`[data-id="log-entry-${id}"]`)?.innerText || '', entryId);
+      if (!log.includes(`${goblinName} →`)) throw new Error(`the goblin's entry reads "${log.replace(/\s+/g, ' ').slice(0, 200)}"`);
       const leaked = GOBLIN_SECRETS.filter(secret => log.includes(secret));
       if (leaked.length) throw new Error(`the goblin's numbers in the log: ${leaked.join(', ')}`);
       await player.browser.close();

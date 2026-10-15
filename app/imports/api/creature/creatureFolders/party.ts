@@ -1,3 +1,5 @@
+import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
+
 /**
  * A character folder is a party: its owner is the game master, and the
  * players who joined through its invitation link are its members.
@@ -10,6 +12,8 @@ export type PartyFolder = {
   members?: string[],
   creatures?: string[],
   archived?: boolean,
+  // false: the game master does not let the players target their monsters
+  playersTargetMonsters?: boolean,
 };
 
 // What the party's rule reads of a creature
@@ -43,15 +47,15 @@ export function partyCreaturesFilter(folder: PartyFolder, userId: string) {
 
 /**
  * Whether the party lets a user act with one of its creatures on another,
- * beyond what the user may edit (phase 2.2 of the monsters): during play,
- * whoever sits at the table — its game master or a member — may apply an
- * action or a spell of their character to the table's player characters
- * (healing, buffs, support spells). The folder is not archived and holds
- * both; the user sits at its table; the actor and the target belong to
- * someone who does; the target is a player character, never a monster nor a
- * non-player character, whose stats the players don't see (phase 2.3). That
- * the user may edit the actor, and that the task is one an action applies
- * (assertMayTarget), are checked apart. The server's rule
+ * beyond what the user may edit (phases 2.2 and 2.3 of the monsters): during
+ * play, whoever sits at the table — its game master or a member — may apply
+ * an action or a spell of their character to the table's player characters
+ * (healing, buffs, support spells), and to the game master's monsters and
+ * non-player characters, unless the game master turned that off
+ * (`playersTargetMonsters`). The folder is not archived and holds both; the
+ * user sits at its table; the actor and the target belong to someone who
+ * does. That the user may edit the actor, and that the task is one an action
+ * applies (assertMayTarget), are checked apart. The server's rule
  * (assertMayTarget.ts), and what the target picker offers (targetCandidates)
  */
 export function partyLetsTarget(
@@ -70,8 +74,18 @@ export function partyTargetable(
   folder: PartyFolder | undefined | null, userId: string | undefined | null, target: PartyCreature | undefined | null,
 ): boolean {
   if (!folder || folder.archived || !getPartyRole(folder, userId)) return false;
-  return isTablesCreature(folder, target) && target?.type === 'pc';
+  if (!isTablesCreature(folder, target)) return false;
+  if (target?.type === 'pc') return true;
+  // The game master's monsters and non-player characters, whose stats the
+  // players never read: the server tells them the results alone (phase 2.3)
+  return hidesStatsFromPlayers(target, folder.owner) && playersTargetMonsters(folder);
 }
+
+/**
+ * Whether the game master lets the players target their monsters and
+ * non-player characters: unless they turned it off
+ */
+export const playersTargetMonsters = (folder: PartyFolder | undefined | null) => folder?.playersTargetMonsters !== false;
 
 // In the folder, and belonging to its game master or one of its members
 function isTablesCreature(folder: PartyFolder, creature: PartyCreature | undefined | null): boolean {

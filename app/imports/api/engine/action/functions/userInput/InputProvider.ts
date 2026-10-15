@@ -14,6 +14,19 @@ type InputProvider = {
     dice: { number: number, diceSize: number }[]
   ): Promise<number[][]>;
   /**
+   * Roll dice for a target hidden from the actor's readers: a game master's
+   * monster's saving throw against a player's character (phase 2.3 of the
+   * monsters). The server's alone, from a stream of the action's dice that
+   * the client can never draw (server/actionDice.ts). An input provider
+   * without it cannot resolve what such a target does: the browser's
+   * simulation, which leaves it to the server (hiddenStats.ts, targetSight)
+   * @param targetId The hidden target the dice are rolled for
+   * @param dice How many dice, and how many faces each
+   */
+  rollHiddenDice?(
+    targetId: string, dice: { number: number, diceSize: number }[]
+  ): Promise<number[][]>;
+  /**
    * Choose from a provided selection
    * @param action 
    * @param choices Options to choose from

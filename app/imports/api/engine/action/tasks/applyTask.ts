@@ -12,6 +12,7 @@ import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellT
 import applyDealDamageTask from '/imports/api/engine/action/tasks/applyDealDamageTask';
 import { getPropertyName } from '/imports/constants/PROPERTIES';
 import { Meteor } from 'meteor/meteor';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 // DamagePropTask promises a number of actual damage done
 export default async function applyTask(
@@ -89,10 +90,12 @@ export default async function applyTask(
 
     // Apply the property
     if (!applyProperties[prop.type]) {
+      // About the actor's own property
       result.appendLog({
         name: 'Warning', i18n: { name: { key: 'logs.warning' } },
         value: `Could not apply ${getPropertyName(prop.type)}, only certain properties can be run as part of an action`,
         silenced: false,
+        hiddenTargetView: WHOLE,
       }, task.targetIds);
       return;
     }

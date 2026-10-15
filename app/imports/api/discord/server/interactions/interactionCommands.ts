@@ -196,7 +196,7 @@ export async function runCheck(user: LinkedUser, creature: CommandCreature, vari
         results: [], taskCount: 0, _decisions: [],
       },
     });
-    await (runAction as any)._execute(invocation, { actionId, decisions: [params] });
+    await (runAction as any)._execute(invocation, { actionId, decisions: [{ kind: 'check', value: params }] });
   });
   return origin.logs.find(log => log.creatureId === creature._id);
 }

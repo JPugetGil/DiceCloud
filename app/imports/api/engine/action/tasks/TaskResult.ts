@@ -1,7 +1,7 @@
 import Context from '../../../../parser/types/Context';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { logLine, msg, type LogI18n } from '/imports/api/creature/log/logMessages';
-import type { TargetView } from '/imports/api/creature/log/logViews';
+import { WHOLE, type TargetView } from '/imports/api/creature/log/logViews';
 
 /**
  * The result of running a task containing all the changes that need to be made to the listed
@@ -54,11 +54,16 @@ export default class TaskResult {
     if (!latestMutation.contents) {
       latestMutation.contents = [];
     }
+    // Errors of the actor's own calculations, in its own scope, which holds
+    // nothing of a target hidden from its readers (logViews.ts)
     context.errors?.forEach(error => {
-      latestMutation.contents?.push(logLine({
-        name: msg('logs.error'),
-        value: error.message,
-      }));
+      latestMutation.contents?.push({
+        ...logLine({
+          name: msg('logs.error'),
+          value: error.message,
+        }),
+        hiddenTargetView: WHOLE,
+      });
     });
   }
 }
@@ -100,4 +105,8 @@ export type LogContent = {
   // How it shows to the players of a target the acting creature is hidden
   // from; not there without one. In memory only (logViews.ts)
   targetView?: TargetView;
+  // How it shows to the players from whom a creature it is about is hidden:
+  // the acting creature's, when it acts on a game master's monster; not there
+  // without one. In memory only (logViews.ts)
+  hiddenTargetView?: TargetView;
 }

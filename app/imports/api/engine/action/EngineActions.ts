@@ -2,6 +2,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
 import Task, { type ReceivedDamage } from './tasks/Task';
+import type { Decision } from './functions/userInput/saveInputChoices';
 import { Mongo } from 'meteor/mongo';
 
 const EngineActions = new Mongo.Collection<EngineAction>('actions');
@@ -10,7 +11,9 @@ export interface EngineAction {
   _id?: string;
   _isSimulation?: boolean;
   _stepThrough?: boolean;
-  _decisions?: any[],
+  // What the user decided while the action was simulated, by kind, which
+  // runAction replays (saveInputChoices)
+  _decisions?: Decision[],
   // The check or saving throw the action itself rolled, as decided: what
   // Discord's buttons roll again (D7). Kept in memory while it runs, never stored
   _rolledCheck?: { skillVariableName?: string, abilityVariableName?: string },

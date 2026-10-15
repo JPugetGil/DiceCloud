@@ -54,6 +54,7 @@ export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: 
         inline: false,
         ...prop?.silent && { silenced: true },
         targetView: WHOLE,
+        hiddenTargetView: WHOLE,
       }]
     },
   });

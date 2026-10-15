@@ -2,29 +2,35 @@ import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 /**
- * Create a new version of the user input function, that saves the user's choices to an array
- * before returning them
+ * The kinds of decisions a user makes while an action is simulated, which
+ * runAction replays: the dice the server gave (drawDice), the choices, the
+ * advantage of a roll and the options of a check
+ */
+export const DECISION_KINDS = ['rollDice', 'choose', 'advantage', 'check'] as const;
+
+export type DecisionKind = typeof DECISION_KINDS[number];
+
+/** A decision, by kind: runAction replays each kind in its own order (getReplayChoicesInputProvider) */
+export type Decision = { kind: DecisionKind, value: unknown };
+
+/**
+ * A new version of the user input, which saves each decision to
+ * action._decisions with its kind before returning it. Moving on to the next
+ * step is no decision, and a hidden target's dice are the server's
+ * (rollHiddenDice): both pass through
  */
 export default function saveInputChoices(action: EngineAction, userInput: InputProvider): InputProvider {
-  const newInputProvider: Partial<InputProvider> = {};
-
   if (!action._decisions) {
     action._decisions = [];
   }
-
-  // For every function in the given input provider
-  let key: keyof InputProvider;
-  for (key in userInput) {
-    const oldFn = userInput[key];
-    if (!oldFn) continue;
-    // Make a new function that does the same thing, but saves the result to action._decisions
-    const newFn = async (...args) => {
-      const result = await oldFn(...args);
-      action._decisions?.push(result);
-      return result;
-    }
-    newInputProvider[key] = newFn;
+  const saving: InputProvider = { ...userInput };
+  for (const kind of DECISION_KINDS) {
+    const decide = userInput[kind] as (...args: any[]) => Promise<unknown>;
+    (saving as any)[kind] = async (...args: any[]) => {
+      const value = await decide.apply(userInput, args);
+      action._decisions?.push({ kind, value });
+      return value;
+    };
   }
-
-  return newInputProvider as InputProvider;
+  return saving;
 }

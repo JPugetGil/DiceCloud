@@ -16,7 +16,8 @@ import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
 import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { Meteor } from 'meteor/meteor';
 import { logLine, msg, withAdvantage } from '/imports/api/creature/log/logMessages';
-import { nameAndTotal, nameOnly } from '/imports/api/creature/log/logViews';
+import { WHOLE, nameAndTotal, nameOnly } from '/imports/api/creature/log/logViews';
+import { targetSight } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyActionProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -43,32 +44,40 @@ export default async function applyActionProperty(
     await recalculateInlineCalculations(prop.summary, action, 'reduce', userInput);
   }
   // A target the actor is hidden from reads its name: its summary is often
-  // its stat block's, "+4 to hit, 5 (1d6 + 2) slashing damage" (logViews.ts)
+  // its stat block's, "+4 to hit, 5 (1d6 + 2) slashing damage". The actor's
+  // own readers read it whole, whoever it targets (logViews.ts)
   const title = getPropertyTitle(prop);
   result.appendLog({
     name: title,
     ...prop.summary && { value: prop.summary.value },
     silenced: prop.silent,
     targetView: nameOnly({ name: title }),
+    hiddenTargetView: WHOLE,
   }, targetIds);
 
   // Check Uses
   if (prop.usesLeft !== undefined && prop.usesLeft <= 0) {
-    result.appendLog(logLine({
-      name: msg('logs.error'),
-      value: msg('logs.notEnoughUses', { name: getPropertyTitle(prop) }),
-      silenced: prop.silent,
-    }), targetIds);
+    result.appendLog({
+      ...logLine({
+        name: msg('logs.error'),
+        value: msg('logs.notEnoughUses', { name: getPropertyTitle(prop) }),
+        silenced: prop.silent,
+      }),
+      hiddenTargetView: WHOLE,
+    }, targetIds);
     return;
   }
 
   // Check Resources
   if (prop.insufficientResources) {
-    result.appendLog(logLine({
-      name: msg('logs.error'),
-      value: msg('logs.notEnoughResources'),
-      silenced: prop.silent,
-    }), targetIds);
+    result.appendLog({
+      ...logLine({
+        name: msg('logs.error'),
+        value: msg('logs.notEnoughResources'),
+        silenced: prop.silent,
+      }),
+      hiddenTargetView: WHOLE,
+    }, targetIds);
     return;
   }
 
@@ -131,6 +140,26 @@ async function applyAttackToTarget(
     advantage
   } = await rollAttack(attack, scope, taskResult.pushScope, userInput);
 
+  // A target hidden from the actor's readers, which the browser's simulation
+  // leaves to the server: its armor class unread, the roll alone, and
+  // neither hit nor miss, so that no branch applies on a guess
+  const sight = await targetSight(action, targetId, userInput);
+  if (sight === 'unresolved') {
+    contents.push({
+      ...logLine({
+        name: withAdvantage(
+          msg(criticalHit ? 'logs.criticalHit' : criticalMiss ? 'logs.criticalMiss' : 'logs.toHit'), advantage,
+        ),
+        value: [resultPrefix, msg('logs.vsHidden', { total: result })],
+        inline: true,
+        ...prop.silent && { silenced: true },
+      }),
+      hiddenTargetView: WHOLE,
+    });
+    taskResult.mutations.push({ contents, targetIds: [targetId] });
+    return;
+  }
+
   const targetScope = await getVariables(targetId);
   const targetArmor = await getNumberFromScope('armor', targetScope)
 
@@ -145,8 +174,9 @@ async function applyAttackToTarget(
       inline: true,
       ...prop.silent && { silenced: true },
     });
-    // The target's players read the result, not the roll and its bonus
-    contents.push({ ...line, targetView: nameAndTotal(line, result) });
+    // The target's players read the result, not the roll and its bonus; the
+    // actor's, their own roll and whether it hit, never the armor class
+    contents.push({ ...line, targetView: nameAndTotal(line, result), hiddenTargetView: WHOLE });
 
     if (criticalMiss || result < targetArmor) {
       taskResult.pushScope['~attackMiss'] = { value: true };
@@ -154,6 +184,7 @@ async function applyAttackToTarget(
       taskResult.pushScope['~attackHit'] = { value: true };
     }
   } else {
+    // What the target's sheet lacks: never for the readers it is hidden from
     contents.push(logLine({
       name: msg('logs.error'),
       value: msg('logs.noArmor'),
@@ -166,7 +197,7 @@ async function applyAttackToTarget(
       inline: true,
       ...prop.silent && { silenced: true },
     });
-    contents.push({ ...line, targetView: nameAndTotal(line, result) });
+    contents.push({ ...line, targetView: nameAndTotal(line, result), hiddenTargetView: WHOLE });
   }
   if (contents.length) {
     taskResult.mutations.push({

@@ -13,6 +13,7 @@ import { lowerCase, upperFirst } from 'lodash';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import { attributeTypeMessage, logLine, msg } from '/imports/api/creature/log/logMessages';
+import { targetSight } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyDamagePropTask(
   task: DamagePropTask, action: EngineAction, result: TaskResult, userInput
@@ -39,9 +40,14 @@ export default async function applyDamagePropTask(
   } else {
     result.pushScope['~set'] = { value };
   }
-  // Store which property we're targeting
+  // Store which property we're targeting. A target hidden from the actor's
+  // readers: its id alone. The whole property, its total and what it has
+  // left, stays in the actor's scope for the rest of the action, where any
+  // formula would print a monster's hit points in the actor's log
   if (targetId === action.creatureId) {
     result.pushScope['~attributeDamaged'] = { _propId: targetProp._id };
+  } else if (await targetSight(action, targetId, userInput) !== 'shown') {
+    result.pushScope['~attributeDamaged'] = { _id: (targetProp as { _id?: string })._id };
   } else {
     result.pushScope['~attributeDamaged'] = targetProp;
   }

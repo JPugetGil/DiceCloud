@@ -63,11 +63,12 @@ export default async function applySpellProperty(
     message = `Casting using a level ${slotLevel} spell slot`;
   }
 
-  // Log casting method
+  // Log casting method: the actor's own
   result.appendLog({
     name: message,
     silenced: prop.silent,
     targetView: WHOLE,
+    hiddenTargetView: WHOLE,
   }, targetIds);
 
   // Add the slot level to the scope

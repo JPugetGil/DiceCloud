@@ -171,10 +171,11 @@ export function fitLineName(name: string): string {
  * Failed save", where three "Failed save" said nothing of whose they were (a
  * breath on three characters). The lines stay in the engine's order, which
  * may interleave the targets (an attack's rolls, then each one's damage).
- * Lines about several of them, about the actor alone, or without a name, stay
- * as they are; so does the entry of an action on one creature or none. Each
- * target's own entry (writeActionResults) is about it alone, and names none.
- * `nameOf`: a target's name, from its id
+ * Lines about several of them, about the actor alone, without a name, or
+ * that name their target already (a hidden target's saving throw,
+ * applySavingThrowProperty), stay as they are; so does the entry of an action
+ * on one creature or none. Each target's own entry (writeActionResults) is
+ * about it alone, and names none. `nameOf`: a target's name, from its id
  */
 export function namingTargets<T extends { name?: string, i18n?: LogI18n, targetIds?: string[] }>(
   lines: T[], targetIds: string[] | undefined, nameOf: (id: string) => string | undefined,
@@ -184,6 +185,7 @@ export function namingTargets<T extends { name?: string, i18n?: LogI18n, targetI
   return lines.map(line => {
     const [subject, ...others] = line.targetIds || [];
     if (!subject || others.length || !targets.includes(subject) || !line.name) return line;
+    if (line.i18n?.name?.key === 'logs.forTarget') return line;
     const name = msg('logs.forTarget', { target: nameOf(subject) || '?', name: line.i18n?.name ?? line.name });
     return { ...line, name: fitLineName(toEnglish(name)), i18n: { ...line.i18n, name } };
   });

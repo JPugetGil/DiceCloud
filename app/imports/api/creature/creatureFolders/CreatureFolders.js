@@ -63,6 +63,15 @@ let creatureFolderSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // Whether the players may target the game master's monsters and
+  // non-player characters with their characters' actions and spells
+  // (party.ts, playersTargetMonsters). On unless the game master turns it
+  // off: false, never true. The players read it, which hides the monsters
+  // from their target picker
+  playersTargetMonsters: {
+    type: Boolean,
+    optional: true,
+  },
   // The folder's initiative tracker, on its party board. Round 0: no combat
   initiative: {
     type: Object,

@@ -19,7 +19,7 @@ import applySavingThrowProperty from '/imports/api/engine/action/applyProperties
 import { Meteor } from 'meteor/meteor';
 import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 import { WHOLE } from '/imports/api/creature/log/logViews';
-import { hiddenTargets } from '/imports/api/engine/action/functions/hiddenStats';
+import { targetSight } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyDamageProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -157,6 +157,11 @@ export default async function applyDamageProperty(
       let saved = false;
       const targetLog: LogPart[] = index === 0 && rolledText ? [rolledText] : [];
       const multipliers: LogPart[] = [];
+      // A target hidden from the actor's readers: they read the damage dealt
+      // and its resistances (Q3 of the monsters' phase 2), never what it did
+      // to the hit points. The browser's simulation reads nothing of it, and
+      // leaves the damage it takes to the server
+      const sight = await targetSight(action, target, inputProvider);
 
       // If there is a saving throw, apply that first
       if (prop.save) {
@@ -184,7 +189,7 @@ export default async function applyDamageProperty(
       }
 
       // Apply weaknesses/resistances/immunities
-      damageToApply = await applyDamageMultipliers({
+      if (sight !== 'unresolved') damageToApply = await applyDamageMultipliers({
         targetId: target,
         damage: damageToApply,
         damageProp: prop,
@@ -195,7 +200,7 @@ export default async function applyDamageProperty(
       // A game master's creature hit by a player's character: the damage
       // dealt, not what it did to its hit points, which the log leaves out
       // (hiddenStats.ts)
-      if ((await hiddenTargets(action.creatureId, [target])).length) {
+      if (sight !== 'shown') {
         targetLog.push(amountMessage(damageToApply, saved));
       }
 
@@ -213,11 +218,14 @@ export default async function applyDamageProperty(
             ...prop.silent && { silenced: true },
           }),
           targetView: logLine({ name: logName, value: [...multipliers, amountMessage(damageToApply, saved)] }),
+          // The actor's dice, the damage dealt and the resistances that
+          // halved it: what the damage number gives away anyway
+          hiddenTargetView: WHOLE,
         }],
       });
 
       // Deal the damage to the target
-      await dealDamage(
+      if (sight !== 'unresolved') await dealDamage(
         action, prop, result, inputProvider, target, prop.damageType, damageToApply
       );
     }
@@ -413,7 +421,8 @@ export async function dealDamage(
           inline: true,
           ...prop?.silent && { silenced: true },
         }),
-        // The target's own saving throw to make
+        // The target's own saving throw to make. Not for the readers it is
+        // hidden from: that a monster concentrates is its game master's
         targetView: WHOLE,
       }],
     });

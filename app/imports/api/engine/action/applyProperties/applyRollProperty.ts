@@ -7,7 +7,7 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import toString from '/imports/parser/toString';
 import { Meteor } from 'meteor/meteor';
-import { nameAndTotal } from '/imports/api/creature/log/logViews';
+import { WHOLE, nameAndTotal } from '/imports/api/creature/log/logViews';
 
 export default async function applyRollProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -33,11 +33,13 @@ export default async function applyRollProperty(
   if (rolled.parseType !== 'constant') {
     logValue.push(toString(rolled));
   }
+  // Errors of the actor's own calculation, in its own scope
   errors?.forEach(error => {
     result.appendLog({
       name: 'Error', i18n: { name: { key: 'logs.error' } },
       value: error.message,
       silenced: prop.silent,
+      hiddenTargetView: WHOLE,
     }, task.targetIds);
   });
 
@@ -59,13 +61,15 @@ export default async function applyRollProperty(
   result.scope[prop.variableName] = { value };
   logValue.push(`**${value}**`);
 
-  // A target's players read the result, not the dice and the formula
+  // A target's players read the result, not the dice and the formula; the
+  // actor's, their own roll whole
   result.appendLog({
     name: prop.name,
     value: logValue.join('\n'),
     inline: true,
     silenced: prop.silent,
     targetView: nameAndTotal({ name: prop.name }, value),
+    hiddenTargetView: WHOLE,
   }, task.targetIds);
 
   // Apply children

@@ -4,11 +4,13 @@
  * the test account makes a board with its own character, which the other
  * test account joins with its character; the board holds a goblin of the SRD
  * 5.1 bestiary too. The player's healing action ("Target…") offers the game
- * master's character, never the goblin; picked, its hit points go up and its
- * log says "<the player's character> → you", with the healing and its hit
- * points. The board's "Target" is on the game master's character for the
- * player, not on the goblin. The server refuses a rest, damage typed in, and
- * the goblin. Removed from the party while an attack's dialog is open, the
+ * master's character, and the goblin (phase 2.3: players target the
+ * monsters unless the game master turns it off, party-monster-attack);
+ * picked, the character's hit points go up and its log says "<the player's
+ * character> → you", with the healing and its hit points. The board's
+ * "Target" is on the game master's character and the goblin for the player.
+ * The server refuses a rest and damage typed in, on the character and on the
+ * goblin. Removed from the party while an attack's dialog is open, the
  * player sees the refusal when they roll, and nothing is applied. Everything
  * is put back.
  */
@@ -168,7 +170,7 @@ main(async () => {
       return `${data.gmCharacter?.name} (the game master's), ${characterName} (the player's)`;
     });
 
-    await step('the player\'s "Target…" offers the game master\'s character, never the goblin', player.messages, async () => {
+    await step('the player\'s "Target…" offers the game master\'s character, and the goblin (2.3)', player.messages, async () => {
       await visit(player.page, `/character/${characterId}`, 5000);
       await removeOverlay(player.page);
       await showTab(player.page, characterId, 'actions');
@@ -180,10 +182,9 @@ main(async () => {
       const offered = await player.page.locator('[data-id^="target-option-"]').evaluateAll(
         options => options.map(option => option.getAttribute('data-id')),
       );
-      for (const id of ['none', characterId, gmCharacterId]) {
+      for (const id of ['none', characterId, gmCharacterId, goblinId]) {
         if (!offered.includes(`target-option-${id}`)) throw new Error(`not offered: ${id} (${offered.join(', ')})`);
       }
-      if (offered.includes(`target-option-${goblinId}`)) throw new Error('the goblin is offered to a player');
       return `${offered.length - 1} creatures offered`;
     });
 
@@ -224,20 +225,19 @@ main(async () => {
       if (!/E2E Hit Points/.test(log)) throw new Error(`the log reads "${log.replace(/\s+/g, ' ').slice(0, 200)}"`);
     });
 
-    await step('on the board, the player may "Target" the game master\'s character, not the goblin', player.messages, async () => {
+    await step('on the board, the player may "Target" the game master\'s character and the goblin', player.messages, async () => {
       await visit(player.page, `/party/${folderId}`, 5000);
       await removeOverlay(player.page);
       await player.page.waitForSelector(`[data-id="party-target-${gmCharacterId}"]`, { timeout: 15000 });
-      if (await player.page.locator(`[data-id="party-target-${goblinId}"]`).count()) {
-        throw new Error('"Target" on the goblin\'s card');
-      }
+      await player.page.waitForSelector(`[data-id="party-target-${goblinId}"]`, { timeout: 15000 });
     });
 
-    await step('the server refuses a rest and damage typed in on that character, and the goblin', null, async () => {
+    await step('the server refuses a rest and damage typed in on that character, and on the goblin', null, async () => {
       const attempts = {
         'a rest': { subtaskFn: 'reset', targetIds: [gmCharacterId], eventName: 'longRest' },
         'damage typed in': { subtaskFn: 'dealDamage', targetIds: [gmCharacterId], params: { amount: 50 } },
-        'the goblin': { prop: { _id: cureId }, targetIds: [goblinId] },
+        'a rest on the goblin': { subtaskFn: 'reset', targetIds: [goblinId], eventName: 'longRest' },
+        'damage typed in on the goblin': { subtaskFn: 'dealDamage', targetIds: [goblinId], params: { amount: 50 } },
       };
       const refused = [];
       for (const [what, task] of Object.entries(attempts)) {

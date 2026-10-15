@@ -84,6 +84,29 @@ export const endEncounter = new ValidatedMethod({
   },
 });
 
+/**
+ * Whether the players may target the board's monsters and non-player
+ * characters with their characters' actions and spells (phase 2.3 of the
+ * monsters): on unless the game master turns it off. Then the target picker
+ * no longer offers them to the players, and the server refuses them
+ * (partyLetsTarget, assertMayTarget), an action already under way included
+ */
+export const setPlayersTargetMonsters = new ValidatedMethod({
+  name: 'creatureFolders.setPlayersTargetMonsters',
+  validate: new SimpleSchema({
+    folderId: { type: String, max: 32 },
+    playersTargetMonsters: { type: Boolean },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: { numRequests: 10, timeInterval: 5000 },
+  async run({ folderId, playersTargetMonsters }) {
+    await getFolderAsGm(folderId, this.userId);
+    await CreatureFolders.updateAsync(folderId, playersTargetMonsters
+      ? { $unset: { playersTargetMonsters: 1 } }
+      : { $set: { playersTargetMonsters: false } });
+  },
+});
+
 // The picker searches as the game master types
 const searchRateLimit = { numRequests: 20, timeInterval: 5000 };
 

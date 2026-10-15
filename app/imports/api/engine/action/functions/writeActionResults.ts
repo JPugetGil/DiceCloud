@@ -16,18 +16,19 @@ import { GM_CREATURE_TYPES, hiddenFrom } from '/imports/api/creature/creatureFol
 import {
   fitLineName, logLine, msg, namingTargets, withoutHiddenStats,
 } from '/imports/api/creature/log/logMessages';
-import { inTargetView, withoutView } from '/imports/api/creature/log/logViews';
+import { seenBy, withoutView } from '/imports/api/creature/log/logViews';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
 import type { ReceivedDamage } from '/imports/api/engine/action/tasks/Task';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 let getActionDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getActionDiceRoller;
+let getHiddenDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getHiddenDiceRoller;
 if (Meteor.isServer) {
   // require(), not import: the client runs this module too (the method's
   // simulation), and a static import would bundle node:crypto into it
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  ({ getActionDiceRoller } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
+  ({ getActionDiceRoller, getHiddenDiceRoller } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
 }
 
 /**
@@ -59,15 +60,18 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   const allTargetIds: string[] = union(...logContents.map(c => c.targetIds));
 
   // A player's character acting on a game master's creature, a monster or a
-  // non-player character, logs the damage dealt and not what it did to the
-  // creature's hit points, capped by what it had left: the players read the
-  // character's log (hiddenStats.ts). The creature's own log, its game
-  // master's, gets the whole entry (writeReceivedLogs)
+  // non-player character, logs what its players may read of each line about
+  // it (logViews.ts): its own rolls and the results, the damage dealt and not
+  // what it did to the creature's hit points, capped by what it had left;
+  // never the creature's stats (hiddenStats.ts). withoutHiddenStats is the
+  // safety net of the hit points. The creature's own log, its game master's,
+  // gets the whole entry (writeReceivedLogs)
   const hiddenIds = await hiddenTargets(action.creatureId, allTargetIds);
   // An action on several creatures names each one in the lines about it alone
   const targetNames = await creatureNames(action.task?.targetIds);
   const shownContents = fitLog(namingTargets(
-    withoutHiddenStats(logContents, hiddenIds).map(withoutView), action.task?.targetIds, id => targetNames.get(id),
+    withoutHiddenStats(shownTo(logContents, { hiddenIds }), hiddenIds),
+    action.task?.targetIds, id => targetNames.get(id),
   ));
 
   // Write the log
@@ -186,7 +190,9 @@ type Acting = { _id: string, name?: string, type?: string, owner?: string };
  *   targets hidden from it (another owner's);
  * - any other, the lines that concern it, as the players of a target the
  *   actor is hidden from read them (logViews.ts): a game master's monster
- *   acting on a player's character.
+ *   acting on a player's character; and of those lines about other targets
+ *   hidden from it too, what its players may read: a player's spell on the
+ *   character and a monster.
  */
 function receivedLines(contents: any[], actor: Acting, target: Acting, targets: Acting[]): any[] {
   const othersHidden = targets.filter(other => other._id !== target._id && hiddenFrom(target, other))
@@ -195,10 +201,16 @@ function receivedLines(contents: any[], actor: Acting, target: Acting, targets: 
   const lines = isGmCreature(target) && !actorHidden
     ? contents
     : contents.filter(line => line.targetIds?.includes(target._id));
-  const shown = actorHidden
-    ? lines.map(inTargetView).filter(line => line !== undefined)
-    : lines.map(withoutView);
-  return withoutHiddenStats(shown, othersHidden);
+  return withoutHiddenStats(shownTo(lines, { actorHidden, hiddenIds: othersHidden }), othersHidden);
+}
+
+/**
+ * The lines as readers see them, from whom the actor may be hidden
+ * (`actorHidden`), and some of the creatures the lines are about
+ * (`hiddenIds`): seenBy, logViews.ts. Those they don't see go
+ */
+function shownTo(lines: any[], readers: { actorHidden?: boolean, hiddenIds?: string[] }): any[] {
+  return lines.map(line => seenBy(line, readers)).filter(line => line !== undefined);
 }
 
 async function writeReceivedLog(action: EngineAction, actor: Acting, target: Acting, lines: any[]) {
@@ -241,9 +253,9 @@ async function fireReceivedDamageTriggers(targetId: string, changes: ReceivedDam
     results: [],
     taskCount: 0,
   };
-  const rollDice = getActionDiceRoller({ _id: pass._id as string, seed: Random.secret() });
+  const dice = { _id: pass._id as string, seed: Random.secret() };
   try {
-    await applyAction(pass, getAutomaticInputProvider(pass, rollDice));
+    await applyAction(pass, getAutomaticInputProvider(pass, getActionDiceRoller(dice), getHiddenDiceRoller(dice)));
   } catch (e) {
     // The action is written already: a trigger that fails costs its lines
     console.error(e);

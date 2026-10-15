@@ -20,6 +20,15 @@ const inputProviderForTests: InputProvider = {
     return result;
   },
   /**
+   * The dice of a target hidden from the actor's readers, as the server rolls
+   * them apart: the same test dice. With it, the tests resolve what such a
+   * target does, as the server does; the browser's simulation has none
+   * (clientInputProvider)
+   */
+  async rollHiddenDice(targetId, dice = []) {
+    return inputProviderForTests.rollDice(dice);
+  },
+  /**
    * For testing, always return the minimum number of choices, always choosing the first options
    */
   async choose(choices, quantity = [1, 1]) {
@@ -51,5 +60,13 @@ export const critInputProvider: InputProvider = {
     return inputProviderForTests.rollDice(dice);
   },
 };
+
+/**
+ * The test dice and choices as the browser's simulation has them: no dice for
+ * a hidden target, whose doings it leaves to the server (hiddenStats.ts)
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const { rollHiddenDice, ...clientInputProvider } = inputProviderForTests;
+export { clientInputProvider };
 
 export default inputProviderForTests;

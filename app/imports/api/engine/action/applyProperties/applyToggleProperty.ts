@@ -5,6 +5,7 @@ import recalculateCalculation from '/imports/api/engine/action/functions/recalcu
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { Meteor } from 'meteor/meteor';
+import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyToggle(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
@@ -17,10 +18,12 @@ export default async function applyToggle(
   }
 
   if (!prop.condition) {
+    // The actor's own property's error
     result.appendLog({
       name: 'Toggle error', i18n: { name: { key: 'logs.toggleError' } },
       value: 'toggle does not have a condition set',
       silenced: prop.silent,
+      hiddenTargetView: WHOLE,
     }, task.targetIds);
     return await applyAfterTasksSkipChildren(action, prop, task.targetIds, inputProvider);
   }

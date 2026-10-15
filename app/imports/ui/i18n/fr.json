@@ -555,6 +555,8 @@
     "remove": "Retirer {name}",
     "removeHint": "Supprime définitivement ce monstre.",
     "removed": "{name} retiré",
+    "playersTarget": "Les joueurs ciblent les monstres",
+    "playersTargetHint": "Les actions et les sorts de leurs personnages peuvent viser les monstres et les personnages non joueurs de ce tableau. Ils n'en apprennent que les résultats : touché ou raté, sauvegarde réussie ou ratée, dégâts infligés ; jamais leurs statistiques.",
     "menu": "Actions sur {name}",
     "description": "Description de {name}",
     "sizes": {
@@ -1998,7 +2000,7 @@
     "attributeDamaged": "{type} : perte",
     "attributeRestored": "{type} : gain",
     "attributeSet": "{name} : de {from} à {to}",
-    "attributeSetTo": "{name} fixé à {value}",
+    "attributeSetTo": "Valeur de {name} fixée à {value}",
     "damage": "Dégâts",
     "healing": "Soins",
     "damageAmount": "**{amount}** dégâts ({type})",
@@ -2034,7 +2036,12 @@
     "receivedFrom": "{name} → vous",
     "linesOmitted": "Et {count} lignes de plus",
     "forTarget": "{target} · {name}",
-    "buffTooLarge": "Trop grand pour la créature d'un autre : {count} propriétés, {max} au plus"
+    "buffTooLarge": "Trop grand pour la créature d'un autre : {count} propriétés, {max} au plus",
+    "vsHidden": "**{total}**, résultat à la résolution",
+    "saveAtResolution": "Sauvegarde : à la résolution",
+    "anEffect": "Un effet",
+    "adjusted": "{name} {amount}",
+    "adjustedTo": "Valeur de {name} fixée à {value}"
   },
   "health": {
     "change": "{name}",

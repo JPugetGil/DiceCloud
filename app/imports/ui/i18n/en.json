@@ -555,6 +555,8 @@
     "remove": "Remove {name}",
     "removeHint": "Deletes this monster for good.",
     "removed": "{name} removed",
+    "playersTarget": "Players target the monsters",
+    "playersTargetHint": "Their characters' actions and spells may target this board's monsters and non-player characters. They learn the results alone: hit or miss, saving throw made or failed, damage dealt; never the stats.",
     "menu": "Actions on {name}",
     "description": "Description of {name}",
     "sizes": {
@@ -2034,7 +2036,12 @@
     "receivedFrom": "{name} → you",
     "linesOmitted": "And {count} more lines",
     "forTarget": "{target} · {name}",
-    "buffTooLarge": "Too large for another's creature: {count} properties, {max} at most"
+    "buffTooLarge": "Too large for another's creature: {count} properties, {max} at most",
+    "vsHidden": "**{total}**, result at resolution",
+    "saveAtResolution": "Saving throw: at resolution",
+    "anEffect": "An effect",
+    "adjusted": "{name} {amount}",
+    "adjustedTo": "{name} set to {value}"
   },
   "health": {
     "change": "{name}",

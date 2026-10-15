@@ -25,6 +25,7 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';
+import { targetName, targetSight, type TargetSight } from '/imports/api/engine/action/functions/hiddenStats';
 
 export default async function applyBuffProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -39,7 +40,7 @@ export default async function applyBuffProperty(
 
   // Log the buff and return if there are no targets
   if (!targetIds.length) {
-    await logBuff(prop, targetIds, action, userInput, result);
+    await logBuff(prop, targetIds, action, userInput, result, 'shown');
     await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
     return;
   }
@@ -69,6 +70,11 @@ export default async function applyBuffProperty(
       continue;
     }
 
+    // A target hidden from the actor's readers: the buff's line, and in the
+    // browser's simulation, which leaves that target to the server, nothing
+    // copied to it
+    const sight = await targetSight(action, target, userInput);
+
     // Create a per-target mutation
     const mutation: Mutation = { targetIds: [target], contents: [] };
 
@@ -86,7 +92,8 @@ export default async function applyBuffProperty(
     });
 
     //Log the buff
-    await logBuff(prop, [target], action, userInput, result);
+    await logBuff(prop, [target], action, userInput, result, sight);
+    if (sight === 'unresolved') continue;
 
     // remove all the computed fields
     targetPropList = cleanProps(targetPropList);
@@ -119,44 +126,50 @@ async function isAnothers(actor: { _id?: string, owner?: string }, targetId: str
 }
 
 // The line of a buff too large to copy to the target. Its players read only
-// its name when the actor is hidden from them (logViews.ts)
+// its name when the actor is hidden from them; the actor's, the whole line
+// (logViews.ts)
 function tooLargeLine(prop, count: number) {
   const line = logLine({
     name: getPropertyTitle(prop),
     value: msg('logs.buffTooLarge', { count, max: MAX_FOREIGN_BUFF_PROPERTIES }),
     ...prop.silent && { silenced: true },
   });
-  return { ...line, targetView: nameOnly(line) };
+  return { ...line, targetView: nameOnly(line), hiddenTargetView: WHOLE };
 }
 
 // Logged once per target, where `~target` reads that target's variables: in
 // the result's latest mutation, the target's own
-async function logBuff(prop, targetIds, action, userInput, result) {
+async function logBuff(prop, targetIds, action, userInput, result, sight: TargetSight) {
   //Log the buff
   let logValue = prop.description?.value
   if (prop.description?.text) {
     const extraScope = targetIds.length === 1
-      ? await getTargetScope(prop, targetIds[0])
+      ? await getTargetScope(prop, targetIds[0], action, sight)
       : undefined;
     await recalculateInlineCalculations(prop.description, action, 'reduce', userInput, extraScope);
     logValue = prop.description?.value;
   }
   // Its target's players read it whole: the buff lands on their sheet, its
-  // description's numbers with it
+  // description's numbers with it. The actor's too: its description read
+  // nothing of a target hidden from them but its name
   result.appendLog({
     name: getPropertyTitle(prop),
     ...logValue && { value: logValue },
     silenced: prop.silent,
     targetView: WHOLE,
+    hiddenTargetView: WHOLE,
   }, targetIds);
 }
 
 /**
  * `~target.name` in a buff's description reads the target's variables. The
  * ones that are properties are stored as links (`_propId`), which an accessor's
- * path can't follow, so each referenced one is fetched first.
+ * path can't follow, so each referenced one is fetched first. A target hidden
+ * from the actor's readers shows its name alone, as the board does (phase 2.3
+ * of the monsters): its game master's own log reads that description too
  */
-async function getTargetScope(prop, targetId: string) {
+async function getTargetScope(prop, targetId: string, action: EngineAction, sight: TargetSight) {
+  if (sight !== 'shown') return { '~target': { name: await targetName(action, targetId) } };
   const variables = await getVariables(targetId);
   const names = new Set<string>();
   for (const calc of prop.description?.inlineCalculations || []) {
@@ -202,11 +215,13 @@ async function crystallizeVariables(
                 path: node.path?.length ? node.path : undefined,
               });
             } else {
-              // Can't strip if there isn't anything in the path after ~target
+              // Can't strip if there isn't anything in the path after ~target.
+              // The actor's own property's error
               result.appendLog({
                 name: 'Error', i18n: { name: { key: 'logs.error' } },
                 value: 'Variable `~target` should not be used without a property: ~target.property',
                 silenced: prop.silent,
+                hiddenTargetView: WHOLE,
               }, task.targetIds);
             }
             return node;
