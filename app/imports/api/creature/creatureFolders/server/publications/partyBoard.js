@@ -51,7 +51,16 @@ const PROPERTY_FIELDS = {
   hideRemoveButton: 1, decimal: 1, ignoreLowerLimit: 1, ignoreUpperLimit: 1, unit: 1,
   // Effects' durations, which the initiative tracker counts down
   duration: 1, durationSpent: 1,
+  // The game master's legendary actions (LEGENDARY_ACTIONS): what each costs,
+  // and whether the creature can pay it. No other property sent has them
+  resources: 1, insufficientResources: 1,
 };
+
+// The legendary actions of the game master's creatures (phase 3.2): the
+// resource, and the actions that spend it, which the initiative tracker
+// offers the game master. Never the players: nothing of them is on a
+// character or a condition, which are all the players get
+const LEGENDARY_ACTIONS = 'legendaryActions';
 
 /**
  * A character folder as a party board, for its owner (the game master) and
@@ -60,7 +69,8 @@ const PROPERTY_FIELDS = {
  * Perception, classes, buffs and conditions), and their variables and actions
  * in progress, which the board's damage and healing actions read. Also the
  * names of the game master and the players. The invitation link's token is
- * the game master's alone.
+ * the game master's alone, and so are the legendary actions of the creatures
+ * (LEGENDARY_ACTIONS), which the initiative tracker offers.
  *
  * Of the game master's monsters and non-player characters (boardMonsters.js),
  * the game master also gets the bestiary templates the monsters were copied
@@ -157,7 +167,13 @@ Meteor.publish('partyBoard', function (folderId) {
           type: 'buff',
           tags: 'condition',
           inactive: { $ne: true },
-        }],
+        }, ...role === 'gm' ? [{
+          'root.id': { $in: shownIds },
+          $or: [
+            { type: 'attribute', variableName: LEGENDARY_ACTIONS },
+            { type: 'action', 'resources.attributesConsumed.variableName': LEGENDARY_ACTIONS },
+          ],
+        }] : []],
       }, { fields: PROPERTY_FIELDS }),
       LibraryNodes.find({ _id: { $in: templateIds } }, {
         fields: { type: 1, name: 1, description: 1, libraryTags: 1, root: 1 },

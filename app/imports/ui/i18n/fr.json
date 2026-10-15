@@ -516,6 +516,13 @@
     "showStatsHint": "Sinon, ils n'en voient rien, pas même si chacune est indemne, en péril ou hors de combat.",
     "full": "L'ordre d'initiative accueille au plus {limit} créatures. Retirez-en pour en ajouter d'autres."
   },
+  "legendary": {
+    "badge": "{value}/{total}",
+    "badgeLabel": "{name} · Actions légendaires : {value} sur {total}",
+    "title": "{name} · Actions légendaires",
+    "ownTurn": "{name} joue son tour : les actions légendaires se prennent à la fin du tour d'une autre créature.",
+    "cost": "Coûte {count} action | Coûte {count} actions"
+  },
   "monsters": {
     "title": "Monstres",
     "count": "{count} / {limit}",
@@ -2000,6 +2007,7 @@
     "dc": "DD **{dc}**",
     "saveSucceeded": "Sauvegarde réussie",
     "saveFailed": "Sauvegarde ratée",
+    "legendaryResistance": "Échec → réussite (résistance légendaire)",
     "saveError": "Erreur de jet de sauvegarde",
     "noSave": "Aucun jet de sauvegarde trouvé : {stat}",
     "shortRest": "Repos court",

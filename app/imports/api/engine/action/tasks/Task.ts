@@ -27,6 +27,9 @@ export type DamagePropTask = BaseTask & {
     operation: 'increment' | 'set';
     value: number;
     targetProp: CreatureProperty | { name: string, };
+    // The type of the damage (or 'healing') it comes from, when a damage
+    // dealt it (dealDamage): its triggers read it as `~damageType`
+    damageType?: string;
   };
 }
 
@@ -94,6 +97,8 @@ export type ReceivedDamage = {
   operation: 'increment' | 'set';
   // As its triggers read it: damage when positive, healing when negative
   value: number;
+  // The damage's type, when a damage dealt it: `~damageType` for its triggers
+  damageType?: string;
 };
 
 /**

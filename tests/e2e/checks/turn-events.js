@@ -37,9 +37,13 @@ function caller(page) {
 
 const removeOverlay = page => page.evaluate(() => document.querySelector('#rspack-dev-server-client-overlay')?.remove());
 
-/** A creature's log entries, oldest first, as the names of the lines they show */
-const entries = creatureId => withDb(async db => (await db.collection('creatureLogs')
-  .find({ creatureId }, { sort: { date: 1 } }).toArray())
+/**
+ * A creature's log entries written since `since`, oldest first, as the names
+ * of the lines they show. By date, not by count: a log keeps its latest 100
+ * entries, and the test character's, which every check writes to, is full
+ */
+const entries = (creatureId, since) => withDb(async db => (await db.collection('creatureLogs')
+  .find({ creatureId, date: { $gte: since } }, { sort: { date: 1 } }).toArray())
   .map(log => (log.content || []).filter(line => !line.silenced).map(line => line.name)));
 
 async function waitFor(condition, what, timeoutMs = 15000) {
@@ -179,16 +183,16 @@ main(async () => {
       if (tracker.round !== 1 || tracker.turn !== 0) throw new Error(`round ${tracker.round}, turn ${tracker.turn}`);
     });
 
-    let before;
+    let since;
     await step('Next on the board: the character\'s turn ends, the goblin\'s starts, each logged once on its creature', gm.messages, async () => {
       await visit(gm.page, `/party/${folderId}`, 4000);
       await removeOverlay(gm.page);
-      before = { character: (await entries(characterId)).length, goblin: (await entries(goblinId)).length };
+      since = new Date();
       await gm.page.click('[data-id="initiative-next"]');
-      await waitFor(async () => (await entries(goblinId)).length > before.goblin, 'the goblin\'s turn to start');
+      await waitFor(async () => (await entries(goblinId, since)).length > 0, 'the goblin\'s turn to start');
       await pause(1500);
-      const goblin = (await entries(goblinId)).slice(before.goblin);
-      const character = (await entries(characterId)).slice(before.character);
+      const goblin = await entries(goblinId, since);
+      const character = await entries(characterId, since);
       // Its legendary actions come back silently: a reset alone is no news
       if (JSON.stringify(goblin) !== JSON.stringify([['Start of turn', 'E2E war cry']])) {
         throw new Error(`the goblin's entries: ${JSON.stringify(goblin)}`);
@@ -208,9 +212,9 @@ main(async () => {
       await pause(3000);
       const tracker = await withDb(async db => (await db.collection('creatureFolders').findOne({ _id: folderId })).initiative);
       if (tracker.round !== 1 || tracker.turn !== 1) throw new Error(`round ${tracker.round}, turn ${tracker.turn}`);
-      const counts = { character: (await entries(characterId)).length, goblin: (await entries(goblinId)).length };
-      if (counts.goblin !== before.goblin + 1 || counts.character !== before.character + 1) {
-        throw new Error(`entries before ${JSON.stringify(before)}, now ${JSON.stringify(counts)}`);
+      const counts = { character: (await entries(characterId, since)).length, goblin: (await entries(goblinId, since)).length };
+      if (counts.goblin !== 1 || counts.character !== 1) {
+        throw new Error(`entries since the first Next: ${JSON.stringify(counts)}, one each expected`);
       }
     });
 

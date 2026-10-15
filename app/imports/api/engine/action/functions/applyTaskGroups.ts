@@ -5,6 +5,7 @@ import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyTask from '../tasks/applyTask';
 import { PropTask } from '../tasks/Task';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 /**
  * Get all the child tasks of a given property
@@ -157,4 +158,25 @@ export async function applyTaskToEachTarget(
       targetIds: [targetId]
     }, inputProvider);
   }
+}
+
+/**
+ * Spends `amount` of one of a creature's attributes, as damageProp does it
+ * (within the attribute's limits, with its damage triggers, a line in its
+ * own log): a resource the target spends as a property applies to it, its
+ * legendary resistance (applySavingThrowProperty). Here, with the tasks it
+ * applies: the properties import this module already, and an import of
+ * applyTask from one of them would close another cycle (tests/cycles).
+ * Resolves to what it spent
+ */
+export async function spendAttribute(
+  action: EngineAction, creatureId: string, attribute: CreatureProperty,
+  amount: number, inputProvider: InputProvider, { silent = false }: { silent?: boolean } = {},
+): Promise<number> {
+  return applyTask(action, {
+    targetIds: [creatureId],
+    subtaskFn: 'damageProp',
+    ...silent && { silent: true },
+    params: { operation: 'increment', value: amount, targetProp: attribute },
+  }, inputProvider);
 }

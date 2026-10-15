@@ -516,6 +516,13 @@
     "showStatsHint": "Otherwise they see none of it, not even whether each one is unhurt, bloodied or down.",
     "full": "The initiative tracker holds up to {limit} creatures. Remove some to add others."
   },
+  "legendary": {
+    "badge": "{value}/{total}",
+    "badgeLabel": "{name} · Legendary actions: {value} of {total} left",
+    "title": "{name} · Legendary actions",
+    "ownTurn": "{name} is taking its turn: legendary actions are taken at the end of another creature's turn.",
+    "cost": "Costs {count} action | Costs {count} actions"
+  },
   "monsters": {
     "title": "Monsters",
     "count": "{count} / {limit}",
@@ -2000,6 +2007,7 @@
     "dc": "DC **{dc}**",
     "saveSucceeded": "Successful save",
     "saveFailed": "Failed save",
+    "legendaryResistance": "Failed → success (legendary resistance)",
     "saveError": "Saving throw error",
     "noSave": "No saving throw found: {stat}",
     "shortRest": "Short rest",

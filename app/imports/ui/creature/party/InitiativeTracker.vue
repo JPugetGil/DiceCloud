@@ -129,6 +129,16 @@
                 {{ $t('initiative.bonus', { bonus: signed(entry.bonus) }) }}
               </template>
             </v-list-item-subtitle>
+            <!-- A creature's legendary actions left, and their menu: the game
+              master's alone (phase 3.2), whose board alone has them -->
+            <legendary-actions-menu
+              v-if="isGm && entry.creatureId"
+              :creature-id="entry.creatureId"
+              :entry-id="entry._id"
+              :name="entryName(entry)"
+              :own-turn="!!round && index === turn"
+              :round="round"
+            />
             <!--
               A creature added by hand (UX11): its status, hit points and armor
               class for the game master only, unless shown
@@ -370,6 +380,7 @@ import {
 import { MAX_COUNT, entryStatus } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import HealthChangeMenu from '/imports/ui/properties/components/attributes/HealthChangeMenu.vue';
+import LegendaryActionsMenu from '/imports/ui/creature/party/LegendaryActionsMenu.vue';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 

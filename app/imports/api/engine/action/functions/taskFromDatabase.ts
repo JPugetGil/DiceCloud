@@ -85,6 +85,7 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
         value: FiniteNumber,
         title: OptionalString,
         targetProp: Object,
+        damageType: OptionalString,
       }));
       const { targetProp } = task.params;
       // A property of the target, whose damage the task changes

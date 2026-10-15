@@ -11,6 +11,7 @@ import EngineActions from '/imports/api/engine/action/EngineActions';
 import Libraries from '/imports/api/library/Libraries';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import VERSION from '/imports/constants/VERSION';
+import computeCreature from '/imports/api/engine/computeCreature';
 import {
   addBoardMonsters, endEncounter, listBestiaries, searchMonsters,
 } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
@@ -517,6 +518,53 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       await CreatureProperties.removeAsync({ 'root.id': impId });
       await CreatureVariables.removeAsync({ _creatureId: impId });
       await Creatures.removeAsync(impId);
+    }
+  });
+
+  /*
+   * Phase 3.2: the initiative tracker offers the game master a monster's
+   * legendary actions, "⚡ 2/3", and their cost; the board sends them to the
+   * game master alone
+   */
+  it('gives the game master a creature\'s legendary actions and their cost, the players none', async function () {
+    const [goblinId] = await add();
+    const root = { collection: 'creatures', id: goblinId };
+    const resourceId = await CreatureProperties.insertAsync({
+      type: 'attribute', attributeType: 'resource', name: 'Legendary Actions', variableName: 'legendaryActions',
+      baseValue: { calculation: '3' }, damage: 1, reset: 'turnStart', root, left: 200, right: 201,
+    } as any);
+    const consumed = (quantity: string) => ({
+      itemsConsumed: [], attributesConsumed: [{ _id: Random.id(), variableName: 'legendaryActions', quantity: { calculation: quantity } }],
+    });
+    const tailId = await CreatureProperties.insertAsync({
+      type: 'action', name: 'Tail Attack', actionType: 'free', resources: consumed('1'), root, left: 202, right: 203,
+    } as any);
+    const wingId = await CreatureProperties.insertAsync({
+      type: 'action', name: 'Wing Attack (Costs 3 Actions)', actionType: 'free', resources: consumed('3'), root, left: 204, right: 205,
+    } as any);
+    const biteId = await CreatureProperties.insertAsync({
+      type: 'action', name: 'Bite', actionType: 'attack', root, left: 206, right: 207,
+    } as any);
+    await computeCreature(goblinId);
+    const player = await openAs(playerId);
+    const gm = await openAs(gmId);
+    try {
+      await player.subscribe('partyBoard', folderId);
+      await gm.subscribe('partyBoard', folderId);
+      const fields = (id: string) => Object.assign({}, ...about(gm.messages, 'creatureProperties', id).map(message => message.fields));
+      // Two of three left, each option's cost, and whether it can pay it
+      assert.include(fields(resourceId), { value: 2, total: 3 });
+      assert.equal(fields(tailId).resources?.attributesConsumed?.[0]?.quantity?.value, 1);
+      assert.notOk(fields(tailId).insufficientResources);
+      assert.equal(fields(wingId).resources?.attributesConsumed?.[0]?.quantity?.value, 3);
+      assert.isTrue(fields(wingId).insufficientResources, 'three is more than it has left');
+      assert.isEmpty(about(gm.messages, 'creatureProperties', biteId), 'its other actions stay on its sheet');
+      for (const id of [resourceId, tailId, wingId, biteId]) {
+        assert.isEmpty(about(player.messages, 'creatureProperties', id), 'never the players');
+      }
+    } finally {
+      player.connection.disconnect();
+      gm.connection.disconnect();
     }
   });
 

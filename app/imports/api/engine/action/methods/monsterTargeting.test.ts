@@ -66,7 +66,7 @@ if (Meteor.isServer) {
 
 const [gmId, playerId, otherPlayerId, outsiderId] = getRandomIds(4);
 const [folderId] = getRandomIds(1);
-const [lyraId, ariaId, goblinId, impId, innkeeperId, strayMonsterId] = getRandomIds(6);
+const [lyraId, ariaId, goblinId, impId, innkeeperId, strayMonsterId, lichId, lichResistanceId] = getRandomIds(8);
 const [
   swordId, flameId, charmId, hexId, dispelId, enfeebleId, curseId, burnId, trickId, ambushId, breathId, goblinHpId,
   ariaHpId, sparkId, empowerId, petrifyId,
@@ -79,6 +79,8 @@ const [
 const VALUES = [
   '27182', '31415', '16180', '1617', '1618', '14142', '14141', 'SECRET',
   'logs.noArmor', 'logs.noSave', 'No saving throw found', 'does not have', 'logs.concentrationCheck',
+  // The lich's legendary resistances left, before and after it spends one
+  '1013', '1012',
 ];
 // And its attributes changed: where the player acts on no other creature
 const CANARIES = [...VALUES, 'logs.attributeDamaged', 'logs.attributeRestored', 'logs.attributeSet'];
@@ -242,6 +244,31 @@ const goblin: TestCreature = {
       type: 'trigger', name: 'SECRET-TRIGGER', event: 'damageProperty', timing: 'after', targetTags: ['hitPoints'],
       description: { text: 'SECRET-TRIGGER: hurt by {~damage}' },
     } as any,
+    // Its legendary actions (phase 3.2), which the board gives its game master alone
+    {
+      type: 'attribute', attributeType: 'resource', name: 'SECRET-LEGENDARY-ACTIONS', variableName: 'legendaryActions',
+      baseValue: { calculation: '3' }, reset: 'turnStart',
+    } as any,
+    {
+      type: 'action', name: 'SECRET-TAIL', actionType: 'free', target: 'singleTarget',
+      resources: { itemsConsumed: [], attributesConsumed: [{ variableName: 'legendaryActions', quantity: { calculation: '2' } }] },
+    } as any,
+  ],
+};
+
+// A monster with legendary resistances (phase 3.3), used by themselves: a
+// saving throw it fails becomes a success, which its players read as such,
+// never its roll nor how many it has left
+const lich: TestCreature = {
+  _id: lichId, name: 'Lich', owner: gmId, type: 'monster',
+  props: [
+    hitPoints(undefined, 314159),
+    dexteritySave(-161803),
+    {
+      _id: lichResistanceId, type: 'attribute', attributeType: 'resource', name: 'SECRET-RESISTANCE',
+      variableName: 'legendaryResistance', baseValue: { calculation: '1013' }, reset: 'longRest',
+    } as any,
+    { type: 'toggle', name: 'SECRET-AUTO', variableName: 'useLegendaryResistance', enabled: true, showUI: true } as any,
   ],
 };
 
@@ -257,7 +284,7 @@ const innkeeper: TestCreature = {
 const strayMonster: TestCreature = {
   _id: strayMonsterId, name: 'Stray wolf', owner: outsiderId, type: 'monster', props: [hitPoints(undefined, 10)],
 };
-const ALL = [lyra, aria, goblin, imp, innkeeper, strayMonster];
+const ALL = [lyra, aria, goblin, imp, innkeeper, strayMonster, lich];
 
 const DENIED = 'targetPicker.errors.denied';
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -315,7 +342,7 @@ async function setUp() {
   for (const creature of ALL) await createTestCreature(creature);
   await CreatureFolders.rawCollection().insertOne({
     _id: folderId, name: 'The table', owner: gmId, members: [playerId, otherPlayerId],
-    creatures: [lyraId, ariaId, goblinId, impId, innkeeperId, strayMonsterId], order: 0,
+    creatures: [lyraId, ariaId, goblinId, impId, innkeeperId, strayMonsterId, lichId], order: 0,
   });
 }
 
@@ -352,6 +379,7 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     await player.subscribe('characterParties', lyraId);
     await gm.subscribe('singleCharacter', goblinId);
     await gm.subscribe('singleCharacter', impId);
+    await gm.subscribe('singleCharacter', lichId);
     await gm.subscribe('partyBoard', folderId);
     // As the sheet plays them: insertAction, the dice drawn one roll at a
     // time (here many more than the actions roll), then runAction
@@ -360,6 +388,7 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
       ['hex', hexId, goblinId], ['dispel', dispelId, goblinId], ['enfeeble', enfeebleId, goblinId],
       ['empower', empowerId, goblinId], ['petrify', petrifyId, goblinId],
       ['curse', curseId, goblinId], ['impSword', swordId, impId], ['impFlame', flameId, impId],
+      ['lichFlame', flameId, lichId],
     ];
     for (const [name, propId, targetId] of plays) {
       const actionId = await insert(player, lyraId, propTask(propId, [targetId]));
@@ -377,7 +406,8 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     );
     for (let i = 0; i < 100; i += 1) {
       if (Object.values(actionIds).every(id => logged(player, lyraId, id))
-        && logged(gm, goblinId, actionIds.curse) && logged(gm, impId, actionIds.impFlame)) break;
+        && logged(gm, goblinId, actionIds.curse) && logged(gm, impId, actionIds.impFlame)
+        && logged(gm, lichId, actionIds.lichFlame)) break;
       await pause(100);
     }
     await pause(500);
@@ -440,6 +470,39 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     assert.isUndefined(lineNamed(log, 'Dodged'), 'the server decided: failed');
   });
 
+  it('tells the player a legendary resistance turned the failed saving throw, without its roll or what is left', async function () {
+    const log = await logOf(actionIds.lichFlame, lyraId);
+    const save = log.content.find((line: any) => line.i18n?.name?.key === 'logs.forTarget');
+    assert.equal(save.name, 'Lich · Failed → success (legendary resistance)');
+    assert.notProperty(save, 'value', 'the name and the result alone');
+    assert.deepEqual(save.i18n.name.params.name, { key: 'logs.legendaryResistance' });
+    assert.equal(translateLogLine(save, translatorFor('fr')).name, 'Lich · Échec → réussite (résistance légendaire)');
+    const names = log.content.map((line: any) => line.name);
+    assert.include(names, 'Dodged', 'the server decided: a success');
+    assert.notInclude(names, 'Damage');
+    assert.notInclude(text(log), 'SECRET-RESISTANCE', 'nothing of its resource');
+    assert.notInclude(text(log), 'logs.attributeDamaged', 'nor of the point it spent');
+    // It spent one, which the game master reads in its log, with its roll
+    assert.equal(await damageOf(lichResistanceId), 1);
+    const lichLog = await logOf(actionIds.lichFlame, lichId);
+    const own = lichLog.content.find((line: any) => line.i18n?.name?.key === 'logs.legendaryResistance');
+    // −161803 plus a d20: −161802 to −161783
+    const total = Number(/^1d20 \[ (\d+) \] − 161803\n\*\*(-\d+)\*\*$/.exec(own?.value)?.[2]);
+    assert.isAtLeast(total, -161802, text(own));
+    assert.isAtMost(total, -161783, text(own));
+    assert.include(text(lichLog), '−1 SECRET-RESISTANCE');
+    // Undoing the player's spell gives it back (phase 2.4)
+    assert.deepInclude(lichLog.received?.revert, { op: 'inc', propId: lichResistanceId, amount: 1 });
+  });
+
+  it('gives the game master the monster\'s legendary actions on the board, the players none', function () {
+    const legendary = (messages: any[]) => messages.filter(message => message.collection === 'creatureProperties'
+      && message.fields?.root?.id === goblinId && /SECRET-(LEGENDARY|TAIL)/.test(message.fields?.name || ''));
+    assert.sameMembers([...new Set(legendary(gm.messages).map(message => message.fields.name))],
+      ['SECRET-LEGENDARY-ACTIONS', 'SECRET-TAIL']);
+    assert.isEmpty(legendary(player.messages));
+  });
+
   it('tells the player nothing of what the monster\'s sheet lacks, or of its stats, effects and buffs', async function () {
     const charm = await logOf(actionIds.charm, lyraId);
     assert.deepEqual(charm.content.map((line: any) => line.name), ['Charm', 'Charm'], 'the action, its DC; no "no saving throw"');
@@ -484,6 +547,8 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
       'logs.attributeDamaged', 'logs.noArmor',
       // The +3 capped at its total: the player read "+3", their own number
       'Strength set from 141421 to 10',
+      // The lich's legendary resistance: its roll, the point it spent
+      'logs.legendaryResistance', 'SECRET-RESISTANCE',
     ]) {
       assert.include(gmRaw, value, `the game master reads "${value}"`);
     }
@@ -591,6 +656,13 @@ if (Meteor.isServer) describe('The browser\'s simulation of an action on the gam
     assert.notInclude(lines(action).map(line => line.name), 'Damage');
     assert.notInclude(lines(action).map(line => line.name), 'Dodged');
     assert.isEmpty(writesTo(action, goblinId));
+  });
+
+  it('spends none of the monster\'s legendary resistances on a guess', async function () {
+    const action = await runActionById(flameId, [lichId], counting());
+    assert.isEmpty(writesTo(action, lichId));
+    assert.notInclude(text(lines(action)), 'logs.legendaryResistance');
+    assert.include(lines(action).map(line => line.name), 'Lich · Saving throw: at resolution');
   });
 
   it('copies no buff, removes nothing, changes no stat on the monster, deals it no damage', async function () {
@@ -999,9 +1071,9 @@ if (Meteor.isServer) describe('A player\'s character attacking the monster: the 
 
   it('posts "Hit!" and the damage dealt once, under the character, without the monster\'s values', async function () {
     const seen = fake.requests.length;
-    for (const propId of [swordId, flameId, hexId, dispelId]) {
+    for (const [propId, targetId] of [[swordId, goblinId], [flameId, goblinId], [hexId, goblinId], [dispelId, goblinId], [flameId, lichId]]) {
       const actionId = await execute(insertAction, playerId, {
-        action: { creatureId: lyraId, task: propTask(propId, [goblinId]), results: [], taskCount: 0 },
+        action: { creatureId: lyraId, task: propTask(propId, [targetId]), results: [], taskCount: 0 },
       });
       await steadySeed(actionId);
       await execute(runAction, playerId, { actionId, decisions: [] });
@@ -1010,11 +1082,13 @@ if (Meteor.isServer) describe('A player\'s character attacking the monster: the 
     await sender.idle();
     const posts = fake.requests.slice(seen).filter(request => request.method !== 'GET' && request.webhookId === PARTY.id)
       .map(request => request.body);
-    assert.lengthOf(posts, 4, 'one message per action, Lyra\'s entry: never the goblin\'s');
+    assert.lengthOf(posts, 5, 'one message per action, Lyra\'s entry: never the monsters\'');
     for (const post of posts) assert.equal(post.username, 'Lyra');
     assert.include(text(posts[0]), 'Hit!');
     assert.include(text(posts[0]), '**7** slashing damage');
     assert.include(text(posts[1]), 'Goblin 2 · Failed save');
+    // The lich's legendary resistance, as at the table
+    assert.include(text(posts[4]), 'Lich · Failed → success (legendary resistance)');
     for (const canary of CANARIES) assert.notInclude(withoutDates(posts), canary);
   });
 });

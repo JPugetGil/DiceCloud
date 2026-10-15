@@ -289,7 +289,11 @@ async function fireReceivedDamageTriggers(targetId: string, changes: ReceivedDam
     task: {
       subtaskFn: 'receivedDamage',
       targetIds: [targetId],
-      params: { changes: changes.map(({ propId, operation, value }) => ({ propId, operation, value })) },
+      params: {
+        changes: changes.map(({ propId, operation, value, damageType }) => ({
+          propId, operation, value, ...damageType && { damageType },
+        })),
+      },
     },
     results: [],
     taskCount: 0,

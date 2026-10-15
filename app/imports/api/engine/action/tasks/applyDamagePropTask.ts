@@ -24,7 +24,7 @@ export default async function applyDamagePropTask(
   const targetId = task.targetIds[0];
 
   let { value } = task.params;
-  const { title, operation } = task.params;
+  const { title, operation, damageType } = task.params;
   let targetProp = task.params.targetProp;
 
   if (!targetProp) throw new Meteor.Error('not-found', 'Target property is required')
@@ -40,6 +40,11 @@ export default async function applyDamagePropTask(
   } else {
     result.pushScope['~set'] = { value };
   }
+  // The type of the damage that changes it, for its triggers: "takes fire
+  // damage" (a troll's regeneration). The actor's own damage: its scope may
+  // hold it, whoever the target is. Blank when no damage dealt it, rather
+  // than an outer change's
+  result.pushScope['~damageType'] = typeScope(damageType);
   // Store which property we're targeting. A target hidden from the actor's
   // readers: its id alone. The whole property, its total and what it has
   // left, stays in the actor's scope for the rest of the action, where any
@@ -67,7 +72,7 @@ export default async function applyDamagePropTask(
   // Refetch the scope properties
   const scope = await getEffectiveActionScope(action);
   result.popScope = {
-    '~damage': 1, '~healing': 1, '~set': 1, '~attributeDamaged': 1,
+    '~damage': 1, '~healing': 1, '~set': 1, '~attributeDamaged': 1, '~damageType': 1,
   };
   value = +value;
   if (operation === 'increment') {
@@ -175,7 +180,7 @@ export default async function applyDamagePropTask(
     // action does not apply. They fire on its behalf once the action is
     // written, with what it took (ReceivedDamageTask, writeActionResults)
     (action._receivedDamage ??= []).push({
-      targetId, propId: targetProp._id, operation, value,
+      targetId, propId: targetProp._id, operation, value, ...damageType && { damageType },
     });
   }
   return increment;
@@ -185,17 +190,22 @@ export default async function applyDamagePropTask(
 const hasAfterTriggers = (prop: any) => !!(prop.damageTriggerIds?.after?.length
   || prop.damageTriggerIds?.afterChildren?.length);
 
+// The damage's type, as the scope holds it: blank without one
+const typeScope = (damageType?: string) => damageType ? { value: damageType } : {};
+
 // What a change to an attribute puts in the scope of its triggers
-function damageScope(operation: 'increment' | 'set', value: number) {
-  if (operation === 'set') return { '~set': { value } };
-  return value >= 0 ? { '~damage': { value } } : { '~healing': { value: -value } };
+function damageScope(operation: 'increment' | 'set', value: number, damageType?: string) {
+  if (operation === 'set') return { '~set': { value }, '~damageType': typeScope() };
+  const amount = value >= 0 ? { '~damage': { value } } : { '~healing': { value: -value } };
+  return { ...amount, '~damageType': typeScope(damageType) };
 }
 
 /**
  * What another creature's action did to the attributes of a creature: its
  * own damage triggers then fire, on its behalf, as when it damages itself,
  * those timed after the change and after its children, with `~damage`,
- * `~healing` or `~set`, and `~attributeDamaged`, in their scope. Its `before`
+ * `~healing` or `~set`, the damage's type `~damageType`, and
+ * `~attributeDamaged`, in their scope. Its `before`
  * triggers do not: they would change the damage of an action already
  * written. The server alone makes this task, once the action is written
  * (writeActionResults); taskFromDatabase refuses it
@@ -211,12 +221,14 @@ export async function applyReceivedDamageTask(
     const prop = await getSingleProperty(creatureId, change.propId);
     if (!prop) continue;
     const step = index === 0 ? result : new TaskResult(task.targetIds);
-    step.pushScope = { ...damageScope(change.operation, change.value), '~attributeDamaged': { _propId: prop._id } };
+    step.pushScope = {
+      ...damageScope(change.operation, change.value, change.damageType), '~attributeDamaged': { _propId: prop._id },
+    };
     if (step !== result) action.results.push(step);
     await applyTriggers(action, prop, [creatureId], 'damageTriggerIds.after', userInput);
     await applyTriggers(action, prop, [creatureId], 'damageTriggerIds.afterChildren', userInput);
     const done = new TaskResult(task.targetIds);
-    done.popScope = { '~damage': 1, '~healing': 1, '~set': 1, '~attributeDamaged': 1 };
+    done.popScope = { '~damage': 1, '~healing': 1, '~set': 1, '~attributeDamaged': 1, '~damageType': 1 };
     action.results.push(done);
   }
 }

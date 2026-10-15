@@ -95,9 +95,12 @@ export default async function applyDamageProperty(
   if (prop.damageType === 'extra' && typeof lastDamageType === 'string') {
     prop.damageType = lastDamageType;
   }
-  // Store current damage type
+  // Store current damage type, for this damage and the action's later ones:
+  // in the result, which the action's scope is made of (getEffectiveActionScope
+  // builds it anew from a copy of the creature's variables each time)
   if (prop.damageType !== 'healing') {
     scope['~lastDamageType'] = { value: prop.damageType };
+    result.scope['~lastDamageType'] = { value: prop.damageType };
   }
 
   // The damage done, as the log says it: "**12** slashing damage"
@@ -396,6 +399,8 @@ export async function dealDamage(
         operation: 'increment',
         value: +damageLeft || 0,
         targetProp: healthBar,
+        // For its damage triggers (`~damageType`)
+        ...damageType && { damageType },
       },
     }, userInput);
 

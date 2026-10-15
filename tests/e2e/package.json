@@ -26,6 +26,7 @@
     "check:party-heal": "node checks/party-heal.js",
     "check:party-monster-attack": "node checks/party-monster-attack.js",
     "check:party-undo": "node checks/party-undo.js",
+    "check:party-legendary": "node checks/party-legendary.js",
     "check:licenses": "node checks/licenses.js"
   },
   "dependencies": {

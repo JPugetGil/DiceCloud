@@ -1,7 +1,8 @@
 import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { applyDefaultAfterPropTasks, applyTaskToEachTarget } from '/imports/api/engine/action/functions/applyTaskGroups';
+import { applyDefaultAfterPropTasks, applyTaskToEachTarget, spendAttribute } from '/imports/api/engine/action/functions/applyTaskGroups';
+import { usableLegendaryResistance } from '/imports/api/engine/action/functions/legendaryResistance';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
 import { PropTask } from '/imports/api/engine/action/tasks/Task';
@@ -149,7 +150,13 @@ export default async function applySavingThrowProperty(
     resultPrefix = `1d20 [ ${value} ] ${rollModifierText}`
   }
   const resultValue = value + rollModifier || 0;
-  const saveSuccess = resultValue >= dc;
+  const rolledSuccess = resultValue >= dc;
+  // A target that fails, with a legendary resistance left and used by itself,
+  // succeeds instead and spends a point (phase 3.3, legendaryResistance.ts):
+  // the line says so to whoever reads it, as the game master would at the
+  // table; the roll stays the target's readers'
+  const resistance = rolledSuccess ? undefined : await usableLegendaryResistance(action, targetId);
+  const saveSuccess = rolledSuccess || !!resistance;
   // The actor's scope: the result alone for a hidden target, never its roll,
   // which formulas would print in the actor's log (blanked, not another
   // target's from before)
@@ -158,7 +165,7 @@ export default async function applySavingThrowProperty(
     : { '~saveDiceRoll': { value }, '~saveRoll': { value: resultValue } };
   result.pushScope['~saveSucceeded'] = { value: saveSuccess };
   result.pushScope['~saveFailed'] = { value: !saveSuccess };
-  const outcome = msg(saveSuccess ? 'logs.saveSucceeded' : 'logs.saveFailed');
+  const outcome = msg(resistance ? 'logs.legendaryResistance' : saveSuccess ? 'logs.saveSucceeded' : 'logs.saveFailed');
   result.appendLog({
     ...logLine({
       name: outcome,
@@ -173,5 +180,7 @@ export default async function applySavingThrowProperty(
       name: msg('logs.forTarget', { target: await targetName(action, targetId), name: outcome }),
     }),
   }, [targetId]);
+  // The point spent, on the target: a line of its own readers' alone
+  if (resistance) await spendAttribute(action, targetId, resistance, 1, inputProvider, { silent: !!prop.silent });
   return await applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
 }
