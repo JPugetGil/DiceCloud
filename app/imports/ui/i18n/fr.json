@@ -1310,7 +1310,22 @@
     "quickDice": "Dés rapides",
     "rollDie": "Lancer un {die}",
     "advantageToggle": "Avantage au prochain jet",
-    "rollPlaceholder": "1d20+4, 2d6…"
+    "rollPlaceholder": "1d20+4, 2d6…",
+    "undo": {
+      "button": "Annuler",
+      "label": "Annuler : {name}",
+      "confirm": "Annuler cet effet",
+      "confirmHint": "Rend ce qu'il a changé sur cette créature, dans ses limites",
+      "done": "Effet annulé par {name}",
+      "irreversible": "Pas d'annulation possible (valeur fixée) : {names}",
+      "success": "Effet annulé",
+      "errors": {
+        "denied": "Vous ne pouvez pas annuler cet effet",
+        "alreadyUndone": "Cet effet a déjà été annulé",
+        "encounterOver": "La rencontre est terminée : cet effet ne peut plus être annulé",
+        "nothing": "Rien à annuler : une valeur fixée ne s'annule pas"
+      }
+    }
   },
   "icons": {
     "metadataJson": "JSON des métadonnées",
@@ -2041,7 +2056,13 @@
     "saveAtResolution": "Sauvegarde : à la résolution",
     "anEffect": "Un effet",
     "adjusted": "{name} {amount}",
-    "adjustedTo": "Valeur de {name} fixée à {value}"
+    "adjustedTo": "Valeur de {name} fixée à {value}",
+    "undoneBy": "Effet annulé par {name}",
+    "someone": "quelqu'un",
+    "withdrawn": "Retrait",
+    "restoredEffect": "Restauration",
+    "notUndone": "Pas d'annulation (valeur fixée)",
+    "gmUndid": "Le MJ a annulé : {action} → {target}"
   },
   "health": {
     "change": "{name}",

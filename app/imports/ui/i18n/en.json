@@ -1310,7 +1310,22 @@
     "quickDice": "Quick dice",
     "rollDie": "Roll a {die}",
     "advantageToggle": "Advantage on the next roll",
-    "rollPlaceholder": "1d20+4, 2d6…"
+    "rollPlaceholder": "1d20+4, 2d6…",
+    "undo": {
+      "button": "Undo",
+      "label": "Undo: {name}",
+      "confirm": "Undo this effect",
+      "confirmHint": "Gives back what it changed on this creature, within its limits",
+      "done": "Effect undone by {name}",
+      "irreversible": "Cannot be undone (value set): {names}",
+      "success": "Effect undone",
+      "errors": {
+        "denied": "You may not undo this effect",
+        "alreadyUndone": "This effect was already undone",
+        "encounterOver": "The encounter is over: this effect can no longer be undone",
+        "nothing": "Nothing to undo: a value set stays as it is"
+      }
+    }
   },
   "icons": {
     "metadataJson": "Metadata JSON",
@@ -2041,7 +2056,13 @@
     "saveAtResolution": "Saving throw: at resolution",
     "anEffect": "An effect",
     "adjusted": "{name} {amount}",
-    "adjustedTo": "{name} set to {value}"
+    "adjustedTo": "{name} set to {value}",
+    "undoneBy": "Effect undone by {name}",
+    "someone": "someone",
+    "withdrawn": "Removed",
+    "restoredEffect": "Restored",
+    "notUndone": "Not undone (value set)",
+    "gmUndid": "The GM undid: {action} → {target}"
   },
   "health": {
     "change": "{name}",

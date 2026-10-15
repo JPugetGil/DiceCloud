@@ -14,12 +14,19 @@
     >
       <log-content :model="model.content" />
     </v-card-text>
+    <log-undo
+      v-if="model.received"
+      :model="model"
+      :can-edit="canEdit"
+      :encounters="encounters"
+    />
   </v-card>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import LogContent from '/imports/ui/log/LogContent.vue';
+import LogUndo from '/imports/ui/log/LogUndo.vue';
 import { throwPhase, wasThrown } from '/imports/ui/dice/diceTrayState';
 
 const props = defineProps({
@@ -29,6 +36,13 @@ const props = defineProps({
   },
   // Written since the log opened: it comes in, and its dice roll in
   fresh: Boolean,
+  // For a received entry's "Undo" (LogUndo): whether the reader may edit
+  // the creature, and the encounters under way of its parties
+  canEdit: Boolean,
+  encounters: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 // The dice tray is throwing its dice: it shows once they land, and they do

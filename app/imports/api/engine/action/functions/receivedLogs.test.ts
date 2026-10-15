@@ -196,7 +196,8 @@ if (Meteor.isServer) describe('A monster acting on a player\'s character: the ch
     const action = await act(scimitarId, [lyraId]);
     const log = await latestLog(lyraId);
     assert.exists(log, 'the character has an entry of its own');
-    assert.deepEqual(log.received, { fromCreatureId: goblinId, actionId: action._id });
+    // And what undoes it (phase 2.4, revertReceived.test.ts)
+    assert.deepInclude(log.received, { fromCreatureId: goblinId, actionId: action._id });
     assert.equal(log.creatureName, 'Goblin 1');
     const [heading] = log.content;
     assert.equal(heading.name, 'Goblin 1 → you');
@@ -389,7 +390,9 @@ if (Meteor.isServer) describe('A monster acting on a player\'s character: what t
       await stranger.subscribe('characterParties', lyraId);
       const folder = about(player.messages, 'creatureFolders', folderId)[0];
       assert.exists(folder, 'the party, out of a fight');
-      assert.sameMembers(Object.keys(folder.fields), ['name', 'owner', 'members', 'creatures']);
+      assert.includeMembers(Object.keys(folder.fields), ['name', 'owner', 'members', 'creatures']);
+      // The encounter under way, once named, whose entries the sheet offers to undo (phase 2.4)
+      assert.includeMembers(['name', 'owner', 'members', 'creatures', 'encounterId'], Object.keys(folder.fields));
       assert.isEmpty(about(stranger.messages, 'creatureFolders', folderId), 'not to someone who may not edit it');
     } finally {
       player.close();

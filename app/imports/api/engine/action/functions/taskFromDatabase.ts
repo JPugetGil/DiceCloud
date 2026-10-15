@@ -119,11 +119,13 @@ export default async function taskFromDatabase(task: Task, creatureId: string): 
       check(task.eventName, String);
       return task;
     // Never a client's: the server alone makes them, for the creatures of an
-    // initiative tracker whose turn starts or ends (runTurnEvent), and for
+    // initiative tracker whose turn starts or ends (runTurnEvent), for
     // the creatures an action changed, whose damage triggers then fire
-    // (writeActionResults)
+    // (writeActionResults), and for a creature that undoes what it received
+    // (revertReceived)
     case 'turnEvent':
     case 'receivedDamage':
+    case 'undoReceived':
     default:
       throw new Meteor.Error('validation-error', 'Unknown task');
   }

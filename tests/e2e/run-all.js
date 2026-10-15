@@ -7,7 +7,8 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const CHECKS = ['routes', 'flows', 'actions', 'docs-navigation', 'property-forms', 'dialogs', 'login-services', 'contrast',
-  'palette', 'accessibility', 'slot-fill', 'print-cards', 'discord-webhook', 'discord-oauth', 'discord-interactions', 'party-monsters', 'turn-events', 'party-targeting', 'party-heal', 'party-monster-attack', 'licenses'];
+  'palette', 'accessibility', 'slot-fill', 'print-cards', 'discord-webhook', 'discord-oauth', 'discord-interactions', 'party-monsters', 'turn-events', 'party-targeting', 'party-heal', 'party-monster-attack', 'party-undo',
+  'licenses'];
 
 const selected = process.argv.slice(2).length ? process.argv.slice(2) : CHECKS;
 const unknown = selected.filter(name => !CHECKS.includes(name));

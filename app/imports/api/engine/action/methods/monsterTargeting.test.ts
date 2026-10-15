@@ -44,6 +44,7 @@ if (Meteor.isServer) {
   require('/imports/startup/server/publicationStrategies');
   require('/imports/api/engine/action/methods/index');
   require('/imports/api/creature/creatureFolders/methods/index');
+  require('/imports/api/creature/log/methods/revertReceived');
   actionDice = require('/imports/api/engine/action/functions/userInput/server/actionDice');
   /* eslint-enable @typescript-eslint/no-require-imports */
 }
@@ -486,6 +487,54 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     ]) {
       assert.include(gmRaw, value, `the game master reads "${value}"`);
     }
+  });
+
+  /*
+   * Phase 2.4: the game master undoes Lyra's hit on the goblin (its player
+   * cast Shield, say). The goblin's hit points come back in its own log, the
+   * game master's. The player receives one neutral line in Lyra's log, "The
+   * GM undid: Sword → Goblin 2", and nothing else of it; they may not undo
+   * the goblin's entries, whose refusal says nothing of them
+   */
+  it('lets the game master undo the hit on the monster, and sends the player one neutral line of it', async function () {
+    const sword = await CreatureLogs.findOneAsync({ actionId: actionIds.sword, creatureId: goblinId }) as any;
+    const flame = await CreatureLogs.findOneAsync({ actionId: actionIds.flame, creatureId: goblinId }) as any;
+    assert.isTrue(sword?.received?.reversible, 'the goblin\'s entry of the sword\'s hit');
+    assert.equal(sword.received.actionName, 'Sword');
+    const seen = player.messages.length;
+    const damageBefore = await damageOf(goblinHpId);
+    // The player first: refused, without a word of the goblin
+    const refused = await refusal(call(player, 'creatureLogs.revertReceived', { logId: flame._id }));
+    assert.equal(refused?.details?.i18n?.key, 'log.undo.errors.denied');
+    for (const canary of [...CANARIES, 'Goblin', 'Sacred Flame']) assert.notInclude(withoutDates(refused), canary);
+    assert.equal(await damageOf(goblinHpId), damageBefore, 'the goblin untouched');
+    await call(gm, 'creatureLogs.revertReceived', { logId: sword._id });
+    assert.equal(await damageOf(goblinHpId), damageBefore - 7, 'the sword\'s 7 back');
+    const undone = () => gm.messages.some(message => message.collection === 'creatureLogs'
+      && message.fields?.creatureId === goblinId && text(message.fields?.content).includes('logs.undoneBy'));
+    const told = () => player.messages.slice(seen).filter(message => message.collection === 'creatureLogs');
+    for (let i = 0; i < 50 && !(undone() && told().length); i += 1) await pause(100);
+    assert.isTrue(undone(), 'the game master reads the undo in the goblin\'s log');
+    await pause(500);
+    // One entry in Lyra's log, one line: the action and the monster, by name
+    const entries = told();
+    assert.lengthOf(entries, 1, text(entries));
+    assert.equal(entries[0].msg, 'added');
+    assert.equal(entries[0].fields.creatureId, lyraId);
+    assert.deepEqual(entries[0].fields.content, [{
+      name: 'The GM undid: Sword → Goblin 2',
+      i18n: { name: { key: 'logs.gmUndid', params: { action: 'Sword', target: 'Goblin 2' } } },
+    }]);
+    assert.equal(translateLogLine(entries[0].fields.content[0], translatorFor('fr')).name, 'Le MJ a annulé\u00a0: Sword → Goblin 2');
+    const fresh = player.messages.slice(seen);
+    const raw = withoutDates(fresh);
+    for (const canary of CANARIES) assert.notInclude(raw, canary, `the player received "${canary}"`);
+    assert.notInclude(raw, 'logs.undoneBy', 'nothing of the undo\'s own entry');
+    assert.isEmpty(fresh.filter(message => message.fields?.root?.id === goblinId || message.fields?._creatureId === goblinId),
+      'none of the goblin\'s properties or variables');
+    // And nothing in all the player received, from the start
+    for (const canary of CANARIES) assert.notInclude(withoutDates(player.messages), canary);
+    assert.notInclude(withoutDates(player.messages), '"revert"');
   });
 });
 

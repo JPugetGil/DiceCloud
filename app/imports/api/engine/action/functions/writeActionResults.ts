@@ -20,15 +20,22 @@ import { seenBy, withoutView } from '/imports/api/creature/log/logViews';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
 import type { ReceivedDamage } from '/imports/api/engine/action/tasks/Task';
+import type { ReceivedUndo } from '/imports/api/creature/log/server/receivedUndo';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 
 let getActionDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getActionDiceRoller;
 let getHiddenDiceRoller: typeof import('/imports/api/engine/action/functions/userInput/server/actionDice').getHiddenDiceRoller;
+let receivedUndoFinder: typeof import('/imports/api/creature/log/server/receivedUndo').default;
+let damageBefore: typeof import('/imports/api/creature/log/server/receivedUndo').damageBefore;
 if (Meteor.isServer) {
   // require(), not import: the client runs this module too (the method's
   // simulation), and a static import would bundle node:crypto into it
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  /* eslint-disable @typescript-eslint/no-require-imports */
   ({ getActionDiceRoller, getHiddenDiceRoller } = require('/imports/api/engine/action/functions/userInput/server/actionDice'));
+  // And the server's own reads of what undoes a received entry
+  ({ default: receivedUndoFinder, damageBefore } = require('/imports/api/creature/log/server/receivedUndo'));
+  /* eslint-enable @typescript-eslint/no-require-imports */
 }
 
 /**
@@ -91,6 +98,10 @@ export default async function writeActionResults(action: EngineAction, { log: wr
     return trimCreatureLogs(action.creatureId);
   });
 
+  // Server: the damage of the attributes it changes, as stored before it,
+  // for what undoes it (writeReceivedLogs)
+  const damaged = Meteor.isServer && writeLog ? await damageBefore(action) : new Map<string, number>();
+
   // Write the bulk updates, force them to sequential mode means we immediately get the results
   // in the subscription, rather than waiting for oplog tailing to catch up
   const bulkWritePromise = await bulkWrite(creaturePropUpdates, CreatureProperties, true);
@@ -99,10 +110,15 @@ export default async function writeActionResults(action: EngineAction, { log: wr
 
   // A removed buff goes with everything under it, as when it is removed from
   // the sheet, and can be restored the same way. The sequential writes above
-  // only insert and update: removals used to be dropped there
+  // only insert and update: removals used to be dropped there. Those removed
+  // here, which an undo restores (writeReceivedLogs)
+  const removed: string[] = [];
   for (const propId of uniq(removedPropIds)) {
     const prop = await CreatureProperties.findOneAsync(propId);
-    if (prop && !prop.removed) await softRemove(CreatureProperties, prop);
+    if (prop && !prop.removed) {
+      await softRemove(CreatureProperties, prop);
+      removed.push(propId);
+    }
   }
 
   // Recompute the creatures involved. Their caches have not heard of the writes
@@ -118,7 +134,7 @@ export default async function writeActionResults(action: EngineAction, { log: wr
   // Server only: the client's simulation has none of the targets' triggers,
   // and the server's entries replace whatever it would show
   if (Meteor.isServer && writeLog) {
-    await writeReceivedLogs(action, logContents, hiddenIds, action._receivedDamage ?? []);
+    await writeReceivedLogs(action, logContents, hiddenIds, action._receivedDamage ?? [], removed, damaged);
   }
 }
 
@@ -144,7 +160,10 @@ const isGmCreature = (creature: { type?: string } | undefined) => GM_CREATURE_TY
  * actor's entry does not (sendLogToDiscord's `besides`): "Goblin 1 → you",
  * then what concerns it (writeReceivedLog). First, the creature's own damage
  * triggers fire, on its behalf, for what the action did to its attributes
- * (ReceivedDamageTask): their lines end its entry.
+ * (ReceivedDamageTask): their lines end its entry. The entry keeps what
+ * undoes the action's changes to the creature, and the encounter they
+ * happened in (receivedUndo.ts): its editors may undo them while it lasts
+ * (revertReceived, phase 2.4).
  *
  * A creature of the actor's owner gets none, its owner reads the actor's
  * entry already, unless that entry or this one hides something: the game
@@ -153,13 +172,20 @@ const isGmCreature = (creature: { type?: string } | undefined) => GM_CREATURE_TY
  * actor's entry leaves out), or hit by one; or unless its triggers had
  * something to say
  */
-async function writeReceivedLogs(action: EngineAction, contents: any[], hiddenIds: string[], received: ReceivedDamage[]) {
+async function writeReceivedLogs(
+  action: EngineAction, contents: any[], hiddenIds: string[], received: ReceivedDamage[], removed: string[],
+  damaged: Map<string, number>,
+) {
   const actor = await getCreature(action.creatureId);
   if (!actor) return;
   const targetIds = uniq([
     ...contents.flatMap(line => line.targetIds || []),
     ...received.map(change => change.targetId),
   ]).filter(id => id && id !== action.creatureId);
+  if (!targetIds.length) return;
+  // What undoes the action's changes to each creature (phase 2.4), read once,
+  // as the action left them: before the first creature's triggers fire
+  const undoOf = await receivedUndoFinder(action, removed, damaged);
   // Each read once: every entry reads the other targets, a fight holds 64
   const targets = new Map<string, Acting>();
   for (const targetId of targetIds) {
@@ -176,7 +202,10 @@ async function writeReceivedLogs(action: EngineAction, contents: any[], hiddenId
     if (sameTable && !triggered.some(line => !line.silenced)) continue;
     const lines = [...receivedLines(contents, actor, target, [...targets.values()]), ...triggered];
     if (!lines.length) continue;
-    await writeReceivedLog(action, actor, target, lines);
+    // A player's effect on a game master's monster: the line its undo writes
+    // in the player's character's log names the action (revertReceived)
+    const actionName = hiddenIds.includes(targetId) ? actionTitle(action) : undefined;
+    await writeReceivedLog(action, actor, target, lines, await undoOf(targetId), actionName);
   }
 }
 
@@ -213,7 +242,15 @@ function shownTo(lines: any[], readers: { actorHidden?: boolean, hiddenIds?: str
   return lines.map(line => seenBy(line, readers)).filter(line => line !== undefined);
 }
 
-async function writeReceivedLog(action: EngineAction, actor: Acting, target: Acting, lines: any[]) {
+// The title of the property an action applied, as its actor's readers read it
+function actionTitle(action: EngineAction): string | undefined {
+  const prop = (action.task as { prop?: { name?: string, type?: string } } | undefined)?.prop;
+  return prop ? getPropertyTitle(prop)?.slice(0, STORAGE_LIMITS.name) : undefined;
+}
+
+async function writeReceivedLog(
+  action: EngineAction, actor: Acting, target: Acting, lines: any[], undo: ReceivedUndo, actionName?: string,
+) {
   const received = logLine({
     name: msg('logs.receivedFrom', { name: actor.name || '?', target: target.name || '?' }),
   });
@@ -224,7 +261,11 @@ async function writeReceivedLog(action: EngineAction, actor: Acting, target: Act
     creatureId: target._id,
     creatureName: actor.name,
     actionId: action._id,
-    received: { fromCreatureId: actor._id, ...action._id && { actionId: action._id } },
+    // And what undoes it, which only the server reads (receivedRevert.ts)
+    received: {
+      fromCreatureId: actor._id, ...action._id && { actionId: action._id }, ...undo,
+      ...undo.reversible && actionName && { actionName },
+    },
     date: new Date(),
   };
   await CreatureLogs.insertAsync(log);

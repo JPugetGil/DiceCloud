@@ -1,5 +1,5 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import Task, { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask } from './Task';
+import Task, { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask, UndoReceivedTask } from './Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyDamagePropTask, { applyReceivedDamageTask } from '/imports/api/engine/action/tasks/applyDamagePropTask';
 import applyItemAsAmmoTask from '/imports/api/engine/action/tasks/applyItemAsAmmoTask';
@@ -61,6 +61,8 @@ export default async function applyTask(
         return await applyTurnEventTask(task, action, result, inputProvider);
       case 'receivedDamage':
         return await applyReceivedDamageTask(task, action, result, inputProvider);
+      case 'undoReceived':
+        return await applyUndoReceivedTask(task, action, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }
@@ -100,5 +102,35 @@ export default async function applyTask(
       return;
     }
     return applyProperties[prop.type](task, action, result, inputProvider);
+  }
+}
+
+/**
+ * What another creature's action did to a creature's attributes, undone
+ * (UndoReceivedTask): the creature applies each change's opposite to itself,
+ * through damageProp, as the health bar's menu does. Its attributes' limits
+ * hold (no more hit points back than it lacks, no more damage than it has
+ * left), and its own damage triggers fire, every timing: the creature is the
+ * actor. An attribute it no longer has is skipped. Here rather than beside
+ * damageProp: it applies tasks
+ */
+async function applyUndoReceivedTask(
+  task: UndoReceivedTask, action: EngineAction, inputProvider: InputProvider,
+): Promise<void> {
+  const creatureId = task.targetIds[0];
+  if (task.targetIds.length !== 1 || creatureId !== action.creatureId) {
+    throw new Meteor.Error('wrong-number-of-targets', 'A creature undoes what it received on its own behalf alone');
+  }
+  for (const { propId, value } of task.params.changes) {
+    if (!Number.isFinite(value) || !value) continue;
+    // Its own: the cache holds the creature's properties alone, and the
+    // database is read by the creature's id
+    const targetProp = await getSingleProperty(creatureId, propId);
+    if (!targetProp) continue;
+    await applyTask(action, {
+      subtaskFn: 'damageProp',
+      targetIds: [creatureId],
+      params: { operation: 'increment', value, targetProp },
+    }, inputProvider);
   }
 }

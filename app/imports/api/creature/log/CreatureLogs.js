@@ -11,6 +11,7 @@ import toString from '/imports/parser/toString';
 import rollWithAdvantage from '/imports/api/creature/log/rollWithAdvantage';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { MAX_IRREVERSIBLE, MAX_REVERT_OPS } from '/imports/api/creature/log/receivedRevert';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
@@ -61,8 +62,8 @@ let CreatureLogSchema = new SimpleSchema({
     max: STORAGE_LIMITS.name,
   },
   // An entry about what another creature's action did to this one, in its
-  // own log: who acted, and the action (writeActionResults). The phases to
-  // come add what undoes it
+  // own log: who acted, and the action (writeActionResults); what undoes it,
+  // and whether it was undone (phase 2.4, receivedRevert.ts)
   received: {
     type: Object,
     optional: true,
@@ -75,6 +76,82 @@ let CreatureLogSchema = new SimpleSchema({
     type: String,
     max: 32,
     optional: true,
+  },
+  // What undoes the action's changes to this creature (RevertOp). The
+  // server's alone: no publication sends it (singleCharacter), no archive
+  // holds it (getArchiveObj)
+  'received.revert': {
+    type: Array,
+    optional: true,
+    maxCount: MAX_REVERT_OPS,
+  },
+  'received.revert.$': {
+    type: Object,
+  },
+  'received.revert.$.op': {
+    type: String,
+    allowedValues: ['remove', 'restore', 'inc'],
+  },
+  'received.revert.$.propId': {
+    type: String,
+    max: 32,
+  },
+  'received.revert.$.amount': {
+    type: Number,
+    optional: true,
+  },
+  // The actor's action, for a player's effect on a game master's monster:
+  // its undo tells the player's character's log which, and nothing else
+  'received.actionName': {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.name,
+  },
+  // Whether `revert` undoes something: what the log reads to offer "Undo"
+  'received.reversible': {
+    type: Boolean,
+    optional: true,
+  },
+  // The attributes the action set, which an undo leaves as they are
+  'received.irreversible': {
+    type: Array,
+    optional: true,
+    maxCount: MAX_IRREVERSIBLE,
+  },
+  'received.irreversible.$': {
+    type: String,
+    max: STORAGE_LIMITS.name,
+  },
+  // The encounter of the party it happened in: it can be undone while that
+  // encounter lasts (encounters.ts)
+  'received.encounter': {
+    type: Object,
+    optional: true,
+  },
+  'received.encounter.folderId': {
+    type: String,
+    max: 32,
+  },
+  'received.encounter.id': {
+    type: String,
+    max: 32,
+  },
+  // Undone, by whom (their user id and name) and when
+  'received.undone': {
+    type: Object,
+    optional: true,
+  },
+  'received.undone.by': {
+    type: String,
+    max: 32,
+  },
+  'received.undone.name': {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.name,
+  },
+  'received.undone.at': {
+    type: Date,
   },
 });
 

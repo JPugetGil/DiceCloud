@@ -2,7 +2,7 @@ import { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/c
 import { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 type Task = PropTask | DamagePropTask | DealDamageTask | ItemAsAmmoTask | CheckTask | ResetTask | CastSpellTask
-  | TurnEventTask | ReceivedDamageTask;
+  | TurnEventTask | ReceivedDamageTask | UndoReceivedTask;
 
 export default Task;
 
@@ -107,6 +107,22 @@ export type ReceivedDamageTask = BaseTask & {
   // One and only one target: the creature whose attributes changed
   targetIds: [string];
   params: { changes: Omit<ReceivedDamage, 'targetId'>[] };
+}
+
+/**
+ * What another creature's action did to a creature's attributes, undone
+ * (phase 2.4, revertReceived): each change's opposite, applied by the
+ * creature to itself through damageProp, which keeps the attribute's limits
+ * and fires its own damage triggers. The server alone makes this task, from
+ * a received log entry: taskFromDatabase refuses it, so a client can never
+ * send it
+ */
+export type UndoReceivedTask = BaseTask & {
+  subtaskFn: 'undoReceived';
+  // One and only one target: the creature itself
+  targetIds: [string];
+  // The damage to add to each attribute: negative gives back what was taken
+  params: { changes: { propId: string, value: number }[] };
 }
 
 export type CastSpellTask = BaseTask & {

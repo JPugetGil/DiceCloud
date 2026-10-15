@@ -21,7 +21,9 @@ export async function getArchiveObj(creatureId) {
   if (!creature) throw new Meteor.Error('creature-not-found', 'Creature not found');
   const properties = await CreatureProperties.find({ ...getFilter.descendantsOfRoot(creatureId) }).fetchAsync();
   const experiences = await Experiences.find({ creatureId }).fetchAsync();
-  const logs = await CreatureLogs.find({ creatureId }).fetchAsync();
+  // Never what undoes a received entry, the server's alone: whoever may copy
+  // the creature downloads the file (receivedRevert.ts)
+  const logs = await CreatureLogs.find({ creatureId }, { fields: { 'received.revert': 0 } }).fetchAsync();
   let archiveCreature = {
     meta: {
       type: 'DiceCloud V2 Creature Archive',

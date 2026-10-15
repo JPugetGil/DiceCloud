@@ -219,7 +219,8 @@ if (Meteor.isServer) describe('A player targets the other players\' characters o
       await run(ariaPlayer, actionId);
       assert.equal(await damageOf(lyraHpId), 93, 'healed by 7');
       const log = await latestLog(lyraId);
-      assert.deepEqual(log.received, { fromCreatureId: ariaId, actionId });
+      // And what undoes it (phase 2.4, revertReceived.test.ts)
+      assert.deepInclude(log.received, { fromCreatureId: ariaId, actionId });
       assert.equal(names(log)[0], 'Aria → you');
       assert.include(text(log.content), '+7 Hit Points', 'her own hit points, whole');
       assert.include(names(log), 'Cure Wounds');

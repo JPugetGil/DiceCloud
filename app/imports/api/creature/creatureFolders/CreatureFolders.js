@@ -72,6 +72,15 @@ let creatureFolderSchema = new SimpleSchema({
     type: Boolean,
     optional: true,
   },
+  // The party's encounter under way, which the server names the first time
+  // a creature of the party acts on another during it, and forgets when the
+  // game master ends the combat or the encounter: what the creatures
+  // received in it can be undone until then (encounters.ts)
+  encounterId: {
+    type: String,
+    max: 32,
+    optional: true,
+  },
   // The folder's initiative tracker, on its party board. Round 0: no combat
   initiative: {
     type: Object,

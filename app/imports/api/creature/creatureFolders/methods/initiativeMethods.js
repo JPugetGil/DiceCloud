@@ -488,7 +488,11 @@ export const setTrackDurations = new ValidatedMethod({
   },
 });
 
-/** Ends the combat: the tracker is emptied */
+/**
+ * Ends the combat: the tracker is emptied, and the party's encounter ends
+ * with it: what its creatures received in it can no longer be undone
+ * (encounters.ts)
+ */
 export const endInitiative = new ValidatedMethod({
   name: 'creatureFolders.initiative.end',
   validate: new SimpleSchema({ folderId: { type: String, max: 32 } }).validator(),
@@ -496,7 +500,7 @@ export const endInitiative = new ValidatedMethod({
   rateLimit,
   async run({ folderId }) {
     const folder = await getOwnFolder(folderId, this.userId);
-    await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1, initiativeStats: 1 } });
+    await CreatureFolders.updateAsync(folderId, { $unset: { initiative: 1, initiativeStats: 1, encounterId: 1 } });
     tellDiscord(folderId, 'end', folder.initiative);
   },
 });

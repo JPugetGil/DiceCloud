@@ -21,6 +21,8 @@
         :key="log._id"
         :model="log"
         :fresh="freshIds.has(log._id)"
+        :can-edit="editPermission"
+        :encounters="encounters"
       />
     </div>
     <!-- Never shrinks: a long log scrolls, and squeezed the input instead -->
@@ -107,6 +109,7 @@ import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import CreatureLogs, { logRoll } from '/imports/api/creature/log/CreatureLogs';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
+import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 
 import { parse, prettifyParseError } from '/imports/parser/parser';
 import resolve from '/imports/parser/resolve';
@@ -284,5 +287,15 @@ const { result: variables } = autorun(() => {
 
 const { result: editPermission } = autorun(() => {
   return hasEditPermission(creature.value, Meteor.user());
+});
+
+// The encounters under way of the character's parties, as `folderId:id`:
+// what it received during one can be undone until it ends (LogUndo). The
+// sheet subscribes to its parties (characterParties), for its editors
+const { result: encounters } = autorun(() => {
+  if (!props.creatureId) return [];
+  return CreatureFolders.find({ creatures: props.creatureId, encounterId: { $exists: true } }, {
+    fields: { encounterId: 1 },
+  }).map(folder => `${folder._id}:${folder.encounterId}`);
 });
 </script>

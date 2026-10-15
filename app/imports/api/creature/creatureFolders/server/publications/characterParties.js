@@ -18,8 +18,9 @@ const schema = new SimpleSchema({
  * opens by itself during a fight, and from "Target…" outside one, and then
  * subscribes to each party's board (partyBoard) for the creatures it offers.
  * For those who play the character (who can edit it), with whether the game
- * master lets the players target the monsters; the folder's invitation token
- * stays out.
+ * master lets the players target the monsters, and the encounter under way,
+ * whose received entries its log offers to undo (encounters.ts); the
+ * folder's invitation token stays out.
  */
 Meteor.publish('characterParties', function (creatureId) {
   try {
@@ -41,7 +42,9 @@ Meteor.publish('characterParties', function (creatureId) {
       creatures: creatureId,
       archived: { $ne: true },
     }, {
-      fields: { name: 1, owner: 1, members: 1, creatures: 1, initiative: 1, playersTargetMonsters: 1 },
+      fields: {
+        name: 1, owner: 1, members: 1, creatures: 1, initiative: 1, playersTargetMonsters: 1, encounterId: 1,
+      },
     }));
   });
 });

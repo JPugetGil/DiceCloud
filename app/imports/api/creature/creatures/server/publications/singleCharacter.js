@@ -88,11 +88,14 @@ Meteor.publish('singleCharacter', function (creatureId) {
       CreatureProperties.find({
         'root.id': creatureId,
       }),
+      // Never what undoes a received entry: the server's alone
+      // (receivedRevert.ts). No other publication sends the logs
       CreatureLogs.find({
         creatureId,
       }, {
         limit: 20,
         sort: { date: -1 },
+        fields: { 'received.revert': 0 },
       }),
       // Never the dice's secret seed (EngineActions.ts)
       EngineActions.find({

@@ -25,6 +25,7 @@
     "check:party-targeting": "node checks/party-targeting.js",
     "check:party-heal": "node checks/party-heal.js",
     "check:party-monster-attack": "node checks/party-monster-attack.js",
+    "check:party-undo": "node checks/party-undo.js",
     "check:licenses": "node checks/licenses.js"
   },
   "dependencies": {
