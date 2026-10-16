@@ -26,6 +26,7 @@ import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';
 import { targetName, targetSight, type TargetSight } from '/imports/api/engine/action/functions/hiddenStats';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 export default async function applyBuffProperty(
   task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -57,6 +58,11 @@ export default async function applyBuffProperty(
   }
 
   const actor = propList.length > MAX_FOREIGN_BUFF_PROPERTIES ? await getCreature(action.creatureId) : undefined;
+  // Who applied it, on another creature than the actor (phase 3.5): whose
+  // turns count it down when its duration follows its source
+  const appliedBy = targetIds.some(target => target !== action.creatureId)
+    ? await appliedByOf(action.creatureId)
+    : undefined;
   for (const target of targetIds) {
     // The target's line first, in a mutation that names it: appended to the
     // result's latest mutation, the line of each target after the first named
@@ -98,6 +104,14 @@ export default async function applyBuffProperty(
     // remove all the computed fields
     targetPropList = cleanProps(targetPropList);
 
+    // The buffs, the one applied and those under it, name the actor that
+    // applied them to another creature
+    if (appliedBy && target !== action.creatureId) {
+      for (const copy of targetPropList) {
+        if (copy.type === 'buff') copy.appliedBy = { ...appliedBy };
+      }
+    }
+
     // Insert the props in the mutation
     mutation.inserts = targetPropList;
 
@@ -105,6 +119,15 @@ export default async function applyBuffProperty(
     result.mutations.push(mutation);
   }
   await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
+}
+
+/**
+ * The creature that applies a buff to another, as the buff keeps it
+ * (appliedBy): its id, and its name as it was, cut to a name's length
+ */
+async function appliedByOf(creatureId: string) {
+  const name = (await getCreature(creatureId))?.name || '?';
+  return { id: creatureId, name: name.slice(0, STORAGE_LIMITS.name), collection: 'creatures' };
 }
 
 /**

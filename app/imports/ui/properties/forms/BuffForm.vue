@@ -27,6 +27,53 @@
       >
         <slot name="children" />
       </form-section>
+      <!-- How long it lasts, which a party's initiative tracker counts down,
+        and on whose turns (phase 3.5): "until the end of the caster's next
+        turn" is 1 round, at the end, on the turns of who applied it -->
+      <form-section :name="$t('forms.buff.durationSection')">
+        <computed-field
+          :label="$t('forms.buff.duration')"
+          :hint="$t('forms.buff.durationHint')"
+          :model="model.duration"
+          :error-messages="errors.duration"
+          @change="({path, value, ack}) =>
+            $emit('change', {path: ['duration', ...path], value, ack})"
+        />
+        <v-row density="compact">
+          <v-col
+            cols="12"
+            md="6"
+          >
+            <smart-toggle
+              :label="$t('forms.buff.durationEvent')"
+              :model-value="model.durationEvent || 'turnStart'"
+              :options="[
+                {name: $t('forms.buff.turnStart'), value: 'turnStart'},
+                {name: $t('forms.buff.turnEnd'), value: 'turnEnd'},
+              ]"
+              :error-messages="errors.durationEvent"
+              data-id="buff-duration-event"
+              @change="(value, ack) => change('durationEvent', value, ack)"
+            />
+          </v-col>
+          <v-col
+            cols="12"
+            md="6"
+          >
+            <smart-toggle
+              :label="$t('forms.buff.durationAnchor')"
+              :model-value="model.durationAnchor || 'holder'"
+              :options="[
+                {name: $t('forms.buff.anchorHolder'), value: 'holder'},
+                {name: $t('forms.buff.anchorSource'), value: 'source'},
+              ]"
+              :error-messages="errors.durationAnchor"
+              data-id="buff-duration-anchor"
+              @change="(value, ack) => change('durationAnchor', value, ack)"
+            />
+          </v-col>
+        </v-row>
+      </form-section>
       <form-section :name="$t('forms.behavior')">
         <v-row density="compact">
           <v-col
@@ -70,6 +117,7 @@
 
 <script setup>
 import InlineComputationField from '/imports/ui/properties/forms/shared/InlineComputationField.vue';
+import ComputedField from '/imports/ui/properties/forms/shared/ComputedField.vue';
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
 

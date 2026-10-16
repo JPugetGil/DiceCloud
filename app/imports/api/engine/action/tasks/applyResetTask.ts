@@ -4,8 +4,10 @@ import { ResetTask, TurnEventTask } from '/imports/api/engine/action/tasks/Task'
 import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getCreature, getPropertiesByFilter } from '/imports/api/engine/loadCreatures';
-import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { buffDurationRounds } from '/imports/api/creature/creatureFolders/buffDurations';
+import CreatureProperties, { type CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import {
+  buffDurationRounds, durationClockOf, durationEventOf,
+} from '/imports/api/creature/creatureFolders/buffDurations';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { Meteor } from 'meteor/meteor';
@@ -230,9 +232,11 @@ export async function applyEventTriggers(
 /**
  * A creature's turn starts or ends in an initiative tracker (TurnEventTask):
  * 1. its triggers of the event timed before;
- * 2. at the start of its turn, its effects that last some rounds lose one,
- *    and those whose last round is spent end (unless the party does not count
- *    them: countDurations);
+ * 2. its effects counted on this event of its turns lose a round, and those
+ *    whose last round is spent end (unless the party does not count them:
+ *    countDurations): by default at the start of its turns; an effect may
+ *    follow the end of the turns, or the turns of the creature that applied
+ *    it instead (durationClockOf, phase 3.5);
  * 3. its other triggers of the event;
  * 4. what resets on the event resets: attributes and uses, as on a rest,
  *    but silently: a reaction back at every turn is no news, and alone it
@@ -241,7 +245,10 @@ export async function applyEventTriggers(
  * The triggers come before the resets, so that a trigger can read a flag the
  * event then resets ("regeneration blocked this turn"). Each step logs in
  * results of its own, in the order it ran. The task needs no input: the
- * server applies it with the decisions suggested (runTurnEvent)
+ * server applies it with the decisions suggested (runTurnEvent).
+ *
+ * With `anchoredOn`, the turn is another creature's: only step 2, for the
+ * target's effects anchored on that creature's turns
  */
 export async function applyTurnEventTask(
   task: TurnEventTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -250,10 +257,14 @@ export async function applyTurnEventTask(
   if (task.targetIds.length !== 1 || creatureId !== action.creatureId) {
     throw new Meteor.Error('wrong-number-of-targets', 'A turn event applies to the creature whose turn it is alone');
   }
+  if (task.anchoredOn) {
+    if (task.countDurations) await countDurationsDown(action, creatureId, task);
+    return;
+  }
   const events = [task.eventName];
   await applyEventTriggers(action, creatureId, events, ['before'], userInput);
-  if (task.countDurations && task.eventName === 'turnStart') {
-    await countDurationsDown(action, creatureId);
+  if (task.countDurations) {
+    await countDurationsDown(action, creatureId, task);
   }
   await applyEventTriggers(action, creatureId, events, ['after', 'afterChildren'], userInput);
   const resets = new TaskResult(task.targetIds);
@@ -262,24 +273,47 @@ export async function applyTurnEventTask(
 }
 
 /**
- * Each of the creature's active effects that lasts some rounds has one less,
- * and those whose last round is spent end, with what is under them: one
- * inside an effect that ends goes with it, whatever its own duration. Logged
- * (unless the effect is silent) when it ends
+ * Each of the creature's active effects that this event of the turn counts
+ * (whose turn: the creature's own, or `anchoredOn`'s; durationClockOf,
+ * durationEventOf) has one round less, and those whose last round is spent
+ * end, with what is under them: one inside an effect that ends goes with it,
+ * whatever its own duration. Logged (unless the effect is silent) when it
+ * ends. An effect counted at the end of the turns starts counting at the
+ * first turn start after it was applied (buffDurations.ts): that start sets
+ * its rounds spent to 0, silently
  */
-async function countDurationsDown(action: EngineAction, creatureId: string) {
+async function countDurationsDown(action: EngineAction, creatureId: string, task: TurnEventTask) {
   const result = new TaskResult([creatureId]);
   action.results.push(result);
-  const buffs = await getPropertiesByFilter(
-    creatureId,
-    prop => prop.type === 'buff' && !prop.removed && !prop.inactive,
-    { type: 'buff', inactive: { $ne: true } },
-  ) as CreaturePropertyTypes['buff'][];
+  // As stored, not as the loaded creature's cache holds them: its observers
+  // apply a write some time after it lands, and each count follows the one
+  // before (a turn's start sets what its end counts from), as the turn's
+  // query of its work read them (hasTurnEventWork). The server alone counts
+  const buffs = await CreatureProperties.find({
+    'root.id': creatureId, type: 'buff', removed: { $ne: true }, inactive: { $ne: true },
+  }, { sort: { left: 1 } }).fetchAsync() as CreaturePropertyTypes['buff'][];
+  const clock = task.anchoredOn ?? creatureId;
   const ended: CreaturePropertyTypes['buff'][] = [];
   for (const buff of buffs) {
     if (ended.some(parent => parent.left < buff.left && parent.right > buff.right)) continue;
     const rounds = buffDurationRounds(buff);
     if (!rounds) continue;
+    if (durationClockOf(buff, creatureId, task.sourcesWithTurns) !== clock) continue;
+    if (durationEventOf(buff) === 'turnEnd') {
+      // Not counting yet: this turn started before it was applied
+      if (buff.durationSpent == null) {
+        if (task.eventName === 'turnStart') {
+          result.mutations.push({
+            targetIds: [creatureId],
+            updates: [{ propId: buff._id, type: 'buff', set: { durationSpent: 0 } }],
+          });
+        }
+        continue;
+      }
+      if (task.eventName !== 'turnEnd') continue;
+    } else if (task.eventName !== 'turnStart') {
+      continue;
+    }
     const spent = (buff.durationSpent || 0) + 1;
     if (spent >= rounds) {
       ended.push(buff);

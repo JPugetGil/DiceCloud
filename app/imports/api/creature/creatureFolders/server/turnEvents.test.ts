@@ -152,6 +152,23 @@ if (Meteor.isServer) describe('Turn events in the initiative tracker', function 
     assert.sameMembers(marked, ['Hero', 'Ogre']);
   });
 
+  it('the last turn of a round ends as the next round starts, once', async function () {
+    // The ogre last: Hero, Wolf, Goblin, Stranger, Ogre
+    await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': 'e-ogre' } as any, {
+      $set: { 'initiative.entries.$.initiative': 1, 'initiative.turn': 4 },
+    });
+    assert.equal((await entries())[4].name, 'Ogre');
+    await as(advanceInitiative, { step: 1 });
+    assert.include(await tracker(), { round: 2, turn: 0 });
+    assert.deepEqual(await logs(ogreId), [['End of turn', 'Ogre\'s turn ends']]);
+    assert.deepEqual(await logs(heroId), [['Start of turn', 'Hero\'s turn starts']]);
+    // Back to round 1 and forward again: it ended once
+    await as(advanceInitiative, { step: -1 });
+    await as(advanceInitiative, { step: 1 });
+    assert.lengthOf(await logs(ogreId), 1);
+    assert.equal((await entries())[4].endedRound, 1);
+  });
+
   it('keeps turning effects and triggers when the party does not count durations', async function () {
     await CreatureProperties.rawCollection().insertOne({
       _id: Random.id(), type: 'buff', name: 'Bless', duration: { calculation: '1' },

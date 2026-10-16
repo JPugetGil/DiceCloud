@@ -82,6 +82,7 @@
                   :creature="creature"
                   :folder-id="folderId"
                   :has-turn="creature._id === activeCreatureId"
+                  :duration-sources="durationSources"
                 />
               </v-col>
             </v-row>
@@ -167,6 +168,7 @@
                     :creature="creature"
                     :folder-id="folderId"
                     :has-turn="creature._id === activeCreatureId"
+                    :duration-sources="durationSources"
                   />
                 </v-col>
               </v-row>
@@ -269,6 +271,18 @@ function ordered(list) {
   if (!rank) return list;
   return [...list].sort((a, b) => (rank.get(a._id) ?? Infinity) - (rank.get(b._id) ?? Infinity));
 }
+
+// The creatures whose turns may count an effect down on another (phase 3.5):
+// the party's, its game master's and its players', not a character of someone
+// else the game master put in the folder, whose turns the server leaves
+// alone; during a fight, those with turns in the tracker, in its order
+const durationSources = computed(() => {
+  const party = [folder.value?.owner, ...(folder.value?.members || [])];
+  const rank = initiativeRank.value;
+  return ordered((creatures.value || []).filter(creature => party.includes(creature.owner)
+    && (!rank || rank.has(creature._id))))
+    .map(creature => ({ _id: creature._id, name: creature.name }));
+});
 
 const dialogStackStore = useDialogStackStore();
 

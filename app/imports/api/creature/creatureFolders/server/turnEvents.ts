@@ -1,7 +1,7 @@
 import type { Mongo } from 'meteor/mongo';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
-import { applyTurnEvent, hasTurnEventWork } from '/imports/api/engine/action/server/runTurnEvent';
+import { applyTurnEvents, hasTurnEventWork, type TurnEventOptions } from '/imports/api/engine/action/server/runTurnEvent';
 import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
 
 /*
@@ -19,6 +19,12 @@ import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
  * turn then forward again set it once, and the event follows that one alone.
  * Rolling initiative again starts round 1 with new entries: the first turn
  * starts again (accepted).
+ *
+ * A creature's turn also counts down the effects the party's other
+ * creatures hold that are anchored on its turns (phase 3.5): those creatures
+ * are the party's in the folder, in the tracker or not; an effect anchored on
+ * a creature without turns in the tracker follows its holder's
+ * (durationClockOf). Those passes happen under the creature's claim: once.
  *
  * A creature with nothing to do on the event (hasTurnEventWork, one query:
  * most monsters) costs that query alone: no mark either, whose write would
@@ -38,6 +44,7 @@ type FolderDoc = {
   members?: string[],
   creatures?: string[],
   trackDurations?: boolean,
+  initiative?: { entries?: { creatureId?: string }[] },
 };
 
 const Folders = CreatureFolders as unknown as Mongo.Collection<FolderDoc & Record<string, any>>;
@@ -49,13 +56,16 @@ const MARKS: Record<TurnEventName, 'startedRound' | 'endedRound'> = {
 
 /**
  * Marks the entry's turn as started (or ended) in `round`, if the tracker is
- * still at that round and the entry had not been: whether this call did
+ * still at that round and the entry had not been: whether this call did. The
+ * turn of the last creature of a round ends as the next round starts: the
+ * tracker is at the next round already (phase 3.5 found its turn end never
+ * happened)
  */
 async function claim(folderId: string, entryId: string, eventName: TurnEventName, round: number) {
   const mark = MARKS[eventName];
   const updated = await Folders.updateAsync({
     _id: folderId,
-    'initiative.round': round,
+    'initiative.round': eventName === 'turnEnd' ? { $in: [round, round + 1] } : round,
     'initiative.entries': { $elemMatch: { _id: entryId, [mark]: { $not: { $gte: round } } } },
   }, {
     $set: { [`initiative.entries.$.${mark}`]: round },
@@ -64,26 +74,30 @@ async function claim(folderId: string, entryId: string, eventName: TurnEventName
 }
 
 /**
- * Whether the server runs the creature's turn events: one of the folder's
- * creatures, of its game master's or of one of its players'. Never another
- * user's character the game master put in the folder: that user never joined
+ * The creatures whose turn events the server runs: the folder's creatures of
+ * its game master's or of one of its players'. Never another user's
+ * character the game master put in the folder: that user never joined. One
+ * query for the whole pass
  */
-async function ofTheParty(folder: FolderDoc, creatureId: string) {
-  if (!folder.creatures?.includes(creatureId)) return false;
-  const creature = await Creatures.findOneAsync(creatureId, { fields: { owner: 1 } });
-  const owner = creature?.owner;
-  return !!owner && (owner === folder.owner || !!folder.members?.includes(owner));
+async function partyOf(folder: FolderDoc): Promise<Set<string>> {
+  if (!folder.creatures?.length || !folder.owner) return new Set();
+  const creatures = await Creatures.find({
+    _id: { $in: folder.creatures },
+    owner: { $in: [folder.owner, ...folder.members || []] },
+  }, { fields: { _id: 1 } }).fetchAsync();
+  return new Set(creatures.map(creature => creature._id));
 }
 
-async function turnEvent(folder: FolderDoc, eventName: TurnEventName, mark: TurnMark | undefined) {
+async function turnEvent(
+  folder: FolderDoc, eventName: TurnEventName, mark: TurnMark | undefined, options: TurnEventOptions,
+) {
   const entry = mark?.entry;
   if (!entry?.creatureId || !mark?.round) return;
   try {
-    if (!await ofTheParty(folder, entry.creatureId)) return;
-    const countDurations = folder.trackDurations !== false;
-    if (!await hasTurnEventWork(entry.creatureId, eventName, { countDurations })) return;
+    if (!options.holderIds?.includes(entry.creatureId)) return;
+    if (!await hasTurnEventWork(entry.creatureId, eventName, options)) return;
     if (!await claim(folder._id, entry._id, eventName, mark.round)) return;
-    await applyTurnEvent(entry.creatureId, eventName, { countDurations });
+    await applyTurnEvents(entry.creatureId, eventName, options);
   } catch (error) {
     // The turn still moves on
     console.error(error);
@@ -93,11 +107,21 @@ async function turnEvent(folder: FolderDoc, eventName: TurnEventName, mark: Turn
 async function pass(folderId: string, { ended, started }: TurnPass) {
   if (!ended?.entry?.creatureId && !started?.entry?.creatureId) return;
   const folder = await Folders.findOneAsync(folderId, {
-    fields: { owner: 1, members: 1, creatures: 1, trackDurations: 1 },
+    fields: { owner: 1, members: 1, creatures: 1, trackDurations: 1, 'initiative.entries.creatureId': 1 },
   });
   if (!folder) return;
-  await turnEvent(folder, 'turnEnd', ended);
-  await turnEvent(folder, 'turnStart', started);
+  const party = await partyOf(folder);
+  const options: TurnEventOptions = {
+    countDurations: folder.trackDurations !== false,
+    // The party's creatures, whose effects anchored on a creature its turns count down
+    holderIds: [...party],
+    // Those with turns in the tracker, which count down the effects anchored on them
+    sourcesWithTurns: [...new Set((folder.initiative?.entries || [])
+      .map(trackerEntry => trackerEntry.creatureId)
+      .filter((id): id is string => !!id && party.has(id)))],
+  };
+  await turnEvent(folder, 'turnEnd', ended, options);
+  await turnEvent(folder, 'turnStart', started, options);
 }
 
 // Each folder's turn events so far, in order

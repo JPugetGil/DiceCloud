@@ -82,10 +82,19 @@ export type ResetTask = BaseTask & {
 export type TurnEventTask = BaseTask & {
   subtaskFn: 'turnEvent';
   eventName: TurnEventName;
-  // One and only one target: the creature whose turn it is
+  // One and only one target: the creature whose turn it is, or with
+  // `anchoredOn`, a creature holding effects anchored on that one's turns
   targetIds: [string];
   // Whether its effects count a round down: the party's choice (trackDurations)
   countDurations?: boolean;
+  // The creatures with turns in the party's tracker: an effect anchored on
+  // one of them follows its turns, and its holder's otherwise
+  // (durationClockOf, phase 3.5)
+  sourcesWithTurns?: string[];
+  // The creature whose turn it is, when it is another than the target: only
+  // the target's effects anchored on that creature's turns count down; no
+  // trigger fires, nothing resets (phase 3.5)
+  anchoredOn?: string;
 }
 
 export type TurnEventName = 'turnStart' | 'turnEnd';

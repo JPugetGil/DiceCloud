@@ -149,7 +149,8 @@
               <span
                 v-if="roundsLeft(condition) !== undefined"
                 class="ms-1 font-weight-bold"
-                :title="$t('combat.roundsLeft', { count: roundsLeft(condition) }, roundsLeft(condition))"
+                :title="lastsText(condition)"
+                :data-id="`party-condition-lasts-${condition._id}`"
               >
                 · {{ roundsLeft(condition) }}
               </span>
@@ -160,11 +161,51 @@
             :data-id="`party-condition-menu-${condition._id}`"
           >
             <v-list-subheader>{{ $t('combat.lasts') }}</v-list-subheader>
+            <!-- Its next turn, at its start or its end -->
+            <v-list-item
+              v-for="event in TURN_EVENTS"
+              :key="event"
+              :title="$t(event === 'turnEnd' ? 'combat.untilTurnEnd' : 'combat.untilTurnStart')"
+              :active="isNextTurn(condition, event)"
+              :data-id="`party-condition-duration-${event}`"
+              @click="setDuration(condition, 1, { event })"
+            />
+            <!-- The next turn of another creature of the board: the one
+              that applied it, which the game master names (phase 3.5) -->
+            <v-menu
+              v-for="event in TURN_EVENTS"
+              :key="`source-${event}`"
+              submenu
+            >
+              <template #activator="{ props: submenuProps }">
+                <v-list-item
+                  v-bind="submenuProps"
+                  :title="$t(event === 'turnEnd' ? 'combat.untilSourceTurnEndOf' : 'combat.untilSourceTurnStartOf')"
+                  :active="otherSources.some(source => isNextTurn(condition, event, source._id))"
+                  :disabled="!otherSources.length"
+                  append-icon="mdi-menu-right"
+                  :data-id="`party-condition-duration-source-${event}`"
+                />
+              </template>
+              <v-list
+                density="compact"
+                :data-id="`party-condition-sources-${event}`"
+              >
+                <v-list-item
+                  v-for="source in otherSources"
+                  :key="source._id"
+                  :title="source.name"
+                  :active="isNextTurn(condition, event, source._id)"
+                  :data-id="`party-condition-source-${event}-${source._id}`"
+                  @click="setDuration(condition, 1, { event, sourceId: source._id })"
+                />
+              </v-list>
+            </v-menu>
             <v-list-item
               v-for="option in DURATION_OPTIONS"
               :key="option.rounds || 'none'"
               :title="durationTitle(option.rounds)"
-              :active="(roundsLeft(condition) ?? null) === (option.rounds ?? null)"
+              :active="(roundsLeft(condition) ?? null) === (option.rounds ?? null) && !countedOtherwise(condition)"
               :data-id="`party-condition-duration-${option.rounds || 'none'}`"
               @click="setDuration(condition, option.rounds)"
             />
@@ -207,7 +248,8 @@ import { Meteor } from 'meteor/meteor';
 import { useI18n } from 'vue-i18n';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
-import { buffRoundsLeft } from '/imports/api/creature/creatureFolders/buffDurations';
+import { buffRoundsLeft, durationEventOf, durationSourceOf } from '/imports/api/creature/creatureFolders/buffDurations';
+import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import setBuffDuration from '/imports/api/creature/creatureProperties/methods/setBuffDuration';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import ConditionChips from '/imports/ui/properties/components/buffs/ConditionChips.vue';
@@ -243,6 +285,12 @@ const props = defineProps({
   folderId: {
     type: String,
     default: undefined,
+  },
+  // The board's creatures whose turns may count an effect down, `{ _id, name }`:
+  // during a fight, those of the tracker, in its order (phase 3.5)
+  durationSources: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -319,11 +367,48 @@ const subtitle = computed(() => {
 
 const conditions = autorun(() => activeProperties({ type: 'buff' })).result;
 
-// How long an effect lasts, counted down by the initiative tracker
+// How long an effect lasts, counted down by the initiative tracker: its next
+// turn (TURN_EVENTS, a round: "1 round" was its start), or some rounds
 const DURATION_OPTIONS = [
-  { rounds: 1 }, { rounds: 2 }, { rounds: 3 }, { rounds: 10 }, { rounds: 100 }, { rounds: undefined },
+  { rounds: 2 }, { rounds: 3 }, { rounds: 10 }, { rounds: 100 }, { rounds: undefined },
 ];
+const TURN_EVENTS = ['turnStart', 'turnEnd'];
 const roundsLeft = buff => buffRoundsLeft(buff);
+
+// The creature whose turns count the effect down instead of its own, if any
+const sourceOf = buff => durationSourceOf(buff, props.creature._id);
+
+// Counted otherwise than at the start of its own turns
+const countedOtherwise = buff => !!sourceOf(buff) || durationEventOf(buff) === 'turnEnd';
+
+/**
+ * Whether the effect lasts until the start (or end) of the next turn of its
+ * creature, or of `sourceId`: a round left, counted at that event of their turns
+ */
+function isNextTurn(buff, event, sourceId = undefined) {
+  return roundsLeft(buff) === 1 && durationEventOf(buff) === event && sourceOf(buff) === sourceId;
+}
+
+// The other creatures of the board, whose turns may count its effects down
+const otherSources = computed(() => props.durationSources.filter(source => source._id !== props.creature._id));
+
+// How long the effect has left, as the chip's title: "Until the end of
+// Goblin 1's next turn", "3 rounds left · at the end of its turns"
+function lastsText(buff) {
+  const name = buff.appliedBy?.name || '?';
+  const event = durationEventOf(buff);
+  if (roundsLeft(buff) === 1) {
+    if (sourceOf(buff)) {
+      return t(event === 'turnEnd' ? 'combat.untilSourceTurnEnd' : 'combat.untilSourceTurnStart', { name });
+    }
+    return t(event === 'turnEnd' ? 'combat.untilTurnEnd' : 'combat.untilTurnStart');
+  }
+  const left = t('combat.roundsLeft', { count: roundsLeft(buff) }, roundsLeft(buff));
+  if (sourceOf(buff)) {
+    return `${left} · ${t(event === 'turnEnd' ? 'combat.atSourceTurnEnd' : 'combat.onSourceTurns', { name })}`;
+  }
+  return event === 'turnEnd' ? `${left} · ${t('combat.atTurnEnd')}` : left;
+}
 
 function durationTitle(rounds) {
   if (!rounds) return t('combat.untilRemoved');
@@ -352,12 +437,14 @@ async function removeCondition(buff) {
   }
 }
 
-async function setDuration(buff, rounds) {
+async function setDuration(buff, rounds, { event = undefined, sourceId = undefined } = {}) {
   try {
-    await setBuffDuration.callAsync({ _id: buff._id, rounds });
+    await setBuffDuration.callAsync({
+      _id: buff._id, rounds, ...event && { event }, ...sourceId && { sourceId },
+    });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: boardErrorText(error, t) });
   }
 }
 </script>

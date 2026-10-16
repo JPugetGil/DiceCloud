@@ -5,7 +5,11 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
-import { buffDurationRounds, buffRoundsLeft } from '/imports/api/creature/creatureFolders/buffDurations';
+import {
+  buffDurationRounds, buffRoundsLeft, durationClockOf, durationEventOf, durationSourceOf,
+} from '/imports/api/creature/creatureFolders/buffDurations';
+import en from '/imports/ui/i18n/en.json';
+import fr from '/imports/ui/i18n/fr.json';
 import {
   advanceInitiative, rollInitiative, setTrackDurations,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
@@ -41,9 +45,34 @@ describe('Effect durations', function () {
     });
   });
 
+  describe('whose turns count an effect down (phase 3.5)', function () {
+    const goblin = { id: 'goblin', name: 'Goblin', collection: 'creatures' };
+    const tracked = ['hero', 'goblin'];
+
+    it('its holder\'s, at the start of the turns, by default', function () {
+      assert.equal(durationClockOf({}, 'hero', tracked), 'hero');
+      assert.equal(durationClockOf(undefined, 'hero', tracked), 'hero');
+      assert.equal(durationEventOf({}), 'turnStart');
+      assert.equal(durationEventOf({ durationEvent: 'turnEnd' }), 'turnEnd');
+      // Who applied it changes nothing by itself
+      assert.equal(durationClockOf({ appliedBy: goblin }, 'hero', tracked), 'hero');
+    });
+
+    it('the source\'s while it has turns in the fight, its holder\'s otherwise', function () {
+      const frightened = { durationAnchor: 'source', appliedBy: goblin };
+      assert.equal(durationSourceOf(frightened, 'hero'), 'goblin');
+      assert.equal(durationClockOf(frightened, 'hero', tracked), 'goblin');
+      assert.equal(durationClockOf(frightened, 'hero', ['hero']), 'hero', 'the goblin left the tracker');
+      assert.equal(durationClockOf(frightened, 'hero'), 'hero', 'no fight');
+      // Applied by its holder, or by nobody known: its holder's
+      assert.isUndefined(durationSourceOf({ durationAnchor: 'source', appliedBy: { ...goblin, id: 'hero' } }, 'hero'));
+      assert.isUndefined(durationSourceOf({ durationAnchor: 'source' }, 'hero'));
+    });
+  });
+
   describe('in the initiative tracker', function () {
-    const [gmId, playerId, outsiderId, folderId, heroId, strangerHeroId] =
-      [Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
+    const [gmId, playerId, outsiderId, folderId, heroId, strangerHeroId, goblinId, loneId] =
+      [Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
     const [blessId, hasteId, rageId, childId, readOnlyBuffId] =
       [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
     const as = (method, args, userId = gmId) => method._execute({ userId }, { folderId, ...args });
@@ -52,7 +81,7 @@ describe('Effect durations', function () {
 
     async function removeAll() {
       await CreatureFolders.removeAsync(folderId);
-      await Creatures.removeAsync({ _id: { $in: [heroId, strangerHeroId] } });
+      await Creatures.removeAsync({ _id: { $in: [heroId, strangerHeroId, goblinId, loneId] } });
       await CreatureProperties.removeAsync({ 'root.id': { $in: [heroId, strangerHeroId] } });
       await CreatureLogs.removeAsync({ creatureId: { $in: [heroId, strangerHeroId] } });
       await Meteor.users.removeAsync({ _id: { $in: [gmId, playerId, outsiderId] } });
@@ -71,6 +100,10 @@ describe('Effect durations', function () {
         { _id: heroId, name: 'Hero', owner: playerId, readers: [], writers: [gmId] },
         // The character of someone outside the party, which the game master reads
         { _id: strangerHeroId, name: 'Stranger', owner: outsiderId, readers: [gmId], writers: [] },
+        // The game master's monster on the board, without a turn yet
+        { _id: goblinId, name: 'Goblin', owner: gmId, type: 'monster', readers: [], writers: [] },
+        // The game master's, on no board
+        { _id: loneId, name: 'Lone wolf', owner: gmId, type: 'monster', readers: [], writers: [] },
       ] as any[]);
       const root = (id: string) => ({ collection: 'creatures', id });
       await CreatureProperties.rawCollection().insertMany([
@@ -91,7 +124,7 @@ describe('Effect durations', function () {
         },
       ] as any[]);
       await CreatureFolders.rawCollection().insertOne({
-        _id: folderId, name: 'Table', owner: gmId, members: [playerId], creatures: [heroId, strangerHeroId], order: 0,
+        _id: folderId, name: 'Table', owner: gmId, members: [playerId], creatures: [heroId, strangerHeroId, goblinId], order: 0,
         initiative: {
           round: 1,
           turn: 0,
@@ -174,7 +207,52 @@ describe('Effect durations', function () {
       await assertRefused(setDuration({ _id: readOnlyBuffId, rounds: 3 }), 'a creature it only reads');
     });
 
-    async function assertRefused(promise: Promise<unknown>, message: string) {
+    it('sets an effect counted at the end of the turns, or on the turns of another creature of the party (phase 3.5)', async function () {
+      // "Until the end of its next turn": counted from its next turn start
+      await CreatureProperties.rawCollection().updateOne({ _id: rageId }, { $set: { durationSpent: 0 } });
+      await setDuration({ _id: rageId, rounds: 1, event: 'turnEnd' });
+      let rage = await buff(rageId) as any;
+      assert.include(rage, { durationEvent: 'turnEnd' });
+      assert.notProperty(rage, 'durationSpent');
+      assert.notProperty(rage, 'durationAnchor');
+
+      // "Until the start of Goblin's next turn": the goblin's turns, whose name it keeps
+      await setDuration({ _id: rageId, rounds: 1, sourceId: goblinId });
+      rage = await buff(rageId);
+      assert.include(rage, { durationAnchor: 'source' });
+      assert.deepEqual(rage.appliedBy, { id: goblinId, name: 'Goblin', collection: 'creatures' });
+      assert.notProperty(rage, 'durationEvent', 'at the start, the default');
+      // Its player, at the table, may too
+      await setDuration({ _id: rageId, rounds: 1, event: 'turnEnd', sourceId: goblinId }, playerId);
+      assert.include(await buff(rageId), { durationAnchor: 'source', durationEvent: 'turnEnd' });
+
+      // Some rounds, its own turns again: whoever applied it stays named
+      await setDuration({ _id: rageId, rounds: 2 });
+      rage = await buff(rageId);
+      assert.notProperty(rage, 'durationAnchor');
+      assert.notProperty(rage, 'durationEvent');
+      assert.equal(rage.appliedBy?.id, goblinId);
+      // Its own creature as the source: its own turns
+      await setDuration({ _id: rageId, rounds: 1, sourceId: heroId });
+      assert.notProperty(await buff(rageId), 'durationAnchor');
+
+      // Never a creature outside the party, nor one on no board with it
+      for (const sourceId of [strangerHeroId, loneId, Random.id()]) {
+        const error = await assertRefused(setDuration({ _id: rageId, rounds: 1, sourceId }), `source ${sourceId}`);
+        assert.equal(error?.details?.i18n?.key, 'combat.sourceNotInParty');
+      }
+      assert.notProperty(await buff(rageId), 'durationAnchor', 'unchanged');
+      assert.match(en.combat.sourceNotInParty, /party board/);
+      assert.match(fr.combat.sourceNotInParty, /tableau de groupe/);
+
+      // Until removed: no duration, nothing counted, on no one's turns
+      await setDuration({ _id: rageId, rounds: 1, event: 'turnEnd', sourceId: goblinId });
+      await setDuration({ _id: rageId });
+      rage = await buff(rageId);
+      for (const field of ['duration', 'durationSpent', 'durationAnchor', 'durationEvent']) assert.notProperty(rage, field);
+    });
+
+    async function assertRefused(promise: Promise<unknown>, message: string): Promise<any> {
       let error;
       try {
         await promise;
@@ -182,6 +260,7 @@ describe('Effect durations', function () {
         error = e;
       }
       assert.exists(error, message);
+      return error;
     }
   });
 });

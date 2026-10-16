@@ -21,6 +21,22 @@ const BuffSchema = createPropertySchema({
     type: 'fieldToCompute',
     optional: true,
   },
+  // Whose turns count the duration down (phase 3.5 of the monsters): the
+  // creature the buff is on ('holder', the default), or the one that applied
+  // it ('source', appliedBy): "until the end of the caster's next turn"
+  durationAnchor: {
+    type: String,
+    allowedValues: ['holder', 'source'] as const,
+    optional: true,
+  },
+  // When in that creature's turn: its start ('turnStart', the default), or
+  // its end ('turnEnd'), counting only the turns that start after the buff
+  // was applied: its "next turn"
+  durationEvent: {
+    type: String,
+    allowedValues: ['turnStart', 'turnEnd'] as const,
+    optional: true,
+  },
   target: {
     type: String,
     allowedValues: [
@@ -51,11 +67,18 @@ const ComputedOnlyBuffSchema = createPropertySchema({
     type: 'computedOnlyField' as const,
     optional: true,
   },
+  // The rounds spent, counted by the initiative tracker (countDurationsDown).
+  // A buff that ends at the end of a turn has none until its creature's
+  // first turn starts after it was applied: a turn under way when it was
+  // applied is not its "next turn"
   durationSpent: {
     type: Number,
     optional: true,
     min: 0,
   },
+  // The creature that applied it to another (applyBuffProperty), or that the
+  // board's duration menu names: whose turns count it down when its
+  // durationAnchor is 'source'
   appliedBy: {
     type: Object,
     optional: true,
@@ -67,6 +90,10 @@ const ComputedOnlyBuffSchema = createPropertySchema({
   'appliedBy.id': {
     type: String,
     max: 32,
+    // The buffs a creature's turn counts down on the other creatures of its
+    // party (turnEvents.ts); sparse: only buffs another applied have it
+    index: 1,
+    sparse: true,
   },
   'appliedBy.collection': {
     type: String,

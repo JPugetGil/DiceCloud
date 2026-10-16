@@ -49,8 +49,9 @@ const PROPERTY_FIELDS = {
   level: 1, color: 1, icon: 1, removed: 1, inactive: 1, overridden: 1,
   healthBarColorMid: 1, healthBarColorLow: 1, healthBarNoDamage: 1, healthBarNoHealing: 1,
   hideRemoveButton: 1, decimal: 1, ignoreLowerLimit: 1, ignoreUpperLimit: 1, unit: 1,
-  // Effects' durations, which the initiative tracker counts down
-  duration: 1, durationSpent: 1,
+  // Effects' durations, which the initiative tracker counts down, and whose
+  // turns count them: the creature that applied them, its name alone
+  duration: 1, durationSpent: 1, durationAnchor: 1, durationEvent: 1, appliedBy: 1,
   // The game master's legendary actions (LEGENDARY_ACTIONS): what each costs,
   // and whether the creature can pay it. No other property sent has them
   resources: 1, insufficientResources: 1,

@@ -463,7 +463,7 @@
   },
   "combat": {
     "trackDurations": "Count effect durations",
-    "trackDurationsHint": "At the start of each character's turn, its effects lose a round, and end once their duration runs out",
+    "trackDurationsHint": "Each turn, the effects it counts lose a round, and end once their duration runs out: by default at the start of the turns of the creature they are on",
     "roundsLeft": "{count} round left | {count} rounds left",
     "lasts": "Lasts",
     "rounds": "{count} round | {count} rounds",
@@ -480,7 +480,17 @@
     "roundIn": "Round {round}, {party}",
     "openBoard": "Party board",
     "round": "Round {round}",
-    "turnNow": "{name}'s turn"
+    "turnNow": "{name}'s turn",
+    "untilTurnStart": "Until the start of its next turn",
+    "untilTurnEnd": "Until the end of its next turn",
+    "untilSourceTurnStartOf": "Until the start of the next turn of…",
+    "untilSourceTurnEndOf": "Until the end of the next turn of…",
+    "untilSourceTurnStart": "Until the start of {name}'s next turn",
+    "untilSourceTurnEnd": "Until the end of {name}'s next turn",
+    "atTurnEnd": "at the end of its turns",
+    "onSourceTurns": "on {name}'s turns",
+    "atSourceTurnEnd": "at the end of {name}'s turns",
+    "sourceNotInParty": "That creature is not on a party board with this one"
   },
   "initiative": {
     "title": "Initiative",
@@ -1478,7 +1488,16 @@
     },
     "buff": {
       "hideRemoveButton": "Hide remove button",
-      "dontFreeze": "Don't freeze variables"
+      "dontFreeze": "Don't freeze variables",
+      "durationSection": "Duration",
+      "duration": "Duration",
+      "durationHint": "In rounds, or as text (\"1 minute\"). A party's initiative tracker counts it down. \"Until the end of the caster's next turn\": 1, at the end of a turn, on the turns of the creature that applied it",
+      "durationEvent": "Counted down at",
+      "turnStart": "The start of a turn",
+      "turnEnd": "The end of a turn",
+      "durationAnchor": "On the turns of",
+      "anchorHolder": "The creature it is on",
+      "anchorSource": "The creature that applied it"
     },
     "buffRemover": {
       "targetBuffs": "Target buffs",
@@ -1951,7 +1970,13 @@
     "cantView": "This property can't be viewed yet.",
     "skill": "Skill",
     "overriddenText": "Overriden by another property with the same variable name",
-    "typedDamage": "{type} damage"
+    "typedDamage": "{type} damage",
+    "durationCounted": "Counted down",
+    "countedAtHolderTurnStart": "At the start of the turns of the creature it is on",
+    "countedAtHolderTurnEnd": "At the end of the turns of the creature it is on",
+    "countedAtSourceTurnStart": "At the start of the turns of the creature that applied it",
+    "countedAtSourceTurnEnd": "At the end of the turns of the creature that applied it",
+    "appliedBy": "Applied by"
   },
   "cards": {
     "uses": "{count} uses",
@@ -2070,7 +2095,9 @@
     "withdrawn": "Removed",
     "restoredEffect": "Restored",
     "notUndone": "Not undone (value set)",
-    "gmUndid": "The GM undid: {action} → {target}"
+    "gmUndid": "The GM undid: {action} → {target}",
+    "turnStartOf": "Start of {name}'s turn",
+    "turnEndOf": "End of {name}'s turn"
   },
   "health": {
     "change": "{name}",
