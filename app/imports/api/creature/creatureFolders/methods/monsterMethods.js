@@ -59,7 +59,10 @@ export const addBoardMonsters = new ValidatedMethod({
  * The end of the encounter: the board's monsters are deleted, and the
  * combat ends with `endCombat`, as endInitiative ends it. Either way, what
  * the party's creatures received in it can no longer be undone
- * (encounters.ts). Returns how many monsters were deleted
+ * (encounters.ts). Without `endCombat` the fight goes on without them: if it
+ * was a monster's turn, the next creature that stays gets it, and its turn
+ * starts (removeFromTracker). With it, the tracker goes first: no turn
+ * passes. Returns how many monsters were deleted
  */
 export const endEncounter = new ValidatedMethod({
   name: 'creatureFolders.monsters.endEncounter',
@@ -74,12 +77,13 @@ export const endEncounter = new ValidatedMethod({
     if (Meteor.isServer) {
       const { removeBoardMonsters } = await import('/imports/api/creature/creatureFolders/server/boardMonsters');
       // The encounter is forgotten before the monsters go and again once
-      // they are gone: an action that lands meanwhile names none that lasts
-      await CreatureFolders.updateAsync(folderId, { $unset: { encounterId: 1 } });
-      const removed = await removeBoardMonsters(folder);
+      // they are gone: an action that lands meanwhile names none that lasts.
+      // The combat that ends, before they go: no creature's turn starts
       await CreatureFolders.updateAsync(folderId, {
         $unset: { encounterId: 1, ...endCombat && { initiative: 1, initiativeStats: 1 } },
       });
+      const removed = await removeBoardMonsters(folder);
+      await CreatureFolders.updateAsync(folderId, { $unset: { encounterId: 1 } });
       tellDiscord(folderId, endCombat ? 'end' : 'update', endCombat ? folder.initiative : undefined);
       return removed;
     }

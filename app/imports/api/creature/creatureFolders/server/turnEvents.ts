@@ -1,6 +1,8 @@
 import type { Mongo } from 'meteor/mongo';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+import { trackerAsRead, trackerWithout } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import { initiativeChanged } from '/imports/api/creature/log/server/discordInitiative';
 import { applyTurnEvents, hasTurnEventWork, type TurnEventOptions } from '/imports/api/engine/action/server/runTurnEvent';
 import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
 
@@ -20,6 +22,12 @@ import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
  * Rolling initiative again starts round 1 with new entries: the first turn
  * starts again (accepted).
  *
+ * The turn also passes when the creature whose turn it is leaves the tracker,
+ * whatever takes it out (removeFromTracker): the tracker's remove button, the
+ * creature deleted from its sheet or the board, its player leaving the
+ * party, "End the encounter" deleting the monsters while the fight goes on.
+ * The next creature's turn starts then, under the same claim.
+ *
  * A creature's turn also counts down the effects the party's other
  * creatures hold that are anchored on its turns (phase 3.5): those creatures
  * are the party's in the folder, in the tracker or not; an effect anchored on
@@ -34,7 +42,7 @@ import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
  * so that a turn never ends before it started.
  */
 
-type Entry = { _id: string, creatureId?: string };
+type Entry = { _id: string, creatureId?: string, name?: string, initiative?: number, bonus?: number };
 type TurnMark = { entry?: Entry, round: number };
 export type TurnPass = { ended?: TurnMark, started?: TurnMark };
 
@@ -44,7 +52,7 @@ type FolderDoc = {
   members?: string[],
   creatures?: string[],
   trackDurations?: boolean,
-  initiative?: { entries?: { creatureId?: string }[] },
+  initiative?: { round?: number, turn?: number, entries?: Entry[] },
 };
 
 const Folders = CreatureFolders as unknown as Mongo.Collection<FolderDoc & Record<string, any>>;
@@ -146,4 +154,49 @@ export function passTurn(folderId: string, turnPass: TurnPass): Promise<void> {
 /** Resolves once the turn events so far have run (for tests) */
 export async function turnEventsIdle() {
   while (queues.size) await Promise.all([...queues.values()]);
+}
+
+// Tries before giving up on a tracker that keeps changing as it is read
+const REMOVAL_ATTEMPTS = 10;
+
+/**
+ * Takes entries out of the folder's tracker: those of `entryIds`, and those
+ * of the creatures `creatureIds`. The creature whose turn it is keeps it. If
+ * it leaves during a fight, the turn passes to the next entry that stays, or
+ * to the first of the next round (trackerWithout), whose turn starts, once,
+ * under the same claim as Next's; however many leave at once, one turn
+ * starts. Its turn does not end: it is out of the fight. Every way out of the
+ * tracker comes here (the remove button, a deleted creature, a player who
+ * leaves, the encounter's monsters): the turn passes the same.
+ *
+ * Read, then written while the tracker is still as read (trackerAsRead),
+ * again if it changed: a Next click at the same time either moved the turn
+ * first, and nothing passes here, or finds the tracker changed and does not
+ * move it (advanceTracker). The turn starts once the tracker is written:
+ * those that left are out of the creatures with turns, and the effects
+ * anchored on them follow their holders' turns (phase 3.5). Whether entries
+ * left. Server only
+ */
+export async function removeFromTracker(
+  folderId: string, { entryIds = [], creatureIds = [] }: { entryIds?: string[], creatureIds?: string[] },
+): Promise<boolean> {
+  for (let attempt = 0; attempt < REMOVAL_ATTEMPTS; attempt += 1) {
+    const folder = await Folders.findOneAsync(folderId, { fields: { initiative: 1 } });
+    const tracker = folder?.initiative;
+    const leaving = (tracker?.entries || []).filter(entry => entryIds.includes(entry._id)
+      || (!!entry.creatureId && creatureIds.includes(entry.creatureId))).map(entry => entry._id);
+    if (!tracker || !leaving.length) return false;
+    const { turn, round, started } = trackerWithout(tracker, leaving) as { turn: number, round: number, started?: Entry };
+    const updated = await Folders.updateAsync({ _id: folderId, ...trackerAsRead(tracker) }, {
+      // Pulled, not written back: the others keep the marks set meanwhile
+      $pull: { 'initiative.entries': { _id: { $in: leaving } } },
+      $set: { 'initiative.turn': turn, ...round !== (tracker.round || 0) && { 'initiative.round': round } },
+      $unset: Object.fromEntries(leaving.map(id => [`initiativeStats.${id}`, 1])),
+    } as any);
+    if (!updated) continue;
+    if (started) await passTurn(folderId, { started: { entry: started, round } });
+    initiativeChanged(folderId, 'update');
+    return true;
+  }
+  throw new Error(`The initiative tracker of folder ${folderId} kept changing: entries not removed`);
 }

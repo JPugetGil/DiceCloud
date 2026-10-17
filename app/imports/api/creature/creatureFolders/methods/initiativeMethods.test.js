@@ -4,7 +4,10 @@ import { Random } from 'meteor/random';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import initiativeOrder, { turnAfterChange, MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import { Mongo } from 'meteor/mongo';
+import initiativeOrder, {
+  turnAfterChange, trackerWithout, trackerAsRead, MAX_INITIATIVE_ENTRIES,
+} from '/imports/api/creature/creatureFolders/initiativeOrder';
 import {
   rollInitiative, addInitiativeEntry, updateInitiativeEntry, removeInitiativeEntry,
   advanceInitiative, endInitiative, damageInitiativeEntry, setInitiativeEntryOut,
@@ -42,6 +45,48 @@ describe('The turn after a change of order', function () {
   });
   it('stays in range when the creature has gone', function () {
     assert.equal(turnAfterChange(entries, 2, entries.slice(0, 2)), 1);
+  });
+});
+
+describe('The tracker once entries leave it', function () {
+  // A (20), B (15), C (10), D (5)
+  const entries = ['a', 'b', 'c', 'd'].map((_id, i) => ({ _id, name: _id.toUpperCase(), initiative: 20 - 5 * i }));
+  const at = (turn, round = 1) => ({ round, turn, entries });
+  const leave = (tracker, ids) => {
+    const { entries: kept, turn, round, started } = trackerWithout(tracker, ids);
+    return { kept: initiativeOrder(kept).map(entry => entry._id).join(''), turn, round, started: started?._id };
+  };
+
+  it('keeps the turn on the creature whose turn it is', function () {
+    assert.deepEqual(leave(at(2), ['a', 'd']), { kept: 'bc', turn: 1, round: 1, started: undefined });
+  });
+  it('passes the turn to the next one when it leaves, whose turn starts', function () {
+    assert.deepEqual(leave(at(1), ['b']), { kept: 'acd', turn: 1, round: 1, started: 'c' });
+  });
+  it('passes it once, to the next one that stays, however many leave at once', function () {
+    assert.deepEqual(leave(at(0), ['a', 'b', 'd']), { kept: 'c', turn: 0, round: 1, started: 'c' });
+  });
+  it('starts the next round with the first when the last ones of the round leave', function () {
+    assert.deepEqual(leave(at(2, 3), ['c', 'd']), { kept: 'ab', turn: 0, round: 4, started: 'a' });
+  });
+  it('starts no turn when all leave, nor before the fight', function () {
+    assert.deepEqual(leave(at(1), ['a', 'b', 'c', 'd']), { kept: '', turn: 0, round: 1, started: undefined });
+    assert.deepEqual(leave(at(0, 0), ['a']), { kept: 'bcd', turn: 0, round: 0, started: undefined });
+  });
+  it('selects the folder while its tracker is still as read, in Minimongo too (the client\'s simulation of Next)', async function () {
+    // any: Meteor's modifier types refuse dotted paths on an untyped collection
+    const folders = /** @type {any} */ (new Mongo.Collection(null));
+    await folders.insertAsync({ _id: 'f', initiative: at(1) });
+    const asRead = { _id: 'f', ...trackerAsRead(at(1)) };
+    assert.exists(await folders.findOneAsync(asRead));
+    // A turn's mark changes nothing
+    await folders.updateAsync({ _id: 'f', 'initiative.entries._id': 'c' }, { $set: { 'initiative.entries.$.startedRound': 1 } });
+    assert.exists(await folders.findOneAsync(asRead));
+    // An entry gone, or another in its place
+    await folders.updateAsync('f', { $pull: { 'initiative.entries': { _id: 'd' } } });
+    assert.notExists(await folders.findOneAsync(asRead));
+    await folders.updateAsync('f', { $push: { 'initiative.entries': { _id: 'e', initiative: 1 } } });
+    assert.notExists(await folders.findOneAsync(asRead));
   });
 });
 

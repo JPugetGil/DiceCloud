@@ -25,8 +25,10 @@ const removeCreatureFolder = new ValidatedMethod({
         'This folder does not belong to you');
     }
     // Its board's monsters go with it: the character list shows none, so they
-    // would stay behind unseen. Imported when called, as monsterMethods does
+    // would stay behind unseen. Imported when called, as monsterMethods does.
+    // Its fight ends first: no creature's turn starts as they leave it
     if (Meteor.isServer) {
+      await CreatureFolders.updateAsync(existingFolder._id, { $unset: { initiative: 1, initiativeStats: 1 } });
       const { removeBoardMonsters } = await import('/imports/api/creature/creatureFolders/server/boardMonsters');
       await removeBoardMonsters(existingFolder);
     }

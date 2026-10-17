@@ -18,6 +18,14 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
     if (!userId) throw new Meteor.Error('No user',
       'You must be logged in to delete your account');
 
+    // Their own folders first: the fights on their boards end with them, and
+    // no creature's turn starts there as theirs leave the tracker
+    // (removeFromTracker). Server only, imported when called, as below
+    if (Meteor.isServer) {
+      const { default: CreatureFolders } = await import('/imports/api/creature/creatureFolders/CreatureFolders');
+      await CreatureFolders.removeAsync({ owner: userId });
+    }
+
     // Delete all creatures
     let creatures = await Creatures.find({ owner: userId }, { fields: { _id: 1 } }).fetchAsync();
     // for...of rather than forEach: an async callback handed to forEach is never
@@ -68,8 +76,8 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
       multi: true,
     });
 
-    // Delete the user's library collections, character folders, uploaded
-    // images and character archives (from S3 too), and take the user out of
+    // Delete the user's library collections, uploaded images and character
+    // archives (from S3 too), and take the user out of
     // the collections shared with them and of the parties they joined (their
     // characters already left every board, with removeCreatureWork). Server
     // only: the client's
@@ -96,7 +104,6 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
         { $pull: { writers: pulled, readers: pulled } },
         { multi: true },
       );
-      await CreatureFolders.removeAsync({ owner: userId });
       await CreatureFolders.updateAsync(
         { members: userId },
         { $pull: { members: pulled } },

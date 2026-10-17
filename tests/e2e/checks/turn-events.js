@@ -10,9 +10,12 @@
  * logged once on its creature (the triggers' lines; the legendary actions
  * come back without a line: resets are silent); Previous then Next does
  * neither again. The game master reads the goblin's entry on
- * its sheet, the player their character's, never the goblin's. Everything is
- * put back at the end: the board, the goblin, the character's trigger and the
- * library subscription.
+ * its sheet, the player their character's, never the goblin's. Then, on the
+ * goblin's turn, the last of the round, the game master deletes it from its
+ * card's menu: the next round starts with the character's turn, logged once
+ * with its trigger at the start of its turn. Everything is put back at the
+ * end: the board, the goblin, the character's triggers and the library
+ * subscription.
  */
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { withDb } = require('../lib/db');
@@ -98,6 +101,7 @@ main(async () => {
   let triggerId;
   let legendaryId;
   let reminderId;
+  let greetingId;
   try {
     await step('a board with a player\'s character and a goblin of the bestiary', gm.messages, async () => {
       await visit(gm.page, '/character-list', 3000);
@@ -132,6 +136,10 @@ main(async () => {
       // The game master edits the character since it joined
       reminderId = await call('creatureProperties.insert', {
         creatureProperty: { type: 'trigger', name: 'E2E bardic reminder', event: 'turnEnd', timing: 'after' },
+        parentRef: { collection: 'creatures', id: characterId },
+      });
+      greetingId = await call('creatureProperties.insert', {
+        creatureProperty: { type: 'trigger', name: 'E2E bardic greeting', event: 'turnStart', timing: 'after' },
         parentRef: { collection: 'creatures', id: characterId },
       });
     });
@@ -240,10 +248,30 @@ main(async () => {
       await player.browser.close();
       if (player.messages.length) throw new Error(player.messages[0]);
     });
+
+    await step('the goblin deleted from its card\'s menu on its turn: the next round starts with the character\'s turn, once', gm.messages, async () => {
+      await visit(gm.page, `/party/${folderId}`, 4000);
+      await removeOverlay(gm.page);
+      const at = new Date();
+      await gm.page.click('[data-id="party-monster-menu"]');
+      await gm.page.click('[data-id="party-monster-remove"]');
+      await waitFor(async () => (await entries(characterId, at)).length > 0, 'the character\'s turn to start');
+      await pause(1500);
+      const character = await entries(characterId, at);
+      if (JSON.stringify(character) !== JSON.stringify([['Start of turn', 'E2E bardic greeting']])) {
+        throw new Error(`the character's entries: ${JSON.stringify(character)}`);
+      }
+      const tracker = await withDb(async db => (await db.collection('creatureFolders').findOne({ _id: folderId })).initiative);
+      if (tracker.round !== 2 || tracker.turn !== 0 || tracker.entries.length !== 1) {
+        throw new Error(`round ${tracker.round}, turn ${tracker.turn}, ${tracker.entries.length} entries`);
+      }
+      return character[0].join(' · ');
+    });
   } finally {
     // Put everything back, through the app
     try {
       if (reminderId) await call('creatureProperties.softRemove', { _id: reminderId });
+      if (greetingId) await call('creatureProperties.softRemove', { _id: greetingId });
       if (goblinId) await call('creatureFolders.monsters.endEncounter', { folderId, endCombat: true });
       if (folderId) {
         const player = await openPage({ username: OTHER });

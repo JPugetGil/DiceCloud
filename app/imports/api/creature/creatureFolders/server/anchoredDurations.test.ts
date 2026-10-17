@@ -8,6 +8,8 @@ import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrd
 import {
   advanceInitiative, advanceTracker, endInitiative, removeInitiativeEntry,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
+import { endEncounter } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
+import moveCreatureToFolder from '/imports/api/creature/creatureFolders/methods/moveCreatureToFolder';
 import { leaveParty } from '/imports/api/creature/creatureFolders/methods/partyMethods';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
 import setBuffDuration from '/imports/api/creature/creatureProperties/methods/setBuffDuration';
@@ -298,6 +300,45 @@ if (Meteor.isServer) describe('Effect durations anchored on a creature\'s turns'
       await next();
       assert.include(await tracker(), { round: 3, turn: 0 });
       assert.isTrue((await buff(heroId, 'Frightened')).removed);
+    });
+
+    // The goblin deleted on its own turn, Lyra next: the turn that starts is
+    // hers, after the goblin left the creatures with turns
+    const goblinGoes = {
+      'deleted from the board\'s menu': () => (removeCreature as any)._execute({ userId: gmId, unblock() { /* as a method's */ } }, { charId: goblinId }),
+      'deleted with the ogre by "End the encounter"': () => as(endEncounter, {}),
+    };
+    for (const [how, goes] of Object.entries(goblinGoes)) {
+      it(`the source ${how} on its own turn: the holder's turn, which starts next, counts its effects`, async function () {
+        await table({ hero: [fromGoblin('Frightened', 2)], round: 1, turn: 3 });
+        // Goblin (15), Lyra (12), Ogre (10), Stranger (5): the stranger's turn
+        await CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': 'e-hero' } as any, {
+          $set: { 'initiative.entries.$.initiative': 12 },
+        });
+        // Round 2: the goblin's turn counts it
+        await next();
+        assert.include(await tracker(), { round: 2, turn: 0 });
+        assert.equal((await buff(heroId, 'Frightened')).durationSpent, 1);
+        await goes();
+        assert.equal(initiativeOrder((await tracker()).entries)[(await tracker()).turn].name, 'Lyra');
+        assert.isTrue((await buff(heroId, 'Frightened')).removed, 'her turn started and counted it');
+        assert.deepEqual((await logs(heroId)).at(-1), ['Start of turn', 'Frightened'], 'her own turn, her own title');
+      });
+    }
+
+    it('the source moved out of the board\'s folder: its entry stays, its turns count nothing, its effects follow their holder\'s', async function () {
+      await table({ hero: [fromGoblin('Frightened', 1)], round: 1, turn: 3 });
+      // Out of every folder of the game master's (the character list's "no folder")
+      await (moveCreatureToFolder as any)._execute({ userId: gmId }, { creatureId: goblinId, folderId: null });
+      assert.include((await tracker()).entries.map(e => e.creatureId), goblinId, 'still in the tracker');
+      // Round 2: her turn counts it, and ends it
+      await next();
+      assert.include(await tracker(), { round: 2, turn: 0 });
+      assert.isTrue((await buff(heroId, 'Frightened')).removed);
+      // The goblin's turn: nothing of its own, nothing of hers
+      await next();
+      assert.notProperty(await entry('Goblin'), 'startedRound');
+      assert.lengthOf(await entries(goblinId), 0);
     });
 
     it('the holder leaves the board: the source\'s turns no longer count its effects', async function () {

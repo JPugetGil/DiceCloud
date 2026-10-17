@@ -9,6 +9,12 @@ import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrd
 import {
   advanceInitiative, advanceTracker, removeInitiativeEntry, rollInitiative, setTrackDurations,
 } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
+import { endEncounter } from '/imports/api/creature/creatureFolders/methods/monsterMethods';
+import { leaveParty } from '/imports/api/creature/creatureFolders/methods/partyMethods';
+import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
+import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
+// The method alone, not Users.js: its schema would make every suite's test users need its fields
+import '/imports/api/users/methods/deleteMyAccount';
 import { createTestCreature, removeAllCreaturesAndProps } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import propsFromForest, { type ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 import computeCreature from '/imports/api/engine/computeCreature';
@@ -191,6 +197,192 @@ if (Meteor.isServer) describe('Turn events in the initiative tracker', function 
     await as(removeInitiativeEntry, { entryId: 'e-stranger' });
     assert.include(await tracker(), { round: 2, turn: 0 });
     assert.deepEqual((await logs(ogreId)).map(lines => lines[0]), ['Start of turn', 'Start of turn']);
+  });
+
+  /*
+   * Every way the creature whose turn it is leaves the tracker passes the turn
+   * as the tracker's remove button does (removeFromTracker): its player
+   * deletes it from its sheet, the game master deletes a monster from the
+   * board's menu, "End the encounter" deletes the monsters while the fight
+   * goes on, its player leaves the party. Ending the fight with them, or the
+   * board's folder, or the game master's account, starts no turn.
+   */
+  describe('when the creature whose turn it is leaves the tracker', function () {
+    const ENTRIES = {
+      Hero: { _id: 'e-hero', creatureId: heroId },
+      Ogre: { _id: 'e-ogre', creatureId: ogreId },
+      Goblin: { _id: 'e-goblin', creatureId: goblinId },
+      Stranger: { _id: 'e-stranger', creatureId: strangerId },
+    };
+    // A fight in this order (the wolf left out), at `active`'s turn of `round`
+    async function fight(order: (keyof typeof ENTRIES)[], active: keyof typeof ENTRIES, round = 1) {
+      await CreatureFolders.updateAsync(folderId, {
+        $set: {
+          initiative: {
+            round,
+            turn: order.indexOf(active),
+            entries: order.map((name, i) => ({ ...ENTRIES[name], name, initiative: 20 - 5 * i, bonus: 0 })),
+          },
+        },
+      });
+    }
+    const activeName = async () => {
+      const { turn, entries: all } = await tracker();
+      return initiativeOrder(all)[turn]?.name;
+    };
+    const firstLines = async (creatureId: string) => (await logs(creatureId)).map(lines => lines[0]);
+    const deleteCreature = (charId: string, userId: string) =>
+      (removeCreature as any)._execute({ userId, unblock() { /* as a method's */ } }, { charId });
+
+    it('deleted from its sheet: the next creature\'s turn starts, once', async function () {
+      await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Hero');
+      await deleteCreature(heroId, playerId);
+      assert.include(await tracker(), { round: 1, turn: 0 });
+      assert.equal(await activeName(), 'Ogre');
+      assert.deepEqual(await logs(ogreId), [['Start of turn', 'Ogre\'s turn starts']]);
+      assert.equal(await damage(ogreId, 'legendaryActions'), 0, 'what resets on its turn start did');
+      assert.equal((await entries())[0].startedRound, 1, 'under the claim Next would take');
+      // Next then ends the ogre's turn: its turn had started, once
+      await as(advanceInitiative, { step: 1 });
+      assert.deepEqual(await firstLines(ogreId), ['Start of turn', 'End of turn']);
+    });
+
+    it('the last of the round deleted from its sheet: the next round starts with the first', async function () {
+      await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Stranger');
+      await deleteCreature(strangerId, outsiderId);
+      assert.include(await tracker(), { round: 2, turn: 0 });
+      assert.deepEqual(await firstLines(heroId), ['Start of turn']);
+      assert.equal(await damage(heroId, 'reaction'), 0);
+      assert.equal((await entries())[0].startedRound, 2);
+    });
+
+    it('a monster deleted from the board\'s menu: the same', async function () {
+      await fight(['Ogre', 'Hero', 'Goblin', 'Stranger'], 'Ogre');
+      // What the monster card's "Delete" calls (PartyMemberCard.vue)
+      await deleteCreature(ogreId, gmId);
+      assert.include(await tracker(), { round: 1, turn: 0 });
+      assert.equal(await activeName(), 'Hero');
+      assert.deepEqual(await logs(heroId), [['Start of turn', 'Hero\'s turn starts']]);
+      assert.equal(await damage(heroId, 'reaction'), 0);
+    });
+
+    it('"End the encounter" on a monster\'s turn, the fight going on: the next creature that stays starts its turn, once', async function () {
+      // The ogre's turn, the goblin next: both monsters go at once
+      await fight(['Ogre', 'Goblin', 'Hero', 'Stranger'], 'Ogre');
+      assert.equal(await as(endEncounter, {}), 2);
+      assert.include(await tracker(), { round: 1, turn: 0 });
+      assert.deepEqual((await entries()).map(entry => entry.name), ['Hero', 'Stranger']);
+      assert.deepEqual(await logs(heroId), [['Start of turn', 'Hero\'s turn starts']]);
+    });
+
+    it('"End the encounter" on the last turns of the round: the next round starts, one turn start', async function () {
+      await fight(['Hero', 'Stranger', 'Ogre', 'Goblin'], 'Ogre');
+      await as(endEncounter, {});
+      assert.include(await tracker(), { round: 2, turn: 0 });
+      assert.deepEqual(await firstLines(heroId), ['Start of turn']);
+    });
+
+    it('"End the encounter" with the combat: the fight ends, no turn starts', async function () {
+      await fight(['Ogre', 'Hero', 'Goblin', 'Stranger'], 'Ogre');
+      await as(endEncounter, { endCombat: true });
+      assert.notExists(await tracker());
+      assert.lengthOf(await logs(heroId), 0);
+    });
+
+    it('its player leaves the party: the next creature\'s turn starts', async function () {
+      await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Hero');
+      await as(leaveParty, {}, playerId);
+      assert.equal(await activeName(), 'Ogre');
+      assert.deepEqual(await firstLines(ogreId), ['Start of turn']);
+      assert.lengthOf(await logs(heroId), 0, 'gone from the fight: its turn just stops');
+    });
+
+    it('the board\'s folder deleted on a monster\'s turn: the fight ends with it, no turn starts', async function () {
+      await fight(['Ogre', 'Hero', 'Goblin', 'Stranger'], 'Ogre');
+      await (removeCreatureFolder as any)._execute({ userId: gmId }, { _id: folderId });
+      assert.notExists(await CreatureFolders.findOneAsync(folderId));
+      assert.lengthOf(await logs(heroId), 0);
+    });
+
+    it('the game master\'s account deleted on a monster\'s turn: the fight ends with the board, no turn starts', async function () {
+      await fight(['Ogre', 'Hero', 'Goblin', 'Stranger'], 'Ogre');
+      await (Meteor.users as any).deleteMyAccount._execute({ userId: gmId, unblock() { /* as a method's */ } }, {});
+      assert.notExists(await CreatureFolders.findOneAsync(folderId));
+      assert.lengthOf(await logs(heroId), 0);
+    });
+
+    describe('while a Next click is in flight', function () {
+      it('a Next that read the tracker before the deletion moves nothing: one turn start, the right creature\'s', async function () {
+        await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Hero');
+        const read = await CreatureFolders.findOneAsync(folderId);
+        await deleteCreature(heroId, playerId);
+        assert.isFalse(await advanceTracker(read, 1), 'the turn passed with the deletion');
+        assert.equal(await activeName(), 'Ogre');
+        assert.lengthOf(await logs(ogreId), 1);
+      });
+
+      /**
+       * Runs `meanwhile` once, right after removeFromTracker reads the
+       * tracker, before it writes: what lands between the two
+       */
+      async function betweenReadAndWrite(meanwhile: () => Promise<unknown>, removal: () => Promise<unknown>) {
+        const folders = CreatureFolders as any;
+        const findOneAsync = folders.findOneAsync;
+        const own = Object.hasOwn(folders, 'findOneAsync');
+        let ran = false;
+        folders.findOneAsync = async function (selector: unknown, options?: { fields?: Record<string, unknown> }) {
+          const found = await findOneAsync.call(this, selector, options);
+          // The tracker's read in removeFromTracker
+          if (!ran && options?.fields?.initiative) {
+            ran = true;
+            await meanwhile();
+          }
+          return found;
+        };
+        try {
+          await removal();
+        } finally {
+          if (own) folders.findOneAsync = findOneAsync;
+          else delete folders.findOneAsync;
+        }
+        assert.isTrue(ran, 'the removal read the tracker');
+      }
+
+      it('a Next written between the deletion\'s read and its write: the deletion reads again, the turn stays where Next put it', async function () {
+        await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Hero');
+        await betweenReadAndWrite(
+          async () => assert.isTrue(await advanceTracker(await CreatureFolders.findOneAsync(folderId), 1)),
+          // The stranger, not whose turn it is
+          () => deleteCreature(strangerId, outsiderId),
+        );
+        assert.include(await tracker(), { round: 1, turn: 1 });
+        assert.equal(await activeName(), 'Ogre', 'not the hero\'s again');
+        assert.deepEqual(await firstLines(heroId), ['End of turn']);
+        assert.deepEqual(await firstLines(ogreId), ['Start of turn']);
+      });
+
+      it('a turn\'s mark written between the deletion\'s read and its write stays: that turn never starts twice', async function () {
+        await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Ogre');
+        // The ogre's turn started (a Next whose claim lands late)
+        const claimOgre = () => CreatureFolders.updateAsync({ _id: folderId, 'initiative.entries._id': 'e-ogre' } as any, {
+          $set: { 'initiative.entries.$.startedRound': 1 },
+        });
+        await betweenReadAndWrite(claimOgre, () => deleteCreature(strangerId, outsiderId));
+        assert.equal((await entries()).find(entry => entry.name === 'Ogre').startedRound, 1);
+        // Previous then Next: the ogre's turn does not start again
+        await as(advanceInitiative, { step: -1 });
+        await as(advanceInitiative, { step: 1 });
+        assert.lengthOf(await logs(ogreId), 0);
+      });
+
+      it('the deletion and Next at once: one turn start, the right creature\'s', async function () {
+        await fight(['Hero', 'Ogre', 'Goblin', 'Stranger'], 'Hero');
+        const read = await CreatureFolders.findOneAsync(folderId);
+        await Promise.all([deleteCreature(heroId, playerId), advanceTracker(read, 1)]);
+        assert.equal(await activeName(), 'Ogre');
+        assert.deepEqual(await firstLines(ogreId), ['Start of turn']);
+      });
+    });
   });
 
   it('rolling initiative starts round 1 with its first turn, again on a new roll', async function () {

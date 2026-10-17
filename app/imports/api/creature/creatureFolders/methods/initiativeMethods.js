@@ -6,7 +6,9 @@ import { Random } from 'meteor/random';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import initiativeOrder, { turnAfterChange, MAX_INITIATIVE_ENTRIES } from '/imports/api/creature/creatureFolders/initiativeOrder';
+import initiativeOrder, {
+  turnAfterChange, trackerAsRead, MAX_INITIATIVE_ENTRIES,
+} from '/imports/api/creature/creatureFolders/initiativeOrder';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
@@ -357,7 +359,11 @@ export const updateInitiativeEntry = new ValidatedMethod({
   },
 });
 
-/** Removes an entry, keeping the turn on the same creature */
+/**
+ * Removes an entry, keeping the turn on the same creature; if it was that
+ * creature's turn, the next one's starts (removeFromTracker). On the server
+ * alone, which runs the turn events
+ */
 export const removeInitiativeEntry = new ValidatedMethod({
   name: 'creatureFolders.initiative.remove',
   validate: new SimpleSchema({
@@ -367,46 +373,24 @@ export const removeInitiativeEntry = new ValidatedMethod({
   mixins: [RateLimiterMixin],
   rateLimit,
   async run({ folderId, entryId }) {
-    const folder = await getOwnFolder(folderId, this.userId);
-    const tracker = folder.initiative;
-    if (!tracker) return;
-    const order = initiativeOrder(tracker.entries);
-    const index = order.findIndex(entry => entry._id === entryId);
-    if (index === -1) return;
-    let turn = tracker.turn || 0;
-    let round = tracker.round || 0;
-    // The creature whose turn it is goes: the turn passes to the next one
-    const active = round > 0 && index === turn;
-    if (index < turn) turn -= 1;
-    const entries = tracker.entries.filter(entry => entry._id !== entryId);
-    if (turn >= entries.length) {
-      turn = 0;
-      // The last of the round went: the next round starts
-      if (active && entries.length) round += 1;
+    await getOwnFolder(folderId, this.userId);
+    // require(), not import, inside the check: the client's build drops it
+    if (Meteor.isServer) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { removeFromTracker } = require('/imports/api/creature/creatureFolders/server/turnEvents');
+      await removeFromTracker(folderId, { entryIds: [entryId] });
     }
-    await CreatureFolders.updateAsync(folderId, {
-      $set: {
-        'initiative.entries': entries,
-        'initiative.turn': Math.max(turn, 0),
-        ...round !== (tracker.round || 0) && { 'initiative.round': round },
-      },
-      $unset: { [`initiativeStats.${entryId}`]: 1 },
-    });
-    if (active && entries.length) {
-      await passTurn(folderId, { started: { entry: initiativeOrder(entries)[turn], round } });
-    }
-    tellDiscord(folderId, 'update');
   },
 });
 
-// The tracker's round or turn as read, for an update that applies only while it is still so
-const stillAt = value => value === undefined || value === null ? { $exists: false } : value;
-
 /**
  * Moves the folder's tracker to the next (1) or the previous (-1) turn,
- * across rounds, if it is still where it was when the folder was read: two
- * clicks on Discord's "Next turn" move it once (D7). Returns whether it moved.
- * Whoever moves it, the turn events are the same (passTurn)
+ * across rounds, if it is still where it was when the folder was read, with
+ * the same entries: two clicks on Discord's "Next turn" move it once (D7),
+ * and a click that read the tracker before a creature left it does nothing,
+ * the turn having passed already if it was that creature's
+ * (removeFromTracker). Returns whether it moved. Whoever moves it, the turn
+ * events are the same (passTurn)
  */
 export async function advanceTracker(folder, step) {
   const tracker = folder.initiative;
@@ -437,9 +421,7 @@ export async function advanceTracker(folder, step) {
       if (!order[turn]?.out) break;
     }
   }
-  const updated = await CreatureFolders.updateAsync({
-    _id: folder._id, 'initiative.round': stillAt(tracker.round), 'initiative.turn': stillAt(tracker.turn),
-  }, {
+  const updated = await CreatureFolders.updateAsync({ _id: folder._id, ...trackerAsRead(tracker) }, {
     $set: { 'initiative.round': round, 'initiative.turn': turn },
   });
   if (!updated) return false;
