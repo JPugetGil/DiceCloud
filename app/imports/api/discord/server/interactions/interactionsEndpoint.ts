@@ -5,6 +5,9 @@ import {
   handleAutocomplete, handleCommand, interactionContext, type Handled, type Interaction,
 } from '/imports/api/discord/server/interactions/interactionCommands';
 import { handleButton } from '/imports/api/discord/server/interactions/interactionButtons';
+import {
+  handleActionAutocomplete, handleActionCommand, handleActionComponent,
+} from '/imports/api/discord/server/interactions/interactionActions';
 import { RESPONSE, interactionLanguage, say, textMessage } from '/imports/api/discord/server/interactions/interactionReplies';
 import '/imports/api/discord/server/interactions/commandRegistration';
 // The bot (phase D): its setting, which the browser learns of
@@ -63,6 +66,8 @@ export function resetInteractionLimits() {
 
 const INTERACTION = { ping: 1, command: 2, component: 3, autocomplete: 4 };
 const BUTTON = 2;
+// /action's menus, selects and buttons alike (interactionActions.ts)
+const ACTION_MENU = /^dc:act:/;
 
 /** What an interaction gets, at once, and what is left to do once that has left */
 export async function handleInteraction(interaction: Interaction): Promise<Handled> {
@@ -71,11 +76,15 @@ export async function handleInteraction(interaction: Interaction): Promise<Handl
   const language = interactionLanguage(interaction.locale);
   if (interaction.type === INTERACTION.autocomplete) {
     if (!withinLimit(discordUserId, 'autocomplete')) return { response: { type: RESPONSE.autocomplete, data: { choices: [] } } };
+    if (interaction.data?.name === 'action') return handleActionAutocomplete(interaction);
     return handleAutocomplete(interaction);
   }
   if (interaction.type === INTERACTION.command || interaction.type === INTERACTION.component) {
     if (!withinLimit(discordUserId, 'action')) return { response: { type: RESPONSE.message, data: textMessage(say(language, 'slowDown')) } };
-    if (interaction.type === INTERACTION.command) return handleCommand(interaction);
+    if (interaction.type === INTERACTION.command) {
+      return interaction.data?.name === 'action' ? handleActionCommand(interaction) : handleCommand(interaction);
+    }
+    if (ACTION_MENU.test(interaction.data?.custom_id || '')) return handleActionComponent(interaction);
     if ((interaction.data as { component_type?: number } | undefined)?.component_type === BUTTON) return handleButton(interaction);
   }
   return { response: { type: RESPONSE.message, data: textMessage(say(language, 'unknownCommand')) } };

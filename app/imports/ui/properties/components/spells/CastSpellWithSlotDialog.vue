@@ -224,7 +224,9 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import spellsWithSubheaders from '/imports/ui/properties/components/spells/spellsWithSubheaders';
 import SpellSlotListTile from '/imports/ui/properties/components/attributes/SpellSlotListTile.vue';
 import SpellListTile from '/imports/ui/properties/components/spells/SpellListTile.vue';
-import { find } from 'lodash';
+import {
+  SPELL_SLOT_FILTER, SPELL_SLOT_SORT, canCastSpellWithSlot, castingParams, defaultCasting,
+} from '/imports/api/creature/creatureProperties/castingSlots';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
@@ -240,14 +242,9 @@ const dialogStackStore = useDialogStackStore();
 const targetStore = useTargetSelectionStore();
 const { t } = useI18n();
 
-const slotFilter = {
-  type: 'attribute',
-  attributeType: 'spellSlot',
-  removed: { $ne: true },
-  inactive: { $ne: true },
-  overridden: { $ne: true },
-  'spellSlotLevel.value': { $gte: 1 },
-};
+// The slots, and what each spell may be cast with: the rules Discord's
+// /action shares (castingSlots.ts)
+const slotFilter = SPELL_SLOT_FILTER;
 
 const props = defineProps({
   creatureId: {
@@ -322,7 +319,7 @@ const spellSlots = autorun(() => {
     'root.id': props.creatureId,
     ...slotFilter
   }, {
-    sort: { 'spellSlotLevel.value': 1, order: 1 },
+    sort: SPELL_SLOT_SORT,
   }).fetch();
 }).result;
 
@@ -355,28 +352,13 @@ watch(selectedSpell, (spell) => {
   if (selectedSlotId.value && canCastSpellWithSlot(
     spell, selectedSlotId.value, selectedSlot.value
   )) return;
-  if (
-    (spell.level === 0 || spell.castWithoutSpellSlots)
-  ) {
-    selectedSlotId.value = 'no-slot';
-  } else {
-    const newSlot = find(
-      CreatureProperties.find({
-        'root.id': props.creatureId,
-        ...slotFilter
-      }, {
-        sort: { 'spellSlotLevel.value': 1, order: 1 },
-      }).fetch(),
-      slot => {
-        return canCastSpellWithSlot(spell, slot._id, slot)
-      }
-    );
-    if (newSlot) {
-      selectedSlotId.value = newSlot._id;
-    } else if (spell.ritual) {
-      selectedSlotId.value = 'ritual';
-    }
-  }
+  const casting = defaultCasting(spell, CreatureProperties.find({
+    'root.id': props.creatureId,
+    ...slotFilter
+  }, {
+    sort: SPELL_SLOT_SORT,
+  }).fetch());
+  if (casting) selectedSlotId.value = casting;
 }, { immediate: true });
 
 watch(selectedSlotId, (slotId) => {
@@ -454,33 +436,10 @@ function searchChanged(val, ack) {
   setTimeout(ack, 200);
 }
 
-function canCastSpellWithSlot(spell, slotId, slot) {
-  if (slot && !slot.value) return false;
-  if (!spell) return true;
-  if (!slotId) return true;
-  if (
-    spell.castWithoutSpellSlots &&
-    spell.insufficientResources
-  ) return false;
-  if (spell.ritual && slotId === 'ritual') return true;
-  if (!spell.level || spell.castWithoutSpellSlots) {
-    // Cantrips and no-slot spells
-    return slotId && slotId === 'no-slot'
-  } else {
-    // Levelled spells
-    return slotId !== 'no-slot' && slot && spell && (
-        spell.level <= slot.spellSlotLevel?.value
-      );
-  }
-}
-
 async function cast() {
   const spellId = selectedSpellId.value;
-  let slotId = selectedSlotId.value;
-  const ritual = slotId === 'ritual';
-  const withoutSpellSlot = slotId === 'no-slot';
-  if (ritual || withoutSpellSlot) slotId = undefined;
-  
+  const { slotId, ritual, withoutSpellSlot } = castingParams(selectedSlotId.value);
+
   const spell = CreatureProperties.findOne(spellId);
   if (!spell || spell.type !== 'spell') {
     return;

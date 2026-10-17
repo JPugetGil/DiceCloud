@@ -363,14 +363,27 @@ counts the servers DiceCloud is connected to.
 ### Commands and buttons
 
 With the application's **Public Key** too, Discord sends DiceCloud its slash
-commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, and `/connect`,
-which needs the bot; in French `/jet`, `/test`, `/sauvegarde`, `/pv`,
-`/personnage`, `/connecter`) and the clicks on its buttons
+commands (`/roll`, `/check`, `/save`, `/hp`, `/character`, `/action`, and
+`/connect`, which needs the bot; in French `/jet`, `/test`, `/sauvegarde`,
+`/pv`, `/personnage`, `/action`, `/connecter`) and the clicks on its buttons
 (reroll with advantage or disadvantage, next turn, end my turn), over HTTP: no
 bot runs. Only for accounts that linked their Discord account. The reroll
 buttons go under a command's check, saving throw or roll of one d20, and under
 the checks and saving throws made in DiceCloud that a connected channel's
 webhook posts (never a pasted webhook's: Discord refuses them there).
+
+`/action` runs any action or spell of the sheet through menus its user alone
+sees, in the sheet's order: the targets (during a fight the menu opens by
+itself, the action's last targets preselected; outside one, the `target`
+option), the spell slot, the ammunition, then each choice the action asks;
+its rolls take the sheet's advantage (conditions, effects) unless the
+`advantage` option sets it. The engine runs on the server only, as the Discord
+user's account, with the checks a browser gets; between two menus the server
+keeps the session for 15 minutes (`discordActionSessions`), and each click is
+checked again. The result is posted in the channel, for its user alone with
+`secret` or for a game master's monster, as its players read it: never a
+monster's numbers. More than 25 targets or options spread over up to four
+selects of 25.
 
 1. In the portal, Installation: Installation Contexts **Guild Install** and
    **User Install**; Install Link "Discord Provided Link"; for each context,

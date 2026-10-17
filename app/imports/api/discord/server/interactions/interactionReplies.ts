@@ -81,13 +81,16 @@ export function addButtons<T extends { components: unknown[] }>(card: T, buttons
  * message of an edit: its being for the user alone was decided when the
  * reply was deferred
  */
-export function logMessage({ log, creature, language, buttons = [] }: {
+export function logMessage({ log, creature, language, buttons = [], hiddenIds = [] }: {
   log: LoggedEntry,
   creature: { _id: string, name?: string, color?: string, picture?: string, avatarPicture?: string },
   language: DiscordLanguage,
   buttons?: ReplyButton[],
+  // The game master's creatures the entry acted on, whose stats its players
+  // never read: left out again, as a webhook leaves them (/action)
+  hiddenIds?: string[],
 }): Record<string, unknown> {
-  const input = { log, creature, language, sheetUrl: Meteor.absoluteUrl(`character/${creature._id}`) };
+  const input = { log, creature, language, sheetUrl: Meteor.absoluteUrl(`character/${creature._id}`), hiddenIds };
   const byline = creature.name?.trim() ? `**${escapeMarkdown(creature.name.trim())}**` : '';
   const card = logComponents(input);
   if (card) {

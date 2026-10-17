@@ -136,10 +136,13 @@ export const discordUnlink = new ValidatedMethod({
   async run() {
     if (!this.userId) throw boardError('discord.denied', 'discord.errors.denied');
     await Meteor.users.updateAsync(this.userId, { $unset: { discordAccount: 1 } });
-    // The characters chosen with /character go with the link
+    // The characters chosen with /character go with the link, and /action's
+    // menus in progress and last targets
     if (Meteor.isServer) {
       const { forgetActiveCharacters } = await import('/imports/api/discord/server/interactions/interactionCharacters');
       await forgetActiveCharacters(this.userId);
+      const { forgetActionSessions } = await import('/imports/api/discord/server/interactions/actionSessions');
+      await forgetActionSessions(this.userId);
     }
   },
 });

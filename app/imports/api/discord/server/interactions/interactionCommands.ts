@@ -38,6 +38,9 @@ export type Interaction = {
   data?: {
     name?: string,
     custom_id?: string,
+    // A component's: a button (2) or a select (3), and the values a select gives
+    component_type?: number,
+    values?: unknown[],
     options?: { name: string, type: number, value?: unknown, focused?: boolean }[],
   },
   guild_id?: string,

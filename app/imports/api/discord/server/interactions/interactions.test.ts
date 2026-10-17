@@ -658,11 +658,18 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       assert.deepEqual(tokenRequest?.body, { grant_type: 'client_credentials', scope: 'applications.commands.update' });
       assert.deepEqual(fake.clientCredentials.at(-1), { id: APP, secret: 'test-secret' });
       const registered = fake.registeredCommands.get(APP) as any[];
-      assert.deepEqual(registered.map(cmd => cmd.name), ['roll', 'check', 'save', 'hp', 'character', 'connect']);
-      assert.deepEqual(registered.map(cmd => cmd.name_localizations.fr), ['jet', 'test', 'sauvegarde', 'pv', 'personnage', 'connecter']);
+      assert.deepEqual(registered.map(cmd => cmd.name), ['roll', 'check', 'save', 'hp', 'character', 'action', 'connect']);
+      assert.deepEqual(registered.map(cmd => cmd.name_localizations.fr), ['jet', 'test', 'sauvegarde', 'pv', 'personnage', 'action', 'connecter']);
+      // /action: its action to choose, then its target, its rolls' advantage (as /check's), character and secret, in English and French
+      assert.deepEqual(registered[5].options.map((item: any) => [item.name, item.name_localizations.fr, !!item.required, !!item.autocomplete]), [
+        ['action', 'action', true, true], ['target', 'cible', false, true], ['advantage', 'avantage', false, false],
+        ['character', 'personnage', false, true], ['secret', 'secret', false, false],
+      ]);
+      assert.deepEqual(registered[5].options[2], registered[1].options[1], 'the same option as /check\'s');
+      assert.deepEqual(registered[5].contexts, [0, 1, 2]);
       // /connect: in servers only, shown to those who may manage webhooks (they are checked again)
-      assert.deepEqual(registered[5].contexts, [0]);
-      assert.equal(registered[5].default_member_permissions, String(1 << 29));
+      assert.deepEqual(registered[6].contexts, [0]);
+      assert.equal(registered[6].default_member_permissions, String(1 << 29));
       assert.deepEqual(registered[0].integration_types, [0, 1]);
       assert.deepEqual(registered[0].contexts, [0, 1, 2]);
       const puts = () => fake.requests.filter(request => request.method === 'PUT').length;

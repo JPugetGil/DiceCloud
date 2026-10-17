@@ -98,6 +98,17 @@ export const COMMANDS = [
   command(['character', 'personnage'], ['Choose your character for this server, or see which it is', 'Choisir votre personnage pour ce serveur, ou voir lequel c\'est'], [
     option(STRING, ['name', 'nom'], ['The character', 'Le personnage'], { autocomplete: true, max_length: 100 }),
   ]),
+  // /action (16 October): any action or spell of the sheet, through menus its user alone sees
+  command(['action', 'action'], ['Use one of your character\'s actions or spells: attack, cast, a feature', 'Utiliser une action ou un sort de votre personnage : attaque, sort, capacité'], [
+    option(STRING, ['action', 'action'], ['The action or spell', 'L\'action ou le sort'],
+      { required: true, autocomplete: true, max_length: 100 }),
+    option(STRING, ['target', 'cible'], ['Its target outside a fight (during one, a menu offers them)', 'Sa cible hors combat (en combat, un menu les propose)'],
+      { autocomplete: true, max_length: 100 }),
+    // Its rolls' advantage, else the sheet's (17 October): never asked
+    ADVANTAGE,
+    CHARACTER,
+    SECRET,
+  ]),
   // Phase D: in a server only, and shown to those who may manage its webhooks
   command(['connect', 'connecter'], ['Connect this channel, or this post\'s forum, to a party or a character', 'Connecter ce salon, ou le forum de ce post, à un groupe ou un personnage'], [
     option(STRING, ['target', 'cible'], ['The party (its game master) or the character (its editors)', 'Le groupe (son MJ) ou le personnage (ceux qui le modifient)'],

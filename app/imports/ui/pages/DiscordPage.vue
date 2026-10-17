@@ -174,7 +174,7 @@ const installUrl = discordInstallUrl();
 const bot = !!Meteor.settings.public?.discordBot;
 const serverInstallUrl = discordServerInstallUrl();
 const accountInstallUrl = discordAccountInstallUrl();
-const COMMANDS = bot ? ['roll', 'check', 'hp', 'character', 'connect'] : ['roll', 'check', 'hp', 'character'];
+const COMMANDS = bot ? ['roll', 'check', 'hp', 'character', 'action', 'connect'] : ['roll', 'check', 'hp', 'character', 'action'];
 
 // discord.<section>Title and discord.<section>Text
 const SECTIONS = ['connectSection', 'partySection', 'sessions', 'mentions', 'signIn', 'previews'];

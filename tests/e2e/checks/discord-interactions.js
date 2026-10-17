@@ -336,7 +336,8 @@ main(async () => {
       const result = await call('discord.testRegisterCommands', {});
       const commands = [...fake.registeredCommands.values()][0] || [];
       const names = commands.map(command => `/${command.name} (${command.name_localizations?.fr})`).join(', ');
-      if (result?.status !== 'registered' || commands.length !== 6) throw new Error(`${JSON.stringify(result)}; ${names}`);
+      if (result?.status !== 'registered' || commands.length !== 7) throw new Error(`${JSON.stringify(result)}; ${names}`);
+      if (!commands.some(command => command.name === 'action' && command.name_localizations?.fr === 'action')) throw new Error(`no /action: ${names}`);
       const token = fake.requests.find(request => request.path === '/api/v10/oauth2/token' && request.body?.grant_type === 'client_credentials');
       if (token?.body?.scope !== 'applications.commands.update') throw new Error(`scope ${token?.body?.scope}`);
       return names;

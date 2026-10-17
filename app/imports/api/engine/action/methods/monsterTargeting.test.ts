@@ -71,6 +71,8 @@ const [
   swordId, flameId, charmId, hexId, dispelId, enfeebleId, curseId, burnId, trickId, ambushId, breathId, goblinHpId,
   ariaHpId, sparkId, empowerId, petrifyId,
 ] = getRandomIds(16);
+// Lyra's spell with a saving throw, cast with a slot (Discord's /action)
+const [frostId] = getRandomIds(1);
 
 // What the goblin's sheet holds: its armor class, hit points (whole and once
 // hit), saving throw and its totals, Strength; its hidden effect, its damage
@@ -205,6 +207,21 @@ const lyra: TestCreature = {
           children: [{ type: 'note', name: 'Stab' }, { type: 'note', name: 'Slash' }],
         }],
       }],
+    } as any,
+    // A spell with a saving throw, cast with one of its slots
+    {
+      _id: frostId, type: 'spell', name: 'Frost Shards', level: 1, prepared: true, target: 'singleTarget',
+      children: [{
+        type: 'savingThrow', name: 'Frost Shards', target: 'target', dc: { calculation: '15' }, stat: 'dexteritySave',
+        children: [{
+          type: 'branch', branchType: 'failedSave',
+          children: [{ type: 'damage', target: 'target', damageType: 'cold', amount: { calculation: '6' } }],
+        }],
+      }],
+    } as any,
+    {
+      type: 'attribute', attributeType: 'spellSlot', name: 'Level 1 slots', variableName: 'slotLevel1',
+      spellSlotLevel: { calculation: '1' }, baseValue: { calculation: '3' },
     } as any,
     // On a monster and another player's character at once
     {
@@ -1090,5 +1107,153 @@ if (Meteor.isServer) describe('A player\'s character attacking the monster: the 
     // The lich's legendary resistance, as at the table
     assert.include(text(posts[4]), 'Lich · Failed → success (legendary resistance)');
     for (const canary of CANARIES) assert.notInclude(withoutDates(posts), canary);
+  });
+});
+
+/*
+ * Discord's /action (D6): Lyra's player attacks Goblin 2 and casts a spell
+ * with a saving throw at it from Discord, through the menus, during a fight.
+ * Nothing that leaves for Discord — the answers to the interactions, the
+ * menus updated, the results posted, the party channel's webhook posts —
+ * nor any frame the player's browser receives meanwhile holds one of the
+ * goblin's values. The search proves something: the results did arrive
+ */
+if (Meteor.isServer) describe('A player\'s character targets the game master\'s monster from Discord (/action): what leaves', function () {
+  this.timeout(120000);
+  const PARTY = { id: '1100000000000000041', token: 'party-action-token' };
+  const PLAYER = '1400000000000000142';
+  const APP = '1600000000000000001';
+  const url = (webhook: { id: string, token: string }) => `https://discord.com/api/webhooks/${webhook.id}/${webhook.token}`;
+  let fake: FakeDiscord;
+  let sender: WebhookSender;
+  let previous: WebhookSender | undefined;
+  let previousConfig: unknown;
+  let previousKey: unknown;
+  let player: Connection;
+  let interactionsApi: any;
+
+  before(async function () {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    require('/imports/api/discord/server/interactions/interactionsEndpoint');
+    interactionsApi = {
+      ...require('/imports/api/discord/server/interactions/interactionSignature'),
+      ...require('/imports/api/discord/server/oauthClient'),
+      ...require('/imports/api/discord/server/interactions/interactionsEndpoint'),
+      ...require('/imports/api/discord/server/interactions/actionSessions'),
+    };
+    /* eslint-enable @typescript-eslint/no-require-imports */
+    await setUp();
+    fake = await fakeDiscord();
+    sender = createWebhookSender({ baseUrl: fake.baseUrl, onGone: forgetWebhook });
+    previous = setWebhookSender(sender);
+    previousConfig = interactionsApi.setOAuthConfig({
+      clientId: APP, clientSecret: 'test-secret', apiBase: fake.baseUrl, redirectUri: Meteor.absoluteUrl('discord/oauth/callback'),
+    });
+    previousKey = interactionsApi.setInteractionsPublicKey(fake.publicKey);
+    await Meteor.users.updateAsync(playerId, { $set: { discordAccount: { id: PLAYER, username: 'lyra_player' } } });
+    await (setPartyWebhook as any)._execute({ userId: gmId }, { folderId, webhook: url(PARTY) });
+    // A fight: the target menu opens by itself
+    await CreatureFolders.updateAsync(folderId, {
+      $set: {
+        initiative: {
+          round: 1, turn: 0,
+          entries: [{ _id: 'e1', creatureId: lyraId, initiative: 15, name: 'Lyra' }, { _id: 'e2', creatureId: goblinId, initiative: 10, name: 'Goblin 2' }],
+        },
+      },
+    });
+    player = await openAs(playerId);
+    await player.subscribe('singleCharacter', lyraId);
+    await player.subscribe('partyBoard', folderId);
+    await player.subscribe('characterParties', lyraId);
+  });
+
+  after(async function () {
+    player?.close();
+    await discordIntakeIdle();
+    await sender.idle();
+    setWebhookSender(previous);
+    interactionsApi.setOAuthConfig(previousConfig);
+    interactionsApi.setInteractionsPublicKey(previousKey);
+    await fake.close();
+    await interactionsApi.DiscordActionSessions.removeAsync({});
+    await interactionsApi.DiscordActionTargets.removeAsync({});
+    await tearDown();
+  });
+
+  const endpoint = () => Meteor.absoluteUrl('discord/interactions');
+  const where = { application_id: APP, locale: 'en-US', channel_id: '1500000000000000002', guild_id: '1500000000000000001', member: { user: { id: PLAYER } } };
+  const command = (action: string) => {
+    interactionsApi.resetInteractionLimits();
+    return fake.interact(endpoint(), {
+      type: 2, ...where, data: { name: 'action', options: [{ name: 'action', type: 3, value: action }, { name: 'character', type: 3, value: lyraId }] },
+    });
+  };
+  const click = (customId: string, values?: string[]) => {
+    interactionsApi.resetInteractionLimits();
+    return fake.interact(endpoint(), {
+      type: 3, ...where, message: { id: '1800000000000000001', flags: 64 },
+      data: { custom_id: customId, component_type: values ? 3 : 2, ...values && { values } },
+    });
+  };
+  const rows = (message: any): any[] => (message?.components || []).flatMap((row: any) => row.components || []);
+  const selectOf = (message: any) => rows(message).find(component => component.type === 3);
+  async function result(token: string) {
+    for (let i = 0; i < 200; i += 1) {
+      const card = fake.interactions.get(token)?.followUps[0];
+      if (card) return card;
+      await pause(50);
+    }
+    throw new Error('no result');
+  }
+
+  it('sends Discord and the player\'s browser none of the monster\'s values', async function () {
+    // The sword: the target menu, then the result (its advantage the sheet's,
+    // never asked), from a seed whose first d20 is neither a 1 nor a 20
+    const sword = await command(swordId);
+    assert.equal(sword.answer.type, 4);
+    let steady = '';
+    for (let i = 0; !steady; i += 1) {
+      const d20 = actionDice.seededDie(`steady-seed-${i}`, 0, 20);
+      if (d20 > 1 && d20 < 20) steady = `steady-seed-${i}`;
+    }
+    const secret = Random.secret;
+    (Random as any).secret = () => steady;
+    let rolled;
+    try {
+      rolled = await click(selectOf(sword.answer.data).custom_id, [goblinId]);
+    } finally {
+      (Random as any).secret = secret;
+    }
+    assert.equal(rolled.answer.type, 7);
+    const swordCard = await result(rolled.token);
+    // The spell: the target menu, its only slot, the result
+    const frost = await command(frostId);
+    const cast = await click(selectOf(frost.answer.data).custom_id, [goblinId]);
+    const frostCard = await result(cast.token);
+    await discordIntakeIdle();
+    await sender.idle();
+    for (let i = 0; i < 100 && !player.messages.some(message => message.collection === 'creatureLogs'
+      && withoutDates(message).includes('Frost Shards')); i += 1) await pause(100);
+    await pause(500);
+
+    const discord = withoutDates([
+      ...[...fake.interactions.values()].map(record => [record.answer, record.original, record.edits, record.followUps]),
+      ...fake.requests.map(request => request.body),
+    ]);
+    for (const value of VALUES) assert.notInclude(discord, value, `Discord received "${value}"`);
+    // Nor the lines that would name its attributes, in any language
+    for (const words of ['Hit Points', 'Points de vie', 'Armor Class', 'Dexterity Save']) assert.notInclude(discord, words);
+    const frames = withoutDates(player.messages);
+    for (const value of VALUES) assert.notInclude(frames, value, `the player's browser received "${value}"`);
+    assert.notInclude(frames, 'hiddenTargetView');
+    // The results did arrive, as the players read them
+    assert.include(text(swordCard), 'Hit!');
+    assert.include(text(swordCard), '**7** slashing damage');
+    assert.match(text(frostCard), /Goblin 2 · (Failed|Successful) save/);
+    assert.include(text(frostCard), 'Casting using a level 1 spell slot');
+    const partyPosts = fake.requests.filter(request => request.webhookId === PARTY.id && request.method === 'POST');
+    assert.isNotEmpty(partyPosts, 'the party\'s channel got Lyra\'s entries');
+    assert.isTrue(partyPosts.every(request => request.body?.username === 'Lyra'), 'never the goblin\'s own');
+    assert.include(frames, 'Frost Shards');
   });
 });

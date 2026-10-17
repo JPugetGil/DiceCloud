@@ -49,10 +49,13 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
       multi: true,
     });
 
-    // The characters chosen on Discord with /character (D6)
+    // The characters chosen on Discord with /character (D6), and /action's
+    // menus in progress and last targets
     if (Meteor.isServer) {
       const { forgetActiveCharacters } = await import('/imports/api/discord/server/interactions/interactionCharacters');
       await forgetActiveCharacters(userId);
+      const { forgetActionSessions } = await import('/imports/api/discord/server/interactions/actionSessions');
+      await forgetActionSessions(userId);
     }
 
     // Delete all libraries
