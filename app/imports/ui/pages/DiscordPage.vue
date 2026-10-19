@@ -7,7 +7,7 @@
         lg="5"
       >
         <v-card>
-          <v-card-item prepend-icon="mdi-discord">
+          <v-card-item prepend-icon="$discord">
             <v-card-title class="text-wrap">
               {{ $t('discord.communityTitle') }}
             </v-card-title>
@@ -94,7 +94,7 @@
               v-else
               color="primary"
               variant="tonal"
-              prepend-icon="mdi-discord"
+              prepend-icon="$discord"
               :href="installUrl"
               target="_blank"
               rel="noopener"

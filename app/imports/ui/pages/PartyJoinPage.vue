@@ -62,7 +62,7 @@
                 data-id="party-join-discord"
               >
                 <v-icon size="small">
-                  mdi-discord
+                  $discord
                 </v-icon>
                 {{ $t(postingKey(invite.discordPosting)) }}
               </p>

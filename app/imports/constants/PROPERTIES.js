@@ -102,7 +102,7 @@ const PROPERTIES = Object.freeze({
     suggestedParents: ['buff', 'classLevel', 'feature', 'folder', 'item'],
   },
   feature: {
-    icon: 'mdi-text-subject',
+    icon: 'mdi-text-long',
     name: 'Feature',
     docsPath: 'property/feature',
     helpText: 'Descriptive or narrative features your character has access to',

@@ -10,7 +10,7 @@
         data-id="discord-account-linked"
       >
         <v-icon size="small">
-          mdi-discord
+          $discord
         </v-icon>
         {{ $t('discord.account.linked', { name: account.username || account.id }) }}
       </p>
@@ -25,7 +25,7 @@
           v-if="!account"
           color="primary"
           variant="tonal"
-          prepend-icon="mdi-discord"
+          prepend-icon="$discord"
           :loading="busy === 'link'"
           :disabled="!!busy"
           data-id="discord-link"

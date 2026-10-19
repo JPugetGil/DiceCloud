@@ -44,7 +44,7 @@
       <v-btn
         color="primary"
         variant="tonal"
-        prepend-icon="mdi-discord"
+        prepend-icon="$discord"
         :loading="busy === 'connect'"
         :disabled="disabled || !!busy"
         data-id="discord-connect-button"

@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /**
  * Loads every main page, signed in and signed out, and fails on any console
- * error or warning, an empty page, "[object Promise]" rendered as text, or a
- * list subheader without its indent.
+ * error or warning, an empty page, "[object Promise]" rendered as text, a
+ * list subheader without its indent, or an icon the icon font lacks (a name
+ * Material Design Icons renamed or dropped draws nothing); Discord's logo,
+ * which the font no longer has, is drawn as an SVG.
  * Extra routes: E2E_EXTRA_ROUTES=/a,/b (signed in).
  */
-const { openPage, visit } = require('../lib/browser');
+const { openPage, visit, blankIcons } = require('../lib/browser');
 const { withDb, getTestUser } = require('../lib/db');
 const { createChecker, main } = require('../lib/check');
 
 const SIGNED_IN = ['/', '/character-list', '/library', '/community-libraries', '/account', '/my-files',
-  '/docs', '/docs/property', '/about', '/privacy', '/terms'];
-const SIGNED_OUT = ['/', '/sign-in', '/register', '/reset-password', '/docs', '/docs/api/login', '/about',
+  '/docs', '/docs/property', '/discord', '/about', '/privacy', '/terms'];
+const SIGNED_OUT = ['/', '/sign-in', '/register', '/reset-password', '/docs', '/docs/api/login', '/discord', '/about',
   '/community-libraries', '/privacy', '/terms'];
 
 async function checkRoutes(label, routes, signedIn) {
@@ -28,6 +30,11 @@ async function checkRoutes(label, routes, signedIn) {
       const flush = await page.evaluate(() => [...document.querySelectorAll('.v-list-subheader')]
         .filter(e => parseFloat(getComputedStyle(e).paddingInlineStart) < 16).map(e => e.innerText.trim()));
       if (flush.length) throw new Error(`subheaders without their indent: ${flush.join(', ')}`);
+      const blank = await blankIcons(page);
+      if (blank.length) throw new Error(`icons the font lacks: ${blank.join(', ')}`);
+      if (route === '/discord' && !await page.evaluate(() => !!document.querySelector('.v-card-item .v-icon svg path'))) {
+        throw new Error('Discord\'s logo is not drawn');
+      }
     });
   }
   await browser.close();

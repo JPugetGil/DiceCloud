@@ -5,7 +5,7 @@
   >
     <v-card-item>
       <v-card-title class="d-flex align-center ga-2">
-        <v-icon>mdi-discord</v-icon>
+        <v-icon>$discord</v-icon>
         {{ $t('discord.partyTitle') }}
       </v-card-title>
     </v-card-item>

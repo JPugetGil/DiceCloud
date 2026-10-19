@@ -93,7 +93,7 @@
           />
           <v-btn
             variant="outlined"
-            prepend-icon="mdi-discord"
+            prepend-icon="$discord"
             block
             :loading="discordBusy"
             data-id="discord-sign-in"

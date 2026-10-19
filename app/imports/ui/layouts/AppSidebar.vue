@@ -197,7 +197,7 @@ const mainLinks = computed(() => {
 // Help, community and legal pages, below the characters
 const resourceLinks = computed(() => [
   { title: t('nav.documentation'), icon: 'mdi-book-open-variant', to: '/docs' },
-  { title: t('nav.discord'), icon: 'mdi-discord', to: '/discord' },
+  { title: t('nav.discord'), icon: '$discord', to: '/discord' },
   { title: t('nav.about'), icon: 'mdi-information-outline', to: '/about' },
   { title: t('nav.privacy'), icon: 'mdi-shield-lock-outline', to: '/privacy' },
   { title: t('nav.terms'), icon: 'mdi-file-document-outline', to: '/terms' },

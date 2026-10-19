@@ -6,6 +6,7 @@
  * dialogs are covered. Dialogs open without their usual data here, so console
  * messages are reported but do not fail the check; the few that cannot render
  * at all without their required props get sample data from the test account.
+ * No dialog may show an icon the icon font lacks (blankIcons).
  * The library node dialog opens an action of the SRD 5.1 bestiary without
  * `resources`, when the bestiary is imported, and must log nothing: imported
  * as generated, without what the schema fills in, such an action crashed its
@@ -13,7 +14,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { openPage, visit, pushDialog } = require('../lib/browser');
+const { openPage, visit, pushDialog, blankIcons } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
 const { getTestUser, withDb } = require('../lib/db');
 const { USERNAME } = require('../lib/config');
@@ -60,6 +61,8 @@ main(async () => {
       });
       if (r.promise) throw new Error('renders "[object Promise]"');
       if (!r.rendered) throw new Error('nothing rendered');
+      const blank = await blankIcons(page);
+      if (blank.length) throw new Error(`icons the font lacks: ${blank.join(', ')}`);
       if (STRICT.has(name) && messages.length) {
         throw Object.assign(new Error(`${new Set(messages).size} console message(s) with "${bestiaryAction.name}" of the bestiary`),
           { details: [...new Set(messages)] });

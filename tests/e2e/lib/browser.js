@@ -62,4 +62,14 @@ function pushDialog(page, component, data = {}) {
   }, { component, data });
 }
 
-module.exports = { openPage, signIn, visit, pushDialog, BASE_URL };
+/**
+ * The Material Design icons on the page that the icon font lacks: a name it
+ * renamed or dropped draws nothing (its `::before` has no content)
+ */
+function blankIcons(page) {
+  return page.evaluate(() => [...new Set([...document.querySelectorAll('i.mdi')]
+    .filter(e => ['none', 'normal', '""'].includes(getComputedStyle(e, '::before').content))
+    .map(e => [...e.classList].find(c => c.startsWith('mdi-')) || e.className))]);
+}
+
+module.exports = { openPage, signIn, visit, pushDialog, blankIcons, BASE_URL };
