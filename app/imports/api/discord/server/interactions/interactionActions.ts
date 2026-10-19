@@ -157,8 +157,12 @@ async function namedAction(creatureId: string, value: string): Promise<{ prop: A
 
 const title = (prop: { name?: string }) => prop.name?.trim() || '?';
 
-/** "Fireball — level 3 spell · 2/3 uses": what the autocomplete shows of an action */
-function actionChoiceName(prop: ActionProp, language: Language): string {
+/**
+ * "Fireball — level 3 spell · uses: 2/3": what the autocomplete shows of an
+ * action. Ammunition not chosen yet shows as the only item of its tag
+ * (`ammoNames`), else as ammunition: never as its tag, a word of the library's
+ */
+function actionChoiceName(prop: ActionProp, language: Language, ammoNames: Map<string, string> = new Map()): string {
   const kind = prop.type === 'spell'
     ? (prop.level ? t(language, 'spellLevel', { level: prop.level }) : t(language, 'cantrip'))
     : app(language, `actionTypes.${prop.actionType || 'action'}`);
@@ -172,10 +176,28 @@ function actionChoiceName(prop: ActionProp, language: Language): string {
   }
   for (const item of prop.resources?.itemsConsumed || []) {
     const quantity = item.quantity?.value;
-    if (quantity && (item.itemName || item.tag)) costs.push(`${quantity} ${item.itemName || item.tag}`);
+    if (!quantity || !(item.itemName || item.tag)) continue;
+    const named = item.itemName || ammoNames.get(item.tag as string);
+    costs.push(named ? `${quantity} ${named}` : t(language, quantity === 1 ? 'ammoOne' : 'ammoMany', { count: quantity }));
   }
   if (shortage(prop)) costs.push(t(language, 'short'));
   return `${title(prop)} — ${[kind, ...costs].join(' · ')}`.slice(0, 100);
+}
+
+/** The name of the only item of each tag the actions consume with none chosen, for their autocomplete */
+async function onlyItemNames(creatureId: string, props: ActionProp[]): Promise<Map<string, string>> {
+  const tags = [...new Set(props.flatMap(prop => (prop.resources?.itemsConsumed || [])
+    .filter(item => !item.itemName && item.tag).map(item => item.tag as string)))];
+  const names = new Map<string, string>();
+  if (!tags.length) return names;
+  const items = await CreatureProperties.find({
+    'root.id': creatureId, type: 'item', tags: { $in: tags }, removed: { $ne: true }, inactive: { $ne: true },
+  } as any, { fields: { name: 1, tags: 1 } }).fetchAsync() as { name?: string, tags?: string[] }[];
+  for (const tag of tags) {
+    const tagged = items.filter(item => item.tags?.includes(tag));
+    if (tagged.length === 1 && tagged[0].name?.trim()) names.set(tag, tagged[0].name.trim());
+  }
+  return names;
 }
 
 /** What the engine would refuse the action for, as the sheet's disabled button: no uses left, not enough resources */
@@ -318,7 +340,7 @@ async function ammoMenu(step: Step, prop: ActionProp, need: AmmoNeed): Promise<S
     }] : [],
     cancelButton(step),
   ];
-  const lines = [heading(step, prop), t(language, 'chooseAmmo', { tag: escapeMarkdown(need.consumed.tag || '') })];
+  const lines = [heading(step, prop), t(language, 'chooseAmmo')];
   if (hidden) lines.push(t(language, 'moreOptions', { count: hidden }));
   return { menu: menuMessage(lines.join('\n'), rows, buttons) };
 }
@@ -382,7 +404,7 @@ async function nextScreen(step: Step): Promise<Screen> {
   }
   if (!session.actionId) {
     const need = await ammoNeed(session.creatureId, prop, session.ammoChosen);
-    if (need && 'none' in need) return { refusal: t(language, 'noAmmo', { name, action, tag: escapeMarkdown(need.none.tag || '') }) };
+    if (need && 'none' in need) return { refusal: t(language, 'noAmmo', { name, action }) };
     if (need) return ammoMenu(step, prop, need);
     const short = shortage(prop);
     if (short) return { refusal: t(language, short === 'uses' ? 'noUses' : 'noResources', { name, action }) };
@@ -567,7 +589,7 @@ export async function handleActionCommand(interaction: Interaction): Promise<Han
   const short = shortage(prop);
   if (short === 'uses') return reply(textMessage(t(language, 'noUses', { name, action })));
   const ammo = await ammoNeed(creature._id, prop);
-  if (ammo && 'none' in ammo) return reply(textMessage(t(language, 'noAmmo', { name, action, tag: escapeMarkdown(ammo.none.tag || '') })));
+  if (ammo && 'none' in ammo) return reply(textMessage(t(language, 'noAmmo', { name, action })));
   if (short && !ammo) return reply(textMessage(t(language, 'noResources', { name, action })));
 
   // A game master's monster or non-player character: for its game master alone, as its rolls
@@ -817,11 +839,11 @@ export async function handleActionAutocomplete(interaction: Interaction): Promis
   const creature = resolved.creature;
   const query = (typeof focused.value === 'string' ? focused.value : '').trim().toLowerCase();
   if (focused.name === 'action') {
-    const props = await actionsOf(creature._id);
-    return choices(props
+    const shown = (await actionsOf(creature._id))
       .filter(prop => !query || title(prop).toLowerCase().includes(query))
-      .slice(0, 25)
-      .map(prop => ({ name: actionChoiceName(prop, context.language), value: prop._id })));
+      .slice(0, 25);
+    const ammoNames = await onlyItemNames(creature._id, shown);
+    return choices(shown.map(prop => ({ name: actionChoiceName(prop, context.language, ammoNames), value: prop._id })));
   }
   // The targets: those of all its parties, as "Target…" offers them; none for an action on itself
   const typedAction = optionOf(interaction, 'action');

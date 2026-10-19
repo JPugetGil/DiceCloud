@@ -418,7 +418,7 @@ if (Meteor.isServer) describe('Discord\'s /action (D6)', function () {
       await endFight();
       const first = await command([option('action', 'Shortbow'), option('target', goblinId), option('character', ariaId)]);
       const menu = menuOf(first.answer);
-      assert.include(menu.content, 'Which ammunition (arrow)?');
+      assert.include(menu.content, 'Which ammunition?');
       assert.deepEqual(optionValues(menu), [arrowsId, silverId]);
       assert.deepEqual(buttons(menu).map(button => button.label), ['Cancel'], 'none chosen yet');
       const rolled = await click(selects(menu)[0].custom_id, [silverId]);
@@ -673,10 +673,10 @@ if (Meteor.isServer) describe('Discord\'s /action (D6)', function () {
         'Aria has no spell slot left to cast Sacred Flame');
       await CreatureProperties.removeAsync({ _id: { $in: [arrowsId, silverId] } });
       assert.include(await refused([option('action', 'Shortbow'), option('target', goblinId), option('character', ariaId)]),
-        'Aria has no ammunition “arrow” for Shortbow');
+        'Aria has no ammunition for Shortbow');
       // During a fight too: before its target menu
       await CreatureFolders.updateAsync(folderId, { $set: { initiative: FIGHT } });
-      assert.include(await refused([option('action', 'Shortbow'), option('character', ariaId)]), 'Aria has no ammunition “arrow” for Shortbow');
+      assert.include(await refused([option('action', 'Shortbow'), option('character', ariaId)]), 'Aria has no ammunition for Shortbow');
       assert.equal(await actionsLeft(), 0);
       assert.equal(await sessionsLeft(), 0);
     });
@@ -776,10 +776,17 @@ if (Meteor.isServer) describe('Discord\'s /action (D6)', function () {
       const named = (value: string) => actions.find((choice: any) => choice.value === value)?.name;
       assert.equal(named(longswordId), 'Longsword — Action');
       assert.equal(named(flameId), 'Sacred Flame — level 1 spell');
-      assert.equal(named(secondWindId), 'Second Wind — Action · 0/1 uses · not enough resources');
-      assert.equal(named(shortbowId), 'Shortbow — Action · 1 arrow · not enough resources', 'no arrows chosen yet');
+      assert.equal(named(secondWindId), 'Second Wind — Action · uses: 0/1 · not enough resources');
+      assert.equal(named(shortbowId), 'Shortbow — Action · 1 ammunition · not enough resources', 'no arrows chosen yet, two of its tag: never the tag');
       const french = (await autocomplete([{ ...option('action', 'flam'), focused: true }, option('character', ariaId)], { locale: 'fr' })).answer.data.choices;
       assert.deepEqual(french, [{ name: 'Sacred Flame — sort de niveau 1', value: flameId }]);
+      const frenchCosts = (await autocomplete([{ ...option('action', ''), focused: true }, option('character', ariaId)], { locale: 'fr' })).answer.data.choices;
+      assert.equal(frenchCosts.find((choice: any) => choice.value === secondWindId)?.name, 'Second Wind — Action · utilisations\u00A0: 0/1 · ressources insuffisantes');
+      assert.equal(frenchCosts.find((choice: any) => choice.value === shortbowId)?.name, 'Shortbow — Action · 1 munition · ressources insuffisantes');
+      // The only item of its tag: its name
+      await CreatureProperties.removeAsync(silverId);
+      const one = (await autocomplete([{ ...option('action', 'shortbow'), focused: true }, option('character', ariaId)])).answer.data.choices;
+      assert.deepEqual(one, [{ name: 'Shortbow — Action · 1 Arrows · not enough resources', value: shortbowId }]);
       const targets = async () => (await autocomplete([option('action', longswordId), { ...option('target', ''), focused: true }, option('character', ariaId)]))
         .answer.data.choices.map((choice: any) => choice.name);
       assert.deepEqual(await targets(), ['Aria (me)', 'Goblin (monster)']);
