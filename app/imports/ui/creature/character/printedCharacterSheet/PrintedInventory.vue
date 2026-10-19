@@ -90,6 +90,9 @@ import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import useUnits from '/imports/ui/composables/useUnits';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
+
 
 const props = defineProps({
   creatureId: {
@@ -122,7 +125,9 @@ const containersWithoutAncestorContainers = autorun(() => {
     inactive: { $ne: true },
   }, {
     sort: { left: 1 },
-  }).map(c => {
+  }).map(prop => {
+    // With its items, listed under it
+    const c = /** @type {CreaturePropertyTypes['container'] & { items?: CreatureProperty[] }} */ (prop);
     c.items = CreatureProperties.find({
       'parentId': c._id,
       type: { $in: ['item', 'container'] },

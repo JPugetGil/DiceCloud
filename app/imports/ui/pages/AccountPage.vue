@@ -170,7 +170,7 @@
           :key="email.address"
         >
           <template
-            v-if="emails.length > 1"
+            v-if="(emails?.length ?? 0) > 1"
             #prepend
           >
             <v-btn
@@ -283,6 +283,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import {
   setDarkMode as setDarkModeMethod, setLanguage as setLanguageMethod, setPreference, setUnitPreference,
 } from '/imports/api/users/Users';
@@ -327,11 +328,11 @@ const googleConfigured = useLoginServiceConfigured('google');
 const showEmailInput = ref(false);
 const addEmailLoading = ref(false);
 const inputEmail = ref('');
-const addEmailError = ref(undefined);
+const addEmailError = ref(/** @type {string | undefined} */ (undefined));
 
 // Remove email
-const removeEmailLoading = ref(undefined);
-const removeEmailError = ref(undefined);
+const removeEmailLoading = ref(/** @type {string | undefined} */ (undefined));
+const removeEmailError = ref(/** @type {string | undefined} */ (undefined));
 
 function changeUsername() {
   dialogStackStore.pushDialogStack({
@@ -354,7 +355,7 @@ async function addEmail() {
     showEmailInput.value = false;
     inputEmail.value = '';
   } catch (error) {
-    addEmailError.value = error.message;
+    addEmailError.value = errorText(error);
   } finally {
     addEmailLoading.value = false;
   }
@@ -368,7 +369,7 @@ async function removeEmail(address) {
     showEmailInput.value = false;
     inputEmail.value = '';
   } catch (error) {
-    removeEmailError.value = error.message;
+    removeEmailError.value = errorText(error);
   } finally {
     removeEmailLoading.value = undefined;
   }
@@ -432,7 +433,7 @@ async function setMotion(value, ack) {
     });
     ack();
   } catch (error) {
-    ack(error.reason || error.message);
+    ack(errorText(error));
   }
 }
 

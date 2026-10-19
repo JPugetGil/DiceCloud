@@ -2,7 +2,7 @@
 // definition uses them, whichever entry point or test file loads first
 import '/imports/api/simpleSchemaConfig';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
-import type { SchemaDefinition, SchemaDefinitionType } from 'simpl-schema';
+import type { SchemaDefinition, SchemaDefinitionType, SimpleSchemaDefinition } from 'simpl-schema';
 import type {
   FieldToCalculate, CalculatedOnlyField
 } from '/imports/api/properties/subSchemas/computedField';
@@ -12,19 +12,27 @@ import type {
 import type { Simplify } from 'type-fest';
 
 // The types createPropertySchema replaces with the computed fields' subschemas
-type ComputedFieldType = 'fieldToCompute' | 'computedOnlyField'
+export type ComputedFieldType = 'fieldToCompute' | 'computedOnlyField'
   | 'inlineCalculationFieldToCompute' | 'computedOnlyInlineCalculationField';
+
+// A field's definition as SimpleSchema takes it, with the computed types
+// createPropertySchema replaces, and enums written `as const` (readonly)
+type FieldDefinition = Omit<SchemaDefinition, 'type' | 'allowedValues'> & {
+  type: SchemaDefinitionType | ComputedFieldType,
+  allowedValues?: readonly any[] | (() => readonly any[]),
+};
 
 // It DOES NOT support a constructor with multiple schemas.
 export type Definition = {
-  [key: string]: SchemaDefinitionType | SchemaDefinitionType[]
-    | (Omit<SchemaDefinition, 'type'> & { type: ComputedFieldType }),
+  [key: string]: SchemaDefinitionType | SchemaDefinitionType[] | FieldDefinition,
 };
 
 // This is a no-op wrapper, effectively implementing a phantom type.
 export class TypedSimpleSchema<T> extends SimpleSchema {
   private constructor(definition: Definition) {
-    super(definition);
+    // The computed types are gone by now (createPropertySchema), and a
+    // readonly enum is still an array: SimpleSchema's own type has neither
+    super(definition as SimpleSchemaDefinition);
   }
   static from<D extends Definition>(definition: D): TypedSimpleSchema<InferSchema<D>> {
     return new TypedSimpleSchema(definition);
@@ -35,8 +43,12 @@ export class TypedSimpleSchema<T> extends SimpleSchema {
   // Extending the schema with another schema &'s their definitions
   // In some cases, this is not strictly accurate, use with caution
   extend<U>(otherSchema: TypedSimpleSchema<U>): TypedSimpleSchema<Simplify<T & U>> {
-    return super.extend(otherSchema);
+    return super.extend(otherSchema) as TypedSimpleSchema<Simplify<T & U>>;
   }
+  // The keys of the fields tagged so (simpleSchemaConfig.js, storeTaggedKeys)
+  declare removeBeforeComputeFields: () => string[];
+  declare inlineCalculationFields: () => string[];
+  declare computedFields: () => string[];
 }
 
 // Assertions cannot be methods due to https://github.com/microsoft/TypeScript/issues/36931.
@@ -74,6 +86,9 @@ type InferTypeInner<T> =
   T extends typeof Date ? Date :
   T extends RegExp ? string :
   T extends TypedSimpleSchema<infer U> ? U :
+  // Any other schema as a type is SimpleSchema.oneOf(...), which the app only
+  // gives primitives (its type keeps no trace of which)
+  T extends SimpleSchema ? string | number | boolean :
   NotImplementedMarker;
 
 // Infer TypeScript type from a single field definition.
@@ -84,7 +99,7 @@ export type InferField<Def extends Definition, Key extends keyof Def> =
   ? Array<InferField<Def, `${Key}.$`>>
   : ObjectMarker extends InferTypeInner<Typ>
   ? MakeUndefinedOptional<{ [L in keyof Def as L extends `${Key}.${infer SubKey}` ? SubKey extends `${string}.${string}` ? never : SubKey : never]: InferOptional<Def, L, InferField<Def, L>> }>
-  : Def[Key] extends { allowedValues: infer Allowed extends string[] } ? InferOptional<Def, Key, InferEnum<Allowed>>
+  : Def[Key] extends { allowedValues: infer Allowed extends readonly (string | number)[] } ? InferOptional<Def, Key, InferEnum<Allowed>>
   : Def[Key] extends { type: 'fieldToCompute' } ? FieldToCalculate
   : Def[Key] extends { type: 'computedOnlyField' } ? CalculatedOnlyField
   : Def[Key] extends { type: 'inlineCalculationFieldToCompute' } ? InlineCalculationFieldToCompute
@@ -94,7 +109,7 @@ export type InferField<Def extends Definition, Key extends keyof Def> =
   : NotImplementedMarker
 
 // Infer union from string array (allowedValues should me marked as const for this to work)
-type InferEnum<T extends string[]> = T[number];
+type InferEnum<T extends readonly (string | number)[]> = T[number];
 
 // Infer optional from optional field
 type InferOptional<Def, Key extends keyof Def, U> = Def[Key] extends { optional: true } ? U | undefined : U;
@@ -112,3 +127,14 @@ export type InferSchema<Def extends Definition> = MakeUndefinedOptional<InferFie
 >>;
 
 export type ConvertToUnion<T> = T[keyof T];
+
+type KeysOfUnion<T> = T extends unknown ? keyof T : never;
+
+/**
+ * A union whose members may all be read for any member's field: a field a
+ * member lacks reads undefined, as it does on the document. Narrowing by a
+ * discriminant (`type`) still gives the member's own fields
+ */
+export type StrictUnion<T, TAll = T> = T extends unknown
+  ? T & Partial<Record<Exclude<KeysOfUnion<TAll>, keyof T>, undefined>>
+  : never;

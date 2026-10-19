@@ -5,6 +5,9 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
+
 const COIN_TAGS = ['platinum', 'gold', 'electrum', 'silver', 'copper'];
 
 /**
@@ -28,8 +31,16 @@ export default function useOfficialSheet(creatureIdRef) {
     && !(creature.value?.settings?.hideUnusedStats && prop.hide)
     && !(prop.hideWhenTotalZero && prop.total === 0) && !(prop.hideWhenValueZero && prop.value === 0)
     && !buildFolders.value.some(folder => inside(prop, folder))));
-  const of = (type, field, value) => computed(() => shown.value.filter(prop => prop.type === type
-    && (field === undefined || prop[field] === value)));
+  /**
+   * The shown properties of a type, those with a field of a value if given
+   * @template {keyof CreaturePropertyTypes} T
+   * @param {T} type
+   * @param {keyof CreatureProperty} [field]
+   * @param {unknown} [value]
+   */
+  const of = (type, field, value) => computed(() => /** @type {CreaturePropertyTypes[T][]} */ (
+    shown.value.filter(prop => prop.type === type && (field === undefined || prop[field] === value))
+  ));
   // An attribute, or a skill: initiative is a check in some libraries
   const byVariable = name => computed(() => shown.value.find(prop => prop.variableName === name
     && (prop.type === 'attribute' || prop.type === 'skill')));
@@ -50,25 +61,30 @@ export default function useOfficialSheet(creatureIdRef) {
 
   // Spells: every one the character can see, prepared or not, outside items
   // left behind and toggles turned off
-  const spells = computed(() => (all.value || []).filter(prop => prop.type === 'spell'
-    && !prop.deactivatedByAncestor && !prop.deactivatedByToggle));
+  const spells = computed(() => /** @type {CreaturePropertyTypes['spell'][]} */ (
+    (all.value || []).filter(prop => prop.type === 'spell'
+      && !prop.deactivatedByAncestor && !prop.deactivatedByToggle)
+  ));
 
   // Attacks: actions and spells with an attack roll, each with its damage
-  // (an action's children are never active: read them all)
+  // (an action's children are never active: read them all). The filters keep
+  // those with an attack roll: the `?.` after them never meets undefined
   const attacks = computed(() => [
     ...shown.value.filter(prop => prop.type === 'action' && Number.isFinite(prop.attackRoll?.value)),
     ...spells.value.filter(spell => Number.isFinite(spell.attackRoll?.value)
-      && /attackRollBonus/.test(spell.attackRoll.calculation || '')),
+      && /attackRollBonus/.test(spell.attackRoll?.calculation || '')),
   ].sort((a, b) => a.left - b.left).map(prop => ({
     _id: prop._id,
     name: prop.name,
-    bonus: prop.attackRoll.value,
+    bonus: prop.attackRoll?.value,
     damages: descendants(prop).filter(child => child.type === 'damage'),
   })));
 
-  const items = computed(() => (all.value || []).filter(prop => prop.type === 'item'
-    && !prop.deactivatedByAncestor && !prop.deactivatedByToggle
-    && !(prop.tags || []).some(tag => COIN_TAGS.includes(tag))));
+  const items = computed(() => /** @type {CreaturePropertyTypes['item'][]} */ (
+    (all.value || []).filter(prop => prop.type === 'item'
+      && !prop.deactivatedByAncestor && !prop.deactivatedByToggle
+      && !(prop.tags || []).some(tag => COIN_TAGS.includes(tag)))
+  ));
   const coins = computed(() => COIN_TAGS.map(tag => {
     const coin = (all.value || []).find(prop => prop.type === 'item' && (prop.tags || []).includes(tag));
     return { tag, quantity: coin?.quantity || 0, name: coin?.name };

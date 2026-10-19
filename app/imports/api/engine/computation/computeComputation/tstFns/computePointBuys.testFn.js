@@ -10,7 +10,7 @@ export default async function () {
   assert.equal(prop('strengthId').value, 11, 'Point buys should apply a base value when active');
   // 15 costs 7 + 2, 14 costs 6 + 1, 8 costs nothing, the empty row is skipped
   const costed = prop('costedPointBuy');
-  assert.deepEqual(costed.values.map(row => row.spent), [9, 0, 7, 0], 'Each row should be costed');
+  assert.deepEqual(costed.values?.map(row => row.spent), [9, 0, 7, 0], 'Each row should be costed');
   assert.equal(costed.spent, 16, 'Point buys should total what their rows cost');
   assert.equal(costed.pointsLeft, 11, 'Point buys should subtract what was spent from the total');
 }

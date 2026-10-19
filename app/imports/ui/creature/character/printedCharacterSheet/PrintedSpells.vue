@@ -47,6 +47,9 @@ import PrintedSpell from '/imports/ui/creature/character/printedCharacterSheet/c
 import PrintedSpellList from '/imports/ui/creature/character/printedCharacterSheet/components/PrintedSpellList.vue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
+
 const props = defineProps({
   creatureId: {
     type: String,
@@ -86,7 +89,9 @@ const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.fin
   inactive: { $ne: true },
 }, {
   sort: { left: 1 }
-}).map(sl => {
+}).map(prop => {
+  // With its spells, listed under it
+  const sl = /** @type {CreaturePropertyTypes['spellList'] & { spells?: CreatureProperty[] }} */ (prop);
   sl.spells = CreatureProperties.find({
     ...getFilter.descendants(sl),
     type: 'spell',

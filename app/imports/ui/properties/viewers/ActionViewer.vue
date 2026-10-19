@@ -135,7 +135,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 import ActionConditionView from '/imports/ui/properties/components/actions/ActionConditionView.vue';
@@ -159,7 +160,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 const dialogStackStore = useDialogStackStore();
 
 const doActionLoading = ref(false);

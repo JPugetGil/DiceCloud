@@ -32,8 +32,8 @@ import ItemConsumedForm from '/imports/ui/properties/forms/ItemConsumedForm.vue'
 
 defineProps({
   model: {
-    type: [Object, Array],
-    default: () => ({}),
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
+    default: () => [],
   },
 });
 

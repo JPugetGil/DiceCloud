@@ -6,7 +6,6 @@
       :hint="typeHint"
       :model-value="model.branchType"
       :error-messages="errors.branchType"
-      :menu-props="{auto: true, lazy: true}"
       @change="(value, ack) => change('branchType', value, ack)"
     />
     <v-expand-transition>
@@ -54,7 +53,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

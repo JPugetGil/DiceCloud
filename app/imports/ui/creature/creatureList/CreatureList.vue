@@ -55,6 +55,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, watch, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 import CreatureListTile from '/imports/ui/creature/creatureList/CreatureListTile.vue';
@@ -108,7 +109,7 @@ async function draggableChange({ added, moved }) {
       });
     } catch (error) {
       console.error(error);
-      snackbar({ text: error.reason });
+      snackbar({ text: errorText(error) });
     }
   }
 }

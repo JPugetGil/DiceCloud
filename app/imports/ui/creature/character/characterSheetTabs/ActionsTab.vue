@@ -93,7 +93,7 @@ const actions = autorun(() => {
     inactive: { $ne: true },
   }, {
     sort: { actionType: 1, order: 1 },
-  });
+  }).fetch();
 }).result;
 
 // Nothing to show yet: say what goes here and where it comes from

@@ -20,7 +20,12 @@ describe('Parties', function () {
   const creatureIds = [gmNpc, hero, sidekick, otherHero, strangersCharacter, playersMonster, playersNpc];
   const as = (method, userId: string, args: object) => method._execute({ userId }, args);
   const folder = () => CreatureFolders.findOneAsync(folderId);
-  const creature = (id: string) => Creatures.findOneAsync(id);
+  // A creature the test inserted: the test fails here when it is missing
+  const creature = async (id: string) => {
+    const found = await Creatures.findOneAsync(id);
+    assert.exists(found, `creature ${id}`);
+    return found;
+  };
 
   async function assertRefused(promise: Promise<unknown>, message: string) {
     let error;

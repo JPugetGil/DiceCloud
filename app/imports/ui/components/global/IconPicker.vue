@@ -86,7 +86,8 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue';
+import { ref, watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import SvgIcon from '/imports/ui/components/global/SvgIcon.vue';
 import { findIcons } from '/imports/api/icons/Icons';
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
@@ -115,12 +116,13 @@ const model = defineModel(smartInputModel);
 
 const emit = defineEmits(smartInputEmits);
 
-const context = inject('context', {});
+const context = useContext();
 
 const menu = ref(false);
 const searchString = ref('');
+/** @type {import('vue').Ref<Awaited<ReturnType<typeof findIcons.callAsync>>>} */
 const icons = ref([]);
-const iconSearchField = ref(null);
+const iconSearchField = ref(/** @type {InstanceType<typeof import('/imports/ui/components/global/TextField.vue').default> | null} */ (null));
 
 const { loading, safeValue, change } = useSmartInput(props, model, emit);
 

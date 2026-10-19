@@ -222,6 +222,9 @@ import LibraryList from '/imports/ui/library/LibraryList.vue';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useI18n } from 'vue-i18n';
+import errorText from '/imports/api/utility/errorText';
+
+/** @typedef {Awaited<ReturnType<typeof listRulesets.callAsync>>[number]} Ruleset */
 
 const { t, locale } = useI18n();
 
@@ -231,13 +234,15 @@ const emit = defineEmits(['pop']);
 
 const step = ref(1);
 const name = ref(t('newCharacter.defaultName'));
-const color = ref(undefined);
+const color = ref(/** @type {string | undefined} */ (undefined));
 
 // The rulesets on offer, and the chosen one's node id ('none': an empty sheet)
 const rulesetLabelId = useId();
+/** @type {import('vue').Ref<Ruleset[]>} */
 const rulesets = ref([]);
 const rulesetsLoading = ref(true);
 const rulesetChoice = ref('none');
+/** @type {import('vue').ComputedRef<{ value: string, name: string, subtitle?: string, summary?: string, language?: string, followed?: boolean, recommended?: boolean }[]>} */
 const rulesetOptions = computed(() => [
   ...rulesets.value.map(ruleset => ({
     value: ruleset.nodeId,
@@ -275,8 +280,11 @@ async function followRuleset(ruleset) {
   }
 }
 const startingLevel = ref(1);
+/** @type {import('vue').Ref<string[]>} */
 const librariesSelected = ref([]);
+/** @type {import('vue').Ref<string[]>} */
 const libraryCollectionsSelected = ref([]);
+/** @type {import('vue').Ref<string[]>} */
 const librariesSelectedByCollections = ref([]);
 const allSubscribedLibraries = ref(true);
 const creating = ref(false);
@@ -323,6 +331,7 @@ function selectLibraryCollection(libraryCollectionId, val) {
 async function submit(){
   creating.value = true;
   const ruleset = chosenRuleset.value;
+  /** @type {{ name: string, startingLevel: number, rulesetId?: string, withoutRuleset?: boolean, color?: string, allowedLibraries?: string[], allowedLibraryCollections?: string[] }} */
   let char = {
     name: name.value,
     startingLevel: startingLevel.value,
@@ -350,7 +359,7 @@ async function submit(){
     if (error) {
       console.error(error);
       snackbar({
-        text: error.reason,
+        text: errorText(error),
       });
     }
   } finally {

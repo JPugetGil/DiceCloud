@@ -67,6 +67,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { computed, reactive, ref, watch } from 'vue';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
@@ -75,6 +76,8 @@ import { isCondition } from '/imports/api/creature/creatureProperties/conditions
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import ConditionChip from '/imports/ui/properties/components/buffs/ConditionChip.vue';
 
+/** @typedef {NonNullable<Awaited<ReturnType<typeof listConditions.callAsync>>>[number]} Condition */
+
 const props = defineProps({
   creatureId: {
     type: String,
@@ -82,12 +85,12 @@ const props = defineProps({
   },
   // listConditions' result; without it, the menu asks for them when it opens
   conditions: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Condition[]>} */ (Array),
     default: undefined,
   },
   // The character's active buffs
   buffs: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty[]>} */ (Array),
     default: () => [],
   },
   // 'all' the conditions as chips; 'active' those the character has, and the
@@ -101,7 +104,7 @@ const props = defineProps({
 const menu = ref(false);
 
 // The conditions, given or fetched when the menu first opens
-const fetched = ref(undefined);
+const fetched = ref(/** @type {Condition[] | undefined} */ (undefined));
 watch(() => props.creatureId, () => { fetched.value = undefined; });
 watch(menu, async open => {
   if (!open || props.conditions || fetched.value) return;
@@ -111,7 +114,7 @@ watch(menu, async open => {
     if (creatureId === props.creatureId) fetched.value = result || [];
   } catch (error) {
     fetched.value = [];
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     console.error(error);
   }
 });
@@ -151,13 +154,14 @@ async function toggle(condition) {
     // waits for them, or it would turn back for a moment
     await changed(condition._id, !removing);
   } catch (error) {
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     console.error(error);
   } finally {
     pending.delete(condition._id);
   }
 }
 
+/** @returns {Promise<void>} */
 function changed(conditionId, on, timeout = 3000) {
   return new Promise(resolve => {
     if (!!active.value[conditionId] === on) return resolve();

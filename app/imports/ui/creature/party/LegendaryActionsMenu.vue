@@ -147,6 +147,7 @@ const busy = ref(null);
 // while the tracker shows the menu, so that the target picker and the
 // action's dialog never lose it under them
 let sheet;
+/** @returns {Promise<void>} */
 function subscribeToSheet() {
   return new Promise((resolve, reject) => {
     if (sheet?.ready()) {

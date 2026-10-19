@@ -27,8 +27,10 @@ JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
     throw error;
   }
 
-  // Check permissions
-  const creature = await getCreature(creatureId);
+  // Check permissions. Found: assertViewPermission throws otherwise
+  const creature = /** @type {import('/imports/api/creature/creatures/Creatures').Creature} */ (
+    await getCreature(creatureId)
+  );
   const userId = req.userId;
   try {
     await assertViewPermission(creature, userId)

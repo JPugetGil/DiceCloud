@@ -139,6 +139,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useLoginServiceConfigured from '/imports/ui/composables/useLoginServiceConfigured';
@@ -146,12 +147,14 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { useI18n } from 'vue-i18n';
 
+/** @typedef {InstanceType<typeof import('vuetify/components').VForm>} VForm */
+
 const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
 
-const form = ref(null);
+const form = ref(/** @type {VForm | null} */ (null));
 const valid = ref(true);
 const username = ref('');
 const usernameRules = [
@@ -178,7 +181,8 @@ const googleConfigured = useLoginServiceConfigured('google');
 async function submit() {
   // Vuetify's validate() resolves to { valid, errors }; the Promise itself is
   // always truthy, so testing it directly let invalid forms through
-  const { valid: formValid } = await form.value.validate();
+  // The form submits itself: it is mounted
+  const { valid: formValid } = await /** @type {VForm} */ (form.value).validate();
   if (!formValid) return;
   Accounts.createUser({
     username: username.value,
@@ -186,16 +190,16 @@ async function submit() {
     email: email.value,
   }, createError => {
     if (createError) {
-      error.value = createError.reason;
+      error.value = errorText(createError);
     } else {
-      router.push(route.query.redirect || '/character-list');
+      router.push(/** @type {string | null} */ (route.query.redirect) || '/character-list');
     }
   });
 }
 
 function googleLogin() {
-  Meteor.loginWithGoogle(loginError => {
-    if (loginError) googleError.value = loginError.reason;
+  Meteor.loginWithGoogle({}, loginError => {
+    if (loginError) googleError.value = errorText(loginError);
   });
 }
 </script>

@@ -110,7 +110,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
@@ -136,7 +137,7 @@ const props = defineProps({
 
 defineEmits(['click', 'sub-click']);
 
-const context = inject('context', {});
+const context = useContext();
 
 
 const activated = ref(undefined);
@@ -177,7 +178,7 @@ const cardClasses = computed(() => {
 const children = autorun(() => {
   const rangesToExclude = [];
   const descendants = CreatureProperties.find({
-    ...getFilter.descendants(props.model),
+    ...getFilter.descendants(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)),
     'removed': { $ne: true },
   }, {
     sort: {left: 1}

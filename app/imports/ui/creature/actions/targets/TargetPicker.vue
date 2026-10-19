@@ -105,6 +105,8 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TargetPickerLabel from '/imports/ui/creature/actions/targets/TargetPickerLabel.vue';
 
+/** @typedef {import('/imports/api/creature/creatureFolders/targetCandidates').CandidateCreature & { kind: 'monster' | 'character' }} Candidate */
+
 /**
  * Who an action targets (phase 2.1 of the monsters): one creature or none
  * for a single target, a radio list; any of them for several, ticked, with
@@ -115,7 +117,7 @@ import TargetPickerLabel from '/imports/ui/creature/actions/targets/TargetPicker
 const props = defineProps({
   // The creatures it may target, the actor first (targetCandidates)
   candidates: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Candidate[]>} */ (Array),
     default: () => [],
   },
   actorId: {
@@ -126,7 +128,7 @@ const props = defineProps({
 });
 
 // The target ids
-const model = defineModel({ type: Array, default: () => [] });
+const model = defineModel({ type: /** @type {import('vue').PropType<string[]>} */ (Array), default: () => [] });
 
 const { t } = useI18n();
 

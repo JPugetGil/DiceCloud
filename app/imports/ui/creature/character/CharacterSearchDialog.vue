@@ -126,11 +126,12 @@ const matches = computed(() => {
     .filter(found)
     .map(prop => ({ prop, rank: rank(prop) }))
     .filter(match => match.rank !== undefined)
-    .sort((a, b) => a.rank - b.rank || a.prop.left - b.prop.left);
+    // Every rank is a number after the filter
+    .sort((a, b) => /** @type {number} */ (a.rank) - /** @type {number} */ (b.rank) || a.prop.left - b.prop.left);
 });
 
 const results = computed(() => matches.value.slice(0, MAX_RESULTS).map(({ prop }) => {
-  const parent = byId.value.get(prop.parentId);
+  const parent = prop.parentId ? byId.value.get(prop.parentId) : undefined;
   return {
     ...prop,
     title: prop.name || getPropertyName(prop.type),

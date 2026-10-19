@@ -28,7 +28,6 @@
             'flex-grow-0': hasEffectsOrProficiencies,
             'flex-grow-1': !hasEffectsOrProficiencies, 
             'ma-3': hasEffectsOrProficiencies,
-            ...$attrs.class,
           }"
           style="overflow-x: auto;"
           v-bind="$attrs"
@@ -43,7 +42,7 @@
           </slot>
         </div>
         <div
-          v-if="hasEffectsOrProficiencies"
+          v-if="calculation && hasEffectsOrProficiencies"
           class="flex-grow-1"
           style="max-width: 100%;"
         >
@@ -63,7 +62,7 @@
           />
         </div>
         <div
-          v-if="hasEffectsOrProficiencies"
+          v-if="calculation && hasEffectsOrProficiencies"
           class="d-flex justify-end border-t-sm pt-2"
           style="width: 100%; opacity: 0.5"
         >

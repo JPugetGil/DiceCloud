@@ -50,6 +50,8 @@
 import { ref, useId } from 'vue';
 import { useSmartInput, smartInputModel, smartInputProps, smartInputEmits } from '/imports/ui/composables/useSmartInput';
 
+/** @typedef {{ name: string, value: string | number | boolean, icon?: string }} ToggleOption */
+
 defineOptions({
   inheritAttrs: false,
 });
@@ -61,7 +63,7 @@ const props = defineProps({
     default: '',
   },
   options: {
-    type: Array,
+    type: /** @type {import('vue').PropType<ToggleOption[]>} */ (Array),
     default: () => [],
   },
 });

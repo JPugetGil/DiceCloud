@@ -7,7 +7,6 @@
     :hint="hint"
     :items="resetOptions"
     :error-messages="errorMessages"
-    :menu-props="{auto: true, lazy: true}"
     @change="(value, ack) => $emit('change', value, ack)"
   />
 </template>

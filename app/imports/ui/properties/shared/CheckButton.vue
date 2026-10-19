@@ -44,7 +44,8 @@
  * a d20, so that the roll is told apart from the row around it, which opens
  * the property. Without edit permission it shows its content, unstyled.
  */
-import { computed, inject, ref } from 'vue';
+import { computed, ref } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { useI18n } from 'vue-i18n';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -60,7 +61,7 @@ const props = defineProps({
   shape: {
     type: String,
     default: 'pill',
-    validator: value => ['tile', 'pill'].includes(value),
+    validator: value => ['tile', 'pill'].includes(/** @type {string} */ (value)),
   },
   // On a card of the user's colour, take the card's text colour, not primary
   inheritColor: Boolean,
@@ -75,7 +76,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const context = inject('context', {});
+const context = useContext();
 const loading = ref(false);
 
 const title = computed(() => t('stats.roll', { name: props.model.name || '' }));

@@ -35,7 +35,7 @@ const appStore = useAppStore();
 // back in the history, which gives the route new params, and the subscription
 // started again, its documents leaving and coming back (a rest confirmed in a
 // dialog then lost its action)
-const creatureId = computed(() => route.params.id);
+const creatureId = computed(() => /** @type {string} */ (route.params.id));
 const { ready: ready } = subscribe(() => ['singleCharacter', creatureId.value]);
 const subReady = computed(() => ready.value);
 

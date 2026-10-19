@@ -30,7 +30,7 @@ type DoTaskParams = BaseDoActionParams & {
 
 type DoActionParams = BaseDoActionParams & {
   propId: string;
-  targetIds: string[];
+  targetIds?: string[];
   task?: undefined;
 }
 

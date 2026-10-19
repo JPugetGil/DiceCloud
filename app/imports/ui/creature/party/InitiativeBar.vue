@@ -40,6 +40,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import initiativeOrder from '/imports/api/creature/creatureFolders/initiativeOrder';
 import { advanceInitiative } from '/imports/api/creature/creatureFolders/methods/initiativeMethods';
@@ -85,7 +86,7 @@ async function run(name, call) {
     await call();
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   } finally {
     clearTimeout(timer);
     slow.value = null;

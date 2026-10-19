@@ -29,7 +29,8 @@ describe('Insert property from library node', function () {
     if (!Meteor.isServer) this.skip();
     await Meteor.users.insertAsync({ _id: userId, username: `test-${userId}` });
     await Meteor.users.insertAsync({ _id: otherUserId, username: `test-${otherUserId}` });
-    await Creatures.rawCollection().insertOne({ _id: creatureId, name: 'Test', owner: userId });
+    // A partial creature, past the schema: what the method reads of it
+    await Creatures.rawCollection().insertOne(/** @type {any} */ ({ _id: creatureId, name: 'Test', owner: userId }));
     await Libraries.rawCollection().insertOne({ _id: ownLibrary, name: 'Own', owner: userId });
     await Libraries.rawCollection().insertOne({ _id: privateLibrary, name: 'Private', owner: otherUserId });
     for (const doc of [
@@ -73,6 +74,6 @@ describe('Insert property from library node', function () {
     await insert(referenceNode);
     assert.notExists(await CreatureProperties.findOneAsync({ 'root.id': creatureId, name: 'Private folder' }));
     const reference = await CreatureProperties.findOneAsync({ 'root.id': creatureId, type: 'reference' });
-    assert.match(reference?.cache?.error, /permission/i);
+    assert.match(reference?.cache?.error ?? '', /permission/i);
   });
 });

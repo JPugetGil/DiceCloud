@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed} from 'vue';
 import flipToggle from '/imports/api/creature/creatureProperties/methods/flipToggle';
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
@@ -63,7 +64,7 @@ async function toggleToggle(value, ack) {
     ack?.();
   } catch (error) {
     console.warn(error);
-    ack?.(error.reason || error);
+    ack?.(errorText(error));
   }
 }
 </script>

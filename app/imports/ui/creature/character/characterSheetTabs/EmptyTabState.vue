@@ -33,12 +33,14 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 /**
  * What an empty character sheet tab shows: what belongs there and where it
  * comes from, a way back to the Build tab while choices are left, and a way
  * to add one property of the tab's kind, as the floating button does.
  */
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import useBuildProgress from '/imports/ui/composables/useBuildProgress';
@@ -76,7 +78,7 @@ const props = defineProps({
 
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
-const context = inject('context', {});
+const context = useContext();
 
 const buildProgress = useBuildProgress(() => props.creatureId);
 const choicesLeft = computed(() => context.editPermission === false
@@ -102,7 +104,7 @@ function add() {
         return await insertProperty.callAsync({ creatureProperty: result, parentRef });
       } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason || error.message || error.toString() });
+        snackbar({ text: errorText(error) });
       }
     },
   });

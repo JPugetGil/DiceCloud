@@ -42,6 +42,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref} from 'vue';
 import { subscribe } from 'vue-meteor-tracker';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
@@ -53,7 +54,7 @@ const { t } = useI18n();
 const emit = defineEmits(['pop']);
 
 const loadingImportCharacter = ref(false);
-const importError = ref(undefined);
+const importError = ref(/** @type {string | undefined} */ (undefined));
 const currentUrl = ref('');
 const characterData = ref(undefined);
 
@@ -97,7 +98,7 @@ async function importCharacterData() {
     });
     emit('pop', characterId);
   } catch (error) {
-    importError.value = error.reason || error.message || error.toString();
+    importError.value = errorText(error);
   } finally {
     loadingImportCharacter.value = false;
   }

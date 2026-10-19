@@ -52,7 +52,7 @@
       variant="text"
       icon
       data-id="library-edit-button"
-      @click="editLibrary(library._id)"
+      @click="editLibrary()"
     >
       <v-icon>mdi-cog</v-icon>
     </v-btn>
@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { subscribeToLibrary } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -74,6 +75,8 @@ import formatter from '/imports/ui/utility/numberFormatter';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
+/** @typedef {NonNullable<Awaited<ReturnType<typeof exportLibrary.callAsync>>>} LibraryExport */
+
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
 
@@ -87,7 +90,7 @@ const toggleDrawer = () => appStore.toggleDrawer();
 const library = autorun(() => Libraries.findOne(route.params.id)).result;
 
 const subscribed = autorun(() => {
-  const libraryId = route.params.id;
+  const libraryId = /** @type {string} */ (route.params.id);
   const user = Meteor.user();
   return user?.subscribedLibraries?.includes(libraryId);
 }).result;
@@ -119,11 +122,12 @@ const downloading = ref(false);
 async function download() {
   downloading.value = true;
   try {
-    const entry = await exportLibrary.callAsync({ libraryId: route.params.id });
+    // Only the client's simulation of the method returns nothing
+    const entry = /** @type {LibraryExport} */ (await exportLibrary.callAsync({ libraryId: route.params.id }));
     await downloadLibraryFile({ name: entry.library.name, libraries: [entry] });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   } finally {
     downloading.value = false;
   }

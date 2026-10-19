@@ -55,7 +55,7 @@
           class="archive-button"
           :color="archiveFileError ? 'error' : 'primary'"
           :disabled="archiveUploadInProgress"
-          @click="archiveFileInput.click()"
+          @click="archiveFileInput?.click()"
         >
           <v-icon start>
             mdi-file-upload-outline
@@ -122,6 +122,7 @@
 </template>
 
 <script setup lang="js">
+import errorText from '/imports/api/utility/errorText';
 import { ref, watch, computed } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
@@ -146,11 +147,11 @@ const storagePercent = computed(() => Math.min(
   100, fileStorageUsed.value / permissions.value.fileStorageLimit * 100
 ));
 
-const archiveFileInput = ref(null);
+const archiveFileInput = ref(/** @type {HTMLInputElement | null} */ (null));
 
-const archiveFileError = ref(undefined);
+const archiveFileError = ref(/** @type {string | undefined} */ (undefined));
 const archiveUploadInProgress = ref(false);
-const archiveUploadProgress = ref(0);
+const archiveUploadProgress = ref(/** @type {number | undefined} */ (0));
 const archiveUploadIndeterminate = ref(true);
 
 subscribe('archiveCreatureFiles');
@@ -200,9 +201,11 @@ watch(archiveUploadInProgress, (val) => {
 
 function inputArchiveFile() {
   archiveFileError.value = undefined;
-  const file = archiveFileInput.value.files[0];
+  // The file input calls this: it is mounted, and a file input always has files
+  const input = /** @type {HTMLInputElement & { files: FileList }} */ (archiveFileInput.value);
+  const file = input.files[0];
   // Reset the file input
-  archiveFileInput.value.value = null;
+  input.value = '';
   if (!file) return;
   if (file.type !== 'application/json') {
     archiveFileError.value = t('files.mustBeJson');
@@ -221,7 +224,8 @@ function inputArchiveFile() {
   fr.addEventListener('load', () => {
     let data;
     try {
-      data = JSON.parse(fr.result);
+      // readAsText: the result is a string
+      data = JSON.parse(/** @type {string} */ (fr.result));
     } catch (e) {
       archiveFileError.value = t('files.parseFailed');
       archiveUploadInProgress.value = false;
@@ -234,7 +238,7 @@ function inputArchiveFile() {
       data = archiveSchema.clean(data);
       archiveSchema.validate(data);
     } catch (e) {
-      archiveFileError.value = t('files.validationFailed', { reason: e.reason || e.message || e.toString() });
+      archiveFileError.value = t('files.validationFailed', { reason: errorText(e) });
       archiveUploadInProgress.value = false;
       console.error(e);
       return;

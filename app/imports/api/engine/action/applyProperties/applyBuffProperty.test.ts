@@ -87,6 +87,8 @@ describe('Apply Buff Properties', function () {
     // Get random Ids of inserted props
     const insertedBuffId = mutations?.[1]?.inserts?.[0]?._id;
     const insertedEffectId = mutations?.[1]?.inserts?.[1]?._id;
+    assert.exists(insertedBuffId);
+    assert.exists(insertedEffectId);
     assert.deepEqual(mutations, [{
       contents: [{
         name: 'Buff',

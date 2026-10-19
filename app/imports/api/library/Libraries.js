@@ -50,7 +50,7 @@ let LibrarySchema = new SimpleSchema({
   // guess from the name and description (libraryLanguage.js)
   language: {
     type: String,
-    allowedValues: LIBRARY_LANGUAGES,
+    allowedValues: [...LIBRARY_LANGUAGES],
     optional: true,
   },
   // Recommended by the instance's admins: a badge, listed first
@@ -61,7 +61,7 @@ let LibrarySchema = new SimpleSchema({
   // The licence its content is under, set by its owner (libraryLicense.js)
   license: {
     type: String,
-    allowedValues: LIBRARY_LICENSES,
+    allowedValues: [...LIBRARY_LICENSES],
     optional: true,
   },
   // Which other open licence, and the notice it asks for
@@ -117,7 +117,6 @@ const updateLibraryName = new ValidatedMethod({
   validate: new SimpleSchema({
     _id: {
       type: String,
-      regEx: SimpleSchema.RegEx.id
     },
     name: {
       type: String,
@@ -140,7 +139,6 @@ const updateLibraryDescription = new ValidatedMethod({
   validate: new SimpleSchema({
     _id: {
       type: String,
-      regEx: SimpleSchema.RegEx.id
     },
     description: {
       type: String,
@@ -163,7 +161,6 @@ const updateLibraryShowInMarket = new ValidatedMethod({
   validate: new SimpleSchema({
     _id: {
       type: String,
-      regEx: SimpleSchema.RegEx.id
     },
     value: {
       type: Boolean,
@@ -186,7 +183,6 @@ const removeLibrary = new ValidatedMethod({
   validate: new SimpleSchema({
     _id: {
       type: String,
-      regEx: SimpleSchema.RegEx.id
     },
   }).validator(),
   mixins: [RateLimiterMixin],

@@ -172,7 +172,7 @@ const signedIn = autorun(() => Meteor.userId()).result;
 
 const userName = autorun(() => {
   let user = Meteor.user();
-  return user && user.username || user && user._id;
+  return user?.username || user?._id;
 }).result;
 
 const userInitial = computed(() => (userName.value || '?')[0].toUpperCase());
@@ -205,7 +205,8 @@ const resourceLinks = computed(() => [
 ]);
 
 const folders = autorun(() => {
-  const userId = Meteor.userId();
+  // Signed out, no creature or folder is published for it to match
+  const userId = /** @type {string} */ (Meteor.userId());
   let folders = CreatureFolders.find(
     { owner: userId, archived: { $ne: true } },
     { sort: { name: 1 } },
@@ -230,7 +231,8 @@ const parties = autorun(() => CreatureFolders.find(
 ).fetch()).result;
 
 const CreaturesWithNoParty = autorun(() => {
-  var userId = Meteor.userId();
+  // Signed out, no creature or folder is published for it to match
+  var userId = /** @type {string} */ (Meteor.userId());
   var charArrays = CreatureFolders.find({ owner: userId }).map(p => p.creatures);
   var folderChars = uniq(flatten(charArrays));
   return Creatures.find(

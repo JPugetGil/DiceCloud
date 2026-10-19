@@ -23,7 +23,7 @@
           {title: $t('sharing.anyoneReader'), value: 'true'}
         ]"
         :model-value="!!model.readersCanCopy + ''"
-        @change="(value, ack) => setReadersCanCopy({value, ack})"
+        @change="(value, ack) => setLibraryReadersCanCopy({value, ack})"
       />
       <text-field
         v-if="model.public && docRef.collection === 'libraries'"
@@ -153,6 +153,8 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { useI18n } from 'vue-i18n';
 import { Meteor } from 'meteor/meteor';
 
+/** @typedef {Meteor.User & { permission?: 'reader' | 'writer' }} SharedUser */
+
 const { t } = useI18n();
 
 const dialogStackStore = useDialogStackStore();
@@ -170,7 +172,7 @@ const locationOrigin = window.location.origin;
 
 const userSearched = ref(undefined);
 const userFoundState = ref('idle');
-const userId = ref(undefined);
+const userId = ref(/** @type {string | null | undefined} */ (undefined));
 
 const model = autorun(() => {
   if (!props.docRef || !props.docRef.id) return;
@@ -181,11 +183,11 @@ const model = autorun(() => {
 const sharedUsers = autorun(() => {
   if (!model.value) return [];
   let users = [];
-  Meteor.users.find({ _id: { $in: model.value.readers || [] } }).forEach(user => {
+  Meteor.users.find({ _id: { $in: model.value.readers || [] } }).forEach((/** @type {SharedUser} */ user) => {
     user.permission = 'reader';
     users.push(user);
   });
-  Meteor.users.find({ _id: { $in: model.value.writers || [] } }).forEach(user => {
+  Meteor.users.find({ _id: { $in: model.value.writers || [] } }).forEach((/** @type {SharedUser} */ user) => {
     user.permission = 'writer';
     users.push(user);
   });
@@ -210,7 +212,20 @@ async function setSheetPublic({ value, ack }) {
     });
     ack();
   } catch (error) {
-    ack(error && error.reason || error);
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
+  }
+}
+
+// The option called the method object itself, which threw: it never saved
+async function setLibraryReadersCanCopy({ value, ack }) {
+  try {
+    await setReadersCanCopy.callAsync({
+      docRef: props.docRef,
+      readersCanCopy: value === 'true',
+    });
+    ack();
+  } catch (error) {
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
   }
 }
 
@@ -240,7 +255,7 @@ async function getUser({ value, ack }) {
       ack(t('sharing.userNotFound'));
     }
   } catch (error) {
-    ack(error && error.reason || error);
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
     userFoundState.value = 'failed';
   }
 }

@@ -56,7 +56,7 @@ import { withTotals } from '/imports/ui/log/logTotals';
 
 const props = defineProps({
   model: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     default: () => [],
   },
 });

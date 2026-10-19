@@ -59,6 +59,11 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { useI18n } from 'vue-i18n';
 
+/** @typedef {import('/imports/api/engine/action/EngineActions').EngineAction} EngineAction */
+/** @typedef {import('/imports/api/engine/action/functions/userInput/InputProvider').default} InputProvider */
+/** @typedef {import('/imports/api/engine/action/functions/userInput/InputProvider').Advantage} Advantage */
+/** @typedef {import('/imports/api/engine/action/functions/userInput/InputProvider').CheckParams} CheckParams */
+
 const dialogStackStore = useDialogStackStore();
 const { t } = useI18n();
 
@@ -80,11 +85,12 @@ const actionBusy = ref(false);
 // Vue's reactive proxies do not see, so a deep ref would keep only the log
 // preview's first line. A shallow ref, refreshed whenever the engine pauses or
 // finishes, shows the latest state.
-const actionResult = shallowRef(undefined);
-const resumeActionFn = ref(undefined);
-const activeInput = ref(undefined);
+const actionResult = shallowRef(/** @type {EngineAction | undefined} */ (undefined));
+const resumeActionFn = ref(/** @type {(() => void) | undefined} */ (undefined));
+const activeInput = ref(/** @type {'choice-input' | 'advantage-input' | 'check-input' | undefined} */ (undefined));
 const activeInputParams = ref({});
-const userInput = ref(undefined);
+// What the active input edits: the chosen ids, an advantage, or a check's parameters
+const userInput = ref(/** @type {string[] | Advantage | CheckParams | undefined} */ (undefined));
 // The action's dice, drawn by the server from a seed the client never sees,
 // in the order the action asks for them: the same dice as doAction's first
 // simulation, and as the server's when it applies the action
@@ -118,6 +124,10 @@ const activeInputComponent = computed(() => {
   }
 });
 
+/**
+ * Resolves with the user's input, of the kind the active input asked for
+ * @returns {Promise<any>}
+ */
 const promiseInput = () => {
   triggerRef(actionResult);
   return new Promise(resolve => {
@@ -132,6 +142,7 @@ const promiseInput = () => {
   });
 };
 
+/** @type {InputProvider} */
 const inputProvider = {
   async rollDice(dice) {
     // No dice animation here: the dice tray throws them once the server has
@@ -165,16 +176,17 @@ const inputProvider = {
 const startAction = async ({ stepThrough }) => {
   actionBusy.value = true;
   try {
-    actionResult.value = {
+    actionResult.value = /** @type {EngineAction} */ ({
       ...action.value,
       _stepThrough: undefined,
       _isSimulation: undefined,
-      taskCount: undefined,
-    };
+      taskCount: 0,
+    });
     await applyAction(actionResult.value, inputProvider, { simulate: true, stepThrough });
     triggerRef(actionResult);
     const finalActionResult = await runAction.callAsync({
-      actionId: actionResult.value._id,
+      // A document of the collection: it has its id
+      actionId: /** @type {string} */ (actionResult.value._id),
       decisions: actionResult.value._decisions
     });
     activeInput.value = undefined;
@@ -197,7 +209,8 @@ const finishAction = async () => {
 };
 
 onMounted(() => {
-  serverDiceRoller = getServerDiceRoller(props.actionId);
+  // doAction opens this dialog on the action it inserted
+  serverDiceRoller = getServerDiceRoller(/** @type {string} */ (props.actionId));
   // The server may refuse the action as it applies it: a target no longer
   // in reach (a player who left the party since, assertMayTarget)
   startAction({ stepThrough: false }).catch(error => {

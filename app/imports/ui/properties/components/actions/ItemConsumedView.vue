@@ -85,7 +85,8 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import SelectItemToConsume from '/imports/ui/properties/components/actions/SelectItemToConsume.vue';
 import useThemeState from '/imports/ui/composables/useThemeState';
 
@@ -100,7 +101,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 const theme = useThemeState();
 
 const quantity = computed(() => {

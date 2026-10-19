@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import {
   createTestCreature, getRandomIds, removeAllCreaturesAndProps, runActionById,
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
+import type { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import { hiddenFrom, hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
@@ -16,7 +17,7 @@ import { hiddenFrom, hidesStatsFromPlayers } from '/imports/api/creature/creatur
 
 const [heroId, goblinId, allyId, swordId, goblinHpId, allyHpId, wolfId, heroHpId, biteId] = getRandomIds(9);
 
-const hitPoints = (_id: string, total: number) => ({
+const hitPoints = (_id: string, total: number): ForestProp => ({
   _id, type: 'attribute', name: 'Hit Points', attributeType: 'healthBar', variableName: 'hitPoints',
   baseValue: { calculation: String(total) },
 });
@@ -140,7 +141,7 @@ if (Meteor.isServer) describe('Hidden stats depend on the owners', function () {
     gmGoblinId, gmGoblinHpId, impId, impHpId, clawId, gmHeroId, staffId, gmWolfId, wolfBiteId,
   ] = getRandomIds(9);
   const creatureIds = [gmGoblinId, impId, gmHeroId, gmWolfId];
-  const damage = (_id: string, amount: number) => ({
+  const damage = (_id: string, amount: number): ForestProp => ({
     _id, type: 'damage', target: 'target', damageType: 'fire', amount: { calculation: String(amount) },
   });
 

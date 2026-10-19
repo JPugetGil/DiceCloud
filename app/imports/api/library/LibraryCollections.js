@@ -51,7 +51,7 @@ const LibraryCollectionSchema = new SimpleSchema({
   // guess from the name and description (libraryLanguage.js)
   language: {
     type: String,
-    allowedValues: LIBRARY_LANGUAGES,
+    allowedValues: [...LIBRARY_LANGUAGES],
     optional: true,
   },
   // Recommended by the instance's admins: a badge, listed first
@@ -114,12 +114,14 @@ const updateLibraryCollection = new ValidatedMethod({
     update: {
       type: LibraryCollectionSchema
         .pick('name', 'description', 'libraries', 'showInMarket')
-        .extend({ //make libraries optional
+        // Make libraries optional. Merged into the field's definition, which
+        // has its type: SimpleSchema's types only know whole definitions
+        .extend(/** @type {any} */ ({
           libraries: {
             optional: true,
             defaultValue: undefined,
           },
-        }),
+        })),
     }
   },
   rateLimit: {
@@ -143,7 +145,6 @@ const removeLibraryCollection = new ValidatedMethod({
   validate: new SimpleSchema({
     _id: {
       type: String,
-      regEx: SimpleSchema.RegEx.id
     },
   }).validator(),
   mixins: [RateLimiterMixin],

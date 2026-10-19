@@ -298,7 +298,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

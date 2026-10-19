@@ -314,6 +314,10 @@ import {
 } from '/imports/api/creature/creatureFolders/boardMonsters';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 
+/** @typedef {NonNullable<Awaited<ReturnType<typeof listBestiaries.callAsync>>>} Bestiaries */
+/** @typedef {NonNullable<Awaited<ReturnType<typeof searchMonsters.callAsync>>>} SearchResults */
+/** @typedef {SearchResults['monsters'][number]} Monster */
+
 /**
  * The game master picks a monster of their bestiaries (the libraries they
  * read that hold creature templates, those in the interface's language first)
@@ -339,17 +343,17 @@ const PAGE_SIZE = 50;
 const { t, locale } = useI18n();
 const dialogStackStore = useDialogStackStore();
 
-const bestiaries = ref(undefined);
-const libraryIds = ref([]);
+const bestiaries = ref(/** @type {Bestiaries | undefined} */ (undefined));
+const libraryIds = ref(/** @type {string[]} */ ([]));
 const text = ref('');
 const cr = ref(null);
 const size = ref(null);
 const type = ref(null);
 const limit = ref(PAGE_SIZE);
-const results = ref(undefined);
+const results = ref(/** @type {SearchResults | undefined} */ (undefined));
 const searching = ref(false);
 
-const selected = ref(undefined);
+const selected = ref(/** @type {Monster | undefined} */ (undefined));
 const count = ref(1);
 const hitPoints = ref('average');
 const sharedInitiative = ref(false);
@@ -377,7 +381,8 @@ function monsterLine(monster) {
 
 onMounted(async () => {
   try {
-    bestiaries.value = await listBestiaries.callAsync();
+    // Only the client's simulation of the method returns nothing
+    bestiaries.value = /** @type {Bestiaries} */ (await listBestiaries.callAsync());
   } catch (error) {
     console.error(error);
     snackbar({ text: boardErrorText(error, t) });
@@ -432,7 +437,8 @@ onBeforeUnmount(() => clearTimeout(debounceTimer));
 async function add() {
   if (!canAdd.value) return;
   adding.value = true;
-  const monster = selected.value;
+  // The button that adds shows once a monster is selected
+  const monster = /** @type {Monster} */ (selected.value);
   const added = wholeCount.value;
   try {
     await addBoardMonsters.callAsync({

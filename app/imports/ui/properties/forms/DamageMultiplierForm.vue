@@ -33,7 +33,6 @@
           :items="DAMAGE_TYPES"
           :model-value="model.damageTypes"
           :error-messages="errors.damageTypes"
-          :menu-props="{auto: true, lazy: true}"
           @change="(value, ack) => change('damageTypes', value, ack)"
         />
       </v-col>
@@ -91,7 +90,7 @@ const { t } = useI18n();
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

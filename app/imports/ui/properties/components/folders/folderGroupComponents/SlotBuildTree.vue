@@ -32,7 +32,7 @@ const slotBuildTree = autorun(() => {
   const slots = CreatureProperties.find({
     $and: [ {
       $or: [
-        { ...getFilter.descendants(props.model) },
+        { ...getFilter.descendants(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)) },
         { '_id': props.model._id, },
       ],
     }, {

@@ -4,7 +4,7 @@
     v-model="model"
     :clearable="clearable"
     class="ml-3"
-    :menu-props="{transition: 'slide-y-transition', lazy: true}"
+    :menu-props="{transition: 'slide-y-transition'}"
     :items="values"
     @change="(value, ack) => $emit('change', value, ack)"
   >

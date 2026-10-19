@@ -17,6 +17,10 @@ import {
   entryStatus, numberedNames, damageAfter, boardFolderFields,
 } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 
+// Partial documents, as a test needs them: into the database as they are, past
+// the schema and the documents' types
+const insertRaw = (collection, doc) => collection.rawCollection().insertOne(doc);
+
 describe('Initiative order', function () {
   it('puts the highest result first, ties to the highest bonus, unrolled last', function () {
     const order = initiativeOrder([
@@ -105,20 +109,20 @@ describe('Initiative tracker', function () {
     await Meteor.users.insertAsync({ _id: userId, username: `test-${userId}` });
     for (const [_id, name] of [[fighterId, 'Fighter'], [wizardId, 'Wizard'], [rogueId, 'Rogue'],
       [twinIds[0], 'Twin 1'], [twinIds[1], 'Twin 2']]) {
-      await Creatures.rawCollection().insertOne({ _id, name, owner: userId, readers: [], writers: [] });
+      await insertRaw(Creatures, { _id, name, owner: userId, readers: [], writers: [] });
     }
     // Another user's, which the game master can't view
-    await Creatures.rawCollection().insertOne({ _id: strangerId, name: 'Stranger', owner: otherUserId, readers: [], writers: [] });
-    await CreatureProperties.rawCollection().insertOne({
+    await insertRaw(Creatures, { _id: strangerId, name: 'Stranger', owner: otherUserId, readers: [], writers: [] });
+    await insertRaw(CreatureProperties, {
       _id: Random.id(), type: 'attribute', attributeType: 'ability', variableName: 'dexterity', modifier: 4,
       root: { collection: 'creatures', id: rogueId }, left: 1, right: 2,
     });
     // The fighter has an initiative stat, the wizard only a Dexterity modifier
-    await CreatureProperties.rawCollection().insertOne({
+    await insertRaw(CreatureProperties, {
       _id: Random.id(), type: 'skill', variableName: 'initiative', value: 3,
       root: { collection: 'creatures', id: fighterId }, left: 1, right: 2,
     });
-    await CreatureProperties.rawCollection().insertOne({
+    await insertRaw(CreatureProperties, {
       _id: Random.id(), type: 'attribute', attributeType: 'ability', variableName: 'dexterity', modifier: -1,
       root: { collection: 'creatures', id: wizardId }, left: 1, right: 2,
     });
@@ -349,7 +353,7 @@ describe('The initiative tracker, changed between a method\'s read and its write
 
   before(async function () {
     if (!Meteor.isServer) this.skip();
-    await Creatures.rawCollection().insertOne({ _id: fighterId, name: 'Fighter', owner: userId, readers: [], writers: [] });
+    await insertRaw(Creatures, { _id: fighterId, name: 'Fighter', owner: userId, readers: [], writers: [] });
   });
 
   beforeEach(async function () {
@@ -408,7 +412,7 @@ describe('A full initiative tracker', function () {
   before(async function () {
     if (!Meteor.isServer) this.skip();
     for (const _id of [firstId, secondId]) {
-      await Creatures.rawCollection().insertOne({ _id, name: 'Late', owner: userId, readers: [], writers: [] });
+      await insertRaw(Creatures, { _id, name: 'Late', owner: userId, readers: [], writers: [] });
     }
     // One entry short of the tracker's limit
     const entries = Array.from({ length: MAX_INITIATIVE_ENTRIES - 1 }, (_, i) => ({

@@ -38,7 +38,6 @@
           :items="skillTypes"
           :model-value="model.skillType"
           :error-messages="errors.skillType"
-          :menu-props="{auto: true, lazy: true}"
           :hint="skillTypeHints[model.skillType]"
           @change="(...args) => change('skillType', ...args)"
         />
@@ -119,7 +118,7 @@ const { t } = useI18n();
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

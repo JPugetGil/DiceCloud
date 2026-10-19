@@ -26,7 +26,7 @@
       selection
       :creatures="mode === 'archive' ? CreaturesWithNoParty : archiveCreaturesWithNoParty"
       :folders="mode === 'archive' ? folders : archivefolders"
-      :selected-creature="selectedCreature"
+      :selected-creature="selectedCreature ?? undefined"
       @creature-selected="id => selectedCreature = id"
     />
     <template #actions>
@@ -51,6 +51,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
@@ -124,7 +125,7 @@ const archiveAction = async () => {
     selectedCreature.value = null;
   } catch (error) {
     console.error(error);
-    snackbar({text: error.reason});
+    snackbar({text: errorText(error)});
   } finally {
     archiveActionLoading.value = false;
   }
@@ -142,7 +143,8 @@ const folders = autorun(() => {
     folder.creatures = Creatures.find(
       {
         _id: {$in: folder.creatures || []},
-        owner: userId,
+        // Signed out, null matches no creature: every creature has an owner
+        owner: /** @type {string} */ (userId),
       }, {
         sort: {name: 1},
         fields: creatureFields,
@@ -161,7 +163,7 @@ const CreaturesWithNoParty = autorun(() => {
   return Creatures.find(
     {
       _id: {$nin: folderChars},
-      owner: userId,
+      owner: /** @type {string} */ (userId),
     }, {
       sort: {name: 1},
       fields: creatureFields,

@@ -60,7 +60,8 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import FillSlotButton from '/imports/ui/creature/buildTree/FillSlotButton.vue';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
@@ -74,7 +75,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 const slotTypeName = computed(() => {
   if (!props.model.slotType) return;

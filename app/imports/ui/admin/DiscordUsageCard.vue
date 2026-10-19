@@ -93,6 +93,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, onMounted } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { useI18n } from 'vue-i18n';
@@ -106,10 +107,10 @@ import { discordCommandsStatus, discordConnectedCounts } from '/imports/api/disc
  */
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
 const { locale } = useI18n();
-const counts = ref(undefined);
-const commands = ref(undefined);
+const counts = ref(/** @type {Awaited<ReturnType<typeof discordConnectedCounts.callAsync>>} */ (undefined));
+const commands = ref(/** @type {Awaited<ReturnType<typeof discordCommandsStatus.callAsync>>} */ (undefined));
 const loading = ref(false);
-const error = ref(undefined);
+const error = ref(/** @type {string | undefined} */ (undefined));
 
 async function refresh() {
   loading.value = true;
@@ -118,7 +119,7 @@ async function refresh() {
     commands.value = await discordCommandsStatus.callAsync();
     error.value = undefined;
   } catch (e) {
-    error.value = e.reason || e.message;
+    error.value = errorText(e);
   } finally {
     loading.value = false;
   }

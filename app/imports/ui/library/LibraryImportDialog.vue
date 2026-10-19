@@ -114,12 +114,15 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import { importLibrary, importLibraryCollection } from '/imports/api/library/methods/libraryFiles';
 import { readLibraryFile } from '/imports/ui/library/libraryFiles';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+/** @typedef {Awaited<ReturnType<typeof readLibraryFile>>} LibraryFile */
 
 /**
  * Admin only: imports the libraries of a file, saved from a library or
@@ -128,8 +131,8 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 const { t } = useI18n();
 const dialogStackStore = useDialogStackStore();
 
-const file = ref(undefined);
-const readError = ref(undefined);
+const file = ref(/** @type {LibraryFile | undefined} */ (undefined));
+const readError = ref(/** @type {string | undefined} */ (undefined));
 const replace = ref(false);
 const makePublic = ref(false);
 const running = ref(false);
@@ -182,23 +185,26 @@ function statusColor({ library }) {
 }
 
 async function importAll() {
+  // The import button is disabled until a file is read
+  const loaded = /** @type {LibraryFile} */ (file.value);
   running.value = true;
-  for (const { library, nodes } of file.value.libraries) {
+  for (const { library, nodes } of loaded.libraries) {
     results.value[library._id] = 'running';
     try {
-      const { status } = await importLibrary.callAsync({
+      // Only the client's simulation of the method returns nothing
+      const { status } = /** @type {NonNullable<Awaited<ReturnType<typeof importLibrary.callAsync>>>} */ (await importLibrary.callAsync({
         library: { _id: library._id, name: library.name, description: library.description || undefined },
         nodes,
         replace: replace.value,
         makePublic: makePublic.value,
-      });
+      }));
       results.value[library._id] = status;
     } catch (error) {
       console.error(error);
-      results.value[library._id] = error.reason || error.message;
+      results.value[library._id] = errorText(error);
     }
   }
-  const collection = file.value.collection;
+  const collection = loaded.collection;
   if (collection?._id) {
     try {
       await importLibraryCollection.callAsync({
@@ -206,14 +212,14 @@ async function importAll() {
           _id: collection._id,
           name: collection.name || undefined,
           description: collection.description || undefined,
-          libraries: collection.libraries || file.value.libraries.map(({ library }) => library._id),
+          libraries: collection.libraries || loaded.libraries.map(({ library }) => library._id),
         },
         replace: replace.value,
         makePublic: makePublic.value,
       });
     } catch (error) {
       console.error(error);
-      readError.value = error.reason || error.message;
+      readError.value = errorText(error);
     }
   }
   running.value = false;

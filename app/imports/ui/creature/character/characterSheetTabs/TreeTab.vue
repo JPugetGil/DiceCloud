@@ -55,7 +55,8 @@
 </template>
 
 <script setup lang="js">
-import { ref, watch, inject } from 'vue';
+import { ref, watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { useDisplay } from 'vuetify';
 import { autorun } from 'vue-meteor-tracker';
 import TreeDetailLayout from '/imports/ui/components/TreeDetailLayout.vue';
@@ -74,7 +75,7 @@ defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 const display = useDisplay();
 
 const organize = ref(false);

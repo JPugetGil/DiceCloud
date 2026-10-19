@@ -99,7 +99,7 @@ const props = defineProps({
   },
   organize: Boolean,
   children: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/parenting/parentingFunctions').TreeNode<import('/imports/api/parenting/ChildSchema').TreeDoc>[]>} */ (Array),
     default: () => [],
   },
   selectedNode: {
@@ -115,7 +115,7 @@ defineEmits(['selected', 'move-within-root', 'move-between-roots']);
 const expanded = ref(
   props.startExpanded ||
   props.node._ancestorOfMatchedDocument ||
-  isAncestor(props.node, props.selectedNode)
+  isAncestor(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.node), /** @type {import('/imports/api/parenting/ChildSchema').TreeDoc | undefined} */ (props.selectedNode))
 );
 
 const hasChildren = computed(() => {
@@ -135,11 +135,11 @@ const computedChildren = computed(() => {
 });
 
 watch(() => props.node?._ancestorOfMatchedDocument, (value) => {
-  expanded.value = !!value || isAncestor(props.node, props.selectedNode);
+  expanded.value = !!value || isAncestor(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.node), /** @type {import('/imports/api/parenting/ChildSchema').TreeDoc | undefined} */ (props.selectedNode));
 });
 
 watch(() => props.selectedNode?.parentId, () => {
-  expanded.value = isAncestor(props.node, props.selectedNode) || expanded.value;
+  expanded.value = isAncestor(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.node), /** @type {import('/imports/api/parenting/ChildSchema').TreeDoc | undefined} */ (props.selectedNode)) || expanded.value;
 });
 
 </script>

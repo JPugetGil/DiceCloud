@@ -6,12 +6,13 @@ import {
   removeAllCreaturesAndProps,
   runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
+import type { TestCreature } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [
   creatureId, dropLowestId
 ] = getRandomIds(2);
 
-const actionTestCreature = {
+const actionTestCreature: TestCreature = {
   _id: creatureId,
   props: [
     {

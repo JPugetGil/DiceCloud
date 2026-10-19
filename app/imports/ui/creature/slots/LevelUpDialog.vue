@@ -53,7 +53,7 @@
           :class="{disabled: isDisabled(libraryNode) || libraryNode._disabledBySlotFillerCondition}"
         >
           <v-expansion-panel-title>
-            <template #default="{ open }">
+            <template #default="{ expanded }">
               <div class="d-flex align-center flex-grow-0 mr-2">
                 <v-checkbox
                   v-model="selectedNodeIds"
@@ -89,7 +89,7 @@
               >
                 {{ $t('slots.slotCount', { count: libraryNode.slotQuantityFilled }) }}
               </div>
-              <template v-if="open">
+              <template v-if="expanded">
                 <v-btn
                   variant="text"
                   icon
@@ -183,6 +183,16 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const dialogStackStore = useDialogStackStore();
 
+/** @typedef {import('/imports/api/library/LibraryNodes').LibraryNode} LibraryNode */
+/**
+ * A filler as the dialog lists it: a library node, flagged with why it can't
+ * be picked
+ * @typedef {LibraryNode & {
+ *   _disabledByQuantityFilled?: boolean,
+ *   _disabledBySlotFillerCondition?: boolean,
+ *   _conditionError?: string,
+ * }} Filler
+ */
 
 const props = defineProps({
   classId: {
@@ -196,9 +206,9 @@ const props = defineProps({
 });
 
 
-const selectedNodeIds = ref([]);
-const searchInput = ref(undefined);
-const searchValue = ref(undefined);
+const selectedNodeIds = ref(/** @type {string[]} */ ([]));
+const searchInput = ref(/** @type {string | undefined} */ (undefined));
+const searchValue = ref(/** @type {string | undefined} */ (undefined));
 const showDisabled = ref(false);
 
 provide('context', reactive({
@@ -268,7 +278,8 @@ const totalQuantitySelected = autorun(() => {
     fields: { slotQuantityFilled: 1 },
   }).forEach(node => {
     if (Number.isFinite(node.slotQuantityFilled)) {
-      quantitySelected += node.slotQuantityFilled;
+      // A number: it is finite
+      quantitySelected += /** @type {number} */ (node.slotQuantityFilled);
     } else {
       quantitySelected += 1;
     }
@@ -297,22 +308,25 @@ const libraryNodeFilter = autorun(() => {
 const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!classFillersReady.value) return [];
-  let nodes = LibraryNodes.find(libraryNodeFilter.value, {
+  let nodes = /** @type {Filler[]} */ (LibraryNodes.find(libraryNodeFilter.value, {
     sort: { level: 1, name: 1, order: 1 }
-  }).fetch();
+  }).fetch());
   // Mark classFillers that are too big to fit the quantity to fill
   nodes.forEach(node => {
+    // A reference takes the level of the node it names
     if (node.cache?.node) {
-      node.level = node.cache.node.level;
+      /** @type {{ level?: number }} */ (node).level = node.cache.node.level;
     }
     let quantityToFill = node.type === 'slotFiller' ? node.slotQuantityFilled : 1;
     if (
-      quantityToFill > spaceLeft.value
+      spaceLeft.value !== undefined && quantityToFill > spaceLeft.value
     ) {
       node._disabledByQuantityFilled = true;
     }
   });
-  nodes.sort((a, b) => a.level - b.level);
+  // Each has a level: a class level's own, or the one its reference names,
+  // which the filter asks for (getSlotFillFilter)
+  nodes.sort((a, b) => /** @type {number} */ (a.level) - /** @type {number} */ (b.level));
   return nodes;
 }).result;
 
@@ -325,7 +339,7 @@ watch([matchingNodes, variables], async () => {
   conditionErrors.value = errors;
 }, { immediate: true });
 
-const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
+const libraryNodes = computed(() => /** @type {Filler[]} */ ((matchingNodes.value || []).map(node => {
   const conditionError = conditionErrors.value.get(node._id);
   if (!conditionError) return node;
   return {
@@ -333,7 +347,7 @@ const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
     _disabledBySlotFillerCondition: true,
     _conditionError: conditionError,
   };
-}));
+})));
 
 const disabledNodeCount = computed(() => libraryNodes.value
   .filter(node => node._disabledBySlotFillerCondition).length);
@@ -355,21 +369,24 @@ watch(selectedNodeIds, (newVal, oldVal) => {
       const addedNode = LibraryNodes.findOne(addedId);
       if (addedNode) {
         // Check which levels are already backfilled
+        // A reference's level is its node's, in its cache: the comparisons
+        // below read `level` alone, so a reference never backfilled anything
+        const levelOf = node => node.level ?? node.cache?.node?.level;
         const backFilledLevels = new Set();
         LibraryNodes.find({
           _id: { $in: selectedIds }
-        }).map(node => backFilledLevels.add(node.level || node.cache?.node?.level || 0));
+        }).map(node => backFilledLevels.add(levelOf(node) ?? 0));
         // Tick any unchecked nodes of a lower level, but only one per level
         libraryNodes.value.forEach(node => {
           if (
             !selectedIds.includes(node._id)
-            && (node.level < addedNode.level)
-            && !backFilledLevels.has(node.level)
+            && (levelOf(node) < levelOf(addedNode))
+            && !backFilledLevels.has(levelOf(node))
             && !isDisabled(node)
             && !node._disabledBySlotFillerCondition
           ) {
             selectedIds.push(node._id);
-            backFilledLevels.add(node.level);
+            backFilledLevels.add(levelOf(node));
           }
         });
       }
@@ -397,7 +414,7 @@ watch(activeCount, (val) => {
   // Can load more, and not showing enough active choices, so load more
   if (
     currentLimit.value < countAll.value
-    && val < 20
+    && val !== undefined && val < 20
   ) {
     loadMore();
   }

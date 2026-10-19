@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Type checks the app and fails only on errors that baseline.txt does not
- * list: the app had a backlog of errors when this check started, and new code
- * must not add to it.
+ * Type checks the app, single-file components included (vue-tsc, which runs
+ * TypeScript over their scripts and templates), and fails only on errors that
+ * baseline.txt does not list: the app had a backlog of errors when this check
+ * started, and new code must not add to it.
  *
  * Run from app/, after Meteor has built the app once (meteor, or meteor test),
  * which writes the packages' types to .meteor/local/types:
@@ -30,8 +31,8 @@ if (!existsSync(path.join(appDir, '.meteor/local/types/packages.d.ts'))) {
   process.exit(2);
 }
 
-const tsc = createRequire(path.join(appDir, 'package.json')).resolve('typescript/bin/tsc');
-const result = spawnSync(process.execPath, [tsc, '--noEmit', '--pretty', 'false', '-p', '.'], {
+const vueTsc = createRequire(path.join(appDir, 'package.json')).resolve('vue-tsc/bin/vue-tsc.js');
+const result = spawnSync(process.execPath, [vueTsc, '--noEmit', '--pretty', 'false', '-p', '.'], {
   cwd: appDir,
   encoding: 'utf8',
   maxBuffer: 64 * 1024 * 1024,

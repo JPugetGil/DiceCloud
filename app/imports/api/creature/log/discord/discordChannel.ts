@@ -18,6 +18,10 @@ export type DiscordChannel = {
   kind?: 'text' | 'forum',
 };
 
+// Of the kinds' own types, for the type the schemas infer, and mutable, as
+// SimpleSchema's types want allowedValues
+const CHANNEL_KINDS: NonNullable<DiscordChannel['kind']>[] = ['text', 'forum'];
+
 // The fields of a connected channel, `true as const`: optional in the type it infers
 export const DISCORD_CHANNEL_FIELDS = {
   webhookId: {
@@ -37,7 +41,7 @@ export const DISCORD_CHANNEL_FIELDS = {
   },
   kind: {
     type: String,
-    allowedValues: ['text', 'forum'],
+    allowedValues: CHANNEL_KINDS,
     optional: true as const,
   },
 };

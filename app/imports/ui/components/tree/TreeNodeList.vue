@@ -34,6 +34,8 @@ import { ref, watch, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 import TreeNode from '/imports/ui/components/tree/TreeNode.vue';
 
+/** @typedef {import('/imports/api/parenting/parentingFunctions').TreeNode<import('/imports/api/parenting/ChildSchema').TreeDoc>} TreeDocNode */
+
 const props = defineProps({
   node: {
     type: Object,
@@ -49,7 +51,7 @@ const props = defineProps({
   },
   organize: Boolean,
   children: {
-    type: Array,
+    type: /** @type {import('vue').PropType<TreeDocNode[]>} */ (Array),
     default: () => [],
   },
   selectedNode: {
@@ -61,6 +63,7 @@ const props = defineProps({
 
 const emit = defineEmits(['selected', 'move-within-root', 'move-between-roots']);
 
+/** @type {import('vue').Ref<TreeDocNode[]>} */
 const displayedChildren = ref([]);
 
 

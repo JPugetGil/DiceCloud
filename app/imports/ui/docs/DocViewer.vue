@@ -122,11 +122,11 @@ const props = defineProps({
     default: undefined,
   },
   childDocs: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     required: true,
   },
   siblingDocs: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     required: true,
   },
 });

@@ -136,12 +136,12 @@ const userSchema = new SimpleSchema({
   // (see imports/api/utility/units)
   'preferences.distanceUnit': {
     type: String,
-    allowedValues: DISTANCE_UNITS,
+    allowedValues: [...DISTANCE_UNITS],
     optional: true,
   },
   'preferences.weightUnit': {
     type: String,
-    allowedValues: WEIGHT_UNITS,
+    allowedValues: [...WEIGHT_UNITS],
     optional: true,
   },
   // The Discord account linked to this one (D5): its id and the name to show,

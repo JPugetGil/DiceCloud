@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 
@@ -41,7 +41,7 @@ defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 </script>
 
 <style lang="css" scoped>

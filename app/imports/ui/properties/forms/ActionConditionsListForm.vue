@@ -32,8 +32,8 @@ import ActionConditionForm from '/imports/ui/properties/forms/ActionConditionFor
 
 defineProps({
   model: {
-    type: [Object, Array],
-    default: () => ({}),
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
+    default: () => [],
   },
 });
 

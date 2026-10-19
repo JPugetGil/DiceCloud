@@ -55,7 +55,9 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { useTheme } from 'vuetify';
 
 import CardHighlight from '/imports/ui/components/CardHighlight.vue';
@@ -77,7 +79,7 @@ const props = defineProps({
 });
 
 const theme = useThemeState();
-const context = inject('context', {});
+const context = useContext();
 
 const vuetifyTheme = useTheme();
 
@@ -103,8 +105,9 @@ const accentColor = computed(() => {
   }
 });
 
+// The card, whose buttons call these, shows only with a slot
 function fillSlot() {
-  const slotId = props.model._id;
+  const slotId = /** @type {Record<string, any>} */ (props.model)._id;
   dialogStackStore.pushDialogStack({
     component: 'slot-fill-dialog',
     elementId: `slot-card-${slotId}`,
@@ -124,7 +127,7 @@ function fillSlot() {
         });
       } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason || error.message || error.toString() });
+        snackbar({ text: errorText(error) });
       }
     },
   });
@@ -133,13 +136,13 @@ function fillSlot() {
 async function ignoreProp() {
   try {
     await updateCreatureProperty.callAsync({
-      _id: props.model._id,
+      _id: /** @type {Record<string, any>} */ (props.model)._id,
       path: ['ignored'],
       value: true,
     });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

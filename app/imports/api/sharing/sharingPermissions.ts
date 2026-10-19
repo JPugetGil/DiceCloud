@@ -93,7 +93,7 @@ export async function assertEditPermission(doc: Shared | undefined, userId: stri
  *
  * Warning: the doc and userId must be set by a trusted source
  */
-export async function assertCopyPermission(doc: Shared, userId): Promise<void> {
+export async function assertCopyPermission(doc: Shared | undefined, userId): Promise<void> {
   assertIdValid(userId);
   assertDocExists(doc);
   const user = await Meteor.users.findOneAsync(userId, {

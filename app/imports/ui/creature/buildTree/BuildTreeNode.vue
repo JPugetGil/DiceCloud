@@ -122,13 +122,15 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 /**
 * TreeNode's are list item views of character properties. Every property which
 * can belong to the character is shown in the tree view of the character
 * the tree view shows off the full character structure, and where each part of
 * character comes from.
 **/
-import { ref, computed, watch, inject } from 'vue';
+import { ref, computed, watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import TreeNodeView from '/imports/ui/properties/treeNodeViews/TreeNodeView.vue';
 import FillSlotButton from '/imports/ui/creature/buildTree/FillSlotButton.vue';
 import BuildTreeNodeList from './BuildTreeNodeList.vue';
@@ -153,8 +155,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  // Property documents of any type, marked by the tab that builds the tree (_canFill...)
   children: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/parenting/parentingFunctions').TreeNode<Record<string, any>>[]>} */ (Array),
     default: () => [],
   },
   parentSlotId: {
@@ -165,7 +168,7 @@ const props = defineProps({
 
 defineEmits(['selected']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const expanded = ref(props.depth <= 2);
 
@@ -249,7 +252,7 @@ async function remove(model) {
     await softRemoveProperty.callAsync({ _id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     return;
   }
   snackbar({

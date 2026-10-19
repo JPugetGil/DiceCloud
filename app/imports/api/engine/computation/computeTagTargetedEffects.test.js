@@ -6,6 +6,8 @@ import {
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 
+/** @typedef {import('/imports/api/engine/action/functions/actionEngineTest.testFn').TestCreature} TestCreature */
+
 describe('Apply Action Properties', function () {
   // Increase timeout
   this.timeout(8000);
@@ -19,6 +21,7 @@ describe('Apply Action Properties', function () {
       creatureId, singleEffectAttId, tag1Effect
     ] = getRandomIds(100);
 
+    /** @type {TestCreature} */
     const testCreature = {
       _id: creatureId,
       props: [
@@ -43,7 +46,7 @@ describe('Apply Action Properties', function () {
     await createTestCreature(testCreature);
 
     const singleEffectAtt = await CreatureProperties.findOneAsync(singleEffectAttId);
-    assert.equal(singleEffectAtt.value, 12, 'The attribute should have the correct value after the effect is applied');
+    assert.equal(singleEffectAtt?.value, 12, 'The attribute should have the correct value after the effect is applied');
   });
 
   it('Should apply a multiple tag targeted effects, ignoring overridden attributes', async function () {
@@ -51,6 +54,7 @@ describe('Apply Action Properties', function () {
       creatureId, multipleEffectsAttId, tag1Effect, overriddenAttId
     ] = getRandomIds(100);
 
+    /** @type {TestCreature} */
     const testCreature = {
       _id: creatureId,
       props: [
@@ -83,6 +87,6 @@ describe('Apply Action Properties', function () {
     await createTestCreature(testCreature);
 
     const singleEffectAtt = await CreatureProperties.findOneAsync(multipleEffectsAttId);
-    assert.equal(singleEffectAtt.value, 26, 'The attribute should have the correct value after the effect is applied');
+    assert.equal(singleEffectAtt?.value, 26, 'The attribute should have the correct value after the effect is applied');
   });
 });

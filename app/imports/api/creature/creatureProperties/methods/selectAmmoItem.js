@@ -21,6 +21,7 @@ const selectAmmoItem = new ValidatedMethod({
   async run({ actionId, itemId, itemConsumedIndex }) {
     // Permissions
     let action = await CreatureProperties.findOneAsync(actionId);
+    if (!action) throw new Meteor.Error('not-found', 'Action not found');
     let rootCreature = await getRootCreatureAncestor(action);
     await assertEditPermission(rootCreature, this.userId);
 

@@ -37,7 +37,8 @@ const { result: children } = autorun(() => {
   const collection = getCollectionByName(props.collection);
   const docs = collection.find({
     removed: { $ne: true },
-    ...getFilter.descendants(props.model),
+    // A tree document: a property or a library node, as `collection` says
+    ...getFilter.descendants(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)),
   }, {
     sort: { left: 1 }
   }).fetch();

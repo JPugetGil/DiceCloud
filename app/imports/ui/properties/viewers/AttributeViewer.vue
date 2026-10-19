@@ -137,7 +137,8 @@
 </template>
 
 <script setup>
-import { inject, ref, computed } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import numberToSignedString from '../../../api/utility/numberToSignedString';
 import AttributeEffect from '/imports/ui/properties/components/attributes/AttributeEffect.vue';
 import IncrementButton from '/imports/ui/components/IncrementButton.vue';
@@ -165,7 +166,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 // A distance or weight, shown in the user's units
 const unit = computed(() => getAttributeUnit(props.model));
@@ -233,7 +234,7 @@ async function damageProperty({ type, value }) {
         title: getPropertyTitle(model),
         operation: type,
         value,
-        targetProp: model,
+        targetProp: /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['attribute']} */ (model),
       },
     },
   }).catch((error) => {

@@ -100,14 +100,14 @@ import toPrimitiveOrString from '/imports/parser/toPrimitiveOrString';
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
 });
 
 const emit = defineEmits(['change']);
 
-const estimatedCost = ref(undefined);
+const estimatedCost = ref(/** @type {number | undefined} */ (undefined));
 
 const useEstimate = ref(false);
 

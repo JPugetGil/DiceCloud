@@ -39,7 +39,7 @@ import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {
@@ -51,7 +51,8 @@ const props = defineProps({
 const emit = defineEmits(['change']);
 
 const clientErrors = computed(() => {
-  let cleanModel = ConstantSchema.clean(props.model);
+  // clean() checks nothing: the cleaned model is a constant as far as the form knows
+  let cleanModel = /** @type {Record<string, any>} */ (ConstantSchema.clean(props.model));
   return cleanModel.errors;
 });
 

@@ -259,11 +259,18 @@ const props = defineProps({
 
 const goTo = useGoTo();
 
-const selectedSlotId = ref(undefined);
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
+
+// A slot's id, or 'no-slot' or 'ritual' (castingSlots.ts)
+const selectedSlotId = ref(/** @type {string | undefined} */ (undefined));
 const selectedSpellId = ref(props.spellId);
+// Typed as refs: inferring them unwraps the property types, which took the
+// type check half a minute
+/** @type {import('vue').Ref<CreaturePropertyTypes['attribute'] | undefined>} */
 const selectedSlot = ref(undefined);
+/** @type {import('vue').Ref<CreaturePropertyTypes['spell'] | undefined>} */
 const selectedSpell = ref(undefined);
-const searchValue = ref(undefined);
+const searchValue = ref(/** @type {string | undefined} */ (undefined));
 const searchError = ref(undefined);
 const filterMenuOpen = ref(false);
 const booleanFilters = ref({
@@ -344,7 +351,7 @@ const filtersApplied = computed(() => {
 });
 
 watch(selectedSpellId, (spellId) => {
-  selectedSpell.value = CreatureProperties.findOne(spellId);
+  selectedSpell.value = /** @type {CreaturePropertyTypes['spell'] | undefined} */ (CreatureProperties.findOne(spellId));
 }, { immediate: true });
 
 watch(selectedSpell, (spell) => {
@@ -362,13 +369,13 @@ watch(selectedSpell, (spell) => {
 }, { immediate: true });
 
 watch(selectedSlotId, (slotId) => {
-  selectedSlot.value = CreatureProperties.findOne(slotId);
+  selectedSlot.value = /** @type {CreaturePropertyTypes['attribute'] | undefined} */ (CreatureProperties.findOne(slotId));
 }, { immediate: true });
 
 watch(selectedSlot, (slot) => {
   if (!slot) return;
   if (!selectedSpell.value) return;
-  if (selectedSpell.value.level > slot.spellSlotLevel?.value) {
+  if (selectedSpell.value.level > Number(slot.spellSlotLevel?.value)) {
     selectedSpellId.value = undefined;
   }
 }, { immediate: true });
@@ -397,6 +404,7 @@ const targetsReady = autorun(() => (targetParties.value || [])
   .map(party => Meteor.subscribe('partyBoard', party._id))
   .every(handle => handle.ready())).result;
 const targetCandidateList = autorun(() => targetCandidates(props.creatureId, targetParties.value || [])).result;
+/** @type {import('vue').Ref<string[]>} */
 const targetIds = ref([]);
 watch([selectedSpellId, targetsReady], ([spellId, ready]) => {
   if (!ready) return;

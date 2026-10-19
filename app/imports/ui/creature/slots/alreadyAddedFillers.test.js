@@ -18,7 +18,8 @@ describe('The fillers a slot already holds (alreadyAddedFillers)', function () {
 
   before(async function () {
     if (!Meteor.isServer) this.skip();
-    await CreatureProperties.rawCollection().insertMany([
+    // Partial documents, inserted raw: only the fields the selectors read
+    await CreatureProperties.rawCollection().insertMany(/** @type {any[]} */ ([
       { _id: featSlotId, type: 'propertySlot', name: 'Feat', unique: 'uniqueInSlot', root, left: 1, right: 6 },
       // Alert in this slot, and Tough removed from it
       { _id: alertCopyId, type: 'feature', name: 'Alert', libraryNodeId: alertNodeId, parentId: featSlotId, root, left: 2, right: 3 },
@@ -29,7 +30,7 @@ describe('The fillers a slot already holds (alreadyAddedFillers)', function () {
       // Lucky in another slot of the creature
       { _id: otherSlotId, type: 'propertySlot', name: 'Bonus feat', root, left: 7, right: 10 },
       { _id: luckyCopyId, type: 'feature', name: 'Lucky', libraryNodeId: luckyNodeId, parentId: otherSlotId, root, left: 8, right: 9 },
-    ]);
+    ]));
   });
 
   after(async function () {
@@ -59,8 +60,12 @@ describe('The fillers a slot already holds (alreadyAddedFillers)', function () {
   it('a reference counts as the node it names, whose copy the slot holds', function () {
     const addedIds = new Set([alertNodeId]);
     assert.isTrue(isAlreadyAdded({ _id: alertNodeId }, addedIds));
-    assert.isTrue(isAlreadyAdded({ _id: Random.id(), type: 'reference', cache: { node: { _id: alertNodeId } } }, addedIds));
-    assert.isFalse(isAlreadyAdded({ _id: Random.id(), type: 'reference', cache: { error: 'Not found' } }, addedIds));
+    // As stored: the cache keeps the node's name, type, level and value, not its id
+    const reference = { _id: Random.id(), type: 'reference', ref: { id: alertNodeId, collection: 'libraryNodes' } };
+    const cached = { ...reference, cache: { node: { name: 'Alert', type: 'feature' } } };
+    assert.isTrue(isAlreadyAdded(cached, addedIds));
+    const toAnother = { ...reference, ref: { id: luckyNodeId, collection: 'libraryNodes' } };
+    assert.isFalse(isAlreadyAdded(toAnother, addedIds));
     assert.isFalse(isAlreadyAdded({ _id: luckyNodeId }, addedIds));
   });
 });

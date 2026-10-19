@@ -62,7 +62,7 @@ const props = defineProps({
   },
 });
 
-const inputName = ref(undefined);
+const inputName = ref(/** @type {string | undefined} */ (undefined));
 
 const dialogStackStore = useDialogStackStore();
 

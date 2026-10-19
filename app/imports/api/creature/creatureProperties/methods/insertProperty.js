@@ -7,6 +7,9 @@ import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { fetchDocByRef, rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 import { RefSchema } from '/imports/api/parenting/ChildSchema';
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+
 const insertProperty = new ValidatedMethod({
   name: 'creatureProperties.insert',
   validate: new SimpleSchema({
@@ -22,14 +25,17 @@ const insertProperty = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ creatureProperty, parentRef }) {
+    /** @type {Creature} */
     let rootCreature;
+    /** @type {Creature | CreatureProperty} */
     const parentDoc = await fetchDocByRef(parentRef);
 
     // Check permission to edit
     if (parentRef.collection === 'creatures') {
-      rootCreature = parentDoc;
+      rootCreature = /** @type {Creature} */ (parentDoc);
     } else if (parentRef.collection === 'creatureProperties') {
-      rootCreature = await getRootCreatureAncestor(parentDoc);
+      // Found: assertEditPermission throws otherwise
+      rootCreature = /** @type {Creature} */ (await getRootCreatureAncestor(parentDoc));
       creatureProperty.parentId = parentDoc._id;
     } else {
       throw `${parentRef.collection} is not a valid parent collection`

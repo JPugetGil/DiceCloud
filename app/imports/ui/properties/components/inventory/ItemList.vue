@@ -35,7 +35,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, inject } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import useReducedMotion from '/imports/ui/composables/useReducedMotion';
 import { DURATION } from '/imports/ui/utility/motion';
 import draggable from 'vuedraggable';
@@ -60,7 +62,7 @@ const props = defineProps({
   equipment: Boolean,
 });
 
-const context = inject('context', {});
+const context = useContext();
 const reducedMotion = useReducedMotion();
 
 // The item just dropped, tinted for a moment
@@ -102,8 +104,8 @@ async function change({ added, moved }) {
   let order;
   const beforeId = dataItems.value[event.newIndex - 1];
   const afterId = dataItems.value[event.newIndex + 1];
-  const before = beforeId && CreatureProperties.findOne(beforeId);
-  const after = afterId && CreatureProperties.findOne(afterId);
+  const before = beforeId ? CreatureProperties.findOne(beforeId) : undefined;
+  const after = afterId ? CreatureProperties.findOne(afterId) : undefined;
   if (before) {
     order = before.right + 0.5;
   } else if (after) {
@@ -134,7 +136,7 @@ async function change({ added, moved }) {
   } catch (error) {
     dataItems.value = props.itemIds;
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

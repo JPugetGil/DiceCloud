@@ -12,7 +12,7 @@
         :data-id="prop._id"
       >
         <v-expansion-panel-title>
-          <template #default="{ open }">
+          <template #default="{ expanded }">
             <v-checkbox
               v-model="model"
               class="my-0 py-0 mr-2 flex-grow-0"
@@ -22,7 +22,7 @@
               @click.stop
             />
             <tree-node-view :model="prop" />
-            <template v-if="open">
+            <template v-if="expanded">
               <v-spacer />
               <v-btn
                 variant="text"
@@ -55,11 +55,13 @@ import TreeNodeView from '/imports/ui/properties/treeNodeViews/TreeNodeView.vue'
 import PropertyViewer from '/imports/ui/properties/shared/PropertyViewer.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+
 const dialogStackStore = useDialogStackStore();
 
 const props = defineProps({
   choices: {
-    type: Array,
+    type: /** @type {import('vue').PropType<CreatureProperty[]>} */ (Array),
     required: true,
   },
   quantity: {
@@ -70,7 +72,7 @@ const props = defineProps({
 
 // The ids of the chosen properties
 const model = defineModel({
-  type: Array,
+  type: /** @type {import('vue').PropType<string[]>} */ (Array),
   default: () => [],
 });
 

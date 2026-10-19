@@ -101,6 +101,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, reactive, watch, onBeforeUnmount } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Tracker } from 'meteor/tracker';
@@ -133,10 +134,10 @@ const props = defineProps({
 const QUICK_DICE = [4, 6, 8, 10, 12, 20];
 const advantage = ref(0);
 
-const inputHint = ref(undefined);
-const inputError = ref(undefined);
-const input = ref(undefined);
-const history = ref([]);
+const inputHint = ref(/** @type {string | undefined} */ (undefined));
+const inputError = ref(/** @type {string | undefined} */ (undefined));
+const input = ref(/** @type {string | undefined} */ (undefined));
+const history = ref(/** @type {string[]} */ ([]));
 const historyIndex = ref(1);
 const submitLoading = ref(false);
 
@@ -191,7 +192,7 @@ async function rollDie(size) {
   try {
     await sendRoll(`1d${size}`);
   } catch (error) {
-    inputError.value = error.message || error.toString();
+    inputError.value = errorText(error);
     console.error(error);
   }
 }
@@ -206,7 +207,7 @@ async function submit() {
     input.value = '';
     inputError.value = undefined;
   } catch (error) {
-    inputError.value = error.message || error.toString();
+    inputError.value = errorText(error);
     console.error(error);
   } finally {
     submitLoading.value = false;
@@ -286,7 +287,7 @@ const { result: variables } = autorun(() => {
 });
 
 const { result: editPermission } = autorun(() => {
-  return hasEditPermission(creature.value, Meteor.user());
+  return hasEditPermission(/** @type {import('/imports/api/sharing/SharingSchema').Shared} */ (creature.value), Meteor.user());
 });
 
 // The encounters under way of the character's parties, as `folderId:id`:

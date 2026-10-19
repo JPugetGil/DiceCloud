@@ -37,7 +37,6 @@
               ]"
               :model-value="model.tab"
               :error-messages="errors.tab"
-              :menu-props="{auto: true, lazy: true}"
               @change="(value, ack) => changeTab('tab', value, ack)"
             />
             <smart-select
@@ -46,7 +45,6 @@
               :items="locationItems"
               :model-value="model.location"
               :error-messages="errors.location"
-              :menu-props="{auto: true, lazy: true}"
               @change="(value, ack) => change('location', value, ack)"
             />
           </div>
@@ -68,7 +66,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

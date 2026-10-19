@@ -52,6 +52,7 @@ const props = defineProps({
 
 const model = autorun(() => Creatures.findOne(props._id)).result;
 
+/** @param {{ path: string[], value: any, ack?: (error?: unknown) => void }} arg */
 async function change({ path, value, ack }) {
   try {
     await updateCreature.callAsync({ _id: props._id, path, value });
@@ -60,7 +61,7 @@ async function change({ path, value, ack }) {
     }
   } catch (error) {
     if (ack) {
-      ack(error && error.reason || error)
+      ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error)
     } else {
       console.error(error)
     }

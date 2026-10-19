@@ -190,6 +190,7 @@
 </template>
 
 <script setup lang="js">
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useRouter } from 'vue-router';
@@ -227,7 +228,8 @@ const { xs } = useDisplay();
 const router = useRouter();
 
 const { result: folders } = autorun(() => {
-  const userId = Meteor.userId();
+  // Signed out, no creature or folder is published for it to match
+  const userId = /** @type {string} */ (Meteor.userId());
   let folders = CreatureFolders.find(
     { owner: userId, archived: { $ne: true } },
     { sort: { name: 1 } },
@@ -246,7 +248,8 @@ const { result: folders } = autorun(() => {
 });
 
 const { result: CreaturesWithNoParty } = autorun(() => {
-  var userId = Meteor.userId();
+  // Signed out, no creature or folder is published for it to match
+  var userId = /** @type {string} */ (Meteor.userId());
   var charArrays = CreatureFolders.find({ owner: userId }).map(p => p.creatures);
   var folderChars = uniq(flatten(charArrays));
   return Creatures.find(
@@ -351,7 +354,7 @@ const characterLimit = computed(() => permissions.value.characterLimit);
 // Player characters only, as the server counts them: a party board's monsters
 // may be in minimongo too
 const { result: ownedCharacterCount } = autorun(() => {
-  return Creatures.find({ owner: Meteor.userId(), type: 'pc' }).count();
+  return Creatures.find({ owner: /** @type {string} */ (Meteor.userId()), type: 'pc' }).count();
 });
 
 function checkCharacterLimit() {
@@ -399,7 +402,7 @@ async function insertFolder() {
   } catch (error) {
     console.error(error);
     snackbar({
-      text: error.reason,
+      text: errorText(error),
     });
   } finally {
     loadingInsertFolder.value = false;

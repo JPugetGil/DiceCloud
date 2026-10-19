@@ -15,7 +15,6 @@
         :color="errorColor(error.type)"
         class="mb-2"
         density="compact"
-        text
       >
         <pre class="my-0">{{ error.message }}</pre>
       </v-alert>
@@ -28,7 +27,8 @@ import { computed } from 'vue';
 
 const props = defineProps({
   errors: {
-    type: Array,
+    // A calculation's errors: { type, message }
+    type: /** @type {import('vue').PropType<{ type: string, message: string }[]>} */ (Array),
     default: undefined,
   },
 });

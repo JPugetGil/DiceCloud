@@ -564,7 +564,8 @@ const plain = field => {
   return (text || '').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
 };
 
-const proficiencyRows = computed(() => [
+// The rows left once empty ones are dropped
+const proficiencyRows = computed(() => /** @type {{ label: string, value: string }[]} */ ([
   { label: t('officialSheet.armor'), value: data.armorProficiencies.value.join(', ') },
   { label: t('officialSheet.weapons'), value: data.weaponProficiencies.value.join(', ') },
   { label: t('officialSheet.tools'), value: data.toolProficiencies.value.join(', ') },
@@ -573,7 +574,7 @@ const proficiencyRows = computed(() => [
     label: t('officialSheet.senses'),
     value: `${data.darkvision.value.name} ${formatQuantity(data.darkvision.value.value, 'distance')}`,
   },
-].filter(row => row && row.value));
+].filter(row => row && row.value)));
 
 // The spell lists that cast: an ability, a DC or an attack bonus
 const abilityName = autorun(() => {

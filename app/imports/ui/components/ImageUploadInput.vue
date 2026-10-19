@@ -45,6 +45,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, watch, onMounted } from 'vue';
 import UserImages from '/imports/api/files/userImages/UserImages';
 import getThumbHash from '/imports/ui/utility/getThumbHash.js';
@@ -60,12 +61,12 @@ const props = defineProps({
 const emit = defineEmits(['uploaded']);
 
 const progress = ref(0);
-const file = ref(undefined);
+const file = ref(/** @type {File | undefined} */ (undefined));
 const uploadingInProgress = ref(false);
-const fileUploadError = ref(undefined);
+const fileUploadError = ref(/** @type {string | undefined} */ (undefined));
 const uploadIndeterminate = ref(false);
 
-const hiddenFileInput = ref(null);
+const hiddenFileInput = ref(/** @type {HTMLInputElement | null} */ (null));
 
 watch(file, async (newFile) => {
   if (!newFile) return;
@@ -126,7 +127,7 @@ watch(file, async (newFile) => {
   try {
     uploadInstance.start(); // Must manually start the upload
   } catch (error) {
-    fileUploadError.value = error.reason || error.message || error.toString();
+    fileUploadError.value = errorText(error);
     resetState();
   }
 });

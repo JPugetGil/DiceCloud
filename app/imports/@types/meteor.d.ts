@@ -36,6 +36,9 @@ declare module 'meteor/meteor' {
     }
     // The DDP server: publication strategies (startup/server/publicationStrategies.js)
     const server: { setPublicationStrategy(collectionName: string, strategy: object): void, [key: string]: any };
+    // bozhao:link-accounts: links a Google account to the signed in user
+    function linkWithGoogle(options?: object, callback?: (error?: Meteor.Error | Error) => void): void;
+    function linkWithGoogle(callback: (error?: Meteor.Error | Error) => void): void;
   }
 }
 

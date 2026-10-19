@@ -25,12 +25,14 @@ export function alreadyAddedSelector(slot, creatureId) {
 
 /**
  * Whether a filler is among the added library nodes' ids: the node itself,
- * or for a reference, the node it names, which is what its copy comes from
- * @param {{ _id: string, type?: string, cache?: { node?: { _id?: string }, error?: string } }} node
+ * or for a reference, the node it names (`ref`), which is what its copy comes
+ * from. It read the id in the reference's cache, which its schema doesn't
+ * keep: an added reference was never found
+ * @param {{ _id: string, type?: string, ref?: { id?: string } }} node
  * @param {Set<string>} addedIds
  */
 export function isAlreadyAdded(node, addedIds) {
   if (addedIds.has(node._id)) return true;
-  const referenced = node.type === 'reference' ? node.cache?.node?._id : undefined;
+  const referenced = node.type === 'reference' ? node.ref?.id : undefined;
   return !!referenced && addedIds.has(referenced);
 }

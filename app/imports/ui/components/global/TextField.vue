@@ -31,7 +31,8 @@
 </template>
 
 <script setup lang="js">
-import { ref, computed, watch, inject, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, watch, onBeforeUnmount, nextTick } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { debounce as debounceFn } from 'lodash';
 import { useI18n } from 'vue-i18n';
 import { smartInputModel } from '/imports/ui/composables/useSmartInput';
@@ -45,7 +46,7 @@ defineOptions({
 const props = defineProps({
   regular: Boolean,
   errorMessages: {
-    type: [String, Array],
+    type: /** @type {import('vue').PropType<string | string[]>} */ ([String, Array]),
     default: undefined,
   },
   disabled: Boolean,
@@ -66,16 +67,16 @@ const model = defineModel(smartInputModel);
 
 const emit = defineEmits(['keyup', 'change']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const error = ref(false);
-const ackErrors = ref(null);
+const ackErrors = ref(/** @type {string | null} */ (null));
 const focused = ref(false);
 const loading = ref(false);
 const dirty = ref(false);
 const safeValue = ref(model.value);
 
-const inputRef = ref(null);
+const inputRef = ref(/** @type {InstanceType<typeof import('vuetify/components').VTextField> | null} */ (null));
 
 const errors = computed(() => {
   let errs = ackErrors.value ? [ackErrors.value] : [];

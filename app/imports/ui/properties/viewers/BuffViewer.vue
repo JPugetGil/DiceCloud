@@ -59,7 +59,8 @@ const rounds = computed(() => buffDurationRounds(props.model));
 const durationText = computed(() => {
   const written = props.model.duration?.calculation?.trim();
   if (rounds.value === undefined) return written;
-  const left = buffRoundsLeft(props.model);
+  // Defined whenever the rounds are
+  const left = /** @type {number} */ (buffRoundsLeft(props.model));
   const text = written || t('combat.rounds', { count: rounds.value }, rounds.value);
   return props.model.durationSpent ? `${text} · ${t('combat.roundsLeft', { count: left }, left)}` : text;
 });

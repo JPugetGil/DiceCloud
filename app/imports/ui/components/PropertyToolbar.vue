@@ -186,7 +186,8 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import useUserSurface from '/imports/ui/composables/useUserSurface';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
@@ -238,7 +239,7 @@ const props = defineProps({
 
 defineEmits(['duplicate', 'copy', 'make-reference', 'move', 'copy-to-library', 'remove', 'toggle-editing']);
 
-const context = inject('context', {});
+const context = useContext();
 
 
 const color = computed(() => {

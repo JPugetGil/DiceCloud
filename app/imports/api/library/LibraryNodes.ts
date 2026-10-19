@@ -15,7 +15,7 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { restore } from '/imports/api/parenting/softRemove';
 import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
-import type { ConvertToUnion, InferType} from '/imports/api/utility/TypedSimpleSchema';
+import type { ConvertToUnion, InferType, StrictUnion } from '/imports/api/utility/TypedSimpleSchema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
 import type { Simplify } from 'type-fest';
@@ -111,7 +111,7 @@ export type LibraryNodeTypes = {
   >
 }
 
-export type LibraryNode = ConvertToUnion<LibraryNodeTypes>;
+export type LibraryNode = StrictUnion<ConvertToUnion<LibraryNodeTypes>>;
 
 const LibraryNodes = new Mongo.Collection<LibraryNode>('libraryNodes');
 
@@ -227,10 +227,11 @@ const updateLibraryNode = new ValidatedMethod({
     } else {
       modifier = { $set: { [pathString]: value } };
     }
+    // Found: assertDocEditPermission throws otherwise
     const numUpdated = await LibraryNodes.updateAsync(_id, modifier, {
-      selector: { type: node.type },
+      selector: { type: node!.type },
     });
-    if (node.type == 'reference') {
+    if (node!.type == 'reference') {
       node = await LibraryNodes.findOneAsync(_id);
       await updateReferenceNodeWork(node, this.userId);
     }
@@ -252,7 +253,8 @@ const pushToLibraryNode = new ValidatedMethod({
     return await LibraryNodes.updateAsync(_id, {
       $push: { [path.join('.')]: value },
     }, {
-      selector: { type: node.type },
+      // Found: assertDocEditPermission throws otherwise
+      selector: { type: node!.type },
     });
   }
 });
@@ -272,7 +274,8 @@ const pullFromLibraryNode = new ValidatedMethod({
     return await LibraryNodes.updateAsync(_id, {
       $pull: { [path.join('.')]: { _id: itemId } },
     } as any, {
-      selector: { type: node.type },
+      // Found: assertDocEditPermission throws otherwise
+      selector: { type: node!.type },
       getAutoValues: false,
     });
   }

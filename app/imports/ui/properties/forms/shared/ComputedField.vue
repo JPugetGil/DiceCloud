@@ -129,7 +129,8 @@ const errorList = computed(() => {
 // move, Enter or Tab to insert it, Escape to close
 const suggestions = useFormulaSuggestions();
 const listId = `formula-suggestions-${useId()}`;
-const inputWrapper = ref(null);
+const inputWrapper = ref(/** @type {HTMLElement | null} */ (null));
+/** @type {import('vue').Ref<import('/imports/ui/properties/forms/shared/formulaSuggestions').FormulaSuggestion[]>} */
 const shown = ref([]);
 const activeIndex = ref(0);
 const listPosition = ref({});

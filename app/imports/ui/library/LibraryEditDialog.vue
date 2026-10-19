@@ -114,6 +114,7 @@
 </template>
 
 <script setup lang="js">
+import errorText from '/imports/api/utility/errorText';
 import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -147,12 +148,12 @@ const { ready: softRemovedLibraryNodesReady } = subscribe(() => ['softRemovedLib
 const model = autorun(() => Libraries.findOne(props._id)).result;
 
 const removedDocs = autorun(() => LibraryNodes.find({
-  ...getFilter.descendantsOfRoot(props._id),
+  ...getFilter.descendantsOfRoot(/** @type {string} */ (props._id)),
   removed: true,
   removedWith: { $exists: false },
 }, {
   sort: { left: 1 },
-})).result;
+}).fetch()).result;
 
 const canEdit = autorun(() => !!model.value && hasEditPermission(model.value, Meteor.user())).result;
 
@@ -172,7 +173,7 @@ async function updateName(value, ack) {
     await updateLibraryName.callAsync({ _id: props._id, name: value });
     ack();
   } catch (error) {
-    ack(error && error.reason || error);
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
   }
 }
 
@@ -181,7 +182,7 @@ async function updateDescription(value, ack) {
     await updateLibraryDescription.callAsync({ _id: props._id, description: value });
     ack();
   } catch (error) {
-    ack(error && error.reason || error);
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
   }
 }
 
@@ -190,7 +191,7 @@ async function updateShowInMarket(value, ack) {
     await updateLibraryShowInMarket.callAsync({ _id: props._id, value });
     ack();
   } catch (error) {
-    ack(error && error.reason || error);
+    ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
   }
 }
 
@@ -212,7 +213,7 @@ function remove() {
       } catch (error) {
         console.error(error);
         snackbar({
-          text: error.reason,
+          text: errorText(error),
         });
       }
     }
@@ -237,7 +238,7 @@ async function restore(_id) {
     await restoreLibraryNode.callAsync({ _id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

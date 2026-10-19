@@ -19,7 +19,7 @@ export const useAppStore = defineStore('app', {
     // Docs writers switch the documentation pages between reading and editing
     editingDocs: false,
     // The character whose sheet has loaded: its log rolls in only newer entries
-    loadedCharacterId: undefined,
+    loadedCharacterId: /** @type {string | undefined} */ (undefined),
   }),
   getters: {
     tabById: (state) => (id) => {

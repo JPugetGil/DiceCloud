@@ -20,6 +20,7 @@ const flipToggle = new ValidatedMethod({
     let property = await CreatureProperties.findOneAsync(_id, {
       fields: { type: 1, root: 1, enabled: 1, disabled: 1 }
     });
+    if (!property) throw new Meteor.Error('not-found', 'Property not found');
     if (property.type !== 'toggle') {
       throw new Meteor.Error('wrong property',
         'This method can only be applied to toggles');

@@ -169,6 +169,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -198,9 +199,11 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+
 const props = defineProps({
   model: {
-    type: Object,
+    type: /** @type {import('vue').PropType<Creature>} */ (Object),
     default: () => ({}),
   },
 });
@@ -210,7 +213,8 @@ const emit = defineEmits(['change']);
 const libraryCollections = ref(props.model.allowedLibraryCollections);
 const libraries = ref(props.model.allowedLibraries);
 const libraryWriteLoading = ref(false);
-const libraryWriteError = ref(undefined);
+// Its text: Vue wrote the error object out ("Error: … [code]")
+const libraryWriteError = ref(/** @type {string | undefined} */ (undefined));
 const dirty = ref(false); // If there are pending changes
 
 const allUserLibraries = computed(() => {
@@ -235,7 +239,7 @@ const updateAllowedLibraryCollections = debounce(async () => {
     });
     libraryWriteError.value = undefined;
   } catch (error) {
-    libraryWriteError.value = error;
+    libraryWriteError.value = errorText(error);
   } finally {
     libraryWriteLoading.value = false;
   }
@@ -251,7 +255,7 @@ const updateAllowedLibraries = debounce(async () => {
     });
     libraryWriteError.value = undefined;
   } catch (error) {
-    libraryWriteError.value = error;
+    libraryWriteError.value = errorText(error);
   } finally {
     libraryWriteLoading.value = false;
   }
@@ -344,7 +348,7 @@ const discordHere = computed(() => {
 });
 
 // The pasted webhook: 'save' or 'remove' while its method runs
-const pasteBusy = ref(undefined);
+const pasteBusy = ref(/** @type {'save' | 'remove' | undefined} */ (undefined));
 
 async function runPaste(name, call) {
   pasteBusy.value = name;
@@ -376,7 +380,7 @@ function removePastedWebhook() {
 // "Connect to Discord" (D4), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
 // 'connect' or 'disconnect' while its method runs
-const connectBusy = ref(undefined);
+const connectBusy = ref(/** @type {'connect' | 'disconnect' | undefined} */ (undefined));
 
 async function connectDiscord() {
   connectBusy.value = 'connect';
@@ -409,7 +413,7 @@ async function disconnectDiscord() {
 
 // The party whose webhook is this one, which posts its rolls: asked of the
 // server, which alone knows the party's webhook
-const partyWebhook = ref(null);
+const partyWebhook = ref(/** @type {{ name: string } | null} */ (null));
 watch([discordWebhookId, editPermission], async ([webhookId, canEdit]) => {
   partyWebhook.value = null;
   if (!webhookId || !canEdit) return;

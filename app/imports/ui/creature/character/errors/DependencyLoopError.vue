@@ -68,6 +68,8 @@ const { result: loopProperties } = autorun(() => {
   const propAddresses = props.model.details?.nodes || [];
   const properties = propAddresses.map(propAddress => {
     const [id, ...path] = propAddress.split('.');
+    // With the path of the field in the loop, shown after its name
+    /** @type {(import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty & { path?: string }) | undefined} */
     const prop = CreatureProperties.findOne(id);
     if (prop) {
       prop.path = path && path.join('.');

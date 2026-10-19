@@ -106,7 +106,7 @@ watch(() => !!computedAt.value, (computed, wasComputed) => {
   if (computed && !wasComputed) getReady();
 });
 
-const shown = ref(undefined);
+const shown = ref(/** @type {{ id: number, level: number, lines: string[] } | undefined} */ (undefined));
 let pending;
 let hideTimer;
 let sequence = 0;

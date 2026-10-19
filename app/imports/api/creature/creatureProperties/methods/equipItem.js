@@ -9,6 +9,8 @@ import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
 import getParentByTag from './getParentByTag';
 import { Meteor } from 'meteor/meteor';
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+
 // Equipping or unequipping an item will also change its parent
 const equipItem = new ValidatedMethod({
   name: 'creatureProperties.equip',
@@ -28,7 +30,8 @@ const equipItem = new ValidatedMethod({
     if (!item) throw new Meteor.Error('not-found', 'Item not found');
     if (item.type !== 'item') throw new Meteor.Error('wrong type',
       'Equip and unequip can only be performed on items');
-    let creature = await getRootCreatureAncestor(item);
+    // Found: assertEditPermission throws otherwise
+    let creature = /** @type {Creature} */ (await getRootCreatureAncestor(item));
     await assertEditPermission(creature, this.userId);
     await CreatureProperties.updateAsync(_id, {
       $set: { equipped, dirty: true },

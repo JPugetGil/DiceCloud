@@ -80,8 +80,13 @@ const props = defineProps({
 
 defineEmits(['select']);
 
-const properties = computed(() => {
+/** @typedef {(typeof PROPERTIES)[keyof typeof PROPERTIES] & { libraryOnly?: boolean }} PropertyDefinition */
+/** @typedef {Record<string, PropertyDefinition>} PropertyDefinitions */
+
+const properties = computed(/** @returns {{ suggested?: PropertyDefinitions, more: PropertyDefinitions }} */ () => {
+  /** @type {PropertyDefinitions | undefined} */
   let suggested;
+  /** @type {PropertyDefinitions} */
   let more = {};
   if (props.parentType) {
     for (const key in PROPERTIES) {

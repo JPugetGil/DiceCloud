@@ -48,13 +48,15 @@ import doAction from '/imports/ui/creature/actions/doAction';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+
 /**
  * What the game master does for the whole party at once, on the characters of
  * the board they can edit.
  */
 const props = defineProps({
   creatures: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Creature[]>} */ (Array),
     required: true,
   },
 });

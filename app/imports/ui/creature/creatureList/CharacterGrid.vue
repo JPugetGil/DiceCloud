@@ -149,6 +149,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
@@ -165,11 +166,11 @@ const userSurface = useUserSurface();
 
 const props = defineProps({
   creatures: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     default: () => [],
   },
   folders: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     default: () => [],
   },
   // While searching, folders without a match are left out
@@ -179,6 +180,7 @@ const props = defineProps({
 const { t } = useI18n();
 
 // The characters in no folder, then each folder's
+/** @type {import('vue').ComputedRef<{ key: string, folder?: Record<string, any>, creatures: Record<string, any>[] }[]>} */
 const sections = computed(() => [
   { key: 'no-folder', creatures: props.creatures },
   ...props.folders
@@ -222,7 +224,7 @@ async function dropped({ added }, folder) {
     });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 
@@ -252,7 +254,7 @@ async function rename(folder) {
     await updateCreatureFolderName.callAsync({ _id: folder._id, name });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 
@@ -262,7 +264,7 @@ async function removeFolder(folder) {
     snackbar({ text: t('characterList.folderDeleted', { name: folder.name }) });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

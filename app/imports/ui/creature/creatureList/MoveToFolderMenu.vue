@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
 import { useI18n } from 'vue-i18n';
@@ -91,7 +92,7 @@ async function move(folder) {
     await moveCreatureToFolder.callAsync({ creatureId, folderId: folder?._id || null });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
     return;
   }
   snackbar({
@@ -111,7 +112,7 @@ async function moveToNewFolder() {
     await move(folder || { _id, name: '' });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

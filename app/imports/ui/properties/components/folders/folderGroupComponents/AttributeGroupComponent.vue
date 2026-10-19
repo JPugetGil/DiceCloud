@@ -104,7 +104,7 @@ async function damageProperty({ value, type, ack }) {
         title: getPropertyTitle(model),
         operation: type,
         value,
-        targetProp: model,
+        targetProp: /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['attribute']} */ (model),
       },
     },
   }).then(() => {

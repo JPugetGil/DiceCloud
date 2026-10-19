@@ -6,6 +6,9 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
 
+// The docRefs name documents that carry their own sharing: creatures, libraries...
+/** @typedef {import('/imports/api/sharing/SharingSchema').Shared} Shared */
+
 const setPublic = new ValidatedMethod({
   name: 'sharing.setPublic',
   validate: new SimpleSchema({
@@ -18,6 +21,7 @@ const setPublic = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ docRef, isPublic }) {
+    /** @type {Shared} */
     let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
     return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
@@ -38,6 +42,7 @@ const setReadersCanCopy = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ docRef, readersCanCopy }) {
+    /** @type {Shared} */
     let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
     return await getCollectionByName(docRef.collection).updateAsync(docRef.id, {
@@ -65,6 +70,7 @@ const updateUserSharePermissions = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ docRef, userId, role }) {
+    /** @type {Shared} */
     let doc = await fetchDocByRef(docRef);
     if (role === 'none') {
       // only assert ownership if you aren't removing yourself
@@ -109,6 +115,7 @@ const transferOwnership = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ docRef, userId }) {
+    /** @type {Shared} */
     let doc = await fetchDocByRef(docRef);
     assertOwnership(doc, this.userId);
 

@@ -31,6 +31,11 @@ const dark = themes.dark.colors;
 
 cytoscape.use(klay);
 
+// Cytoscape takes a filter function as a selector (Selector's FILTER check),
+// which its types don't list: they only take a selector string
+/** @param {(ele: import('cytoscape').SingularElementArgument) => unknown} filter */
+const filterSelector = filter => /** @type {string} */ (/** @type {unknown} */ (filter));
+
 function getNodeName(node) {
   let model = node.data;
   if (!model) return node.id;
@@ -105,7 +110,8 @@ onMounted(async () => {
     boxSelectionEnabled: false,
     autounselectify: true,
 
-    layout: {
+    // cytoscape-klay's options, which cytoscape's own types don't list
+    layout: /** @type {import('cytoscape').BaseLayoutOptions} */ ({
       name: 'klay',
       nodeDimensionsIncludeLabels: false,
       klay: {
@@ -127,7 +133,7 @@ onMounted(async () => {
         thoroughness: 12,//7,
         separateConnectedComponents: true,
       },
-    },
+    }),
 
     style: [
       {
@@ -144,7 +150,7 @@ onMounted(async () => {
           //'text-outline-width': 3,
           'text-background-opacity': 1,
           'text-background-shape': 'roundrectangle',
-          'text-background-padding': 2,
+          'text-background-padding': '2px',
           'shape': 'round-rectangle',
           'width': 80,
           'height': 20,
@@ -152,13 +158,13 @@ onMounted(async () => {
           'font-family': '"Roboto",sans-serif',
         }
       }, {
-        selector: ele => ele.data().variable,
+        selector: filterSelector(ele => ele.data().variable),
         style: {
           'color': dark.primary,
           'font-family': 'monospace',
         }
       }, {
-        selector: ele => !!ele.data().propId,
+        selector: filterSelector(ele => !!ele.data().propId),
         style: {
           'color': dark['on-primary-container'],
           'background-color': dark['primary-container'],
@@ -181,7 +187,7 @@ onMounted(async () => {
           'target-endpoint': 'outside-to-line-or-label',
         }
       }, {
-        selector: ele => ele.data().inLoop,
+        selector: filterSelector(ele => ele.data().inLoop),
         style: {
           'color': dark['on-error-container'],
           'background-color': dark['error-container'],

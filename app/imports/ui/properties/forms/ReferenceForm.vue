@@ -75,7 +75,7 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

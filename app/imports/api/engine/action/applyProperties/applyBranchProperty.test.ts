@@ -6,12 +6,13 @@ import {
   removeAllCreaturesAndProps,
   runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
+import type { TestCreature } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [
   creatureId, targetCreatureId, ifTrueBranchId, ifFalseBranchId, indexBranchId, attackHitId, attackMissId, saveSucceedId, saveFailId, randomBranchId, targetCreature2Id, eachTargetBranchId, choiceBranchId,
 ] = getRandomIds(100);
 
-const actionTestCreature = {
+const actionTestCreature: TestCreature = {
   _id: creatureId,
   props: [
     // If branch 
@@ -217,7 +218,7 @@ const actionTestCreature = {
   ],
 }
 
-const actionTargetCreature = {
+const actionTargetCreature: TestCreature = {
   _id: targetCreatureId,
   props: [
     {
@@ -235,7 +236,7 @@ const actionTargetCreature = {
   ]
 }
 
-const actionTargetCreature2 = {
+const actionTargetCreature2: TestCreature = {
   _id: targetCreature2Id,
   props: [
     {

@@ -20,7 +20,8 @@ const { t } = useI18n();
 
 const appStore = useAppStore();
 
-const route = useRoute();
+// The library's page, /library/:id
+const route = /** @type {import('vue-router').RouteLocationNormalizedLoaded & { params: { id: string } }} */ (useRoute());
 
 const library = autorun(() => {
   const libraryId = route.params.id;

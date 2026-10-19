@@ -15,7 +15,8 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import doAction from '/imports/ui/creature/actions/doAction';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -31,7 +32,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 const dialogStackStore = useDialogStackStore();
 
 const loading = ref(false);

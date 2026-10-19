@@ -156,7 +156,7 @@ const { unitLabel, toInputValue, fromInputValue } = useUnits();
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

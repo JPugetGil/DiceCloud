@@ -234,7 +234,9 @@ let creatureFolderSchema = new SimpleSchema({
   'discord.sessionClosed.at': SESSION_CLOSED_FIELDS.at,
   // The last sessions DiceCloud opened for the party, newest first, which
   // "Resume a session" offers again (discordSession.ts)
-  ...pastSessionFields('discord.sessionHistory'),
+  // Typed for TypedSimpleSchema, whose enums are readonly: SimpleSchema's own
+  // types want mutable arrays, which a JS schema can't say otherwise
+  .../** @type {any} */ (pastSessionFields('discord.sessionHistory')),
   'discord.initiative': {
     type: Object,
     optional: true,

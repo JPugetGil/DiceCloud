@@ -131,8 +131,9 @@ const verificationInput = ref('');
 
 subscribe('ownedDocuments');
 
-const characters = autorun(() => Creatures.find({ owner: Meteor.userId() })).result;
-const libraries = autorun(() => Libraries.find({ owner: Meteor.userId() })).result;
+// Only offered to a signed in user
+const characters = autorun(() => Creatures.find({ owner: /** @type {string} */ (Meteor.userId()) }).fetch()).result;
+const libraries = autorun(() => Libraries.find({ owner: Meteor.userId() }).fetch()).result;
 const user = autorun(() => Meteor.user()).result;
 
 const usernameInputValid = computed(() => {

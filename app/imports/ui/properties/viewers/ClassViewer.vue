@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { inject} from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
@@ -87,7 +87,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 const dialogStackStore = useDialogStackStore();
 

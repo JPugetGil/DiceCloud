@@ -4,6 +4,8 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { assertDocEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { Meteor } from 'meteor/meteor';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+
 const updateCreatureProperty = new ValidatedMethod({
   name: 'creatureProperties.update',
   validate({ _id, path }) {
@@ -32,6 +34,8 @@ const updateCreatureProperty = new ValidatedMethod({
     await assertDocEditPermission(property, this.userId);
 
     const pathString = path.join('.');
+    // A modifier on a path given as an argument: no type can follow it
+    /** @type {any} */
     let modifier;
     // unset empty values
     if (value === null || value === undefined) {
@@ -40,7 +44,8 @@ const updateCreatureProperty = new ValidatedMethod({
       modifier = { $set: { [pathString]: value, dirty: true } };
     }
     await CreatureProperties.updateAsync(_id, modifier, {
-      selector: { type: property.type },
+      // Found: assertDocEditPermission throws otherwise
+      selector: { type: /** @type {CreatureProperty} */ (property).type },
     });
   },
 });

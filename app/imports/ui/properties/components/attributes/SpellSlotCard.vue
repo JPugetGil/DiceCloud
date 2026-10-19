@@ -43,7 +43,7 @@ const props = defineProps({
   },
   hasSpells: Boolean,
   spellSlots: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty[]>} */ (Array),
     default: () => [],
   },
 });

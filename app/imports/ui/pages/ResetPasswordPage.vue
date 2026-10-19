@@ -84,12 +84,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { Accounts } from 'meteor/accounts-base';
 import { useI18n } from 'vue-i18n';
 
+/** @typedef {InstanceType<typeof import('vuetify/components').VForm>} VForm */
+
 const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
 
-const form = ref(null);
+const form = ref(/** @type {VForm | null} */ (null));
 const valid = ref(true);
 const email = ref('');
 const emailRules = [
@@ -105,15 +107,16 @@ const password2Rules = [
   v => !!v || t('auth.passwordRequired'),
   v => v == password.value || t('auth.passwordsDontMatch'),
 ];
-const error = ref('');
+const error = ref(/** @type {string | undefined} */ (''));
 const info = ref('');
 
-const token = computed(() => route.params.token);
+const token = computed(() => /** @type {string | undefined} */ (route.params.token));
 
 async function submit() {
   // Vuetify's validate() resolves to { valid, errors }; the Promise itself is
   // always truthy, so testing it directly let invalid forms through
-  const { valid: formValid } = await form.value.validate();
+  // The form submits itself: it is mounted
+  const { valid: formValid } = await /** @type {VForm} */ (form.value).validate();
   if (!formValid) return;
   if (token.value) {
     Accounts.resetPassword(token.value, password.value, resetError => {

@@ -85,7 +85,8 @@ const emit = defineEmits(['select-sub-property']);
 
 const breadcrumbs = computed(() => {
   return Mongo.Collection.get(props.collection).find({
-    ...getFilter.ancestors(props.model),
+    // A tree document: a property or a library node, as `collection` says
+    ...getFilter.ancestors(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)),
     // A removed property keeps its old place in the tree, which can still
     // enclose properties added after it was removed
     removed: { $ne: true },

@@ -24,10 +24,11 @@ export const NO_SLOT = 'no-slot';
 export const RITUAL = 'ritual';
 
 type Spell = { level?: number, ritual?: boolean, castWithoutSpellSlots?: boolean, insufficientResources?: boolean };
-type Slot = { _id: string, value?: number, spellSlotLevel?: { value?: number } };
+// An attribute's value, stored as SimpleSchema.oneOf(Number, String, Boolean)
+type Slot = { _id: string, value?: unknown, spellSlotLevel?: { value?: unknown } };
 
 /** Whether the spell may be cast with this slot (`slotId`: the slot's id, NO_SLOT or RITUAL) */
-export function canCastSpellWithSlot(spell: Spell | undefined, slotId: string | undefined, slot: Slot | undefined): boolean {
+export function canCastSpellWithSlot(spell: Spell | undefined, slotId: string | undefined, slot?: Slot): boolean {
   if (slot && !slot.value) return false;
   if (!spell) return true;
   if (!slotId) return true;
@@ -38,7 +39,7 @@ export function canCastSpellWithSlot(spell: Spell | undefined, slotId: string | 
     return slotId === NO_SLOT;
   }
   // Levelled spells
-  return slotId !== NO_SLOT && !!slot && (spell.level ?? 0) <= (slot.spellSlotLevel?.value ?? 0);
+  return slotId !== NO_SLOT && !!slot && (spell.level ?? 0) <= Number(slot.spellSlotLevel?.value ?? 0);
 }
 
 /**

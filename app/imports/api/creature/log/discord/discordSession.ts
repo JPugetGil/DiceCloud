@@ -28,7 +28,7 @@ export const DISCORD_SESSION_FIELDS = {
   },
   kind: {
     type: String,
-    allowedValues: ['forum', 'channel', 'thread'],
+    allowedValues: ['forum', 'channel', 'thread'] as const,
   },
   // The forum post or the thread: its id, and the message that opened it
   threadId: {
@@ -108,7 +108,7 @@ export type PastSession = {
 
 export const PAST_SESSION_FIELDS = {
   threadId: { type: String, max: 32 },
-  kind: { type: String, allowedValues: ['thread', 'forum'] },
+  kind: { type: String, allowedValues: ['thread', 'forum'] as const },
   name: { type: String, optional: true as const, max: STORAGE_LIMITS.name },
   channelId: { type: String, optional: true as const, max: 32 },
   webhookId: { type: String, max: 32 },

@@ -44,7 +44,6 @@
           :items="actionTypes"
           :model-value="model.actionType"
           :error-messages="errors.actionType"
-          :menu-props="{auto: true, lazy: true}"
           :hint="actionTypeHints[model.actionType]"
           @change="(value, ack) => change('actionType', value, ack)"
         />
@@ -166,7 +165,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

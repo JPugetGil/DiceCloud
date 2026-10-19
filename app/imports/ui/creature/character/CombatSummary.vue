@@ -21,13 +21,13 @@
             {{ stats.hitPoints.name }}
           </button>
           <v-chip
-            v-if="stats.tempHitPoints?.value > 0"
+            v-if="Number(stats.tempHitPoints?.value) > 0"
             size="small"
             variant="tonal"
             prepend-icon="mdi-shield-plus-outline"
             data-id="combat-summary-temp-hp"
           >
-            {{ $t('combat.tempHitPoints', { value: stats.tempHitPoints.value }) }}
+            {{ $t('combat.tempHitPoints', { value: stats.tempHitPoints?.value }) }}
           </v-chip>
         </div>
         <div
@@ -68,7 +68,7 @@
           v-model="editing"
           location="bottom center"
           :offset="8"
-          :target="barElement"
+          :target="barElement ?? undefined"
           :close-on-content-click="false"
         >
           <health-change-menu
@@ -139,7 +139,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { useI18n } from 'vue-i18n';
 import useCombatStats from '/imports/ui/composables/useCombatStats';
 import useHealthChange from '/imports/ui/composables/useHealthChange';
@@ -171,14 +172,14 @@ const props = defineProps({
   part: {
     type: String,
     default: 'all',
-    validator: value => ['all', 'primary', 'secondary'].includes(value),
+    validator: value => ['all', 'primary', 'secondary'].includes(/** @type {string} */ (value)),
   },
   compact: Boolean,
 });
 
 const { t } = useI18n();
 const { formatQuantity } = useUnits();
-const context = inject('context', {});
+const context = useContext();
 const dialogStackStore = useDialogStackStore();
 
 const stats = useCombatStats(() => props.creatureId);
@@ -239,7 +240,7 @@ const shownHitPoints = useTweenedNumber(() => stats.value.hitPoints?.value);
 const { delta, changeKey } = useHealthChange(() => stats.value.hitPoints);
 
 const editing = ref(false);
-const barElement = ref(null);
+const barElement = ref(/** @type {HTMLElement | null} */ (null));
 
 function openMenu() {
   if (!canEdit.value) return;

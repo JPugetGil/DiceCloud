@@ -49,7 +49,8 @@
 </template>
 
 <script setup>
-import { inject, ref, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 
 const props = defineProps({
   model: {
@@ -60,7 +61,7 @@ const props = defineProps({
 
 const emit = defineEmits(['mouseover', 'mouseleave', 'click', 'change']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const optimisticIncrement = ref(0);
 

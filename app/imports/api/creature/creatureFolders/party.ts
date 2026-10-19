@@ -37,7 +37,8 @@ export function getPartyRole(
  * character of someone outside the party never shows to members, whatever
  * the game master puts in the folder.
  */
-export function partyCreaturesFilter(folder: PartyFolder, userId: string) {
+// The folder as stored: the schema requires its owner
+export function partyCreaturesFilter(folder: PartyFolder & { owner: string }, userId: string) {
   const _id = { $in: folder.creatures || [] };
   if (getPartyRole(folder, userId) === 'gm') {
     return { _id, $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }] };

@@ -226,7 +226,7 @@ const CreatureSchema = TypedSimpleSchema.from({
   discordWebhookChannelKind: {
     type: String,
     optional: true,
-    allowedValues: ['text', 'forum'],
+    allowedValues: ['text', 'forum'] as const,
   },
 })
   .extend(ColorSchema)

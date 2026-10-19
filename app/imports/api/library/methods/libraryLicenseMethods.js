@@ -16,7 +16,7 @@ export const setLibraryLicense = new ValidatedMethod({
   name: 'libraries.setLicense',
   validate: new SimpleSchema({
     _id: { type: String, max: 32 },
-    license: { type: String, allowedValues: LIBRARY_LICENSES, optional: true },
+    license: { type: String, allowedValues: [...LIBRARY_LICENSES], optional: true },
     licenseNote: { type: String, optional: true, max: STORAGE_LIMITS.summary },
   }).validator(),
   mixins: [RateLimiterMixin],

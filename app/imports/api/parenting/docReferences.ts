@@ -10,7 +10,9 @@ import { Mongo } from 'meteor/mongo';
  * engine (tests/cycles). parentingFunctions exports them too.
  */
 
-export function getCollectionByName<T extends Record<string, any> = TreeDoc>(name: string): Mongo.Collection<T> {
+// Any collection, by a name only known at run time: its documents are typed
+// by the caller that knows which collection it names
+export function getCollectionByName<T extends Record<string, any> = any>(name: string): Mongo.Collection<T> {
   const collection = Mongo.Collection.get<T>(name)
   if (!collection) {
     throw new Meteor.Error('bad-collection-reference',
@@ -29,8 +31,8 @@ function assertDocFound(doc, ref) {
 }
 
 // fetchDocByRef is async itself now; this name is kept for existing callers.
-export function fetchDocByRefAsync(ref: Reference, options?: Mongo.Options<object>): Promise<TreeDoc> {
-  return fetchDocByRef<TreeDoc>(ref, options);
+export function fetchDocByRefAsync<T extends Record<string, any> = TreeDoc>(ref: Reference, options?: Mongo.Options<object>): Promise<T> {
+  return fetchDocByRef<T>(ref, options);
 }
 
 export async function fetchDocByRef<T extends Record<string, any> = TreeDoc>(ref: Reference, options?: Mongo.Options<object>): Promise<T> {

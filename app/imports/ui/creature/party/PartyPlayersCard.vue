@@ -146,6 +146,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { useRouter } from 'vue-router';
@@ -155,6 +156,8 @@ import {
 } from '/imports/api/creature/creatureFolders/methods/partyMethods';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
 
 /**
  * Who is at the table: the game master and the players. The game master
@@ -167,7 +170,7 @@ const props = defineProps({
     required: true,
   },
   creatures: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Creature[]>} */ (Array),
     default: () => [],
   },
   // 'gm' or 'member'
@@ -200,7 +203,7 @@ async function run(call) {
     await call();
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   } finally {
     busy.value = false;
   }

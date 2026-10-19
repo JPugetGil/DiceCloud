@@ -149,7 +149,7 @@ const props = defineProps({
     default: undefined,
   },
   childDocs: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     required: true,
   },
 });
@@ -182,14 +182,17 @@ async function add({ ack }) {
   }
 }
 
+/** @param {{ ack?: (error?: unknown) => void }} [options] */
 async function remove({ ack } = {}) {
+  // Only offered once there is a doc
+  const doc = /** @type {Record<string, any>} */ (props.doc);
   const _id = docId.value;
-  const docName = props.doc.name;
+  const docName = doc.name;
   let parentHref = '/docs';
   // Docs record their parent as parentId; checking a `parent` field (which no
   // doc has) meant a deleted child always returned to /docs
-  if (props.doc.parentId) {
-    const parent = Docs.findOne({ _id: props.doc.parentId });
+  if (doc.parentId) {
+    const parent = Docs.findOne({ _id: doc.parentId });
     parentHref = parent?.href || parentHref;
   }
   try {

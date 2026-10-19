@@ -36,7 +36,7 @@ export default function () {
     'Variable references create dependencies even if the attributes don\'t exist'
   );
   assert.equal(
-    prop('strengthId').baseValue.parseError.message, 'Unexpected end of input',
+    prop('strengthId').baseValue?.parseError?.message, 'Unexpected end of input',
     'Parse errors should be stored on the calculation doc'
   );
 }

@@ -87,7 +87,9 @@
 </template>
 
 <script setup>
-import { computed, inject, ref, watch, onBeforeUnmount } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { SLOW_MS } from '/imports/ui/utility/motion';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import doAction from '/imports/ui/creature/actions/doAction';
@@ -111,7 +113,7 @@ const props = defineProps({
 
 const emit = defineEmits(['click']);
 
-const context = inject('context', {});
+const context = useContext();
 
 // Slots restored together fill this far apart
 const CASCADE_MS = 40;
@@ -129,7 +131,7 @@ function click(e) {
 }
 
 // The value the slots show: the one asked for until the server has it
-const target = ref(undefined);
+const target = ref(/** @type {number | undefined} */ (undefined));
 const shownValue = computed(() => target.value ?? props.model.value);
 let inFlight = 0;
 
@@ -160,7 +162,7 @@ async function useOrRestore(i) {
     if (inFlight === 1) await valueReached(target.value);
   } catch (error) {
     target.value = undefined;
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     console.error(error);
   } finally {
     inFlight -= 1;
@@ -173,6 +175,7 @@ async function useOrRestore(i) {
 }
 
 // The method answers before its changes reach the client: wait for them
+/** @returns {Promise<void>} */
 function valueReached(value, timeout = 3000) {
   return new Promise(resolve => {
     if (props.model.value === value) return resolve();
@@ -199,7 +202,7 @@ function damageProperty({ type, value }) {
         title: getPropertyTitle(model),
         operation: type,
         value,
-        targetProp: model,
+        targetProp: /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['attribute']} */ (model),
       },
     },
   });

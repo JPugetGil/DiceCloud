@@ -102,7 +102,7 @@ export default async function applySavingThrowProperty(
     result.appendLog({
       ...logLine({
         name: msg('logs.saveError'),
-        value: msg('logs.noSave', { stat: prop.stat }),
+        value: msg('logs.noSave', { stat: prop.stat ?? '' }),
         silenced: prop.silent,
       }),
       targetView: WHOLE,

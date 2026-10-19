@@ -127,6 +127,27 @@ import { announce } from '/imports/ui/components/announcer';
 import { DURATION } from '/imports/ui/utility/motion';
 
 /**
+ * @typedef {import('/imports/ui/dice/logDice').RollGroup['dice'][number] & {
+ *   shape: ReturnType<typeof dieShape>,
+ *   crit: boolean,
+ *   fumble: boolean,
+ *   shown: number,
+ *   landed: boolean,
+ * }} ThrownDie
+ */
+/**
+ * @typedef {object} Throw
+ * @property {number} id
+ * @property {string | undefined} title
+ * @property {ThrownDie[]} dice
+ * @property {number} hidden
+ * @property {{ label?: string, value?: number }[]} totals
+ * @property {boolean} crit
+ * @property {boolean} fumble
+ * @property {boolean} reduced
+ */
+
+/**
  * Dice thrown across the sheet for each roll written in the character's log,
  * whoever rolled: they tumble in, land on their result, and the result shows.
  * Neutral dice; a natural 20 or 1 on a d20 is coloured and named on the
@@ -151,7 +172,7 @@ const SHOWN_MS = 1800;
 const { t } = useI18n();
 const reducedMotion = useReducedMotion();
 
-const current = ref(undefined);
+const current = ref(/** @type {Throw | undefined} */ (undefined));
 const settled = ref(false);
 const leaving = ref(false);
 const dieElements = [];
@@ -188,7 +209,8 @@ function describe({ title, totals, dice, crit, fumble }) {
 function showResult(logId) {
   settled.value = true;
   setThrowPhase(logId, 'showing');
-  announce(describe(current.value));
+  // Only called while a throw is on the tray
+  announce(describe(/** @type {Throw} */ (current.value)));
 }
 
 function leaveAfter(logId, shownFor, leaveMs) {

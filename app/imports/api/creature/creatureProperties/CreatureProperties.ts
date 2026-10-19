@@ -5,7 +5,7 @@ import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import type { ConvertToUnion, InferType} from '/imports/api/utility/TypedSimpleSchema';
+import type { ConvertToUnion, InferType, StrictUnion } from '/imports/api/utility/TypedSimpleSchema';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { Simplify } from 'type-fest';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
@@ -145,7 +145,7 @@ export type CreaturePropertyTypes = {
   >
 }
 
-export type CreatureProperty = Simplify<ConvertToUnion<CreaturePropertyTypes>>;
+export type CreatureProperty = Simplify<StrictUnion<ConvertToUnion<CreaturePropertyTypes>>>;
 
 const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
 

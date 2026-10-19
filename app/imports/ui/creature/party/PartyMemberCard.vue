@@ -242,6 +242,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch, provide, reactive } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -265,6 +266,8 @@ import { useTargetSelectionStore } from '/imports/ui/stores/targetSelection';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import { partyTargetable } from '/imports/api/creature/creatureFolders/party';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+
 /**
  * One character on a party board: who they are, the stats a table needs at
  * a glance, their hit points (damage and healing when the viewer can edit
@@ -276,7 +279,7 @@ import { partyTargetable } from '/imports/api/creature/creatureFolders/party';
  */
 const props = defineProps({
   creature: {
-    type: Object,
+    type: /** @type {import('vue').PropType<import('/imports/api/creature/creatures/Creatures').Creature>} */ (Object),
     required: true,
   },
   // Their turn in the initiative tracker
@@ -289,7 +292,7 @@ const props = defineProps({
   // The board's creatures whose turns may count an effect down, `{ _id, name }`:
   // during a fight, those of the tracker, in its order (phase 3.5)
   durationSources: {
-    type: Array,
+    type: /** @type {import('vue').PropType<{ _id: string, name: string }[]>} */ (Array),
     default: () => [],
   },
 });
@@ -298,7 +301,7 @@ const { t } = useI18n();
 
 // Their turn starts: the card pulses once and comes into view. Not when the
 // board loads
-const cardElement = ref(null);
+const cardElement = ref(/** @type {import('vue').ComponentPublicInstance | null} */ (null));
 const turnStarted = ref(false);
 watch(() => props.hasTurn, hasTurn => {
   turnStarted.value = false;
@@ -330,14 +333,15 @@ const targeted = computed(() => targetStore.boardTargets(props.folderId).include
 
 const isMonster = computed(() => props.creature.type === 'monster');
 // The bestiary entry it was copied from, which the board publishes to the game master
-const monsterTemplate = autorun(() => isMonster.value && props.creature.templateId
-  && LibraryNodes.findOne(props.creature.templateId, { fields: { description: 1, libraryTags: 1 } })).result;
+const monsterTemplate = autorun(() => (isMonster.value && props.creature.templateId
+  && LibraryNodes.findOne(props.creature.templateId, { fields: { description: 1, libraryTags: 1 } })) || undefined).result;
 const monsterInfo = computed(() => monsterTags(monsterTemplate.value?.libraryTags));
 // "Small humanoid (goblinoid), neutral evil", then its lore
 const descriptionLines = computed(() => (monsterTemplate.value?.description?.text || '').split('\n'));
 const lore = computed(() => descriptionLines.value.slice(1).join('\n').trim());
+// Signed out (null), the viewer is neither its owner nor a reader
 const canOpenSheet = computed(() => canEdit.value || !!props.creature.public
-  || [props.creature.owner, ...(props.creature.readers || [])].includes(userId.value));
+  || [props.creature.owner, ...(props.creature.readers || [])].includes(/** @type {string} */ (userId.value)));
 
 // The cards and dialogs inside read the character from the context, as on its sheet
 provide('context', reactive({
@@ -384,6 +388,9 @@ const countedOtherwise = buff => !!sourceOf(buff) || durationEventOf(buff) === '
 /**
  * Whether the effect lasts until the start (or end) of the next turn of its
  * creature, or of `sourceId`: a round left, counted at that event of their turns
+ * @param {CreatureProperty} buff
+ * @param {string} event
+ * @param {string} [sourceId]
  */
 function isNextTurn(buff, event, sourceId = undefined) {
   return roundsLeft(buff) === 1 && durationEventOf(buff) === event && sourceOf(buff) === sourceId;
@@ -403,7 +410,8 @@ function lastsText(buff) {
     }
     return t(event === 'turnEnd' ? 'combat.untilTurnEnd' : 'combat.untilTurnStart');
   }
-  const left = t('combat.roundsLeft', { count: roundsLeft(buff) }, roundsLeft(buff));
+  // The chip asks only for an effect with rounds left
+  const left = t('combat.roundsLeft', { count: roundsLeft(buff) }, /** @type {number} */ (roundsLeft(buff)));
   if (sourceOf(buff)) {
     return `${left} · ${t(event === 'turnEnd' ? 'combat.atSourceTurnEnd' : 'combat.onSourceTurns', { name })}`;
   }
@@ -424,7 +432,7 @@ async function removeMonster() {
     snackbar({ text: t('monsters.removed', { name: props.creature.name }) });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 
@@ -433,10 +441,15 @@ async function removeCondition(buff) {
     await softRemoveProperty.callAsync({ _id: buff._id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   }
 }
 
+/**
+ * @param {CreatureProperty} buff
+ * @param {number | undefined} rounds
+ * @param {{ event?: string, sourceId?: string }} [options]
+ */
 async function setDuration(buff, rounds, { event = undefined, sourceId = undefined } = {}) {
   try {
     await setBuffDuration.callAsync({

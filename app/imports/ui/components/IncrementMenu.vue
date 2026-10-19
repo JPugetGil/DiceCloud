@@ -68,9 +68,10 @@
 </template>
 
 <script setup>
-import { ref, watch, inject, nextTick } from 'vue';
+import { ref, watch, nextTick } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 
-const context = inject('context', {});
+const context = useContext();
 
 const props = defineProps({
   value: {
@@ -83,7 +84,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'change']);
 
-const editInput = ref(null);
+const editInput = ref(/** @type {InstanceType<typeof import('vuetify/components').VTextField> | null} */ (null));
 const editValue = ref(props.value);
 const operation = ref('set');
 

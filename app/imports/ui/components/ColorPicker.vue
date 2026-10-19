@@ -113,7 +113,8 @@
 </template>
 
 <script setup lang="js">
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import isDarkColor from '/imports/ui/utility/isDarkColor';
 import vuetifyColors from 'vuetify/util/colors';
 import { kebabToCamelCase, camelToKebabCase } from '/imports/ui/utility/swapCase';
@@ -140,7 +141,7 @@ const model = defineModel({
   default: undefined,
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 function colorToHex(color, shade = 'base'){
   if (!color) return;

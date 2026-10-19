@@ -32,6 +32,8 @@ SimpleSchema.extendOptions(CUSTOM_SCHEMA_OPTIONS);
 
 // Store a quick way of referencing keys that have specific tags === true
 function storeTaggedKeys(tag, fnName){
+  // _schema: the flat definition SimpleSchema keeps internally, by key
+  /** @this {SimpleSchema & { _schema: Record<string, Record<string, unknown>> }} */
   SimpleSchema.prototype[fnName] = function(){
     if (!this['_' + fnName]){
       this['_' + fnName] = [];

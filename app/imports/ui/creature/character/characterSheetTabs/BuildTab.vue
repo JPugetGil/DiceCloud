@@ -206,6 +206,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -221,6 +222,8 @@ import getPropertyTitle from '/imports/ui/properties/shared/getPropertyTitle';
 import FolderGroupCard from '/imports/ui/properties/components/folders/FolderGroupCard.vue';
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
 
 const dialogStackStore = useDialogStackStore();
 
@@ -239,7 +242,7 @@ const props = defineProps({
 });
 
 
-const tabName = ref('build');
+const tabName = ref(/** @type {const} */ ('build'));
 const cols = {
   cols: '12',
   md: '6',
@@ -290,7 +293,7 @@ async function softRemove(_id) {
     await softRemoveProperty.callAsync({ _id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   }
 }
 
@@ -340,7 +343,7 @@ const classProperties = autorun(() => CreatureProperties.find({
 
 const classLevels = autorun(() => {
   const classVariableNames = (classProperties.value || []).map(c => c.variableName);
-  return CreatureProperties.find({
+  return /** @type {CreaturePropertyTypes['classLevel'][]} */ (CreatureProperties.find({
     ...getFilter.descendantsOfRoot(props.creatureId),
     type: 'classLevel',
     variableName: { $nin: classVariableNames },
@@ -348,7 +351,7 @@ const classLevels = autorun(() => {
     inactive: { $ne: true },
   }, {
     sort: { left: 1 }
-  }).fetch();
+  }).fetch());
 }).result;
 
 const slotBuildTree = autorun(() => {
@@ -484,7 +487,7 @@ async function unhideProp(_id) {
     });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

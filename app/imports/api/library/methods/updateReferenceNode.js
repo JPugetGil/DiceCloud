@@ -47,7 +47,11 @@ async function updateReferenceNodeWork(node, userId) {
     await writeCache(node._id, cache);
     return;
   }
-  let doc, library;
+  // A reference points to a library node, of its library or of another
+  /** @type {import('/imports/api/library/LibraryNodes').LibraryNode} */
+  let doc;
+  /** @type {import('/imports/api/sharing/SharingSchema').Shared & { _id: string, name: string } | undefined} */
+  let library;
   try {
     doc = await fetchDocByRef(node.ref);
     if (doc.removed) throw 'Property has been deleted';

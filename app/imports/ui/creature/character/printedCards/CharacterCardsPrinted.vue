@@ -336,7 +336,7 @@ const appStore = useAppStore();
 const { formatQuantity } = useUnits();
 
 // Through a computed: closing a dialog re-emits the route's params
-const creatureId = computed(() => route.params.id);
+const creatureId = computed(() => /** @type {string} */ (route.params.id));
 const { ready } = subscribe(() => ['singleCharacter', creatureId.value]);
 
 const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
@@ -361,7 +361,8 @@ const containers = ofType('container');
 const SPELL_MODES = ['prepared', 'all', 'none'];
 const ITEM_MODES = ['equipped', 'carried', 'all', 'none'];
 const selection = computed(() => {
-  const query = route.query;
+  // Read as text: a repeated or empty key (an array, null) fails every check below
+  const query = /** @type {Record<string, string>} */ (route.query);
   return {
     paper: query.paper in PAPERS ? query.paper : defaultPaper(navigator.language),
     spells: SPELL_MODES.includes(query.spells) ? query.spells : 'prepared',
@@ -561,6 +562,8 @@ function itemCard(item) {
 
 // The cards' content: rebuilt when the selection, the character or the
 // language changes. Async for the inline calculations of the spells.
+/** @typedef {Awaited<ReturnType<typeof spellCard>> | ReturnType<typeof itemCard>} CardModel */
+/** @type {import('vue').Ref<CardModel[]>} */
 const allModels = ref([]);
 const building = ref(false);
 let buildRun = 0;
@@ -586,7 +589,8 @@ watch(
 const models = computed(() => allModels.value.filter(model => !skipped.value.has(model.id)));
 
 // The layout: each card measured off screen once the fonts are in
-const measureRoot = ref(null);
+const measureRoot = ref(/** @type {HTMLElement | null} */ (null));
+/** @type {import('vue').Ref<{ card: CardModel, part: number, parts: number, fontSize: number, html: string, span: number }[]>} */
 const cards = ref([]);
 const laying = ref(false);
 let layoutRun = 0;
@@ -600,16 +604,16 @@ watch([models, measureRoot, () => selection.value.double], async () => {
     if (run !== layoutRun || !measureRoot.value) return;
     const laid = [];
     for (const model of models.value) {
-      const first = measureRoot.value.querySelector(`[data-measure="${model.key}:first"]`);
-      const next = measureRoot.value.querySelector(`[data-measure="${model.key}:next"]`);
+      const first = /** @type {HTMLElement | null} */ (measureRoot.value.querySelector(`[data-measure="${model.key}:first"]`));
+      const next = /** @type {HTMLElement | null} */ (measureRoot.value.querySelector(`[data-measure="${model.key}:next"]`));
       if (!first || !next) continue;
       // Not laid out: nothing to measure, the cards stay as they were
       if (!first.offsetHeight || !next.offsetHeight) return;
       let parts = layoutCardBody(model.bodyHtml, first, next);
       let span = 1;
       // A text that needs continuation cards goes on a double card instead, if asked
-      const firstDouble = measureRoot.value.querySelector(`[data-measure="${model.key}:first-double"]`);
-      const nextDouble = measureRoot.value.querySelector(`[data-measure="${model.key}:next-double"]`);
+      const firstDouble = /** @type {HTMLElement | null} */ (measureRoot.value.querySelector(`[data-measure="${model.key}:first-double"]`));
+      const nextDouble = /** @type {HTMLElement | null} */ (measureRoot.value.querySelector(`[data-measure="${model.key}:next-double"]`));
       if (parts.length > 1 && selection.value.double && firstDouble?.offsetHeight && nextDouble) {
         parts = layoutCardBody(model.bodyHtml, firstDouble, nextDouble, undefined, { columns: true });
         span = 2;

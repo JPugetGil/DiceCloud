@@ -43,8 +43,8 @@ const props = defineProps({
   xLarge: Boolean,
 })
 
-const icon = ref(null)
-const inheritedSize = ref(undefined)
+const icon = ref(/** @type {HTMLElement | null} */ (null))
+const inheritedSize = ref(/** @type {string | undefined} */ (undefined))
 
 const themeClasses = computed(() => {
   return {

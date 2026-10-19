@@ -70,7 +70,7 @@
           <v-btn
             variant="text"
             icon
-            @click="fieldFilters.push({name: '', value: undefined})"
+            @click="fieldFilters.push({field: '', value: undefined})"
           >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
@@ -132,7 +132,7 @@ for (let key in PROPERTIES) {
 }
 
 const typeFilterInput = ref([]);
-const fieldFilters = ref([{field: 'name', value: undefined}]);
+const fieldFilters = ref(/** @type {{ field: string, value: string | undefined }[]} */ ([{field: 'name', value: undefined}]));
 const menu = ref(false);
 
 const filterOptions = computed(() => {
@@ -142,6 +142,7 @@ const filterOptions = computed(() => {
 });
 
 const filter = computed(() => {
+  /** @type {Record<string, any> | undefined} */
   let f = undefined;
   if (typeFilterInput.value?.length) {
     f = f || {};

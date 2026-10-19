@@ -26,6 +26,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { canPickUsername, setUsername as setUsernameMethod } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { Meteor } from 'meteor/meteor';
@@ -38,10 +39,10 @@ const { t } = useI18n();
 
 const valid = ref(true);
 
-const newUsername = ref(null);
+const newUsername = ref(/** @type {string | null} */ (null));
 
 
-const error = ref(null);
+const error = ref(/** @type {string | null} */ (null));
 
 const loading = ref(false);
 
@@ -64,7 +65,7 @@ async function change(username, ack) {
     }
   } catch (error) {
     valid.value = false;
-    ack(error.message || error);
+    ack(errorText(error));
   } finally {
     loading.value = false;
   }
@@ -76,7 +77,7 @@ async function setUsername() {
     await setUsernameMethod.callAsync({username: newUsername.value});
     await dialogStackStore.popDialogStack();
   } catch (e) {
-    error.value = e.message || e;
+    error.value = errorText(e);
   } finally {
     loading.value = false;
   }

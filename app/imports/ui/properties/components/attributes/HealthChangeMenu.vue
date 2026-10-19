@@ -99,7 +99,7 @@ const { t } = useI18n();
 const mode = ref('damage');
 const amount = ref('');
 const damageType = ref(null);
-const amountInput = ref(null);
+const amountInput = ref(/** @type {InstanceType<typeof import('vuetify/components').VTextField> | null} */ (null));
 
 // The standard damage types, translated; healing and "extra" are not ones
 const damageTypes = computed(() => DAMAGE_TYPES

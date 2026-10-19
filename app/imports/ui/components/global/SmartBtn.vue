@@ -11,7 +11,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { SLOW_MS } from '/imports/ui/utility/motion';
 import { debounce as _debounce } from 'lodash';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -34,7 +35,7 @@ const props = defineProps({
 
 const emit = defineEmits(['click', 'clicks']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const loading = ref(false);
 const timesClicked = ref(0);

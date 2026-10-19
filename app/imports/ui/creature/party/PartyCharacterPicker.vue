@@ -38,8 +38,9 @@ const emit = defineEmits(['update:modelValue']);
 
 subscribe('characterList');
 
+// Signed out, null matches no creature: every creature has an owner
 const characters = autorun(() => Creatures.find(
-  { owner: Meteor.userId() }, { sort: { name: 1 }, fields: { name: 1 } },
+  { owner: /** @type {string} */ (Meteor.userId()) }, { sort: { name: 1 }, fields: { name: 1 } },
 ).fetch()).result;
 
 const selected = computed({

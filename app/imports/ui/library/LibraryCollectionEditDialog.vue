@@ -91,6 +91,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { useRouter } from 'vue-router';
 import { Meteor } from 'meteor/meteor';
 import { autorun, subscribe } from 'vue-meteor-tracker';
@@ -158,7 +159,7 @@ async function updateLibraryCollection(update, ack) {
     await updateLibraryCollectionApi.callAsync({ _id: props._id, update });
     ack();
   } catch (error) {
-    ack((error && error.reason) || error);
+    ack((error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason) || error);
   }
 }
 
@@ -179,7 +180,7 @@ function remove() {
       } catch (error) {
         console.error(error);
         snackbar({
-          text: error.reason,
+          text: errorText(error),
         });
       }
     }

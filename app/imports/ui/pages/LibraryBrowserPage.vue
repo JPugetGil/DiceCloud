@@ -200,8 +200,7 @@ const { ready: browseLibrariesReady } = subscribe('browseLibraries');
 const subReady = computed(() => browseLibrariesReady.value);
 
 const collections = autorun(() => {
-  const user = Meteor.user() || {};
-  const subCollections = user.subscribedLibraryCollections || [];
+  const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
   return LibraryCollections.find({
     showInMarket: true,
     public: true,
@@ -215,8 +214,7 @@ const collections = autorun(() => {
 }).result;
 
 const libraries = autorun(() => {
-  const user = Meteor.user() || {};
-  const subLibraries = user.subscribedLibraries || [];
+  const subLibraries = Meteor.user()?.subscribedLibraries || [];
   return Libraries.find({
     showInMarket: true,
     public: true,

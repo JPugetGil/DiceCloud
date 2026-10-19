@@ -118,13 +118,13 @@ const childDocs = autorun(() => {
     removed: { $ne: true },
   }, {
     sort: { left: 1 }
-  });
+  }).fetch();
   return Docs.find({
     'parentId': doc.value._id,
     removed: { $ne: true },
   }, {
     sort: { left: 1 }
-  });
+  }).fetch();
 }).result;
 
 const siblingDocs = autorun(() => {
@@ -134,7 +134,7 @@ const siblingDocs = autorun(() => {
     removed: { $ne: true },
   }, {
     sort: { left: 1 }
-  });
+  }).fetch();
 }).result;
 
 const editing = computed(() => appStore.editingDocs);

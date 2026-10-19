@@ -104,7 +104,7 @@ const { delta, changeKey } = useHealthChange(() => props.model);
 
 const editing = ref(false);
 const hover = ref(false);
-const barElement = ref(null);
+const barElement = ref(/** @type {HTMLElement | undefined} */ (undefined));
 
 // The bar's own colours (HealthBarProgress.vue paints them)
 const colors = computed(() => healthBarColors(props.model, vuetifyTheme.current.value.colors));

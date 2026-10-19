@@ -84,7 +84,9 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { onMounted } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import SlotCard from '/imports/ui/creature/slots/SlotCard.vue';
@@ -98,11 +100,12 @@ import { useI18n } from 'vue-i18n';
 
 const dialogStackStore = useDialogStackStore();
 
-const context = inject('context', {});
+const context = useContext();
 
+// On the sheet, whose context names the creature
 const slots = autorun(() => {
   const folderIds = CreatureProperties.find({
-    ...getFilter.descendantsOfRoot(context.creatureId),
+    ...getFilter.descendantsOfRoot(/** @type {string} */ (context.creatureId)),
     type: 'folder',
     hideStatsGroup: true,
     removed: { $ne: true },
@@ -110,7 +113,7 @@ const slots = autorun(() => {
   }, { fields: { _id: 1 } }).map(folder => folder._id);
 
   const slots = CreatureProperties.find({
-    ...getFilter.descendantsOfRoot(context.creatureId),
+    ...getFilter.descendantsOfRoot(/** @type {string} */ (context.creatureId)),
     'parentId': { $nin: folderIds },
     type: 'propertySlot',
     ignored: { $ne: true },
@@ -156,12 +159,12 @@ function showCard(slotId) {
   if (!card) return;
   const reduced = document.documentElement.classList.contains('reduce-motion');
   card.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
-  card.querySelector('button, [tabindex="0"], a')?.focus({ preventScroll: true });
+  /** @type {HTMLElement | null} */ (card.querySelector('button, [tabindex="0"], a'))?.focus({ preventScroll: true });
 }
 
 const pointBuys = autorun(() => {
   return CreatureProperties.find({
-    ...getFilter.descendantsOfRoot(context.creatureId),
+    ...getFilter.descendantsOfRoot(/** @type {string} */ (context.creatureId)),
     type: 'pointBuy',
     ignored: { $ne: true },
     removed: {$ne: true},
@@ -187,7 +190,7 @@ async function ignoreProp(_id) {
     });
   } catch (error) {
     console.error(error);
-    snackbar({text: error.reason || error.message || error.toString()});
+    snackbar({text: errorText(error)});
   }
 }
 

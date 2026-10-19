@@ -95,6 +95,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch, nextTick } from 'vue';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import removeUserImage from '/imports/api/files/userImages/methods/removeUserImage';
@@ -117,7 +118,7 @@ const missingFromStorage = computed(() => isMissingFromStorage(props.model));
 // The name is edited without its extension, which the server keeps
 const renaming = ref(false);
 const newName = ref('');
-const nameInput = ref(null);
+const nameInput = ref(/** @type {InstanceType<typeof import('/imports/ui/components/global/TextField.vue').default> | null} */ (null));
 const baseName = computed(() => {
   const { name = '', extension } = props.model;
   const suffix = extension ? `.${extension}` : '';
@@ -133,7 +134,7 @@ watch(renaming, async (value) => {
       await renameUserImage.callAsync({ fileId: props.model._id, name: newName.value });
     } catch (error) {
       console.error(error);
-      snackbar({ text: error.reason || error.message || error.toString() });
+      snackbar({ text: errorText(error) });
     }
   }
 });
@@ -151,7 +152,7 @@ async function removeUserFile() {
   try {
     await removeUserImage.callAsync({ fileId: props.model._id });
   } catch (error) {
-    snackbar({text: error.reason || error.message || error.toString()})
+    snackbar({text: errorText(error)})
     console.error(error);
   } finally {
     removeLoading.value = false;

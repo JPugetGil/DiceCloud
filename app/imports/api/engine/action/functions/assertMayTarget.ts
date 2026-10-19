@@ -4,6 +4,7 @@ import { partyLetsTarget, type PartyFolder } from '/imports/api/creature/creatur
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { englishMessage } from '/imports/api/creature/log/logMessages';
 import type Task from '/imports/api/engine/action/tasks/Task';
+import type { Shared } from '/imports/api/sharing/SharingSchema';
 
 /*
  * Who may target whom with an action (phase 2.2 of the monsters). The server's
@@ -18,7 +19,9 @@ import type Task from '/imports/api/engine/action/tasks/Task';
 // which act on the target directly (§1.2 of SPEC-phases-2-3.md)
 const PARTY_TASKS: (string | undefined)[] = [undefined, 'castSpell'];
 
-type Targeted = { _id: string, owner?: string, type?: string, writers?: string[] };
+// A creature, as its sharing (hasEditPermission) and its party
+// (partyLetsTarget) read it
+type Targeted = Shared & { _id: string, type?: string };
 
 /**
  * Throws unless the user may apply the task, with the actor, to the target:

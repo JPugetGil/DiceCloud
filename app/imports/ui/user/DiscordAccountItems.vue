@@ -98,7 +98,7 @@ const account = computed(() => user.value?.discordAccount);
 const preferences = computed(() => user.value?.preferences || {});
 
 // 'link', 'unlink' or 'mention' while its method runs
-const busy = ref(undefined);
+const busy = ref(/** @type {'link' | 'unlink' | 'mention' | undefined} */ (undefined));
 
 async function run(name, call) {
   busy.value = name;

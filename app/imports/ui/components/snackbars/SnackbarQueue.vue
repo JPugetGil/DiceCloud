@@ -31,11 +31,10 @@
         </v-btn>
       </template>
     </div>
-    <template #actions="{ attrs }">
+    <template #actions>
       <v-btn
         variant="text"
         icon
-        v-bind="attrs"
         :aria-label="$t('common.close')"
         @click="closeSnackbar"
       >
@@ -103,7 +102,7 @@ function waitFor(condition, effect) {
 }
 
 const isShown = ref(false);
-const snackbar = ref(null);
+const snackbar = ref(/** @type {import('/imports/ui/components/snackbars/SnackbarQueue').QueuedSnackbar | null} */ (null));
 const { xs } = useDisplay();
 
 // A log entry whose dice the tray is throwing waits for them to land; on a
@@ -115,7 +114,8 @@ function heldByDiceTray(element) {
 
 watch(isShown, (newValue) => {
   if (newValue === false && snackbar.value) {
-    const snackbarIndex = globalState.queue.findIndex((element) => element.id === snackbar.value.id);
+    const { id } = snackbar.value;
+    const snackbarIndex = globalState.queue.findIndex((element) => element.id === id);
     if (snackbarIndex > -1) {
       globalState.queue.splice(snackbarIndex, 1);
     }

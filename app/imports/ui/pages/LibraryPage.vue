@@ -97,6 +97,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { subscribe, autorun } from 'vue-meteor-tracker';
@@ -122,7 +123,7 @@ const { ready: librariesReady } = subscribe('libraries');
 const libraryCollections = autorun(() => {
   const userId = Meteor.userId();
   if (!userId) return;
-  const subCollections = Meteor.user().subscribedLibraryCollections || [];
+  const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
   return LibraryCollections.find({
     $or: [
       { owner: userId },
@@ -174,7 +175,7 @@ function insertLibraryDialog() {
       } catch (error) {
         console.error(error);
         snackbar({
-          text: error.reason,
+          text: errorText(error),
         });
       }
     }
@@ -200,7 +201,7 @@ function insertLibraryCollectionDialog() {
       } catch (error) {
         console.error(error);
         snackbar({
-          text: error.reason,
+          text: errorText(error),
         });
       }
     }

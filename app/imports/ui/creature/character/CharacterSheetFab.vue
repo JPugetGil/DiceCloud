@@ -71,7 +71,7 @@ const dialogStackStore = useDialogStackStore();
     editPermission: Boolean,
     // Which way the dial opens: 'top' or 'bottom'
     direction: {
-      type: String,
+      type: /** @type {import('vue').PropType<'top' | 'bottom'>} */ (String),
       default: 'top',
     },
     // Pinned to the bottom right of the viewport
@@ -110,8 +110,8 @@ const dialogStackStore = useDialogStackStore();
     const root = { collection: 'creatures', id: creatureId };
     if (appStore.tabNameById(creatureId) !== 'tree') return root;
     const title = document.querySelector('.tree-tab .tree-node-title.text-primary');
-    const nodeElement = title?.closest('[data-id^="tree-node-"]');
-    const node = nodeElement && CreatureProperties.findOne(nodeElement.dataset.id.replace('tree-node-', ''));
+    const nodeElement = /** @type {HTMLElement | null | undefined} */ (title?.closest('[data-id^="tree-node-"]'));
+    const node = nodeElement && CreatureProperties.findOne(/** @type {string} */ (nodeElement.dataset.id).replace('tree-node-', ''));
     if (!node) return root;
     if (nodeElement.dataset.expanded === 'true') {
       return { id: node._id, collection: 'creatureProperties' };
@@ -120,7 +120,7 @@ const dialogStackStore = useDialogStackStore();
   }
 
   function hideFab() {
-    let fabEl = document.querySelector('.insert-creature-property-fab');
+    let fabEl = /** @type {HTMLElement | null} */ (document.querySelector('.insert-creature-property-fab'));
     if (fabEl) fabEl.style.opacity = '0';
     return fabEl;
   }

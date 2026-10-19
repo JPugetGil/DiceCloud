@@ -21,7 +21,7 @@ export function useTabFolders(creatureId, tabName) {
       sort: {
         left: 1,
       }
-    });
+    }).fetch();
   }
 
   const startFolders = autorun(() => getFolders(tabName.value ?? tabName, 'start')).result;

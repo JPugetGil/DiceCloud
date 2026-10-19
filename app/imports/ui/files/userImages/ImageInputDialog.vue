@@ -3,7 +3,7 @@
     <template #toolbar>
       <v-tabs
         v-model="tab"
-        :color="$vuetify.theme.themes.dark.colors.accent"
+        :color="String($vuetify.theme.themes.dark.colors.accent)"
         grow
       >
         <v-tab>{{ $t('files.userFiles') }}</v-tab>

@@ -10,7 +10,7 @@
       <v-btn
         variant="text"
         :loading="restoreLoading"
-        @click="restore(model._id)"
+        @click="restore()"
       >
         {{ $t('common.restore') }}
       </v-btn>
@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed } from 'vue';
 import restoreCreatureFromFile from '/imports/api/creature/archive/methods/restoreCreatureFromFile';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
@@ -79,7 +80,7 @@ async function restore() {
     await restoreCreatureFromFile.callAsync({ fileId: props.model._id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason });
+    snackbar({ text: errorText(error) });
   } finally {
     restoreLoading.value = false;
   }

@@ -117,7 +117,7 @@ const emit = defineEmits(['select']);
 
 
 
-const canEdit = autorun(() => hasDocEditPermission(props.model, Meteor.user())).result;
+const canEdit = autorun(() => hasDocEditPermission(/** @type {import('/imports/api/sharing/SharingSchema').Shared} */ (props.model), Meteor.user())).result;
 const language = computed(() => libraryLanguage(props.model));
 
 function editLibraryCollection() {

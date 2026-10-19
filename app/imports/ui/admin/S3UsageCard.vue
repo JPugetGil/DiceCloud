@@ -126,17 +126,20 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, onMounted } from 'vue';
 import prettyBytes from 'pretty-bytes';
 import { useI18n } from 'vue-i18n';
 import getS3Usage from '/imports/api/files/methods/getS3Usage';
 import { APP_FILES_PREFIX } from '/imports/api/files/bucketUsage';
 
+/** @typedef {import('/imports/api/files/methods/getS3Usage').S3Usage} S3Usage */
+
 const { locale, t } = useI18n();
 
-const usage = ref(undefined);
+const usage = ref(/** @type {S3Usage | undefined} */ (undefined));
 const loading = ref(false);
-const error = ref(undefined);
+const error = ref(/** @type {string | undefined} */ (undefined));
 
 function folderName(prefix) {
   if (prefix === APP_FILES_PREFIX) return t('admin.s3.appFiles', { folder: prefix });
@@ -147,7 +150,8 @@ function folderName(prefix) {
 function formatMoney(amount, options) {
   return new Intl.NumberFormat(locale.value, {
     style: 'currency',
-    currency: usage.value.currency,
+    // Only called by the template once the usage is loaded
+    currency: /** @type {S3Usage} */ (usage.value).currency,
     ...options,
   }).format(amount);
 }
@@ -168,7 +172,7 @@ async function refresh() {
     usage.value = await getS3Usage.callAsync();
     error.value = undefined;
   } catch (e) {
-    error.value = e.reason || e.message;
+    error.value = errorText(e);
   } finally {
     loading.value = false;
   }

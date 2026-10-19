@@ -7,7 +7,7 @@
         {name: $t('forms.buffRemover.tagged'), value: 'tag'},
         {name: $t('forms.buffRemover.parent'), value: 'parent'},
       ]"
-      @change="(value, ack) => change('targetParentBuff', model-value === 'parent' ? true : undefined, ack)"
+      @change="(value, ack) => change('targetParentBuff', value === 'parent' ? true : undefined, ack)"
     />
     <v-expand-transition>
       <div v-if="!model.targetParentBuff">
@@ -31,7 +31,7 @@
                 {name: $t('forms.buffRemover.one'), value: 'one'},
                 {name: $t('forms.buffRemover.all'), value: 'all'},
               ]"
-              @change="(value, ack) => change('removeAll', model-value === 'all' ? true : undefined, ack)"
+              @change="(value, ack) => change('removeAll', value === 'all' ? true : undefined, ack)"
             />
           </v-col>
           <v-col
@@ -82,7 +82,7 @@ import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

@@ -32,9 +32,9 @@
         <div class="text-body-large mb-1">
           {{ displayedText }}
         </div>
-        <div v-if="!hideBreadcrumbs && ancestors">
+        <div v-if="!hideBreadcrumbs">
           <property-breadcrumbs
-            :model="{...model, ancestors}"
+            :model="model"
             class="text-body-small"
             no-links
             no-icons
@@ -48,10 +48,8 @@
 
 <script setup>
 import { computed} from 'vue';
-import { autorun } from 'vue-meteor-tracker';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
 import PropertyBreadcrumbs from '/imports/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { isFinite, find } from 'lodash';
 import useUnits from '/imports/ui/composables/useUnits';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
@@ -137,11 +135,6 @@ const displayed = computed(() => {
     CONVERTED_EFFECT_OPERATIONS.has(operation.value) ? getAttributeUnit(props.attribute) : undefined,
   );
 });
-
-const ancestors = autorun(() => {
-  const prop = CreatureProperties.findOne(props.model._id);
-  return prop && prop.ancestors || [];
-}).result;
 
 function click(e) {
   emit('click', e);

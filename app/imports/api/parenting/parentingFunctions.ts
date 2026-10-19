@@ -11,6 +11,17 @@ export { getCollectionByName, fetchDocByRef, fetchDocByRefAsync } from '/imports
 export { getFilter } from '/imports/api/parenting/treeFilters';
 import { getFilter } from '/imports/api/parenting/treeFilters';
 
+/**
+ * A collection of tree documents, as the tree functions use it. Mongo.Collection
+ * is invariant in its document type (rawCollection().bulkWrite takes it), so the
+ * collection of a TreeDoc subtype (CreatureProperties, LibraryNodes, Docs) is no
+ * Collection<TreeDoc>: the functions take it generically, and only read and
+ * write the tree fields its documents all have
+ */
+export function asTreeCollection<T extends TreeDoc>(collection: Mongo.Collection<T>) {
+  return collection as unknown as Mongo.Collection<TreeDoc>;
+}
+
 export interface TreeNode<T> {
   doc: T,
   children: TreeNode<T>[]
@@ -67,8 +78,8 @@ type FilteredDoc = {
   _ancestorOfMatchedDocument?: boolean,
 } & TreeDoc;
 
-export function filterToForest(
-  collection: Mongo.Collection<TreeDoc>,
+export function filterToForest<T extends TreeDoc>(
+  treeCollection: Mongo.Collection<T>,
   rootId: string,
   filter?: Mongo.Selector<TreeDoc>,
   {
@@ -78,6 +89,7 @@ export function filterToForest(
   } = {}
 ): TreeNode<FilteredDoc>[] {
   if (!Meteor.isClient) throw 'Only available on the client';
+  const collection = asTreeCollection(treeCollection);
   // Setup the filter
   let collectionFilter: Mongo.Selector<TreeDoc> = {
     'root.id': rootId,
@@ -236,7 +248,8 @@ export function renewDocIds({ docArray, collectionMap = {}, idMap = {} }) {
  * @param doc
  * @param collection 
  */
-export async function moveDocWithinRoot(doc: TreeDoc, collection: Mongo.Collection<TreeDoc>, newPosition: number) {
+export async function moveDocWithinRoot<T extends TreeDoc>(doc: TreeDoc, treeCollection: Mongo.Collection<T>, newPosition: number) {
+  const collection = asTreeCollection(treeCollection);
   let move: number;
   let includedRange;
   // Ensure the destination is at a midway point
@@ -346,7 +359,8 @@ export async function moveDocWithinRoot(doc: TreeDoc, collection: Mongo.Collecti
   return await rebuildNestedSets(collection, doc.root.id);
 }
 
-export async function moveDocBetweenRoots(doc: TreeDoc, collection: Mongo.Collection<TreeDoc>, newRoot: Reference, newPosition: number) {
+export async function moveDocBetweenRoots<T extends TreeDoc>(doc: TreeDoc, treeCollection: Mongo.Collection<T>, newRoot: Reference, newPosition: number) {
+  const collection = asTreeCollection(treeCollection);
   if (newRoot.id === doc.root.id) {
     throw new Meteor.Error('invalid-move', 'Document is already in the given root')
   }
@@ -355,7 +369,7 @@ export async function moveDocBetweenRoots(doc: TreeDoc, collection: Mongo.Collec
   // latency compensation and oplog tailing
   const bulkOps: {
     updateOne: {
-      filter: Mongo.Query<TreeDoc>,
+      filter: Mongo.Selector<TreeDoc>,
       update: Mongo.Modifier<TreeDoc>
     }
   }[] = [];
@@ -502,7 +516,8 @@ export function isAncestor(propA?: TreeDoc, propB?: TreeDoc): boolean {
   return propA.left < propB.left && propA.right > propB.right;
 }
 
-export async function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, rootId: string) {
+export async function rebuildNestedSets<T extends TreeDoc>(treeCollection: Mongo.Collection<T>, rootId: string) {
+  const collection = asTreeCollection(treeCollection);
   const docs = await collection.find({
     'root.id': rootId,
     removed: { $ne: true }
@@ -521,7 +536,7 @@ export async function rebuildNestedSets(collection: Mongo.Collection<TreeDoc>, r
 export async function rebuildCreatureNestedSets(creatureId) {
   const docs = await getProperties(creatureId);
   const operations = calculateNestedSetOperations(docs);
-  return writeBulkOperations(CreatureProperties as Mongo.Collection<TreeDoc, TreeDoc>, operations);
+  return writeBulkOperations(asTreeCollection(CreatureProperties), operations);
 }
 
 /** Calculates the operations needed to make a tree of nested sets

@@ -16,8 +16,11 @@ export default async function () {
   assert.equal(prop('referencesDexId').value, 4, 'Access variable properties in calculations');
   assert.equal(prop('hitDiceId').constitutionMod, 5, 'Hit dice get constitution modifier');
   assert.equal(prop('overriddenDexId').overridden, true, 'override properties with the same variable name');
+  // Its base value is there: a missing one would read undefined, equal to null
+  const parseErrorBaseValue = prop('parseErrorId').baseValue;
+  assert.exists(parseErrorBaseValue);
   assert.equal(
-    prop('parseErrorId').baseValue.value, null,
+    parseErrorBaseValue.value, null,
     'Parse errors should null the value'
   );
 }

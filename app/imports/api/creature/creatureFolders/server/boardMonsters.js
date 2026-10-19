@@ -21,6 +21,8 @@ import {
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
 import rollDice from '/imports/parser/rollDice';
 
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes} CreaturePropertyTypes */
+
 /*
  * A party board's monsters, on the server: the board's methods import this
  * module when called (monsterMethods.js), which keeps the library collections
@@ -146,7 +148,7 @@ export async function searchMonsters(userId, { libraryIds, text = '', tags = [],
   const rootIds = libraryIds.filter(id => readable.includes(id));
   const filter = {
     'root.id': { $in: rootIds },
-    type: 'creature',
+    type: /** @type {const} */ ('creature'),
     removed: { $ne: true },
     ...text.trim() && { name: { $regex: escapeRegex(text.trim()), $options: 'i' } },
     ...tags.length && { libraryTags: { $all: tags } },
@@ -181,7 +183,7 @@ export async function searchMonsters(userId, { libraryIds, text = '', tags = [],
         typeLine: template.description?.text?.split('\n')[0],
         ...monsterTags(template.libraryTags),
         hitPoints: literal(statOf(template, 'hitPoints')),
-        hitDice: literal(hitDice) && hitDice.hitDiceSize ? `${literal(hitDice)}${hitDice.hitDiceSize}` : undefined,
+        hitDice: hitDice && literal(hitDice) && hitDice.hitDiceSize ? `${literal(hitDice)}${hitDice.hitDiceSize}` : undefined,
       };
     }),
   };
@@ -262,12 +264,18 @@ async function getHitDice(creatureId) {
   const active = {
     'root.id': creatureId, removed: { $ne: true }, inactive: { $ne: true }, overridden: { $ne: true },
   };
-  const hitDice = await CreatureProperties.findOneAsync({ ...active, type: 'attribute', variableName: 'hitDice' });
+  // Attributes: the query asks for them
+  const hitDice = /** @type {CreaturePropertyTypes['attribute'] | undefined} */ (
+    await CreatureProperties.findOneAsync({ ...active, type: 'attribute', variableName: 'hitDice' })
+  );
   const hitPoints = await CreatureProperties.findOneAsync({ ...active, type: 'attribute', variableName: 'hitPoints' });
   const number = hitDice?.total;
   const size = Number(hitDice?.hitDiceSize?.slice(1));
-  // rollDice rolls up to 100 dice
-  if (!hitPoints?.libraryNodeId || !Number.isInteger(number) || number < 1 || number > 100 || !(size > 0)) {
+  // rollDice rolls up to 100 dice. Without hit dice, or with a total that is
+  // no number, Number.isInteger is false already: the first two checks tell
+  // it to the types
+  if (!hitDice || typeof number !== 'number' || !hitPoints?.libraryNodeId || !Number.isInteger(number)
+    || number < 1 || number > 100 || !(size > 0)) {
     return false;
   }
   return { number, size, constitutionMod: hitDice.constitutionMod || 0, hitPoints };

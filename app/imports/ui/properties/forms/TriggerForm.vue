@@ -115,7 +115,7 @@ import { computed } from 'vue';
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

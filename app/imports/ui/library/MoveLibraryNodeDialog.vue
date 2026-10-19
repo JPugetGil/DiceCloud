@@ -39,6 +39,8 @@ defineProps({
   },
 });
 
+// Typed as a ref, not inferred: unwrapping the node types is slow to check
+/** @type {import('vue').Ref<import('/imports/api/library/LibraryNodes').LibraryNode | undefined>} */
 const node = ref(undefined);
 
 const dialogStackStore = useDialogStackStore();

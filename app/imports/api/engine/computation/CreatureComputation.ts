@@ -16,7 +16,7 @@ export type ComputationProperty = CreatureProperty & {
 
 export default class CreatureComputation {
   originalPropsById: Record<string, CreatureProperty>;
-  propsById: Record<string, CreatureProperty>;
+  propsById: Record<string, ComputationProperty>;
   propsWithTag: Record<string, string[]>;
   scope: Record<string, any>;
   props: ComputationProperty[];

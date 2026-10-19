@@ -36,7 +36,6 @@
           :items="attributeTypes"
           :model-value="model.attributeType"
           :error-messages="errors.attributeType"
-          :menu-props="{auto: true, lazy: true}"
           :hint="attributeTypeHints[model.attributeType]"
           @change="(value, ack) => change('attributeType', value, ack)"
         />
@@ -65,7 +64,6 @@
             :items="['d4', 'd6', 'd8', 'd10', 'd12', 'd20']"
             :model-value="model.hitDiceSize"
             :error-messages="errors.hitDiceSize"
-            :menu-props="{auto: true, lazy: true}"
             @change="(value, ack) => change('hitDiceSize', value, ack)"
           />
         </v-col>
@@ -314,7 +312,8 @@
 </template>
 
 <script setup>
-import { inject, watch } from 'vue';
+import { watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import ComputedField from '/imports/ui/properties/forms/shared/ComputedField.vue';
 import InlineComputationField from '/imports/ui/properties/forms/shared/InlineComputationField.vue';
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
@@ -329,7 +328,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {
@@ -340,7 +339,7 @@ const props = defineProps({
 
 const emit = defineEmits(['change']);
 
-const context = inject('context', {});
+const context = useContext();
 
 // The unit shown is the one in effect, including the one the variable name
 // gives; choosing one stores it on the attribute

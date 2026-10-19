@@ -10,6 +10,7 @@ import {
   runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 import { Random } from 'meteor/random';
 
 const [
@@ -249,7 +250,7 @@ describe('Triggers', function () {
     const [creatureId, actionId] = getRandomIds(2);
     // The counter starts at 1: both conditions were false when the sheet was
     // computed, only one is once the action has set it to 7
-    const trigger = (name: string, condition: string) => ({
+    const trigger = (name: string, condition: string): ForestProp => ({
       type: 'trigger',
       name,
       event: 'damageProperty',

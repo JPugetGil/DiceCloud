@@ -1,16 +1,16 @@
-import { getCollectionByName, getFilter } from '/imports/api/parenting/parentingFunctions';
+import { asTreeCollection, getCollectionByName, getFilter } from '/imports/api/parenting/parentingFunctions';
 import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
 
-export async function softRemove(collectionOrName: Mongo.Collection<TreeDoc> | string, docOrId?: TreeDoc | string) {
+export async function softRemove<T extends TreeDoc>(collectionOrName: Mongo.Collection<T> | string, docOrId?: TreeDoc | string) {
   const removalDate = new Date();
 
   let collection: Mongo.Collection<TreeDoc>;
   if (typeof collectionOrName === 'string') {
     collection = getCollectionByName(collectionOrName);
   } else {
-    collection = collectionOrName;
+    collection = asTreeCollection(collectionOrName);
   }
 
   let doc: TreeDoc | undefined;
@@ -58,13 +58,13 @@ const restoreError = function () {
   );
 };
 
-export async function restore(collectionOrName: Mongo.Collection<TreeDoc> | string, docOrId: TreeDoc | string, extraUpdates?) {
+export async function restore<T extends TreeDoc>(collectionOrName: Mongo.Collection<T> | string, docOrId: TreeDoc | string, extraUpdates?) {
 
   let collection: Mongo.Collection<TreeDoc>;
   if (typeof collectionOrName === 'string') {
     collection = getCollectionByName(collectionOrName);
   } else {
-    collection = collectionOrName;
+    collection = asTreeCollection(collectionOrName);
   }
 
   let doc: TreeDoc | undefined;

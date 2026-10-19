@@ -20,7 +20,10 @@ function safeFileName(name) {
   return (name || 'library').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'library';
 }
 
-/** Saves a library, or a collection's libraries, as a file */
+/**
+ * Saves a library, or a collection's libraries, as a file
+ * @param {{ name?: string, collection?: object, libraries: object[] }} file
+ */
 export async function downloadLibraryFile({ name, collection, libraries }) {
   const text = JSON.stringify({
     meta: { type: LIBRARY_FILE_TYPE, schemaVersion: SCHEMA_VERSION, exportDate: new Date() },

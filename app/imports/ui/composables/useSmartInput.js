@@ -1,5 +1,6 @@
 import { t } from '/imports/ui/i18n';
-import { ref, computed, watch, inject, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { debounce } from 'lodash';
 
 // Options for each smart input's `defineModel`. The value only flows down: the
@@ -33,7 +34,7 @@ export const smartInputEmits = ['change'];
 
 export function useSmartInput(props, model, emit, options = {}) {
   /** @type {{ debounceTime?: number, editPermission?: boolean }} */
-  const context = inject('context', {});
+  const context = useContext();
 
   const error = ref(false);
   /** @type {import('vue').Ref<string | null>} */

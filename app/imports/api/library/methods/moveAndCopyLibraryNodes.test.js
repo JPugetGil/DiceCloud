@@ -20,7 +20,12 @@ const node = (_id, library, left, right, parentId) => ({
   ...parentId && { parentId },
 });
 
-const get = _id => LibraryNodes.findOneAsync(_id);
+// A node the test inserted or made: the test fails here when it is missing
+const get = async _id => {
+  const doc = await LibraryNodes.findOneAsync(_id);
+  assert.exists(doc, `library node ${_id}`);
+  return doc;
+};
 const asUser = { userId };
 
 describe('Move and copy library nodes', function () {

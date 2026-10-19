@@ -220,7 +220,8 @@
   All of the shared fields common to all properties go in this form,
   property-specific forms are included as dynamic components
 */
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
 import propertyFormIndex from '/imports/ui/properties/forms/shared/propertyFormIndex';
 import IconColorMenu from '/imports/ui/properties/forms/shared/IconColorMenu.vue';
@@ -233,7 +234,7 @@ import propertySchemasIndex from '/imports/api/properties/computedPropertySchema
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   collection: {
@@ -249,7 +250,7 @@ const props = defineProps({
 
 defineEmits(['change', 'push', 'pull', 'select-sub-property', 'add-child']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const slotTypes = [];
 for (let key in PROPERTIES) {

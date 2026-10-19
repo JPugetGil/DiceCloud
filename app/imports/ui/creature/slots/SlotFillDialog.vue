@@ -86,7 +86,7 @@
             :class="{disabled: isDisabled(libraryNode) || libraryNode._disabledBySlotFillerCondition}"
           >
             <v-expansion-panel-title>
-              <template #default="{ open }">
+              <template #default="{ expanded }">
                 <!-- Never squeezed: the box ran into the name on phones -->
                 <div class="d-flex align-center flex-grow-0 flex-shrink-0 mr-2">
                   <v-checkbox
@@ -141,7 +141,7 @@
                 >
                   {{ $t('slots.slotCount', { count: libraryNode.slotQuantityFilled }) }}
                 </div>
-                <template v-if="open">
+                <template v-if="expanded">
                   <v-btn
                     variant="text"
                     icon
@@ -278,6 +278,19 @@ const { xs } = useDisplay();
 
 const dialogStackStore = useDialogStackStore();
 
+/** @typedef {import('/imports/api/library/LibraryNodes').LibraryNode} LibraryNode */
+/**
+ * A filler as the dialog lists it: a library node, flagged with why it can't
+ * be picked
+ * @typedef {LibraryNode & {
+ *   _disabled?: boolean,
+ *   _disabledByQuantityFilled?: boolean,
+ *   _disabledByAlreadyAdded?: boolean,
+ *   _disabledBySlotFillerCondition?: boolean,
+ *   _conditionError?: string,
+ * }} Filler
+ */
+
 const props = defineProps({
   slotId: {
     type: String,
@@ -294,9 +307,9 @@ const props = defineProps({
 });
 
 
-const selectedNodeIds = ref([]);
-const searchInput = ref(undefined);
-const searchValue = ref(undefined);
+const selectedNodeIds = ref(/** @type {string[]} */ ([]));
+const searchInput = ref(/** @type {string | undefined} */ (undefined));
+const searchValue = ref(/** @type {string | undefined} */ (undefined));
 const showDisabled = ref(false);
 const autoSelectRan = ref(false);
 
@@ -368,7 +381,8 @@ const totalQuantitySelected = autorun(() => {
     fields: { slotQuantityFilled: 1 },
   }).forEach(node => {
     if (Number.isFinite(node.slotQuantityFilled)) {
-      quantitySelected += node.slotQuantityFilled;
+      // A number: it is finite
+      quantitySelected += /** @type {number} */ (node.slotQuantityFilled);
     } else {
       quantitySelected += 1;
     }
@@ -391,13 +405,13 @@ const libraryNames = autorun(() => {
 const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!slotFillersReady.value) return [];
-  let nodes = LibraryNodes.find(libraryNodeFilter.value, {
+  let nodes = /** @type {Filler[]} */ (LibraryNodes.find(libraryNodeFilter.value, {
     sort: { name: 1, order: 1 }
-  }).fetch();
+  }).fetch());
   nodes.forEach(node => {
     let quantityToFill = typeof node.slotQuantityFilled == 'number' ? node.slotQuantityFilled : 1;
     if (
-      quantityToFill > spaceLeft.value
+      spaceLeft.value !== undefined && quantityToFill > spaceLeft.value
     ) {
       node._disabled = true;
       node._disabledByQuantityFilled = true;
@@ -412,6 +426,8 @@ const matchingNodes = autorun(() => {
 
 // slotFillerCondition needs the async parser, so its verdicts arrive separately
 const conditionErrors = ref(new Map());
+// Typed as a ref, not inferred: unwrapping the node types is slow to check
+/** @type {import('vue').Ref<import('/imports/api/library/LibraryNodes').LibraryNode[] | null>} */
 const conditionsEvaluatedFor = ref(null);
 watch([matchingNodes, variables], async () => {
   const nodes = matchingNodes.value;
@@ -422,7 +438,7 @@ watch([matchingNodes, variables], async () => {
   conditionsEvaluatedFor.value = nodes;
 }, { immediate: true });
 
-const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
+const libraryNodes = computed(() => /** @type {Filler[]} */ ((matchingNodes.value || []).map(node => {
   const conditionError = conditionErrors.value.get(node._id);
   if (!conditionError) return node;
   return {
@@ -431,7 +447,7 @@ const libraryNodes = computed(() => (matchingNodes.value || []).map(node => {
     _disabledBySlotFillerCondition: true,
     _conditionError: conditionError,
   };
-}));
+})));
 
 const disabledNodeCount = computed(() => libraryNodes.value
   .filter(node => node._disabledBySlotFillerCondition).length);
@@ -450,7 +466,8 @@ watch(conditionsEvaluatedFor, (nodes) => {
 const selectedExcludedNodes = autorun(() => {
   const displayedIds = (libraryNodes.value || []).map(node => node._id);
   const excludedNodeIds = difference(selectedNodeIds.value, displayedIds);
-  return LibraryNodes.find({ _id: { $in: excludedNodeIds } }).fetch();
+  // Listed with the fillers, without their flags
+  return /** @type {Filler[]} */ (LibraryNodes.find({ _id: { $in: excludedNodeIds } }).fetch());
 }).result;
 
 const activeCount = computed(() => {
@@ -497,7 +514,7 @@ watch(activeCount, (val) => {
   if (!slotFillersReady.value) return;
   if (
     currentLimit.value < countAll.value
-    && val < 25
+    && val !== undefined && val < 25
   ) {
     loadMore();
   }
@@ -536,9 +553,11 @@ function isDisabled(node) {
 function insertCustomFiller() {
   if (!model.value) return;
   const prop = getDefaultSlotFiller(model.value);
+  // The methods place the new properties in the slot themselves. An `order`
+  // (of the tree before version 3, NaN now) made the library one refuse the
+  // call: nothing picked from a library was added
   const parentRef = { id: props.slotId, collection: 'creatureProperties' };
-  const order = model.value.order + 0.5;
-  
+
   dialogStackStore.pushDialogStack({
     component: 'insert-property-dialog',
     elementId: 'custom-button',
@@ -552,11 +571,10 @@ function insertCustomFiller() {
       if (!result) return;
       if (Array.isArray(result)){
         let nodeIds = result;
-        await insertPropertyFromLibraryNode.callAsync({ nodeIds, parentRef, order });
+        await insertPropertyFromLibraryNode.callAsync({ nodeIds, parentRef });
         await dialogStackStore.popDialogStack();
       } else if (typeof result === 'object') {
         let creatureProperty = result;
-        creatureProperty.order = order;
         await insertProperty.callAsync({ creatureProperty, parentRef });
         await dialogStackStore.popDialogStack();
       }

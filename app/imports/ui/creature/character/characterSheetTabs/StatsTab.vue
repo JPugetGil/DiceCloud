@@ -478,7 +478,9 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { DURATION } from '/imports/ui/utility/motion';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -528,7 +530,7 @@ const props = defineProps({
 
 // A character still being built says so, rather than showing a sheet of -5s.
 // Only to those who can build it
-const context = inject('context', {});
+const context = useContext();
 const buildProgress = useBuildProgress(() => props.creatureId);
 const { xs, mdAndUp } = useDisplay();
 
@@ -552,11 +554,15 @@ const choicesLeft = computed(() => context.editPermission === false || !buildPro
   ? 0
   : buildProgress.value.total - buildProgress.value.done);
 
+// The sheet mounts its tabs once the creature is found (CharacterSheet)
 const creature = autorun(() => {
-  return Creatures.findOne(props.creatureId, { fields: { settings: 1 } });
+  return /** @type {import('/imports/api/creature/creatures/Creatures').Creature} */ (
+    Creatures.findOne(props.creatureId, { fields: { settings: 1 } })
+  );
 }).result;
 
 // The conditions its editors can give the character in one click
+/** @type {import('vue').Ref<NonNullable<Awaited<ReturnType<typeof listConditions.callAsync>>>>} */
 const conditions = ref([]);
 watch(() => context.editPermission && props.creatureId, async (creatureId) => {
   conditions.value = [];
@@ -633,6 +639,7 @@ const properties = autorun(() => {
     inactive: { $ne: true },
   }, { fields: { _id: 1 } }).map(folder => folder._id);
 
+  /** @type {import('meteor/mongo').Mongo.Selector<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty>} */
   const filter = {
     ...getFilter.descendantsOfRoot(props.creatureId),
     parentId: {
@@ -774,7 +781,7 @@ async function softRemove(_id) {
   try {
     await softRemoveProperty.callAsync({ _id });
   } catch (error) {
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     console.error(error);
   }
 }

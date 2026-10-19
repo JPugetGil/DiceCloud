@@ -115,7 +115,8 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 import numberToSignedString from '../../../api/utility/numberToSignedString';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -141,7 +142,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 const proficiencyText = {
   0: t('proficiencyLevels.none'),

@@ -86,6 +86,7 @@
 </template>
 
 <script setup lang="js">
+import errorText from '/imports/api/utility/errorText';
 import { ref } from 'vue';
 import { omit } from 'lodash';
 import draggable from 'vuedraggable';
@@ -143,7 +144,7 @@ async function dropItem({ added }) {
       });
     } catch (e) {
       console.error(e);
-      snackbar({ text: e.reason || e.message || e.toString() });
+      snackbar({ text: errorText(e) });
     }
   };
 
@@ -160,7 +161,7 @@ async function dropItem({ added }) {
     });
   } catch (e) {
     console.error(e);
-    snackbar({ text: e.reason || e.message || e.toString() });
+    snackbar({ text: errorText(e) });
   }
 }
 </script>

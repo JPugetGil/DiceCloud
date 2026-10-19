@@ -16,7 +16,7 @@
       class="text-body-medium"
       data-id="party-discord-notice"
     >
-      {{ $t(noticeKey) }}
+      {{ $t(noticeKey || '') }}
     </v-card-text>
 
     <template v-else>
@@ -153,7 +153,7 @@ const here = computed(() => {
 const noticeKey = computed(() => postingKey(props.folder.discordPosting));
 
 // 'save', 'remove', 'enabled', a kind, 'connect' or 'disconnect' while its method runs
-const busy = ref(undefined);
+const busy = ref(/** @type {string | undefined} */ (undefined));
 
 async function run(name, call) {
   busy.value = name;

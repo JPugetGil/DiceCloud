@@ -9,7 +9,7 @@
           :label="$t('forms.operation')"
           :hint="operationHint"
           :error-messages="errors.operation"
-          :menu-props="{transition: 'slide-y-transition', lazy: true}"
+          :menu-props="{transition: 'slide-y-transition'}"
           :items="operations"
           item-props
           :model-value="model.operation"
@@ -140,7 +140,7 @@ const attributeList = useAttributeList();
 
 const ICON_SPIN_DURATION = 300;
 
-const displayedIcon = ref('add');
+const displayedIcon = ref(/** @type {string | undefined} */ ('add'));
 const iconClass = ref('');
 // Each operation is listed with its icon (the select's `item-props`)
 const operations = [

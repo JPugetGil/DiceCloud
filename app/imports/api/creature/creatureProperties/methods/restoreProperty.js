@@ -5,6 +5,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { restore } from '/imports/api/parenting/softRemove';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
+import { Meteor } from 'meteor/meteor';
 
 const restoreProperty = new ValidatedMethod({
   name: 'creatureProperties.restore',
@@ -19,6 +20,7 @@ const restoreProperty = new ValidatedMethod({
   async run({ _id }) {
     // Permissions
     let property = await CreatureProperties.findOneAsync(_id);
+    if (!property) throw new Meteor.Error('not-found', 'Property not found');
     let rootCreature = await getRootCreatureAncestor(property);
     await assertEditPermission(rootCreature, this.userId);
 

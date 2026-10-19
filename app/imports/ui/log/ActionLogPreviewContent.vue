@@ -47,7 +47,7 @@
               variant="flat"
               size="28"
               class="ma-2"
-              v-bind="{ ...activatorProps, ...(model.color ? userColorProps(model.color) : { color: 'grey' }) }"
+              v-bind="{ ...activatorProps, ...(creature.color ? userColorProps(creature.color) : { color: 'grey' }) }"
             >
               <v-img
                 v-if="creature.avatarPicture"
@@ -79,7 +79,7 @@ import { translateLine } from '/imports/ui/log/translateLog';
 
 const props = defineProps({
   model: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     default: () => [],
   },
   showSilenced: {
@@ -94,7 +94,7 @@ const contentByTargetId = autorun(() => {
   const getCreature = creatureId => {
     if (creaturesById[creatureId]) return creaturesById[creatureId];
     return creaturesById[creatureId] = Creatures.findOne(creatureId, {
-      fields: { _id: 1, avatarPicture: 1, name: 1 },
+      fields: { _id: 1, avatarPicture: 1, name: 1, color: 1 },
     });
   };
   let currentContent = undefined;

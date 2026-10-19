@@ -101,6 +101,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch, nextTick, provide, reactive } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -148,7 +149,7 @@ const emit = defineEmits(['duplicated', 'select-sub-property', 'removed']);
 const editing = ref(!!props.startInEditTab);
 // CurrentId lags behind Id by one tick so that events fired by destroying
 // forms keyed to the old ID are applied before the new ID overwrites it
-const currentId = ref(undefined);
+const currentId = ref(/** @type {string | undefined} */ (undefined));
 const isLibraryForm = ref(true);
 
 const { ready: libraryNodeReady } = subscribe(() => ['libraryNode', props._id]);
@@ -189,16 +190,23 @@ async function duplicate() {
 }
 
 async function makeReference() {
+  // Where the node is: under its parent node, else at its library's root.
+  // It read `parent`, a field of the schema before v3: the method refused
+  // the missing reference and nothing was made
+  const node = /** @type {import('/imports/api/library/LibraryNodes').LibraryNode} */ (model.value);
+  const parentRef = node.parentId
+    ? { collection: 'libraryNodes', id: node.parentId }
+    : node.root;
   try {
     const docId = await insertNode.callAsync({
       libraryNode: {
         type: 'reference',
         ref: {
           collection: 'libraryNodes',
-          id: model.value._id,
+          id: node._id,
         },
       },
-      parentRef: model.value.parent,
+      parentRef,
     });
     if (props.embedded) {
       emit('duplicated', docId);
@@ -245,7 +253,7 @@ function move() {
         }
       } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason || error.message || error.toString() });
+        snackbar({ text: errorText(error) });
       }
     }
   });
@@ -272,7 +280,7 @@ function copy() {
         snackbar({ text: t('common.copiedSuccessfully') });
       } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason || error.message || error.toString() });
+        snackbar({ text: errorText(error) });
       }
     }
   });
@@ -283,7 +291,7 @@ async function change({ path, value, ack }) {
     await updateLibraryNode.callAsync({ _id: currentId.value, path, value });
     ack?.();
   } catch (error) {
-    if (ack) ack(error && error.reason || error);
+    if (ack) ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
     else console.error(error);
   }
 }
@@ -293,7 +301,7 @@ async function push({ path, value, ack }) {
     await pushToLibraryNode.callAsync({ _id: currentId.value, path, value });
     ack?.();
   } catch (error) {
-    if (ack) ack(error && error.reason || error);
+    if (ack) ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
     else console.error(error);
   }
 }
@@ -305,13 +313,14 @@ async function pull({ path, ack }) {
     await pullFromLibraryNode.callAsync({ _id: currentId.value, path, itemId });
     ack?.();
   } catch (error) {
-    if (ack) ack(error && error.reason || error);
+    if (ack) ack(error && /** @type {import('meteor/meteor').Meteor.Error} */ (error).reason || error);
     else console.error(error);
   }
 }
 
 function addLibraryNode({ elementId, suggestedType }) {
-  let parentPropertyId = model.value._id;
+  // Offered by the node's own form
+  let parentPropertyId = /** @type {import('/imports/api/library/LibraryNodes').LibraryNode} */ (model.value)._id;
   dialogStackStore.pushDialogStack({
     component: 'insert-property-dialog',
     elementId,
@@ -344,7 +353,7 @@ async function remove() {
     await softRemoveLibraryNode.callAsync({ _id });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     return;
   }
   if (props.embedded) {

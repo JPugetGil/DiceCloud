@@ -84,7 +84,7 @@ const computedValue = computed(() => {
 // A distance or weight, in the user's units
 const displayed = computed(() => props.model.type === 'attribute'
   ? quantityParts(props.model.value, getAttributeUnit(props.model))
-  : { value: computedValue.value }
+  : { value: computedValue.value, unit: undefined }
 );
 </script>
 

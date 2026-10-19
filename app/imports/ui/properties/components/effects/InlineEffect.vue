@@ -97,13 +97,13 @@ const displayedValue = computed(() => {
   let value = resolvedValue.value;
   switch(model.value?.operation) {
     case 'base': return value;
-    case 'add': return isFinite(value) ? Math.abs(value) : value;
+    case 'add': return isFinite(Number(value)) ? Math.abs(Number(value)) : value;
     case 'mul': return value;
     case 'min': return value;
     case 'max': return value;
     case 'advantage': return;
     case 'disadvantage': return;
-    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
+    case 'passiveAdd': return isFinite(Number(value)) ? Math.abs(Number(value)) : value;
     case 'fail': return;
     case 'conditional': return undefined;
     default: return undefined;

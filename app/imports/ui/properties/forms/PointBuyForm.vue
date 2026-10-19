@@ -172,7 +172,8 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { PointBuySchema } from '/imports/api/properties/PointBuys';
 import CalculationErrorList from '/imports/ui/properties/forms/shared/CalculationErrorList.vue';
 import PointBuySpendForm from '/imports/ui/properties/forms/PointBuySpendForm.vue';
@@ -194,7 +195,7 @@ const props = defineProps({
 
 const emit = defineEmits(['change', 'push', 'pull']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const addRowLoading = ref(false);
 

@@ -50,7 +50,8 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import PROPERTIES from '/imports/constants/PROPERTIES';
@@ -74,7 +75,7 @@ const props = defineProps({
 
 const emit = defineEmits(['show-info', 'click']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const hasClickListener = computed(() => !!props.onClick);
 

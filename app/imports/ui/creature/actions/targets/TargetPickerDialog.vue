@@ -106,7 +106,7 @@ const ready = computed(() => !props.creatureId || (partiesReady.value && boardsR
 
 const candidates = autorun(() => props.creatureId ? targetCandidates(props.creatureId, parties.value || []) : []).result;
 
-const targetIds = ref([]);
+const targetIds = ref(/** @type {string[]} */ ([]));
 // Once the candidates are in: the preselection, during a fight
 let preselected = false;
 watch(ready, isReady => {
@@ -127,9 +127,10 @@ async function confirm() {
   targetStore.remember(props.propId, ids);
   busy.value = true;
   try {
+    // Confirm is disabled without them
     await withPartyBoards(parties.value || [], () => doAction({
-      creatureId: props.creatureId,
-      propId: props.propId,
+      creatureId: /** @type {string} */ (props.creatureId),
+      propId: /** @type {string} */ (props.propId),
       targetIds: ids,
       elementId: 'target-picker-confirm',
       replaceDialog: true,

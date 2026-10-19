@@ -1,4 +1,4 @@
-import { inject } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -9,7 +9,7 @@ const FUNCTION_SUGGESTIONS = Object.entries(parserFunctions).map(([name, fn]) =>
   insert: `${name}(`,
   label: name,
   detail: fn.comment,
-  kind: 'function',
+  kind: /** @type {const} */ ('function'),
 }));
 
 /**
@@ -19,7 +19,7 @@ const FUNCTION_SUGGESTIONS = Object.entries(parserFunctions).map(([name, fn]) =>
  */
 export default function useFormulaSuggestions() {
   /** @type {{ creatureId?: string, variablesCreatureId?: string }} */
-  const context = inject('context', {});
+  const context = useContext();
   return autorun(() => {
     // A property dialog sets creatureId; the insert dialog, variablesCreatureId
     const creatureId = context.creatureId || context.variablesCreatureId;
@@ -35,7 +35,7 @@ function creatureVariableSuggestions(creatureId) {
   if (!variables) return [];
   return Object.keys(variables)
     .filter(name => !name.startsWith('_'))
-    .map(name => ({ insert: name, label: name, kind: 'variable', creatureId }));
+    .map(name => ({ insert: name, label: name, kind: /** @type {const} */ ('variable'), creatureId }));
 }
 
 function libraryVariableSuggestions() {
@@ -47,7 +47,7 @@ function libraryVariableSuggestions() {
     if (!names.has(node.variableName)) names.set(node.variableName, node.name);
   });
   return [...names].map(([name, propName]) => ({
-    insert: name, label: name, detail: propName, kind: 'variable',
+    insert: name, label: name, detail: propName, kind: /** @type {const} */ ('variable'),
   }));
 }
 

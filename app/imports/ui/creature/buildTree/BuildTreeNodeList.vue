@@ -17,7 +17,7 @@ import BuildTreeNode from '/imports/ui/creature/buildTree/BuildTreeNode.vue';
 
 defineProps({
   children: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/parenting/parentingFunctions').TreeNode<Record<string, any>>[]>} */ (Array),
     default: () => [],
   },
   parentSlotId: {

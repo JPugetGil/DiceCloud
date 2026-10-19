@@ -166,7 +166,7 @@ const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 
-const creatureId = computed(() => route.params.id);
+const creatureId = computed(() => /** @type {string} */ (route.params.id));
 
 const { ready: singleCharacterReady } = subscribe(() => ['singleCharacter', creatureId.value]);
 
@@ -218,15 +218,17 @@ const classProperties = autorun(() => CreatureProperties.find({
 
 const classLevels = autorun(() => {
   const classVariableNames = classProperties.value ? classProperties.value.map(c => c.variableName) : [];
-  return CreatureProperties.find({
-    ...getFilter.descendantsOfRoot(creatureId.value),
-    type: 'classLevel',
-    variableName: {$nin: classVariableNames},
-    removed: {$ne: true},
-    inactive: {$ne: true},
-  }, {
-    sort: {left: 1}
-  }).fetch();
+  return /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['classLevel'][]} */ (
+    CreatureProperties.find({
+      ...getFilter.descendantsOfRoot(creatureId.value),
+      type: 'classLevel',
+      variableName: {$nin: classVariableNames},
+      removed: {$ne: true},
+      inactive: {$ne: true},
+    }, {
+      sort: {left: 1}
+    }).fetch()
+  );
 }).result;
 
 const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.user())).result;
@@ -249,7 +251,11 @@ const level = computed(() => variables.value?.level?.value);
 // ?layout=official: the official-looking sheet (step 4); the classic one stays
 // the default, with its full descriptions in columns
 const layout = computed(() => route.query.layout === 'official' ? 'official' : 'classic');
-const paper = computed(() => route.query.paper in PAGE_SIZES ? route.query.paper : defaultPaper(navigator.language));
+const paper = computed(() => {
+  // Read as text: a repeated or empty key (an array, null) is no page size
+  const asked = /** @type {string} */ (route.query.paper);
+  return asked in PAGE_SIZES ? asked : defaultPaper(navigator.language);
+});
 function setQuery(key, value) {
   router.replace({ query: { ...route.query, [key]: value || undefined } });
 }

@@ -234,7 +234,7 @@ const route = useRoute();
 const { t } = useI18n();
 const appStore = useAppStore();
 
-const folderId = computed(() => route.params.id);
+const folderId = computed(() => /** @type {string} */ (route.params.id));
 const { ready } = subscribe(() => ['partyBoard', folderId.value]);
 
 const folder = autorun(() => CreatureFolders.findOne(folderId.value)).result;
@@ -303,7 +303,8 @@ const ending = ref(false);
 async function endTheEncounter() {
   ending.value = true;
   try {
-    const removed = await endEncounter.callAsync({ folderId: folderId.value, endCombat: true });
+    // How many monsters left: only the client's simulation returns nothing
+    const removed = /** @type {number} */ (await endEncounter.callAsync({ folderId: folderId.value, endCombat: true }));
     snackbar({ text: t('monsters.encounterEnded', { count: removed }, removed) });
   } catch (error) {
     console.error(error);

@@ -1,9 +1,39 @@
+/*
+ * The types of mdg:validated-method, which ships none. Adapted from
+ * @types/meteor-mdg-validated-method 1.2.12 (DefinitelyTyped, MIT), whose
+ * `/// <reference types="meteor"/>` loaded @types/meteor 2.9 (Meteor 2's
+ * synchronous API, Blaze) beside the Meteor 3 types zodern:types generates:
+ * every `meteor/*` module was declared twice. With this app's own fields:
+ * the mixins' options, and Meteor 3's `callAsync`.
+ */
 declare module 'meteor/mdg:validated-method' {
-  // Augments the upstream interfaces in @types/meteor-mdg-validated-method, so the
-  // type parameters have to match theirs even where this file does not read them
+  import type { Meteor } from 'meteor/meteor';
+
+  export type ValidatedMethodName<T> = T extends ValidatedMethod<infer TName, any> ? TName : never;
+  export type ValidatedMethodArg<T> = T extends ValidatedMethod<string, infer TRun> ? Argument<TRun> : never;
+  export type ValidatedMethodReturn<T> = T extends ValidatedMethod<string, infer TRun> ? Return<TRun> : never;
+
+  /** `this` in a method's `run` */
+  export interface ValidatedMethodThisBase {
+    /** True if this invocation is a stub */
+    isSimulation: boolean;
+    /** Lets the next method from this client begin running */
+    unblock(): void;
+    /** The id of the user that made this method call, null if none was signed in */
+    userId: string | null;
+    /** Sets the signed in user of this connection (server) */
+    setUserId(userId: string | null): Promise<void>;
+    /** The connection this method was received on, null for a call made on the server */
+    connection: Meteor.Connection | null;
+    /** The seed for randomStream value generation */
+    randomSeed(): string;
+  }
+
+  /** The options the mixins add */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ValidatedMethodOptionsMixinFields<TRunArg, TRunReturn> {
-    rateLimit: {
+  export interface ValidatedMethodOptionsMixinFields<TRunArg, TRunReturn> {
+    // RateLimiterMixin (ddp-rate-limiter-mixin)
+    rateLimit?: {
       numRequests: number,
       timeInterval: number,
     };
@@ -13,15 +43,67 @@ declare module 'meteor/mdg:validated-method' {
     // and its options (clean, filter...), which it defaults
     schemaValidatorOptions?: object;
   }
+
+  export type NoArguments = undefined;
+
+  export interface ValidatedMethodOptions<TName extends string, TRun extends (...args: any[]) => any>
+    extends ValidatedMethodOptionsMixinFields<Argument<TRun>, Return<TRun>> {
+    // Force the name to be a string literal
+    name: TName & string;
+    validate: ((arg: Argument<TRun> extends NoArguments ? any : Argument<TRun>) => any) | null;
+    applyOptions?: {
+      noRetry?: boolean | undefined;
+      returnStubValue?: boolean | undefined;
+      throwStubExceptions?: boolean | undefined;
+      onResultReceived?: ((result: any) => void) | undefined;
+      [key: string]: any;
+    } | undefined;
+    run: TRun;
+  }
+
+  export type Mixin<TName extends string, TRun extends (...args: any[]) => any> = (
+    options: ValidatedMethodOptions<TName, TRun>,
+  ) => ValidatedMethodOptions<TName, TRun>;
+
+  export interface ValidatedMethodOptionsWithMixins<TName extends string, TRun extends (...args: any[]) => any>
+    extends ValidatedMethodOptions<TName, TRun> {
+    // Force TRun to be inferred from run itself rather than from the elements of mixins
+    mixins?: TRun extends infer TRunAlias ? TRunAlias extends TRun ? ReadonlyArray<Mixin<TName, TRunAlias>>
+      : never
+      : never | undefined;
+  }
+
   type Return<TFunc> = TFunc extends (...args: any[]) => infer TReturn ? TReturn : never;
   type Argument<TFunc> = TFunc extends (...args: infer TArgs) => any ? TArgs extends [infer TArg] ? TArg
     : NoArguments
     : never;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ValidatedMethod<TName extends string, TRun extends (...args: any[]) => any> {
+
+  export class ValidatedMethod<TName extends string, TRun extends (...args: any[]) => any> {
+    constructor(
+      options:
+        & ValidatedMethodOptionsWithMixins<TName, TRun>
+        & ThisType<ValidatedMethodThisBase & { name: TName extends string ? TName : string }>,
+    );
+    name: TName;
+    call: Argument<TRun> extends NoArguments
+      // methods with no argument can be called with () or just a callback
+      ?
+        & ((unusedArg: any, callback: (error: Meteor.Error, result: Return<TRun>) => void) => void)
+        & ((callback: (error: Meteor.Error | undefined, result: Return<TRun>) => void) => void)
+        & (() => Return<TRun>)
+      // methods with arguments require those arguments to be called
+      :
+        & ((
+          arg: Argument<TRun>,
+          callback: (error: Meteor.Error | undefined, result: Return<TRun>) => void,
+        ) => void)
+        & ((arg: Argument<TRun>) => Return<TRun>);
     // Meteor 3: a promise of the method's result, never a callback
     callAsync: Argument<TRun> extends NoArguments
       ? (unusedArg?: any) => Promise<Awaited<Return<TRun>>>
       : (arg: Argument<TRun>) => Promise<Awaited<Return<TRun>>>;
+    _execute: Argument<TRun> extends NoArguments // methods with no argument can be called without an argument
+      ? (context: { [key: string]: any }) => Return<TRun>
+      : (context: { [key: string]: any }, args: Argument<TRun>) => Return<TRun>;
   }
 }

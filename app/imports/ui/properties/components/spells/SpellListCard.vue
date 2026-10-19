@@ -82,8 +82,9 @@ const props = defineProps({
 const preparingSpells = ref(false);
 
 const spells = autorun(() => {
+  /** @type {import('meteor/mongo').Mongo.Selector<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty>} */
   let filter = {
-    ...getFilter.descendants(props.model),
+    ...getFilter.descendants(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)),
     type: 'spell',
     removed: { $ne: true },
   };
@@ -103,7 +104,7 @@ const spells = autorun(() => {
 
 const numPrepared = autorun(() => {
   return CreatureProperties.find({
-    ...getFilter.descendants(props.model),
+    ...getFilter.descendants(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.model)),
     type: 'spell',
     removed: { $ne: true },
     prepared: true,

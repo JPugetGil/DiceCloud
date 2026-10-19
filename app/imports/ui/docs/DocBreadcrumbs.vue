@@ -29,7 +29,7 @@ const items = computed(() => {
   if (!props.doc) return items;
 
   const ancestors = Docs.find({
-    ...getFilter.ancestors(props.doc)
+    ...getFilter.ancestors(/** @type {import('/imports/api/parenting/ChildSchema').TreeDoc} */ (props.doc))
   }).fetch();
       
   ancestors.forEach(a => {

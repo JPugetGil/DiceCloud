@@ -32,8 +32,8 @@ import AttributeConsumedForm from '/imports/ui/properties/forms/AttributeConsume
 
 defineProps({
   model: {
-    type: [Object, Array],
-    default: () => ({}),
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
+    default: () => [],
   },
 });
 

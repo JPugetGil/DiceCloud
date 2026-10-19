@@ -57,11 +57,11 @@ const props = defineProps({
     default: undefined,
   },
   errorMessages: {
-    type: [String, Array],
+    type: /** @type {import('vue').PropType<string | string[]>} */ ([String, Array]),
     default: undefined,
   },
   hideDetails: {
-    type: [Boolean, String],
+    type: /** @type {import('vue').PropType<boolean | 'auto'>} */ ([Boolean, String]),
     default: false,
   },
   // Highlights the outline, as a focused field's

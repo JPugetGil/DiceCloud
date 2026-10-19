@@ -53,7 +53,8 @@
 </template>
 
 <script setup lang="js">
-import { ref, computed, inject } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 
 const props = defineProps({
@@ -65,7 +66,7 @@ const props = defineProps({
 
 const emit = defineEmits(['click', 'change']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const hover = ref(false);
 

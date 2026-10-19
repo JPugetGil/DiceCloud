@@ -67,6 +67,7 @@ export const useTargetSelectionStore = defineStore('targetSelection', {
      * What the picker starts with: the newer of the action's last targets
      * and its parties' boards' pick, among those it may target; one at most
      * for a single target
+     * @param {{ propId?: string, folderIds?: string[], candidateIds?: string[], single?: boolean }} options
      */
     preselection({ propId, folderIds = [], candidateIds = [], single = false }) {
       this.refresh();

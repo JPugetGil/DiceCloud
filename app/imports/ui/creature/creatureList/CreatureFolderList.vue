@@ -70,7 +70,7 @@ defineProps({
     default: () => [],
   },
   folders: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Record<string, any>[]>} */ (Array),
     default: () => [],
   },
   selection: Boolean,

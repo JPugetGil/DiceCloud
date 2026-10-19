@@ -158,7 +158,9 @@
 </template>
 
 <script setup>
-import { inject, ref, computed } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import CoinValue from '/imports/ui/components/CoinValue.vue';
 import IncrementButton from '/imports/ui/components/IncrementButton.vue';
 import adjustQuantity from '/imports/api/creature/creatureProperties/methods/adjustQuantity';
@@ -180,7 +182,7 @@ const props = defineProps({
 
 defineEmits(['remove', 'change']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const incrementLoading = ref(false);
 
@@ -203,7 +205,7 @@ async function changeQuantity({ type, value }) {
       value: value
     });
   } catch (error) {
-    snackbar({ text: error.reason });
+    snackbar({ text: errorText(error) });
     console.error(error);
   } finally {
     incrementLoading.value = false;

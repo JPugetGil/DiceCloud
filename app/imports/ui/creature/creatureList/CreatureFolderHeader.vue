@@ -95,6 +95,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, watch, nextTick } from 'vue';
 import updateCreatureFolderName from '/imports/api/creature/creatureFolders/methods/updateCreatureFolderName';
 import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
@@ -118,7 +119,7 @@ const { t } = useI18n();
 
 const renaming = ref(false);
 const newName = ref(props.model?.name);
-const nameInput = ref(null);
+const nameInput = ref(/** @type {InstanceType<typeof import('/imports/ui/components/global/TextField.vue').default> | null} */ (null));
 
 watch(
   () => props.model?.name,
@@ -143,7 +144,7 @@ watch(renaming, async (value) => {
       });
     } catch (error) {
       console.error(error);
-      snackbar({ text: error.reason });
+      snackbar({ text: errorText(error) });
     }
   }
 });
@@ -154,7 +155,7 @@ async function removeFolder() {
     snackbar({ text: t('characterList.folderDeleted', { name: props.model.name }) });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason });
+    snackbar({ text: errorText(error) });
   }
 }
 </script>

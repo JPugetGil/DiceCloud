@@ -23,7 +23,8 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from 'vue';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import doActionApi from '/imports/ui/creature/actions/doAction';
 import PropertyIcon from '/imports/ui/properties/shared/PropertyIcon.vue';
 import isDarkColor from '/imports/ui/utility/isDarkColor';
@@ -36,7 +37,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 // A library's colour fills the button; its text is black or white, whichever
 // reads on it (DESIGN_SYSTEM.md, rule 2). Vuetify's own pick put white on

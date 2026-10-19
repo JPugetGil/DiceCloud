@@ -80,7 +80,7 @@ const MORPH_MS = DURATION.medium / animationSpeed;
 
 const dialogStackStore = useDialogStackStore();
 
-const stackElement = ref(null);
+const stackElement = ref(/** @type {HTMLElement | null} */ (null));
 const shake = ref(false);
 // Source elements hidden while their dialog is open, restored as it closes
 const hiddenElements = [];
@@ -160,6 +160,7 @@ function getDialogStyle(index) {
   return `left: calc(${left}px + 50%); top: calc(${top}px + 50%);${index < num ? ' filter: brightness(0.7);' : ''}`;
 }
 
+/** @returns {HTMLElement | null} */
 function getTopElementByDataId(elementId, offset = 0) {
   const stackLength = dialogStackStore.dialogs.length - offset;
   // Each dialog's root element carries its stack index, whether it is the

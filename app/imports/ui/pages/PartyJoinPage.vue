@@ -64,7 +64,7 @@
                 <v-icon size="small">
                   $discord
                 </v-icon>
-                {{ $t(postingKey(invite.discordPosting)) }}
+                {{ $t(postingKey(invite.discordPosting) || '') }}
               </p>
               <party-character-picker v-model="creatureIds" />
             </v-card-text>
@@ -97,6 +97,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -107,26 +108,29 @@ import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useAppStore } from '/imports/ui/stores/app';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 
+/** @typedef {NonNullable<Awaited<ReturnType<typeof getPartyInvite.callAsync>>>} PartyInvite */
+
 /** Where a party's invitation link leads: join it with some of your characters */
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const appStore = useAppStore();
 
-const invite = ref(undefined);
-const error = ref(undefined);
+const invite = ref(/** @type {PartyInvite | undefined} */ (undefined));
+const error = ref(/** @type {string | undefined} */ (undefined));
 const loading = ref(true);
 const joining = ref(false);
 const creatureIds = ref([]);
 
 onMounted(async () => {
   try {
-    invite.value = await getPartyInvite.callAsync({ token: route.params.token });
+    // The server returns the invitation or throws, only the client's simulation returns nothing
+    invite.value = /** @type {PartyInvite} */ (await getPartyInvite.callAsync({ token: route.params.token }));
     appStore.setPageTitle(invite.value.name || t('party.untitled'));
   } catch (e) {
-    error.value = e.error === 'party.invite-not-found'
+    error.value = /** @type {{ error?: string }} */ (e).error === 'party.invite-not-found'
       ? t('party.invitationInvalidText')
-      : e.reason || e.message;
+      : errorText(e);
   } finally {
     loading.value = false;
   }
@@ -139,7 +143,7 @@ async function join() {
       token: route.params.token,
       creatureIds: creatureIds.value,
     });
-    snackbar({ text: t('party.joined', { name: invite.value.name || t('party.untitled') }) });
+    snackbar({ text: t('party.joined', { name: /** @type {PartyInvite} */ (invite.value).name || t('party.untitled') }) });
     await router.push(`/party/${folderId}`);
   } catch (e) {
     console.error(e);

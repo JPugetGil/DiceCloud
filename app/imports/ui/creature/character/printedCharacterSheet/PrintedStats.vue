@@ -20,7 +20,7 @@
                 {{ ability.name }}
               </div>
               <div class="big-number mb-1">
-                <template v-if="creature.settings?.swapScoresAndMods">
+                <template v-if="swapScoresAndMods">
                   {{ ability.total }}
                 </template>
                 <template v-else>
@@ -29,7 +29,7 @@
               </div>
             </div>
             <div class="bottom">
-              <template v-if="creature.settings?.swapScoresAndMods">
+              <template v-if="swapScoresAndMods">
                 {{ numberToSignedString(ability.modifier) }}
               </template>
               <template v-else>
@@ -378,8 +378,13 @@ import PrintedDamageMultipliers from '/imports/ui/creature/character/printedChar
 import PropertyDescription from '/imports/ui/properties/viewers/shared/PropertyDescription.vue';
 import { uniqBy } from 'lodash';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { Meteor } from 'meteor/meteor';
 import useUnits from '/imports/ui/composables/useUnits';
 import { getAttributeUnit } from '/imports/api/utility/units';
+
+// The reader's preference, as on the sheet (AbilityListTile). It read the
+// creature's `settings.swapScoresAndMods`, which nothing ever set
+const swapScoresAndMods = autorun(() => !!Meteor.user()?.preferences?.swapAbilityScoresAndModifiers).result;
 
 // Speeds and senses in the user's units
 const { quantityParts, unitLabel } = useUnits();
@@ -408,6 +413,7 @@ function onBuildTab(creatureId) {
   return getFilter.descendantsOfAll(folders);
 }
 
+/** @param {import('meteor/mongo').Mongo.Options<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty>} [options] */
 const getProperties = function (creature, filter, options = {
   sort: { left: 1 }
 }) {
@@ -442,7 +448,10 @@ const getSkillOfType = function (creature, type) {
   });
 };
 
-const creature = autorun(() => Creatures.findOne(props.creatureId, { fields: { settings: 1 } })).result;
+// The printed sheet shows its stats once the creature is found (CharacterSheetPrinted)
+const creature = autorun(() => /** @type {import('/imports/api/creature/creatures/Creatures').Creature} */ (
+  Creatures.findOne(props.creatureId, { fields: { settings: 1 } })
+)).result;
 
 const abilities = autorun(() => getAttributeOfType(creature.value, 'ability')).result;
 const stats = autorun(() => getAttributeOfType(creature.value, 'stat')).result;
@@ -499,9 +508,11 @@ const weapons = autorun(() => getSkillOfType(creature.value, 'weapon')).result;
 const armors = autorun(() => getSkillOfType(creature.value, 'armor')).result;
 const languages = autorun(() => getSkillOfType(creature.value, 'language')).result;
 
-const actions = autorun(() => getProperties(creature.value, { type: 'action' }, {
-  sort: { actionType: 1, order: 1 }
-})).result;
+const actions = autorun(() => /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['action'][]} */ (
+  getProperties(creature.value, { type: 'action' }, {
+    sort: { actionType: 1, order: 1 }
+  })
+)).result;
 
 
 const multipliers = autorun(() => getProperties(creature.value, {

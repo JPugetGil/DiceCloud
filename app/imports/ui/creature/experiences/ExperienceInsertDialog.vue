@@ -66,6 +66,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, provide, reactive } from 'vue';
 import { toPath } from 'lodash';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
@@ -83,13 +84,13 @@ const { t } = useI18n();
 const props = defineProps({
   // The characters that get the experience, unless `members` is given
   creatureIds: {
-    type: Array,
+    type: /** @type {import('vue').PropType<string[]>} */ (Array),
     default: () => [],
   },
   // A party's characters to choose from: { _id, name, type, editable }. Those
   // that can be edited and are player characters start chosen.
   members: {
-    type: Array,
+    type: /** @type {import('vue').PropType<{ _id: string, name: string, type: string, editable: boolean }[]>} */ (Array),
     default: undefined,
   },
 });
@@ -139,7 +140,8 @@ const errors = computed(() => {
   validationContext.validate(cleanModel);
   let errorsObj = {};
   validationContext.validationErrors().forEach(error => {
-    errorsObj[error.name] = schema.messageForError(error);
+    // simpl-schema takes the error itself; @types/simpl-schema lists four arguments
+    errorsObj[error.name] = /** @type {{ messageForError(error: object): string }} */ (/** @type {unknown} */ (schema)).messageForError(error);
   });
   return errorsObj;
 });
@@ -162,7 +164,7 @@ function resolvePath(modelObj, path) {
   if (arrayPath.length === 1) {
     return { object: modelObj, key: arrayPath[0] };
   }
-  let key = arrayPath.slice(-1);
+  let key = arrayPath[arrayPath.length - 1];
   let objectPath = arrayPath.slice(0, -1);
   let object = modelObj;
   // Ensure that nested objects exist before navigating them
@@ -199,7 +201,7 @@ async function insertExperience() {
     await dialogStackStore.popDialogStack(ids);
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || String(error) });
+    snackbar({ text: errorText(error) });
   } finally {
     saving.value = false;
   }

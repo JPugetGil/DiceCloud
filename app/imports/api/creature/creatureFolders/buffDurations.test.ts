@@ -4,6 +4,7 @@ import { Random } from 'meteor/random';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import {
   buffDurationRounds, buffRoundsLeft, durationClockOf, durationEventOf, durationSourceOf,
@@ -77,7 +78,8 @@ describe('Effect durations', function () {
       [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
     const as = (method, args, userId = gmId) => method._execute({ userId }, { folderId, ...args });
     const setDuration = (args, userId = gmId) => (setBuffDuration as any)._execute({ userId }, args);
-    const buff = (id: string) => CreatureProperties.findOneAsync(id);
+    // The buffs the test inserted
+    const buff = (id: string) => CreatureProperties.findOneAsync(id) as Promise<CreaturePropertyTypes['buff'] | undefined>;
 
     async function removeAll() {
       await CreatureFolders.removeAsync(folderId);

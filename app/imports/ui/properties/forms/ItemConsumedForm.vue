@@ -33,7 +33,7 @@ import ComputedField from '/imports/ui/properties/forms/shared/ComputedField.vue
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
 });

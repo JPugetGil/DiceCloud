@@ -152,7 +152,7 @@ const props = defineProps({
   },
   // The last sessions, newest first (discordSession.ts)
   history: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/creature/log/discord/discordSession').PastSession[]>} */ (Array),
     default: () => [],
   },
   // The channel connected now: its webhook's id, the channel and its server
@@ -183,7 +183,7 @@ const resumable = computed(() => resumableSessions(props.history, {
 // the channel, again whenever the channel changes
 const availability = ref('ready');
 // The bot's refusal the last "New session" met: { status }
-const problem = ref(undefined);
+const problem = ref(/** @type {{ status?: string } | undefined} */ (undefined));
 const noBot = computed(() => availability.value === 'noBot');
 
 // The last question asked: an older answer arriving late is dropped
@@ -222,18 +222,20 @@ const stateText = computed(() => {
 });
 
 // 'start', 'resume' or 'end' while its method runs
-const busy = ref(undefined);
+const busy = ref(/** @type {'start' | 'resume' | 'end' | undefined} */ (undefined));
 
 async function run(name, call) {
   busy.value = name;
   try {
     await call();
   } catch (error) {
+    // A refusal from boardError: its details name the message, and the bot's status
+    const refusal = /** @type {{ error?: string, details?: { i18n?: { params?: { status?: string } } } } | undefined} */ (error);
     // What the server explains is said, not logged
-    if (!error?.details?.i18n) console.error(error);
+    if (!refusal?.details?.i18n) console.error(error);
     // The bot cannot create the thread: said under the buttons, with the way to fix it
-    if (error?.error === 'discord.botUnavailable' || error?.error === 'discord.noBot') {
-      problem.value = { status: error.details?.i18n?.params?.status };
+    if (refusal?.error === 'discord.botUnavailable' || refusal?.error === 'discord.noBot') {
+      problem.value = { status: refusal.details?.i18n?.params?.status };
     } else {
       snackbar({ text: boardErrorText(error, t) });
     }

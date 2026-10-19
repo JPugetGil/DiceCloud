@@ -1,10 +1,13 @@
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { PartialDeep } from 'type-fest';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
 import { Random } from 'meteor/random';
 
-export type ForestProp = Partial<CreatureProperty> & {
+// A property as a test writes it: what the schema fills in when it cleans
+// it, defaults and auto values (the ids of its rows), left out
+export type ForestProp = PartialDeep<CreatureProperty, { recurseIntoArrays: true }> & {
   type: CreatureProperty['type'];
   children?: ForestProp[];
 }
@@ -41,7 +44,9 @@ export default function propsFromForest(
       doc._id = Random.id();
     }
     delete doc.children;
-    const creatureProp = cleanAndValidate(CreatureProperties.simpleSchema(doc), doc);
+    // Cleaning fills in what the test left out, and validates the rest
+    const partialDoc = doc as Partial<CreatureProperty>;
+    const creatureProp = cleanAndValidate(CreatureProperties.simpleSchema(partialDoc), partialDoc);
 
     // Add the doc to the result and ancestry
     result.push(creatureProp);

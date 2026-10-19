@@ -8,14 +8,14 @@ export default async function () {
   await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   // Tag targeted effects make complicated parse trees
-  assert.equal(prop('attackAction2').attackRoll.value, 'min(3 + d4, d100)', 'Tag targeted effects change the attack roll correctly');
+  assert.equal(prop('attackAction2').attackRoll?.value, 'min(3 + d4, d100)', 'Tag targeted effects change the attack roll correctly');
   // Tags target effects on attributes
   assert.equal(prop('taggedCon').value, 26, 'Tagged targeted effects affect attribute values');
-  assert.equal(prop('taggedCon').baseValue.value, 10, 'Tag targeted effects target the attribute itself, not the base value');
+  assert.equal(prop('taggedCon').baseValue?.value, 10, 'Tag targeted effects target the attribute itself, not the base value');
   // Tag target effects on a calculation
-  assert.equal(prop('attackAction').attackRoll.value, 20, 'Tag targeted effects change the attack roll correctly');
+  assert.equal(prop('attackAction').attackRoll?.value, 20, 'Tag targeted effects change the attack roll correctly');
   // Tag target effects can deal with rolls
-  assert.equal(prop('attackAction').attackRoll.value, 20, 'Tag targeted effects change the attack roll correctly');
+  assert.equal(prop('attackAction').attackRoll?.value, 20, 'Tag targeted effects change the attack roll correctly');
 }
 
 var testProperties = [

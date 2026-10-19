@@ -129,6 +129,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, onMounted } from 'vue';
 import { Accounts } from 'meteor/accounts-base';
 import { discordLoginUrl } from '/imports/api/discord/methods/discordOAuthMethods';
@@ -138,12 +139,14 @@ import useLoginServiceConfigured from '/imports/ui/composables/useLoginServiceCo
 import { Meteor } from 'meteor/meteor';
 import { useI18n } from 'vue-i18n';
 
+/** @typedef {InstanceType<typeof import('vuetify/components').VForm>} VForm */
+
 const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
 
-const form = ref(null);
+const form = ref(/** @type {VForm | null} */ (null));
 const valid = ref(true);
 const name = ref('');
 const nameRules = [
@@ -160,13 +163,14 @@ const googleConfigured = useLoginServiceConfigured('google');
 async function submit() {
   // Vuetify's validate() resolves to { valid, errors }; the Promise itself is
   // always truthy, so testing it directly let invalid forms through
-  const { valid: formValid } = await form.value.validate();
+  // The form submits itself: it is mounted
+  const { valid: formValid } = await /** @type {VForm} */ (form.value).validate();
   if (!formValid) return;
   Meteor.loginWithPassword(name.value, password.value, loginError => {
     if (loginError) {
-      error.value = loginError.reason;
+      error.value = errorText(loginError);
     } else {
-      router.push(route.query.redirect || '/character-list');
+      router.push(/** @type {string | null} */ (route.query.redirect) || '/character-list');
     }
   });
 }
@@ -174,7 +178,7 @@ async function submit() {
 // "Sign in with Discord" (D5), when this server has a Discord application
 const discordOAuth = !!Meteor.settings.public?.discordOAuth;
 const discordBusy = ref(false);
-const discordMessage = ref(undefined);
+const discordMessage = ref(/** @type {{ type: 'info' | 'error', text: string } | undefined} */ (undefined));
 
 async function discordLogin() {
   discordBusy.value = true;
@@ -183,12 +187,12 @@ async function discordLogin() {
     // Discord's page, which comes back here with a one-time ticket for this
     // browser alone: it keeps the nonce, the server its hash
     const nonceHash = await bindToThisBrowser('login');
-    const url = await discordLoginUrl.callAsync({ returnTo: route.query.redirect || '/character-list', nonceHash });
+    const url = await discordLoginUrl.callAsync({ returnTo: /** @type {string | null} */ (route.query.redirect) || '/character-list', nonceHash });
     if (url) window.location.assign(url);
     else discordBusy.value = false;
   } catch (loginError) {
     console.error(loginError);
-    discordMessage.value = { type: 'error', text: loginError.reason || loginError.message };
+    discordMessage.value = { type: 'error', text: errorText(loginError) };
     discordBusy.value = false;
   }
 }
@@ -216,19 +220,19 @@ onMounted(() => {
         const text = loginError.error === 'discord-sign-in-expired' ? t('discord.result.expired') : loginError.reason || loginError.message;
         discordMessage.value = { type: 'error', text };
       } else {
-        router.push(rest.redirect || '/character-list');
+        router.push(/** @type {string | null} */ (rest.redirect) || '/character-list');
       }
     },
   });
 });
 
 function googleLogin() {
-  Meteor.loginWithGoogle(loginError => {
+  Meteor.loginWithGoogle({}, loginError => {
     if (loginError) {
       console.error(loginError);
       googleError.value = loginError.message;
     } else {
-      router.push(route.query.redirect || '/character-list');
+      router.push(/** @type {string | null} */ (route.query.redirect) || '/character-list');
     }
   });
 }

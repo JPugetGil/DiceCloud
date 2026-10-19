@@ -22,7 +22,7 @@
 <script setup>
 defineProps({
   tags: {
-    type: Array,
+    type: /** @type {import('vue').PropType<string[]>} */ (Array),
     default: () => [],
   },
   prefix: {

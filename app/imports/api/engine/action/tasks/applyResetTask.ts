@@ -5,7 +5,9 @@ import type { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getCreature, getPropertiesByFilter } from '/imports/api/engine/loadCreatures';
-import CreatureProperties, { type CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties, {
+  type CreatureProperty, type CreaturePropertyTypes,
+} from '/imports/api/creature/creatureProperties/CreatureProperties';
 import {
   buffDurationRounds, durationClockOf, durationEventOf,
 } from '/imports/api/creature/creatureFolders/buffDurations';
@@ -30,8 +32,10 @@ const REST_TITLES: Record<string, string> = {
   longRest: 'logs.longRest',
 };
 
+type TriggerEvent = CreaturePropertyTypes['trigger']['event'];
+
 // The trigger events a rest fires: its own, and "Short or long rest"
-const REST_TRIGGER_EVENTS: Record<string, string[]> = {
+const REST_TRIGGER_EVENTS: Record<string, TriggerEvent[]> = {
   shortRest: ['shortRest', 'anyRest'],
   longRest: ['longRest', 'anyRest'],
 };
@@ -105,7 +109,7 @@ export async function resetProperties(
   const creatureId = task.targetIds[0];
 
   // Long rests reset short rest properties as well
-  let mongoFilter: Mongo.Selector<object>
+  let mongoFilter: Mongo.Selector<CreatureProperty>
   if (task.eventName === 'longRest') {
     mongoFilter = { reset: { $in: ['shortRest', 'longRest'] } }
   } else {
@@ -125,7 +129,7 @@ export async function resetProperties(
 
   // Attributes
 
-  const attributeFilter: Mongo.Selector<object> = {
+  const attributeFilter: Mongo.Selector<CreatureProperty> = {
     ...mongoFilter,
     type: 'attribute',
     damage: { $nin: [0, undefined] },
@@ -138,7 +142,10 @@ export async function resetProperties(
     return true;
   }
 
-  const attributes = await getPropertiesByFilter(creatureId, attributeFilterFunction, attributeFilter);
+  // Both filters keep the attributes with damage alone
+  const attributes = await getPropertiesByFilter(
+    creatureId, attributeFilterFunction, attributeFilter
+  ) as (CreaturePropertyTypes['attribute'] & { damage: number })[];
 
   for (const prop of attributes) {
     const title = getPropertyTitle(prop);
@@ -161,7 +168,7 @@ export async function resetProperties(
 
   // Action-like properties
 
-  const actionFilter = {
+  const actionFilter: Mongo.Selector<CreatureProperty> = {
     ...mongoFilter,
     type: {
       $in: ['action', 'spell']
@@ -176,12 +183,15 @@ export async function resetProperties(
     return true;
   }
 
-  const actionProps = await getPropertiesByFilter(creatureId, actionFilterFunction, actionFilter);
+  // Both filters keep the actions and spells with uses used alone
+  const actionProps = await getPropertiesByFilter(
+    creatureId, actionFilterFunction, actionFilter
+  ) as ((CreaturePropertyTypes['action'] | CreaturePropertyTypes['spell']) & { usesUsed: number })[];
 
   for (const prop of actionProps) {
     const uses = Math.abs(prop.usesUsed);
     restored?.push(msg(uses === 1 ? 'logs.restoredUse' : 'logs.restoredUses', {
-      name: prop.name, change: numberToSignedString(prop.usesUsed),
+      name: getPropertyTitle(prop), change: numberToSignedString(prop.usesUsed),
     }));
     result.mutations.push({
       targetIds: [creatureId],
@@ -216,7 +226,7 @@ export type TriggerTiming = 'before' | 'after' | 'afterChildren';
  * properties of the creature that acts (applyChildren)
  */
 export async function applyEventTriggers(
-  action: EngineAction, creatureId: string, events: string[], timings: TriggerTiming[], userInput: InputProvider,
+  action: EngineAction, creatureId: string, events: TriggerEvent[], timings: TriggerTiming[], userInput: InputProvider,
 ) {
   if (creatureId !== action.creatureId) return;
   const triggers = await getPropertiesByFilter(
@@ -358,8 +368,10 @@ async function resetHitDice(
   hitDice.sort(compare);
 
   // Get the total number of hit dice that can be recovered this rest
-  const totalHd = hitDice.reduce((sum, hd) => sum + (hd.total || 0), 0);
-  const creature = await getCreature(creatureId);
+  const totalHd = hitDice.reduce((sum, hd) => sum + (Number(hd.total) || 0), 0);
+  // The creature exists: runAction checked the actor, and on the server its
+  // targets (assertMayTarget)
+  const creature = (await getCreature(creatureId))!;
   const resetMultiplier = creature.settings.hitDiceResetMultiplier || 0.5;
   let recoverableHd = Math.max(Math.floor(totalHd * resetMultiplier), 1);
 

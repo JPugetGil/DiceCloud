@@ -28,7 +28,8 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue';
+import { computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import SpellListTile from '/imports/ui/properties/components/spells/SpellListTile.vue';
 import spellsWithSubheaders from '/imports/ui/properties/components/spells/spellsWithSubheaders';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -43,7 +44,7 @@ const props = defineProps({
   preparingSpells: Boolean,
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 const computedSpells = computed(() => {
   return spellsWithSubheaders(props.spells);

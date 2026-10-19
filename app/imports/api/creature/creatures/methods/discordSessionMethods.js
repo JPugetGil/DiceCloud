@@ -31,7 +31,8 @@ async function getEditableCreature(creatureId, userId) {
     },
   });
   await assertEditPermission(creature, userId);
-  return creature;
+  // Found: assertEditPermission throws otherwise
+  return /** @type {import('/imports/api/creature/creatures/Creatures').Creature} */ (creature);
 }
 
 /**

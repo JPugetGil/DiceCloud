@@ -62,7 +62,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, inject } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import DependencyLoopError from '/imports/ui/creature/character/errors/DependencyLoopError.vue';
@@ -75,7 +76,7 @@ const props = defineProps({
   }
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 const expanded = ref(false);
 
@@ -84,9 +85,12 @@ const creature = autorun(() => {
   return Creatures.findOne(props.creatureId, {fields: {computeErrors: 1, settings: 1}});
 }).result;
 
+// `details` is a blackbox object: its shape depends on the error's type
+/** @typedef {{ type: string, details?: any }} ComputeError */
+
 const errors = computed(() => {
   if (!creature.value || !creature.value.computeErrors) return [];
-  return creature.value.computeErrors;
+  return /** @type {ComputeError[]} */ (creature.value.computeErrors);
 });
 
 watch(expanded, async (value) => {

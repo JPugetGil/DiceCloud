@@ -219,9 +219,10 @@ Tests
 `meteor npm test` in `app/` runs the unit tests (`*.test.js` and `*.test.ts`
 files in `app/imports/`), next to a running development server if need be.
 
-`meteor npm run typecheck` in `app/` type checks the app once Meteor has built
-it (`meteor` or `meteor npm test`). The app has a backlog of type errors, listed
-in `tests/types/baseline.txt`: the check fails only on errors that list doesn't
+`meteor npm run typecheck` in `app/` type checks the app, single-file
+components included (vue-tsc, about 35 s), once Meteor has built it (`meteor`
+or `meteor npm test`). The app has a small backlog of type errors, listed in
+`tests/types/baseline.txt`: the check fails only on errors that list doesn't
 hold. After fixing some, `meteor npm run typecheck -- --update` removes them
 from it.
 
@@ -238,13 +239,13 @@ and every pull request: an audit of the production dependencies (high and
 critical advisories), the lint, the import cycles check, the unit tests on the
 server and the type check.
 
-`tests/e2e/` holds 26 Playwright checks that drive a running development
+`tests/e2e/` holds 27 Playwright checks that drive a running development
 server: pages, the character sheet, action targets, docs navigation, every
 property form, dialogs, login services, colour contrast (the theme palette and
 an axe-core audit), the library dialogs, printed cards, Discord (webhooks,
 sign-in, commands and buttons), monsters on a party board (initiative, turns,
-targets, healing, undo, legendary actions, durations), the licences and the
-account's screens.
+targets, healing, undo, legendary actions, durations), the licences, the
+account's screens and the actions on library nodes.
 See [tests/e2e/README.md](tests/e2e/README.md).
 
 Design system

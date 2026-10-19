@@ -152,6 +152,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, onMounted } from 'vue';
 import prettyBytes from 'pretty-bytes';
 import { useI18n } from 'vue-i18n';
@@ -159,9 +160,9 @@ import getDatabaseUsage from '/imports/api/admin/methods/getDatabaseUsage';
 
 const { locale } = useI18n();
 
-const usage = ref(undefined);
+const usage = ref(/** @type {import('/imports/api/admin/methods/getDatabaseUsage').DatabaseUsage | undefined} */ (undefined));
 const loading = ref(false);
-const error = ref(undefined);
+const error = ref(/** @type {string | undefined} */ (undefined));
 
 const diskPercent = computed(() => {
   const { fsUsedSize = 0, fsTotalSize } = usage.value || {};
@@ -179,7 +180,7 @@ async function refresh() {
     usage.value = await getDatabaseUsage.callAsync();
     error.value = undefined;
   } catch (e) {
-    error.value = e.reason || e.message;
+    error.value = errorText(e);
   } finally {
     loading.value = false;
   }

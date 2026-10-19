@@ -121,7 +121,7 @@ const spellSlots = autorun(() => CreatureProperties.find({
   ],
 }, {
   sort: { left: 1 }
-})).result;
+}).fetch()).result;
 
 const spellLists = autorun(() => CreatureProperties.find({
   ...getFilter.descendantsOfRoot(props.creatureId),
@@ -157,7 +157,7 @@ const spellsWithoutList = autorun(() => CreatureProperties.find({
     level: 1,
     order: 1,
   }
-})).result;
+}).fetch()).result;
 
 const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.find({
   ...getFilter.descendantsOfRoot(props.creatureId),

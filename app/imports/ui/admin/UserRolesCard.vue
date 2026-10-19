@@ -101,6 +101,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, onMounted } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
@@ -112,13 +113,15 @@ import setUserRole from '/imports/api/users/methods/setUserRole';
 import { ROLE_ORDER, ROLE_PERMISSIONS } from '/imports/api/users/roles';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 
+/** @typedef {NonNullable<Awaited<ReturnType<typeof searchUsers.callAsync>>>} SearchedUsers */
+
 const { t } = useI18n();
 
 const search = ref('');
-const users = ref([]);
+const users = ref(/** @type {SearchedUsers} */ ([]));
 const loading = ref(false);
-const error = ref(undefined);
-const savingUserId = ref(undefined);
+const error = ref(/** @type {string | undefined} */ (undefined));
+const savingUserId = ref(/** @type {string | undefined} */ (undefined));
 
 const currentUserId = autorun(() => Meteor.userId()).result;
 
@@ -154,11 +157,12 @@ async function refresh() {
   try {
     const result = await searchUsers.callAsync({ search: search.value || undefined });
     if (thisSearch !== latestSearch) return;
-    users.value = result;
+    // Only the client's simulation of the method returns nothing
+    users.value = /** @type {SearchedUsers} */ (result);
     error.value = undefined;
   } catch (e) {
     if (thisSearch !== latestSearch) return;
-    error.value = e.reason || e.message;
+    error.value = errorText(e);
   } finally {
     if (thisSearch === latestSearch) loading.value = false;
   }
@@ -179,7 +183,7 @@ async function setRole(user, role) {
     });
   } catch (e) {
     console.error(e);
-    snackbar({ text: e.reason || e.message });
+    snackbar({ text: errorText(e) });
   } finally {
     savingUserId.value = undefined;
   }

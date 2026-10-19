@@ -98,10 +98,11 @@ const rollD20 = () => Math.floor(Random.fraction() * 20) + 1;
 // A character's initiative bonus: its initiative stat, else its Dexterity modifier
 async function initiativeBonus(creatureId) {
   const active = { 'root.id': creatureId, removed: { $ne: true }, inactive: { $ne: true }, overridden: { $ne: true } };
-  const initiative = await CreatureProperties.findOneAsync({ ...active, variableName: 'initiative' });
-  if (Number.isFinite(initiative?.value)) return initiative.value;
-  const dexterity = await CreatureProperties.findOneAsync({ ...active, variableName: 'dexterity' });
-  return Number.isFinite(dexterity?.modifier) ? dexterity.modifier : 0;
+  // Number.isFinite is false for anything but a number: typeof only tells it to the types
+  const initiative = (await CreatureProperties.findOneAsync({ ...active, variableName: 'initiative' }))?.value;
+  if (typeof initiative === 'number' && Number.isFinite(initiative)) return initiative;
+  const dexterity = (await CreatureProperties.findOneAsync({ ...active, variableName: 'dexterity' }))?.modifier;
+  return typeof dexterity === 'number' && Number.isFinite(dexterity) ? dexterity : 0;
 }
 
 function rolled(entry) {
@@ -122,7 +123,8 @@ export const rollInitiative = new ValidatedMethod({
     await getOwnFolder(folderId, this.userId);
     // The dice are the server's: the client waits for its result
     if (Meteor.isClient) return;
-    const userId = this.userId;
+    // Logged in: getOwnFolder refused anyone else
+    const userId = /** @type {string} */ (this.userId);
     const rolledAll = await updateTracker(folderId, async folder => {
       const creatures = await Creatures.find({
         _id: { $in: folder.creatures || [] },

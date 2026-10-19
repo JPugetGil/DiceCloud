@@ -94,6 +94,7 @@ const dialogStackStore = useDialogStackStore();
 
 const loading = ref(true);
 const failed = ref(false);
+/** @type {import('vue').Ref<import('/imports/api/engine/action/tasks/TaskResult').LogContent[]>} */
 const contents = ref([]);
 const needsInput = ref(false);
 

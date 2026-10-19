@@ -47,7 +47,7 @@ const itemsResult = autorun(() => {
     inactive: {$ne: true},
   }, {
     sort: {left: 1},
-    fields: {equipped: false},
+    fields: {equipped: 0},
   }).fetch();
 });
 const items = computed(() => itemsResult.result.value || []);

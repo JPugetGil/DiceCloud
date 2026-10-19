@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
 import ComputedField from '/imports/ui/properties/forms/shared/ComputedField.vue';
@@ -145,7 +145,7 @@ const { t } = useI18n();
 
 const props = defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {
@@ -156,7 +156,7 @@ const props = defineProps({
 
 const emit = defineEmits(['change', 'push', 'pull']);
 
-const context = inject('context', {});
+const context = useContext();
 const dialogStackStore = useDialogStackStore();
 
 const slotTypes = Object.keys(PROPERTIES).map(key => ({ title: getPropertyName(key), value: key }));

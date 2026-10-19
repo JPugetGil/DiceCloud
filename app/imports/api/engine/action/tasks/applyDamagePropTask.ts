@@ -25,9 +25,11 @@ export default async function applyDamagePropTask(
 
   let { value } = task.params;
   const { title, operation, damageType } = task.params;
-  let targetProp = task.params.targetProp;
+  // The target as the task gives it, a name alone when the stat was not found
+  // (applyAdjustmentProperty). Refetched once the before triggers have run
+  const givenProp = task.params.targetProp;
 
-  if (!targetProp) throw new Meteor.Error('not-found', 'Target property is required')
+  if (!givenProp) throw new Meteor.Error('not-found', 'Target property is required')
 
   // Set the scope properties
   result.pushScope = {};
@@ -50,11 +52,11 @@ export default async function applyDamagePropTask(
   // left, stays in the actor's scope for the rest of the action, where any
   // formula would print a monster's hit points in the actor's log
   if (targetId === action.creatureId) {
-    result.pushScope['~attributeDamaged'] = { _propId: targetProp._id };
+    result.pushScope['~attributeDamaged'] = { _propId: (givenProp as { _id?: string })._id };
   } else if (await targetSight(action, targetId, userInput) !== 'shown') {
-    result.pushScope['~attributeDamaged'] = { _id: (targetProp as { _id?: string })._id };
+    result.pushScope['~attributeDamaged'] = { _id: (givenProp as { _id?: string })._id };
   } else {
-    result.pushScope['~attributeDamaged'] = targetProp;
+    result.pushScope['~attributeDamaged'] = givenProp;
   }
 
   // Run the before triggers which may change scope properties. Only the
@@ -63,7 +65,7 @@ export default async function applyDamagePropTask(
   // triggers on its behalf while the action changes the damage in flight
   // (two in the Vexus libraries, Voices from Beyond and Ominous Will). Its
   // `after` ones run once the action is written (ReceivedDamageTask)
-  await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.before', userInput);
+  await applyTriggers(action, givenProp, [targetId], 'damageTriggerIds.before', userInput);
 
   // Create a new result after triggers have run
   result = new TaskResult(task.targetIds);
@@ -90,7 +92,7 @@ export default async function applyDamagePropTask(
   // If there are no targets, just log the result that would apply and end
   if (!task.targetIds?.length) {
     // Get the locally equivalent stat with the same variable name
-    const statName = getPropertyTitle(targetProp);
+    const statName = getPropertyTitle(givenProp);
     result.appendLog(logLine({
       name: title,
       value: operation === 'set' ? msg('logs.attributeSetTo', { name: statName, value }) : `${statName} ${value}`,
@@ -100,22 +102,24 @@ export default async function applyDamagePropTask(
   }
 
   let damage, newValue, increment;
-  targetProp = await getSingleProperty(targetId, targetPropId);
+  let targetProp = await getSingleProperty(targetId, targetPropId);
 
   if (!targetProp) return value;
   // Include the damage and healing this action has already dealt it
   targetProp = getEffectiveProperty(action, targetProp);
 
   if (operation === 'set') {
+    // A total is a calculation's value, which may be text or a boolean: the
+    // arithmetic reads it as a number, as `-` would
     const total = targetProp.total || 0;
     // Set represents what we want the value to be after damage
     // So we need the actual damage to get to that value
-    damage = total - value;
+    damage = Number(total) - value;
     // Damage can't exceed total value
     if (damage > total && !targetProp.ignoreLowerLimit) damage = total;
     // Damage must be positive
     if (damage < 0 && !targetProp.ignoreUpperLimit) damage = 0;
-    newValue = targetProp.total - damage;
+    newValue = Number(targetProp.total) - damage;
     // Write the results
     result.mutations.push({
       targetIds: [targetId],
@@ -147,7 +151,7 @@ export default async function applyDamagePropTask(
     // Only increment if the increment is non-zero
     if (increment !== 0) {
       damage = currentDamage + increment;
-      newValue = targetProp.total - damage;
+      newValue = Number(targetProp.total) - damage;
       const attributeType = attributeTypeMessage(
         targetProp.attributeType, upperFirst(lowerCase(targetProp.attributeType))
       );

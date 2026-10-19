@@ -3,7 +3,7 @@
     v-model="drawer"
     location="right"
   >
-    <character-log :creature-id="route.params.id" />
+    <character-log :creature-id="/** @type {string} */ (route.params.id)" />
   </v-navigation-drawer>
 </template>
 

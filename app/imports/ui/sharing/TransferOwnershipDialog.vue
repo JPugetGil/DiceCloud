@@ -39,6 +39,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref} from 'vue';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import { transferOwnership } from '/imports/api/sharing/sharing';
@@ -55,7 +56,7 @@ const props = defineProps({
   },
 });
 
-const error = ref(undefined);
+const error = ref(/** @type {string | undefined} */ (undefined));
 
 const dialogStackStore = useDialogStackStore();
 
@@ -68,7 +69,7 @@ async function transfer() {
     error.value = undefined;
     await dialogStackStore.popDialogStack();
   } catch (e) {
-    error.value = e.reason || e.message || e.toString();
+    error.value = errorText(e);
   }
 }
 </script>

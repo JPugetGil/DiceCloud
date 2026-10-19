@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="js">
-import { inject } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
@@ -28,7 +28,7 @@ const props = defineProps({
   },
 });
 
-const context = inject('context', {});
+const context = useContext();
 
 function fillSlot() {
   let slotId = props.model._id;

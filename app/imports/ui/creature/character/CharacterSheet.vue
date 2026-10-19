@@ -223,7 +223,7 @@ const shownTabs = computed(() => TABS.filter(tab =>
 // While the character has choices left, Build takes the fourth place
 const barTabs = computed(() => {
   const tabs = shownTabs.value.filter(tab => tab.name !== 'build').slice(0, 4);
-  if (choicesLeft.value) tabs.splice(3, 1, TABS.find(tab => tab.name === 'build'));
+  if (choicesLeft.value) tabs.splice(3, 1, /** @type {typeof TABS[number]} */ (TABS.find(tab => tab.name === 'build')));
   return tabs;
 });
 const moreTabs = computed(() => shownTabs.value.filter(tab => !barTabs.value.includes(tab)));

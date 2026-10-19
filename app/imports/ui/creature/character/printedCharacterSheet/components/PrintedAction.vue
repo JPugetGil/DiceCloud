@@ -128,7 +128,8 @@ const actionTypeName = computed(() => {
 const children = autorun(() => {
   const rangesToExclude = [];
   const descendants = CreatureProperties.find({
-    ...getFilter.descendants(props.model),
+    // The action it prints (PrintedStats)
+    ...getFilter.descendants(/** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['action']} */ (props.model)),
     'removed': { $ne: true },
   }, {
     sort: {left: 1}

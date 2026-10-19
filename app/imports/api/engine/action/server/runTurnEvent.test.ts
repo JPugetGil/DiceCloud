@@ -205,7 +205,7 @@ if (Meteor.isServer) describe('Turn events (runTurnEvent)', function () {
         children: [
           { type: 'roll', name: 'Recharge roll', variableName: 'rechargeRoll', roll: { calculation: '1d6' } },
           {
-            type: 'branch', branchType: 'choice', name: 'Which one',
+            type: 'branch', branchType: 'choice',
             children: [{ type: 'note', name: 'Option A' }, { type: 'note', name: 'Option B' }],
           },
         ],

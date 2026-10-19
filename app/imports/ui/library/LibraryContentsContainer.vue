@@ -86,7 +86,8 @@ const libraryChildren = autorun(() => {
   if (!library.value) return;
   return filterToForest(
     LibraryNodes,
-    props.libraryId,
+    // The library was found by it
+    /** @type {string} */ (props.libraryId),
     props.filter,
     {
       includeFilteredDocAncestors: true,

@@ -9,10 +9,11 @@ import chroma from 'chroma-js';
  *
  * @param {{ value?: number, total?: number, color?: string,
  *   healthBarColorMid?: string, healthBarColorLow?: string }} model
- * @param {Record<string, string>} themeColors the current theme's colours
+ * @param {Readonly<Record<string, unknown>>} themeColors the current theme's
+ *   colours: hex strings, as plugins/themes.js defines them
  */
 export default function healthBarColors(model, themeColors) {
-  const color = model.color || themeColors.primary;
+  const color = model.color || /** @type {string} */ (themeColors.primary);
   const fraction = Number(model.value) / Number(model.total);
   let bar = color;
   if (Number.isFinite(fraction) && fraction <= 0.5) {
@@ -27,6 +28,6 @@ export default function healthBarColors(model, themeColors) {
   const hasMaximum = Number.isFinite(model.total) && Number(model.total) > 0;
   const track = hasMaximum
     ? chroma(bar).darken(1.5).desaturate(1.5).hex()
-    : themeColors['surface-light'];
+    : /** @type {string} */ (themeColors['surface-light']);
   return { bar, track };
 }

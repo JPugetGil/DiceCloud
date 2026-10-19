@@ -17,6 +17,10 @@ import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { Meteor } from 'meteor/meteor';
 import errorText from '/imports/api/utility/errorText';
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+/** @typedef {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} CreatureProperty */
+/** @typedef {import('/imports/api/library/LibraryNodes').LibraryNode} LibraryNode */
+
 const insertPropertyFromLibraryNode = new ValidatedMethod({
   name: 'creatureProperties.insertPropertyFromLibraryNode',
   validate: new SimpleSchema({
@@ -39,14 +43,17 @@ const insertPropertyFromLibraryNode = new ValidatedMethod({
   },
   async run({ nodeIds, parentRef }) {
     // get the new ancestry for the properties
+    /** @type {Creature | CreatureProperty} */
     const parentDoc = await fetchDocByRef(parentRef);
 
     // Check permission to edit
+    /** @type {Creature} */
     let rootCreature;
     if (parentRef.collection === 'creatures') {
-      rootCreature = parentDoc;
+      rootCreature = /** @type {Creature} */ (parentDoc);
     } else if (parentRef.collection === 'creatureProperties') {
-      rootCreature = await getRootCreatureAncestor(parentDoc);
+      // Found: assertEditPermission throws otherwise
+      rootCreature = /** @type {Creature} */ (await getRootCreatureAncestor(parentDoc));
     } else {
       throw `${parentRef.collection} is not a valid parent collection`
     }
@@ -133,8 +140,8 @@ async function insertPropertyFromNode(nodeId, root, parentId, userId) {
     delete node.parentId;
   }
 
-  // Mark root node as dirty
-  node.dirty = true;
+  // Mark root node as dirty: a creature property's field, which the copy is now
+  /** @type {CreatureProperty} */ (node).dirty = true;
 
   // Move the root node to the end of the order
   node.left = Number.MAX_SAFE_INTEGER;
@@ -173,6 +180,7 @@ export async function reifyNodeReferences(nodes, userId, visitedRefs = new Set()
       continue;
     }
 
+    /** @type {LibraryNode} */
     let referencedNode
     try {
       referencedNode = await fetchDocByRef(node.ref);

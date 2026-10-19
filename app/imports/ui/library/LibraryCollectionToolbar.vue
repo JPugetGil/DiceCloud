@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { subscribeToLibraryCollection } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -74,6 +75,8 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
 import formatter from '/imports/ui/utility/numberFormatter';
 import { useAppStore } from '/imports/ui/stores/app';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
+
+/** @typedef {NonNullable<Awaited<ReturnType<typeof exportLibraryCollection.callAsync>>>} CollectionExport */
 
 const appStore = useAppStore();
 const dialogStackStore = useDialogStackStore();
@@ -90,7 +93,7 @@ const formatNumber = (num) => formatter.format(num);
 const libraryCollection = autorun(() => LibraryCollections.findOne(route.params.id)).result;
 
 const subscribed = autorun(() => {
-  const libraryCollectionId = route.params.id;
+  const libraryCollectionId = /** @type {string} */ (route.params.id);
   const user = Meteor.user();
   return user?.subscribedLibraryCollections?.includes(libraryCollectionId);
 }).result;
@@ -124,7 +127,8 @@ const downloading = ref(false);
 async function download() {
   downloading.value = true;
   try {
-    const collection = await exportLibraryCollection.callAsync({ libraryCollectionId: route.params.id });
+    // Only the client's simulation of the method returns nothing
+    const collection = /** @type {CollectionExport} */ (await exportLibraryCollection.callAsync({ libraryCollectionId: route.params.id }));
     const libraries = [];
     let refused = 0;
     for (const libraryId of collection.libraries) {
@@ -143,7 +147,7 @@ async function download() {
     if (refused) snackbar({ text: t('libraryFiles.someLeftOut', { count: refused }, refused) });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   } finally {
     downloading.value = false;
   }

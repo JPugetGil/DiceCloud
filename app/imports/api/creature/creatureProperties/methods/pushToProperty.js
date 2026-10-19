@@ -17,6 +17,7 @@ const pushToProperty = new ValidatedMethod({
   async run({ _id, path, value }) {
     // Permissions
     let property = await CreatureProperties.findOneAsync(_id);
+    if (!property) throw new Meteor.Error('not-found', 'Property not found');
     let rootCreature = await getRootCreatureAncestor(property);
     await assertEditPermission(rootCreature, this.userId);
 

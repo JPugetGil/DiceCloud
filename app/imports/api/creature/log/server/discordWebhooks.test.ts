@@ -208,7 +208,7 @@ if (Meteor.isServer) describe('Discord webhooks (discordWebhooks)', function () 
         assert.include((await settings(unrelated))?.discordWebhook, '-not', 'another token stays');
         assert.deepEqual(await settings(sealed), {}, 'sealed, found by its id and token');
         assert.notProperty(await Creatures.findOneAsync(sealed), 'discordWebhookId');
-        assert.match((await settings(sealedOther))?.discordWebhook, /^enc1\./, 'another token stays, sealed too');
+        assert.match((await settings(sealedOther))?.discordWebhook ?? '', /^enc1\./, 'another token stays, sealed too');
         assert.equal((await Creatures.findOneAsync(sealedOther))?.discordWebhookId, dead.id);
       } finally {
         restoreKeys();

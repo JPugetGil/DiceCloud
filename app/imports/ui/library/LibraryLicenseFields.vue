@@ -70,7 +70,7 @@ async function setLicense({ license, licenseNote }, ack) {
     });
     ack();
   } catch (error) {
-    ack(error?.reason || error);
+    ack(/** @type {import('meteor/meteor').Meteor.Error | undefined} */ (error)?.reason || error);
   }
 }
 </script>

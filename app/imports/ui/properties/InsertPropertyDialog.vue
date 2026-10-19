@@ -102,7 +102,7 @@
               :data-id="libraryNode._id"
             >
               <v-expansion-panel-title>
-                <template #default="{ open }">
+                <template #default="{ expanded }">
                   <v-checkbox
                     v-model="selectedNodeIds"
                     class="my-0 py-0 mr-2 flex-grow-0"
@@ -118,7 +118,7 @@
                       {{ libraryNames[libraryNode.root?.id] }}
                     </div>
                   </div>
-                  <template v-if="open">
+                  <template v-if="expanded">
                     <v-spacer />
                     <v-btn
                       variant="text"
@@ -192,6 +192,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { setPreference } from '/imports/api/users/Users';
 import { ref, shallowRef, computed, watch, onMounted, reactive, provide } from 'vue';
 import { get, toPath } from 'lodash';
@@ -260,17 +261,19 @@ provide('context', reactive({
 }));
 
 // State
+/** @type {import('vue').Ref<string[]>} */
 const selectedNodeIds = ref([]);
 const type = ref(props.forcedType || props.suggestedType || props.prop?.type || undefined);
-const model = ref(props.prop || {
+const model = ref(/** @type {Record<string, any> | undefined} */ (props.prop || {
   type: type.value,
   children: [],
-});
+}));
 const searchValue = ref(undefined);
 const tab = ref(0);
 
-const schema = shallowRef(null);
-const validationContext = shallowRef(null);
+/** @typedef {import('/imports/api/utility/TypedSimpleSchema').TypedSimpleSchema<any>} PropertySchema */
+const schema = shallowRef(/** @type {PropertySchema | null} */ (null));
+const validationContext = shallowRef(/** @type {ReturnType<PropertySchema['newContext']> | null} */ (null));
 
 // Computed Properties
 const typeName = computed(() => getPropertyName(type.value) || t('common.property'));
@@ -292,7 +295,8 @@ const errors = computed(() => {
   
   let errorsObj = {};
   validationContext.value.validationErrors().forEach(error => {
-    errorsObj[error.name] = schema.value.messageForError(error);
+    // simpl-schema takes the error itself; @types/simpl-schema lists four arguments
+    errorsObj[error.name] = /** @type {{ messageForError(error: object): string }} */ (/** @type {unknown} */ (schema.value)).messageForError(error);
   });
   
   return errorsObj;
@@ -357,10 +361,10 @@ function changeType(newType) {
   searchLibraryNodesSubscription.sub?.setData('type', newType);
   if (!newType) return;
   tab.value = 1;
-  schema.value = propertySchemasIndex[newType];
+  schema.value = /** @type {PropertySchema} */ (propertySchemasIndex[newType]);
   validationContext.value = schema.value.newContext();
   let newModel = model.value || {};
-  newModel = schema.value.clean(newModel);
+  newModel = /** @type {Record<string, any>} */ (schema.value.clean(newModel));
   newModel.type = newType;
   model.value = newModel;
 }
@@ -371,7 +375,7 @@ function resolvePath(modelObj, path) {
   if (arrayPath.length === 1) {
     return { object: modelObj, key: arrayPath[0] };
   }
-  let key = arrayPath.slice(-1);
+  let key = arrayPath[arrayPath.length - 1];
   let objectPath = arrayPath.slice(0, -1);
   let object = modelObj;
   
@@ -423,7 +427,7 @@ async function propertyHelpChanged(value) {
     });
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason });
+    snackbar({ text: errorText(error) });
   }
 }
 

@@ -23,7 +23,8 @@ describe('Conditions', function () {
     for (const _id of [englishId, frenchId]) {
       await Libraries.rawCollection().insertOne({ _id, name: _id, owner: userId, readers: [], writers: [] });
     }
-    await Creatures.rawCollection().insertOne({ _id: creatureId, name: 'Hero', owner: userId, readers: [], writers: [] });
+    // A partial creature, past the schema: what the method reads of it
+    await Creatures.rawCollection().insertOne(/** @type {any} */ ({ _id: creatureId, name: 'Hero', owner: userId, readers: [], writers: [] }));
     await node(englishId, { type: 'buff', name: 'Blinded', libraryTags: ['condition', 'LoV', 'blindedCondition'] });
     await node(englishId, { type: 'buff', name: 'Prone', libraryTags: ['condition', 'LoV', 'proneCondition'] });
     await node(englishId, { type: 'buff', name: 'Removed', libraryTags: ['condition'], removed: true });

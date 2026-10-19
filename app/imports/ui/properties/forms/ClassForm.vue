@@ -60,7 +60,7 @@ import TagTargeting from '/imports/ui/properties/forms/shared/TagTargeting.vue';
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

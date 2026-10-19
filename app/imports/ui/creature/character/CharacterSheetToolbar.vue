@@ -243,6 +243,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun } from 'vue-meteor-tracker';
@@ -278,7 +279,10 @@ const router = useRouter();
 const { smAndUp } = useDisplay();
 const theme = useTheme();
 
-const creatureId = computed(() => route.params.id);
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+
+// A single route segment (/character/:id), never repeated
+const creatureId = computed(() => /** @type {string} */ (route.params.id));
 
 const creature = autorun(() => Creatures.findOne(creatureId.value)).result;
 
@@ -287,7 +291,7 @@ const editPermission = autorun(() => hasEditPermission(creature.value, Meteor.us
 const copyPermission = autorun(() => hasCopyPermission(creature.value, Meteor.user())).result;
 
 // The menu action running: 'duplicate' or 'download'
-const busy = ref(undefined);
+const busy = ref(/** @type {'duplicate' | 'download' | undefined} */ (undefined));
 
 const isOwner = autorun(() => {
   if (!creature.value) return false;
@@ -366,12 +370,13 @@ function showShareDialog() {
   });
 }
 
+// The menu calling these is only shown with the creature (v-if="creature")
 function deleteCharacter() {
   dialogStackStore.pushDialogStack({
     component: 'delete-confirmation-dialog',
     elementId: 'creature-menu',
     data: {
-      name: creature.value.name,
+      name: /** @type {Creature} */ (creature.value).name,
       typeName: t('common.character')
     },
     async callback(confirmation) {
@@ -391,13 +396,13 @@ async function duplicate() {
   try {
     const copyId = await duplicateCreature.callAsync({
       creatureId: creatureId.value,
-      name: t('sheet.copyName', { name: creature.value.name }),
+      name: t('sheet.copyName', { name: /** @type {Creature} */ (creature.value).name }),
     });
-    snackbar({ text: t('sheet.duplicated', { name: creature.value.name }) });
+    snackbar({ text: t('sheet.duplicated', { name: /** @type {Creature} */ (creature.value).name }) });
     await router.push(`/character/${copyId}`);
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   } finally {
     busy.value = undefined;
   }
@@ -412,12 +417,12 @@ async function download() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${(creature.value.name || creatureId.value).replace(/[\\/:*?"<>|]+/g, '_')}.json`;
+    link.download = `${(/** @type {Creature} */ (creature.value).name || creatureId.value).replace(/[\\/:*?"<>|]+/g, '_')}.json`;
     link.click();
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message });
+    snackbar({ text: errorText(error) });
   } finally {
     busy.value = undefined;
   }

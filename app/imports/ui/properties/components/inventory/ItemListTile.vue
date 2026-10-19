@@ -46,7 +46,9 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue';
+import errorText from '/imports/api/utility/errorText';
+import { ref, computed } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 import PROPERTIES from '/imports/constants/PROPERTIES';
 import adjustQuantity from '/imports/api/creature/creatureProperties/methods/adjustQuantity';
@@ -77,12 +79,13 @@ const props = defineProps({
 
 const emit = defineEmits(['click']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const incrementLoading = ref(false);
 
-const fetchedItem = autorun(() => props.itemId && CreatureProperties.findOne(props.itemId)).result;
-const item = computed(() => props.model || fetchedItem.value);
+const fetchedItem = autorun(() => props.itemId ? CreatureProperties.findOne(props.itemId) : undefined).result;
+// An item: its model, or the property its id names
+const item = computed(() => /** @type {Record<string, any> | undefined} */ (props.model || fetchedItem.value));
 
 const hasClickListener = computed(() => {
   return !!props.onClick;
@@ -112,12 +115,13 @@ async function changeQuantity({ type, value }) {
   incrementLoading.value = true;
   try {
     await adjustQuantity.callAsync({
-      _id: item.value._id,
+      // The quantity is only offered for a shown item
+      _id: /** @type {Record<string, any>} */ (item.value)._id,
       operation: type,
       value: value
     });
   } catch (error) {
-    snackbar({ text: error.reason });
+    snackbar({ text: errorText(error) });
     console.error(error);
   } finally {
     incrementLoading.value = false;

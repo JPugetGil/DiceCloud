@@ -34,7 +34,7 @@ export const setLibraryLanguage = new ValidatedMethod({
   name: 'libraries.setLanguage',
   validate: new SimpleSchema({
     ...docSchema,
-    language: { type: String, allowedValues: LIBRARY_LANGUAGES, optional: true },
+    language: { type: String, allowedValues: [...LIBRARY_LANGUAGES], optional: true },
   }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit: { numRequests: 5, timeInterval: 5000 },

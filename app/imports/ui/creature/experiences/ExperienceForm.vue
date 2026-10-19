@@ -42,7 +42,7 @@ import { ref } from 'vue';
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
   errors: {

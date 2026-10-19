@@ -66,7 +66,8 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
+import { ref } from 'vue';
+import useContext from '/imports/ui/composables/useContext';
 import AttributesConsumedListForm from '/imports/ui/properties/forms/AttributesConsumedListForm.vue';
 import ActionConditionsListForm from '/imports/ui/properties/forms/ActionConditionsListForm.vue';
 import ItemsConsumedListForm from '/imports/ui/properties/forms/ItemsConsumedListForm.vue';
@@ -74,14 +75,14 @@ import { Random } from 'meteor/random';
 
 defineProps({
   model: {
-    type: [Object, Array],
+    type: Object,
     default: () => ({}),
   },
 });
 
 const emit = defineEmits(['change', 'push', 'pull']);
 
-const context = inject('context', {});
+const context = useContext();
 
 const addResourceLoading = ref(false);
 

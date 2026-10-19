@@ -114,11 +114,11 @@ Meteor.publish('partyBoard', function (folderId) {
     // The bestiary templates of the game master's monsters: their type line and
     // lore, and their libraries' licence
     const templateIds = role === 'gm'
-      ? [...new Set(creatures.map(creature => creature.templateId).filter(Boolean))]
+      ? [...new Set(creatures.flatMap(creature => creature.templateId || []))]
       : [];
     const templateLibraryIds = templateIds.length ? [...new Set((await AsyncTracker.nonreactive(
       () => LibraryNodes.find({ _id: { $in: templateIds } }, { fields: { root: 1 } }).fetchAsync(),
-    )).map(template => template.root?.id).filter(Boolean))] : [];
+    )).flatMap(template => template.root?.id || []))] : [];
     // The creatures' caches observe their documents for good: outside the
     // computation, or their first change reruns the board
     await AsyncTracker.nonreactive(() => shown.forEach(creature => loadCreature(creature._id, self, computeCreature)));
@@ -171,8 +171,9 @@ Meteor.publish('partyBoard', function (folderId) {
         }, ...role === 'gm' ? [{
           'root.id': { $in: shownIds },
           $or: [
-            { type: 'attribute', variableName: LEGENDARY_ACTIONS },
-            { type: 'action', 'resources.attributesConsumed.variableName': LEGENDARY_ACTIONS },
+            // const: in the conditional, nothing gives the types their literal
+            { type: /** @type {const} */ ('attribute'), variableName: LEGENDARY_ACTIONS },
+            { type: /** @type {const} */ ('action'), 'resources.attributesConsumed.variableName': LEGENDARY_ACTIONS },
           ],
         }] : []],
       }, { fields: PROPERTY_FIELDS }),

@@ -38,6 +38,8 @@ const moveBetweenRoots = new ValidatedMethod({
     // The user must be able to edit both the doc and its parent to move it
     // successfully
     await assertDocEditPermission(doc, this.userId);
+    // A root: a creature or a library
+    /** @type {import('/imports/api/sharing/SharingSchema').Shared} */
     const newRoot = await fetchDocByRefAsync(newRootRef);
     await assertEditPermission(newRoot, this.userId);
 

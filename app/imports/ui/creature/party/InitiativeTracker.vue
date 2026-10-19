@@ -384,6 +384,8 @@ import LegendaryActionsMenu from '/imports/ui/creature/party/LegendaryActionsMen
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 
+/** @typedef {import('/imports/api/creature/creatures/Creatures').Creature} Creature */
+
 /**
  * A party board's initiative tracker: the folder's characters roll d20 plus
  * their initiative (on the server), creatures are added by hand, results can
@@ -397,7 +399,7 @@ const props = defineProps({
     required: true,
   },
   creatures: {
-    type: Array,
+    type: /** @type {import('vue').PropType<Creature[]>} */ (Array),
     default: () => [],
   },
   // 'gm' or 'member'
@@ -482,7 +484,7 @@ async function run(name, call) {
 
 // The turn's marker sits beside the row whose turn it is, and slides to the
 // next one; it is placed without sliding the first time
-const listElement = ref(null);
+const listElement = ref(/** @type {HTMLElement | null} */ (null));
 const markerTop = ref(undefined);
 const markerPlaced = ref(false);
 const MARKER_SIZE = 24;
@@ -533,8 +535,8 @@ async function addEntry() {
     name,
     bonus: Number.isFinite(newBonus.value) ? newBonus.value : 0,
     ...count > 1 && { count },
-    ...hp > 0 && { hp },
-    ...ac >= 0 && { ac },
+    ...hp !== undefined && hp > 0 && { hp },
+    ...ac !== undefined && ac >= 0 && { ac },
   }));
   newName.value = '';
   newBonus.value = 0;

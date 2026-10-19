@@ -78,7 +78,7 @@ const notes = autorun(() => {
     'parentId': {
       $nin: folderIds,
     },
-    type: 'note',
+    type: /** @type {const} */ ('note'),
     removed: { $ne: true },
     inactive: { $ne: true },
   };
@@ -95,7 +95,10 @@ const notes = autorun(() => {
   });
 }).result;
 
-const creature = autorun(() => Creatures.findOne(props.creatureId)).result;
+// The sheet mounts its tabs once the creature is found (CharacterSheet)
+const creature = autorun(() => /** @type {import('/imports/api/creature/creatures/Creatures').Creature} */ (
+  Creatures.findOne(props.creatureId)
+)).result;
 </script>
 
 <style lang="css" scoped>

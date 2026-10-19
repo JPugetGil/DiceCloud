@@ -48,7 +48,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 defineProps({
   multipliers: {
-    type: Array,
+    type: /** @type {import('vue').PropType<import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['damageMultiplier'][]>} */ (Array),
     required: true,
   },
 });

@@ -74,6 +74,7 @@
 </template>
 
 <script setup>
+import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch, provide, reactive, nextTick } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 
@@ -123,7 +124,7 @@ const emit = defineEmits(['duplicated', 'removed', 'select-sub-property']);
 const editing = ref(!!props.startInEditTab);
 // CurrentId lags behind Id by one tick so that events fired by destroying
 // forms keyed to the old ID are applied before the new ID overwrites it
-const currentId = ref(undefined);
+const currentId = ref(/** @type {string | undefined} */ (undefined));
 
 watch(() => props._id, (newId) => {
   nextTick(() => {
@@ -220,7 +221,7 @@ async function remove() {
     }
   } catch (error) {
     console.error(error);
-    snackbar({ text: error.reason || error.message || error.toString() });
+    snackbar({ text: errorText(error) });
     return;
   }
   snackbar({
@@ -268,14 +269,15 @@ function copyToLibrary() {
         snackbar({ text: t('common.copiedSuccessfully') });
       } catch (error) {
         console.error(error);
-        snackbar({ text: error.reason || error.message || error.toString() });
+        snackbar({ text: errorText(error) });
       }
     }
   });
 }
 
+// The form calling it is only shown with the property (v-if="model")
 function addProperty({ elementId, suggestedType }) {
-  let parentPropertyId = model.value._id;
+  let parentPropertyId = /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty} */ (model.value)._id;
   dialogStackStore.pushDialogStack({
     component: 'insert-property-dialog',
     elementId,

@@ -5,7 +5,6 @@
     :loading="loading"
     :error-messages="errors"
     :model-value="safeValue"
-    :menu-props="{auto: true, lazy: true}"
     :disabled="isDisabled"
     :multiple="multiple"
     variant="outlined"

@@ -8,7 +8,7 @@
     </v-navigation-drawer>
     <router-view name="toolbar" />
     <v-app-bar
-      v-if="!route.matched[0] || !route.matched[0].components.toolbar"
+      v-if="!route.matched[0] || !route.matched[0].components?.toolbar"
       color="secondary"
       theme="dark"
     >

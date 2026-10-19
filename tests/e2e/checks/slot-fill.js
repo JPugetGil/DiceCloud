@@ -14,8 +14,10 @@
  * Then the library tab of the insert property dialog lists a node of a library
  * of the test account's own, under that library's name. It read the library
  * from `ancestors`, which only nodes imported from database version 2 still
- * carry: any other node broke the list. The library and its node go straight
- * into the database, and are removed at the end.
+ * carry: any other node broke the list. Its panel, expanded, offers to open
+ * the node's details: the button waited for Vuetify 2's `open` slot prop and
+ * never showed. The library and its node go straight into the database, and
+ * are removed at the end.
  */
 const { openPage, visit, pushDialog } = require('../lib/browser');
 const { createChecker, main } = require('../lib/check');
@@ -114,7 +116,12 @@ main(async () => {
       const panel = await page.waitForSelector(`[data-id="${NODE_ID}"]`, { timeout: 15000 });
       const text = (await panel.innerText()).replace(/\s+/g, ' ');
       if (!text.includes(LIBRARY_NAME)) throw new Error(`the result reads "${text}"`);
-      return `"${text}"`;
+      await panel.click();
+      await page.waitForTimeout(800);
+      if (!await page.locator(`[data-id="${NODE_ID}"] .mdi-window-restore`).isVisible()) {
+        throw new Error('no button to open the node\'s details once expanded');
+      }
+      return `"${text}", its details offered once expanded`;
     } finally {
       await removeOwnLibrary();
     }
