@@ -421,7 +421,7 @@ async function nextScreen(step: Step): Promise<Screen> {
 async function runSession(step: Step, channelId: string | undefined): Promise<{ card: Record<string, unknown> } | { refusal: string }> {
   const { session, language, creature } = step;
   const prop = await actionOf(session.creatureId, session.propId);
-  const origin = { channelId, logs: [] as LoggedEntry[] };
+  const origin = { channelId, logs: [] as LoggedEntry[], secret: session.secret };
   try {
     await withInteractionOrigin(origin, () => (runAction as any)._execute(invocationOf(step.user._id), {
       actionId: session.actionId, decisions: session.decisions,

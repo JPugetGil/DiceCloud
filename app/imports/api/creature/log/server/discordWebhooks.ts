@@ -699,6 +699,8 @@ export function sendLogToDiscord(log: LogEntry, { reroll, besides }: { reroll?: 
   // Written by a Discord command (D6): its reply shows it in that channel
   const origin = interactionOrigin();
   origin?.logs.push(log);
+  // A secret command's: its user alone sees it, no webhook posts it anywhere
+  if (origin?.secret) return;
   const target = webhookSender();
   const creatureId = log?.creatureId;
   if (!target || !creatureId) return;

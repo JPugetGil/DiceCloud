@@ -393,6 +393,10 @@ if (Meteor.isServer) describe('Discord\'s /action (D6)', function () {
       assert.equal(await valueOf(slot1Id), 2);
       const [entry] = await logs(ariaId);
       assert.deepEqual(entry.content.find((line: any) => line.targetIds?.includes(goblinId))?.targetIds, [goblinId]);
+      assert.deepEqual(
+        entry.content.find((line: any) => line.name === 'Casting using a level 2 spell slot')?.i18n,
+        { name: { key: 'logs.castWithSlot', params: { level: 2 } } }, 'in the reader\'s language',
+      );
     });
 
     it('asks the action\'s own choice and applies the one picked', async function () {
@@ -560,6 +564,12 @@ if (Meteor.isServer) describe('Discord\'s /action (D6)', function () {
       // Elsewhere, the party's channel gets it from its webhook
       const elsewhere = await command([option('action', 'Dash'), option('character', ariaId)]);
       await edited(elsewhere.token);
+      await discordIntakeIdle();
+      await sender.idle();
+      assert.lengthOf(fake.requests.filter(request => request.webhookId === connected.id && request.method === 'POST'), 1);
+      // Secret, elsewhere: its user alone sees it, the party's channel gets nothing
+      const secret = await command([option('action', 'Dash'), option('character', ariaId), option('secret', true, 5)]);
+      await edited(secret.token);
       await discordIntakeIdle();
       await sender.idle();
       assert.lengthOf(fake.requests.filter(request => request.webhookId === connected.id && request.method === 'POST'), 1);

@@ -103,7 +103,7 @@ export async function handleButton(interaction: Interaction): Promise<Handled> {
       after: async () => {
         let message: Record<string, unknown>;
         try {
-          const origin = { channelId: context.channelId, logs: [] };
+          const origin = { channelId: context.channelId, logs: [], secret };
           const entry = reroll.kind === 'roll'
             ? await runRoll(user, creature, reroll.roll || '', advantage, origin)
             : await runCheck(user, creature, {

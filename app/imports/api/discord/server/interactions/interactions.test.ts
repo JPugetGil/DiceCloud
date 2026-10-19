@@ -322,6 +322,18 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       await discordIntakeIdle();
       await sender.idle();
       assert.equal(posted(), 1);
+      // Secret, elsewhere: the reply alone, for its user; no webhook posts it,
+      // neither a roll, a check, nor a roll again from its buttons
+      const roll = await command('roll', [option('formula', '1d20'), option('character', creatureId), option('secret', true, 5)]);
+      const rolled = await edited(roll.token);
+      const check = await command('check', [option('skill', 'perception'), option('character', creatureId), option('secret', true, 5)]);
+      await edited(check.token);
+      const [again] = customIds(rolled);
+      const reroll = await click(again);
+      await edited(reroll.token);
+      await discordIntakeIdle();
+      await sender.idle();
+      assert.equal(posted(), 1);
     });
   });
 

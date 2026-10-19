@@ -6,6 +6,7 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import applyActionProperty from '../applyProperties/applyActionProperty';
 import { WHOLE } from '/imports/api/creature/log/logViews';
+import { logLine, msg, type LogMessage } from '/imports/api/creature/log/logMessages';
 
 export default async function applySpellProperty(
   task: CastSpellTask, action: EngineAction, result: TaskResult, userInput: InputProvider
@@ -22,12 +23,12 @@ export default async function applySpellProperty(
     return;
   }
   let slotLevel = prop.level || 0;
-  let message: string;
+  let message: LogMessage;
 
   if (task.params.withoutSpellSlot) {
-    message = `Casting at level ${slotLevel}`
+    message = msg('logs.castAtLevel', { level: slotLevel });
   } else if (task.params.ritual) {
-    message = `Ritual casting at level ${slotLevel}`
+    message = msg('logs.castAsRitual', { level: slotLevel });
   } else {
     // Get the slot being cast with
     const spellSlot = task.params.slotId && await getSingleProperty(action.creatureId, task.params.slotId) || undefined;
@@ -60,12 +61,12 @@ export default async function applySpellProperty(
       },
     }, userInput);
     slotLevel = spellSlot ? Number(spellSlot.spellSlotLevel?.value) || 0 : slotLevel;
-    message = `Casting using a level ${slotLevel} spell slot`;
+    message = msg('logs.castWithSlot', { level: slotLevel });
   }
 
   // Log casting method: the actor's own
   result.appendLog({
-    name: message,
+    ...logLine({ name: message }),
     silenced: prop.silent,
     targetView: WHOLE,
     hiddenTargetView: WHOLE,

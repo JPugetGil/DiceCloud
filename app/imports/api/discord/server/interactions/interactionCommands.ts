@@ -224,7 +224,7 @@ async function rollCommand(interaction: Interaction, context: Context & { user: 
   const { creature } = chosen;
   const secret = optionOf(interaction, 'secret') === true || isGameMasters(creature);
   return deferred(context, secret, async () => {
-    const entry = await runRoll(context.user, creature, formula, 0, { channelId: context.channelId, logs: [] });
+    const entry = await runRoll(context.user, creature, formula, 0, { channelId: context.channelId, logs: [], secret });
     return entryReply({
       entry, creature, language: context.language,
       ...singleD20(formula) && { reroll: { creatureId: creature._id, kind: 'roll', roll: formula, secret } },
@@ -248,7 +248,7 @@ async function checkCommand(interaction: Interaction, context: Context & { user:
   const secret = optionOf(interaction, 'secret') === true || isGameMasters(creature);
   const variables = checkVariables(prop);
   return deferred(context, secret, async () => {
-    const entry = await runCheck(context.user, creature, variables, advantage, { channelId: context.channelId, logs: [] });
+    const entry = await runCheck(context.user, creature, variables, advantage, { channelId: context.channelId, logs: [], secret });
     return entryReply({
       entry, creature, language: context.language, reroll: { creatureId: creature._id, kind: 'check', ...variables, secret },
     });
