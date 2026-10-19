@@ -5,8 +5,9 @@ import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
 import { escapeMarkdown } from '/imports/api/creature/log/discord/partyMessages';
 import type { DiscordLanguage } from '/imports/api/creature/log/discord/discordMessages';
 import { connectTarget, liveChannelWebhook } from '/imports/api/creature/log/server/connectedWebhooks';
+import { BOT_PERMISSIONS } from '/imports/api/discord/botPermissions';
 import {
-  BOT_PERMISSIONS, botChannel, botToken, createChannelWebhook, hasPermission,
+  botChannel, botToken, createChannelWebhook, hasPermission,
 } from '/imports/api/discord/server/botClient';
 import { editOriginal, interactionsApiBase } from '/imports/api/discord/server/interactions/interactionApi';
 import type { LinkedUser } from '/imports/api/discord/server/interactions/interactionCharacters';

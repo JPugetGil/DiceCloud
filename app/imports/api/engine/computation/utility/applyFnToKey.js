@@ -53,7 +53,8 @@ function applyToArrayKey(doc, key, fn) {
         applyToSingleKey(doc, currentPath, fn);
       } else {
         const array = get(doc, currentPath);
-        if (!array) return;
+        // An element without the nested array: the next ones may have it
+        if (!array) continue;
         stack.push({
           array,
           paths: state.paths.slice(1),
@@ -86,7 +87,8 @@ async function applyToArrayKeyAsync(doc, key, fn) {
         await applyToSingleKey(doc, currentPath, fn);
       } else {
         const array = get(doc, currentPath);
-        if (!array) return;
+        // An element without the nested array: the next ones may have it
+        if (!array) continue;
         stack.push({
           array,
           paths: state.paths.slice(1),

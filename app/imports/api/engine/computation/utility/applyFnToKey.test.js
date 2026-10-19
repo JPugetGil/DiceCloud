@@ -1,4 +1,4 @@
-import applyFnToKey from './applyFnToKey';
+import applyFnToKey, { applyFnToKeyAsync } from './applyFnToKey';
 import { assert } from 'chai';
 import { get } from 'lodash';
 
@@ -30,6 +30,22 @@ describe('apply function to key', function () {
     assert.include(birdSounds, 'koer');
     assert.include(birdSounds, 'hello');
     assert.include(birdSounds, 'squawk');
+  });
+  // An element without the nested array stopped the whole traversal: the
+  // elements after it were never reached
+  it('goes on past an element without the nested array', async function () {
+    const obj = getStartingObject();
+    obj.birds.unshift(/** @type {any} */ ({ name: 'mute swan' }));
+    const birdSounds = [];
+    applyFnToKey(obj, 'birds.$.sound.$', (doc, key) => {
+      birdSounds.push(get(doc, key));
+    });
+    assert.sameMembers(birdSounds, ['koer', 'hello', 'cracker?', 'squawk']);
+    const asyncSounds = [];
+    await applyFnToKeyAsync(obj, 'birds.$.sound.$', async (doc, key) => {
+      asyncSounds.push(get(doc, key));
+    });
+    assert.sameMembers(asyncSounds, ['koer', 'hello', 'cracker?', 'squawk']);
   });
 });
 

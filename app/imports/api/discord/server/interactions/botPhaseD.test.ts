@@ -30,7 +30,8 @@ if (Meteor.isServer) describe('Discord\'s bot: /connect and new threads (phase D
   require('/imports/api/discord/server/interactions/interactionsEndpoint');
   const { setInteractionsPublicKey } = require('/imports/api/discord/server/interactions/interactionSignature');
   const { setOAuthConfig } = require('/imports/api/discord/server/oauthClient');
-  const { setBotToken, BOT_PERMISSION_INTEGER } = require('/imports/api/discord/server/botClient');
+  const { setBotToken } = require('/imports/api/discord/server/botClient');
+  const { BOT_PERMISSION_INTEGER } = require('/imports/api/discord/botPermissions');
   const { resetInteractionLimits } = require('/imports/api/discord/server/interactions/interactionsEndpoint');
   const { ConnectedWebhooks } = require('/imports/api/creature/log/server/connectedWebhooks');
   /* eslint-enable @typescript-eslint/no-require-imports */

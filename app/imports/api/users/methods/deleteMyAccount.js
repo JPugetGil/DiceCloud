@@ -4,6 +4,7 @@ import Libraries, { removeLibaryWork } from '/imports/api/library/Libraries';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import { Meteor } from 'meteor/meteor';
+import { Accounts } from 'meteor/accounts-base';
 
 export const deleteMyAccount = new ValidatedMethod({
   name: 'users.deleteMyAccount',
@@ -114,6 +115,16 @@ export const deleteMyAccount = new ValidatedMethod({
       );
       await UserImages.removeAsync({ userId });
       await ArchiveCreatureFiles.removeAsync({ userId });
+    }
+
+    // Signed out first, as Meteor's own logout method does (accounts-base):
+    // removing the user removes the login token this connection is signed in
+    // with, which Accounts watches. It closed the connection before the result
+    // was sent, and the client, reconnected and signed out, sent the call
+    // again, refused with "No user"
+    if (Meteor.isServer && this.connection) {
+      Accounts._setLoginToken(userId, this.connection, null);
+      await this.setUserId(null);
     }
 
     // delete the account

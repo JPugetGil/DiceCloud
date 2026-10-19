@@ -41,10 +41,14 @@ declare module 'meteor/meteor' {
 
 declare module 'meteor/accounts-base' {
   namespace Accounts {
-    // The users' collection, and internals the REST login and the login token
-    // limit use (api/rest/server/restLogin.js, startup/server/limitLoginTokens.js)
+    // The users' collection, and internals the REST login, the login token
+    // limit and the account deletion use (api/rest/server/restLogin.js,
+    // startup/server/limitLoginTokens.js, users/methods/deleteMyAccount.js)
     const users: import('meteor/mongo').Mongo.Collection<import('meteor/meteor').Meteor.User>;
     function _insertLoginToken(userId: string, token: object): Promise<void>;
+    // The login token a connection is signed in with, and watched: null signs
+    // it out (users/methods/deleteMyAccount.js, as Meteor's logout method)
+    function _setLoginToken(userId: string | null, connection: object, newToken: string | null): void;
     function _tokenExpiration(when: Date): Date;
   }
 }

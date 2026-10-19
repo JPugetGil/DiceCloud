@@ -1,13 +1,11 @@
 import { Meteor } from 'meteor/meteor';
+import { BOT_PERMISSION_INTEGER } from '/imports/api/discord/botPermissions';
 
 /*
  * Discord's installation links of DiceCloud's application (D6, phase D):
- * on a server, the bot and its four permissions (view the channels, manage
- * webhooks, create public threads, send messages in threads: 309774517248);
+ * on a server, the bot and the four permissions it asks for (botPermissions.ts);
  * on an account, the commands alone. Undefined without an application.
  */
-
-export const BOT_PERMISSION_INTEGER = '309774517248';
 
 const applicationId = () => Meteor.settings.public?.discordApplicationId;
 

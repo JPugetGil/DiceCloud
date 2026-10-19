@@ -35,9 +35,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useTheme } from 'vuetify';
-import chroma from 'chroma-js';
 import useReducedMotion from '/imports/ui/composables/useReducedMotion';
 import { damageOf } from '/imports/ui/composables/useHealthChange';
+import healthBarColors from '/imports/ui/properties/components/attributes/healthBarColors';
 
 const props = defineProps({
   model: {
@@ -89,34 +89,9 @@ const ghostTransition = computed(() => {
   return transform('medium');
 });
 
-const color = computed(() => {
-  return props.model.color || theme.current.value.colors.primary;
-});
-
-const barColor = computed(() => {
-  const fraction = props.model.value / props.model.total;
-  if (!Number.isFinite(fraction)) return color.value;
-  if (fraction > 0.5) {
-    return color.value;
-  } else if (props.model.healthBarColorMid && props.model.healthBarColorLow) {
-    return chroma.mix(props.model.healthBarColorLow, props.model.healthBarColorMid, fraction * 2).hex();
-  } else if (props.model.healthBarColorMid) {
-    return props.model.healthBarColorMid;
-  }
-  return color.value;
-});
-
-// Without a maximum (0 / 0, nothing built yet), the track is a plain empty
-// one: in a darker shade of the bar's colour it read as a full bar (D8)
-const hasMaximum = computed(() => Number.isFinite(props.model.total) && props.model.total > 0);
-
-const barBackgroundColor = computed(() => {
-  if (!hasMaximum.value) return 'rgb(var(--v-theme-surface-light))';
-  return chroma(barColor.value)
-    .darken(1.5)
-    .desaturate(1.5)
-    .hex();
-});
+const colors = computed(() => healthBarColors(props.model, theme.current.value.colors));
+const barColor = computed(() => colors.value.bar);
+const barBackgroundColor = computed(() => colors.value.track);
 </script>
 
 <style scoped>

@@ -11,6 +11,7 @@ import Libraries from '/imports/api/library/Libraries';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import EngineActions from '/imports/api/engine/action/EngineActions';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
+import { openAs, refusal } from '/imports/api/utility/ddpClient.testFn';
 
 // What deleting an account, or a character, leaves behind in other users'
 // documents: nothing that names the deleted user or their characters
@@ -79,6 +80,22 @@ if (Meteor.isServer) describe('Deleting an account or a character', function () 
     assert.deepEqual(board.creatures, []);
     assert.deepEqual(board.initiative.entries, []);
     assert.include(board.members, playerId, 'deleting a character keeps its owner in the party');
+  });
+
+  // Over a connection, as the dialog calls it: removing the user removed the
+  // login token the connection was signed in with, which Accounts watches. It
+  // closed the connection before the result was sent, and the client,
+  // reconnected and signed out, sent the call again: refused with "No user"
+  it('answers the connection that deleted its own account', async function () {
+    const userId = Random.id();
+    await raw(Meteor.users).insertOne({ _id: userId, username: `test-${userId}` });
+    const client = await openAs(userId);
+    try {
+      assert.isUndefined(await refusal(client.call('users.deleteMyAccount')));
+      assert.isUndefined(await Meteor.users.findOneAsync(userId));
+    } finally {
+      client.close();
+    }
   });
 
   it('leaves no trace of the deleted user or their characters in other users\' documents', async function () {

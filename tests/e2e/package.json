@@ -29,7 +29,8 @@
     "check:party-undo": "node checks/party-undo.js",
     "check:party-legendary": "node checks/party-legendary.js",
     "check:anchored-durations": "node checks/anchored-durations.js",
-    "check:licenses": "node checks/licenses.js"
+    "check:licenses": "node checks/licenses.js",
+    "check:account": "node checks/account.js"
   },
   "dependencies": {
     "@axe-core/playwright": "4.13.0",

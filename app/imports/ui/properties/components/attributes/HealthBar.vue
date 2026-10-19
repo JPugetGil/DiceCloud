@@ -79,13 +79,13 @@
 <script setup>
 import { ref, computed, nextTick} from 'vue';
 import { useTheme } from 'vuetify';
-import chroma from 'chroma-js';
 import HealthChangeMenu from '/imports/ui/properties/components/attributes/HealthChangeMenu.vue';
 import isDarkColor from '/imports/ui/utility/isDarkColor';
 import HealthBarProgress from '/imports/ui/properties/components/attributes/HealthBarProgress.vue';
 import HealthDelta from '/imports/ui/properties/components/attributes/HealthDelta.vue';
 import useHealthChange from '/imports/ui/composables/useHealthChange';
 import useTweenedNumber from '/imports/ui/composables/useTweenedNumber';
+import healthBarColors from '/imports/ui/properties/components/attributes/healthBarColors';
 
 const props = defineProps({
   model: {
@@ -106,34 +106,13 @@ const editing = ref(false);
 const hover = ref(false);
 const barElement = ref(null);
 
-const color = computed(() => {
-  return props.model.color || vuetifyTheme.current.value.colors.primary;
-});
-
-const barColor = computed(() => {
-  const fraction = props.model.value / props.model.total;
-  if (!Number.isFinite(fraction)) return color.value;
-  if (fraction > 0.5) {
-    return color.value;
-  } else if (props.model.healthBarColorMid && props.model.healthBarColorLow) {
-    return chroma.mix(props.model.healthBarColorLow, props.model.healthBarColorMid, fraction * 2).hex();
-  } else if (props.model.healthBarColorMid) {
-    return props.model.healthBarColorMid;
-  }
-  return color.value;
-});
-
-const barBackgroundColor = computed(() => {
-  return chroma(barColor.value)
-    .darken(1.5)
-    .desaturate(1.5)
-    .hex();
-});
+// The bar's own colours (HealthBarProgress.vue paints them)
+const colors = computed(() => healthBarColors(props.model, vuetifyTheme.current.value.colors));
 
 // The value is centred on the bar: it sits on the filled part from half full
 const isTextLight = computed(() => {
   const fraction = props.model.value / props.model.total;
-  return isDarkColor(fraction >= 0.5 ? barColor.value : barBackgroundColor.value);
+  return isDarkColor(fraction >= 0.5 ? colors.value.bar : colors.value.track);
 });
 
 function edit(e) {

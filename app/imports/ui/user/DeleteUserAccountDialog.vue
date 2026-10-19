@@ -158,6 +158,8 @@ const valid = computed(() => {
 
 async function deleteAccount() {
   await deleteMyAccount.callAsync();
+  // The server signed this connection out; this client forgets the account too
+  await Meteor.logoutAsync();
   await router.push('/');
   await dialogStackStore.popDialogStack();
 }

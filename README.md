@@ -238,11 +238,13 @@ and every pull request: an audit of the production dependencies (high and
 critical advisories), the lint, the import cycles check, the unit tests on the
 server and the type check.
 
-`tests/e2e/` holds 17 Playwright checks that drive a running development
+`tests/e2e/` holds 26 Playwright checks that drive a running development
 server: pages, the character sheet, action targets, docs navigation, every
 property form, dialogs, login services, colour contrast (the theme palette and
 an axe-core audit), the library dialogs, printed cards, Discord (webhooks,
-sign-in, commands and buttons), monsters on a party board and the licences.
+sign-in, commands and buttons), monsters on a party board (initiative, turns,
+targets, healing, undo, legendary actions, durations), the licences and the
+account's screens.
 See [tests/e2e/README.md](tests/e2e/README.md).
 
 Design system

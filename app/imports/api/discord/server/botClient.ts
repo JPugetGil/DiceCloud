@@ -25,17 +25,8 @@ import type { ExchangedWebhook } from '/imports/api/discord/server/oauthClient';
  * and tests the local fake.
  */
 
-// https://docs.discord.com/developers/topics/permissions
-export const BOT_PERMISSIONS = {
-  VIEW_CHANNEL: BigInt(1) << BigInt(10),
-  MANAGE_WEBHOOKS: BigInt(1) << BigInt(29),
-  CREATE_PUBLIC_THREADS: BigInt(1) << BigInt(35),
-  SEND_MESSAGES_IN_THREADS: BigInt(1) << BigInt(38),
-};
+// The permissions it asks for: /imports/api/discord/botPermissions.ts
 const ADMINISTRATOR = BigInt(8);
-
-/** The permissions the bot asks for when added to a server: 309774517248 */
-export const BOT_PERMISSION_INTEGER = Object.values(BOT_PERMISSIONS).reduce((sum, bit) => sum | bit, BigInt(0));
 
 /** Whether a permission set Discord sent (a decimal string) holds a permission, or administrator */
 export function hasPermission(permissions: unknown, bit: bigint): boolean {
