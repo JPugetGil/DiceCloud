@@ -3,6 +3,8 @@ import '/imports/api/users/Users';
 import { Meteor } from 'meteor/meteor';
 
 Meteor.publish('user', function () {
+  // Signed out: no user (find(null) matches nothing too, as Meteor rewrites it)
+  if (!this.userId) return this.ready();
   return Meteor.users.find(this.userId, {
     fields: {
       roles: 1,

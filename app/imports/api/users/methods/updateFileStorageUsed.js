@@ -41,6 +41,7 @@ export async function getUserFileStorageError(userId, fileSize) {
     // from scratch
     await updateFileStorageUsedWork(userId);
     user = await Meteor.users.findOneAsync(userId, { fields });
+    if (!user) return 'User not found';
   }
   return getFileStorageError(user, fileSize);
 }

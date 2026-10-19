@@ -26,6 +26,7 @@
 </template>
 
 <script setup>
+import { canPickUsername, setUsername as setUsernameMethod } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
@@ -52,7 +53,7 @@ const username = autorun(() => Meteor.user()?.username).result;
 async function change(username, ack) {
   loading.value = true;
   try {
-    const result = await Meteor.users.canPickUsername.callAsync({username});
+    const result = await canPickUsername.callAsync({username});
     if (result){
       valid.value = false;
       ack(t('account.usernameTaken'));
@@ -72,7 +73,7 @@ async function change(username, ack) {
 async function setUsername() {
   loading.value = true;
   try {
-    await Meteor.users.setUsername.callAsync({username: newUsername.value});
+    await setUsernameMethod.callAsync({username: newUsername.value});
     await dialogStackStore.popDialogStack();
   } catch (e) {
     error.value = e.message || e;

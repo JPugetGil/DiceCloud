@@ -1,7 +1,6 @@
 import grammar from '/imports/parser/grammar';
 import { Parser, Grammar } from 'nearley';
 import type ParseNode from '/imports/parser/parseTree/ParseNode';
-import type { Meteor } from 'meteor/meteor';
 import { setCalculationParser } from '/imports/api/creature/creatures/scopeVariables';
 
 const nearleyGrammar = Grammar.fromCompiled(grammar);
@@ -21,8 +20,9 @@ export function parse(string: string): ParseNode {
   }
 }
 
-export function prettifyParseError(e: Meteor.Error | Error): string {
-  return e.message.split('.')[0];
+export function prettifyParseError(e: unknown): string {
+  // The first sentence of a parse error; whatever was thrown, as text
+  return String((e as { message?: unknown } | undefined)?.message ?? e).split('.')[0];
 }
 
 class EndOfInputError extends Error {

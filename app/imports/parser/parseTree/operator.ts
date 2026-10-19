@@ -102,14 +102,16 @@ function applyOperator(operator: OperatorSymbol, left: ConstantValueType, right:
   if (right === undefined) {
     right = 0;
   }
+  // JavaScript's own arithmetic on any two constants: a string and a number
+  // add as text, anything else that is no number gives NaN, as intended
+  const [a, b] = [left as any, right as any];
   switch (operator) {
-    // Typescript might complain about these, but they return NaN as expected
-    case '+': result = left + right; break;
-    case '-': result = left - right; break;
-    case '*': result = left * right; break;
-    case '/': result = left / right; break;
-    case '^': result = Math.pow(left, right); break;
-    case '%': result = left % right; break;
+    case '+': result = a + b; break;
+    case '-': result = a - b; break;
+    case '*': result = a * b; break;
+    case '/': result = a / b; break;
+    case '^': result = Math.pow(a, b); break;
+    case '%': result = a % b; break;
     case '&':
     case '&&': result = left && right; break;
     case '|':

@@ -8,7 +8,7 @@ export default function () {
   const getNode = computation.dependencyGraph.getNode;
 
   assert.equal(
-    getLink('strength', 'strengthId').data, 'definition',
+    getLink('strength', 'strengthId')?.data, 'definition',
     'Links variable names to props that define them'
   );
   assert.exists(

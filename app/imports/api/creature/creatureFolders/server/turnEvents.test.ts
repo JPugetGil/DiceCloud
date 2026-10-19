@@ -14,7 +14,7 @@ import { leaveParty } from '/imports/api/creature/creatureFolders/methods/partyM
 import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
 import removeCreature from '/imports/api/creature/creatures/methods/removeCreature';
 // The method alone, not Users.js: its schema would make every suite's test users need its fields
-import '/imports/api/users/methods/deleteMyAccount';
+import { deleteMyAccount } from '/imports/api/users/methods/deleteMyAccount';
 import { createTestCreature, removeAllCreaturesAndProps } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import propsFromForest, { type ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 import computeCreature from '/imports/api/engine/computeCreature';
@@ -306,7 +306,7 @@ if (Meteor.isServer) describe('Turn events in the initiative tracker', function 
 
     it('the game master\'s account deleted on a monster\'s turn: the fight ends with the board, no turn starts', async function () {
       await fight(['Ogre', 'Hero', 'Goblin', 'Stranger'], 'Ogre');
-      await (Meteor.users as any).deleteMyAccount._execute({ userId: gmId, unblock() { /* as a method's */ } }, {});
+      await (deleteMyAccount as any)._execute({ userId: gmId, unblock() { /* as a method's */ } }, {});
       assert.notExists(await CreatureFolders.findOneAsync(folderId));
       assert.lengthOf(await logs(heroId), 0);
     });

@@ -268,9 +268,10 @@ const pullFromLibraryNode = new ValidatedMethod({
   async run({ _id, path, itemId }) {
     const node = await LibraryNodes.findOneAsync(_id);
     await assertDocEditPermission(node, this.userId);
+    // A modifier on a path given as an argument: no type can follow it
     return await LibraryNodes.updateAsync(_id, {
       $pull: { [path.join('.')]: { _id: itemId } },
-    }, {
+    } as any, {
       selector: { type: node.type },
       getAutoValues: false,
     });

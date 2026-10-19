@@ -86,7 +86,7 @@ async function getDocLink(doc: Doc, urlName?: string) {
   await ancestorDocs?.forEachAsync(a => {
     address.push(a.urlName);
   });
-  address.push(urlName);
+  address.push(urlName ?? '');
   return address.join('/');
 }
 

@@ -1,6 +1,7 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { get, set } from 'lodash';
 import applyFnToKey from '/imports/api/engine/computation/utility/applyFnToKey';
+import errorText from '/imports/api/utility/errorText';
 
 
 function calculationUp(val) {
@@ -38,7 +39,7 @@ export default function migrateTo1(archive) {
         });
       });
     } catch (e) {
-      console.warn('Property migration -> 1 failed: ', { propId: prop._id, error: e.message || e.reason || e.toString() });
+      console.warn('Property migration -> 1 failed: ', { propId: prop._id, error: errorText(e) });
     }
     return prop;
   });

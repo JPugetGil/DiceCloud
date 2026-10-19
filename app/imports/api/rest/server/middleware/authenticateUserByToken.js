@@ -35,7 +35,7 @@ const authenticateMeteorUserByToken =
  * Retrieves the ID of the Meteor.user that the given auth token belongs to
  *
  * @param token An unhashed auth token
- * @returns {Promise<String>} The ID of the authenticated Meteor.user, or null
+ * @returns {Promise<string | null>} The ID of the authenticated Meteor.user, or null
  *     if token is invalid
  */
 async function getUserIdFromAuthToken(token) {
@@ -49,6 +49,7 @@ async function getUserIdFromAuthToken(token) {
   if (user) {
     return user._id;
   } else {
+    /** @type {Meteor.Error & { statusCode?: number }} */
     const error = new Meteor.Error('Permission denied',
     'Invalid authentication token');
     error.statusCode = 403;

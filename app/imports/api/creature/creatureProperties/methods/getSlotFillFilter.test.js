@@ -5,7 +5,7 @@ describe('Slot fill filter', function () {
 
   it('Gives error if arguments aren\'t provided', function () {
     assert.throws(
-      () => getSlotFillFilter(undefined),
+      () => getSlotFillFilter(/** @type {any} */ (undefined)),
       null, null, 'Passing undefined should give an error'
     );
     assert.throws(

@@ -66,6 +66,7 @@ Meteor.publish('selectedFillers', function (slotId, nodeIds, isDummySlot) {
     // named, those of private libraries too
     let filter = { _id: { $in: nodeIds }, ...getFilter.descendantsOfAllRoots(libraryIds) };
     // Get the limit of the documents the user can fetch
+    /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options = {
       sort: {
         name: 1,
@@ -120,6 +121,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
     var limit = data.limit || 50;
     check(limit, Number);
 
+    /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options;
     if (searchTerm) {
       if (!filter.$and) filter.$and = [];
@@ -202,6 +204,7 @@ Meteor.publish('classFillers', function (classId) {
     var limit = data.limit || 50;
     check(limit, Number);
 
+    /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options = {
       sort: {
         level: 1,

@@ -36,7 +36,6 @@ export default async function spendResources(
       const statToDamage = await getFromScope(att.variableName, scope);
       await recalculateCalculation(att.quantity, action, 'reduce', userInput);
       await applyTask(action, {
-        prop,
         targetIds: [action.creatureId],
         subtaskFn: 'damageProp',
         params: {

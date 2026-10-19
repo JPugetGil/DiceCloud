@@ -96,7 +96,7 @@ export function filterToForest(
   if (options.sort) {
     collectionSort = {
       ...collectionSort,
-      ...options.sort,
+      ...options.sort as object,
     }
   }
   let collectionOptions: Mongo.Options<TreeDoc> = {

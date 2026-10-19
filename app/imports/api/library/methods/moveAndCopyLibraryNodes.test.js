@@ -49,7 +49,7 @@ describe('Move and copy library nodes', function () {
 
   it('Moves a node into a parent of the same library, after its children', async function () {
     const folderA = await get(ids.folderA);
-    await moveWithinRoot._execute(asUser, {
+    await /** @type {any} */ (moveWithinRoot)._execute(asUser, {
       docRef: { collection: 'libraryNodes', id: ids.nodeA },
       newPosition: folderA.right - 0.5,
     });
@@ -60,7 +60,7 @@ describe('Move and copy library nodes', function () {
 
   it('Moves a node into a parent of another library', async function () {
     const folderB = await get(ids.folderB);
-    await moveBetweenRoots._execute(asUser, {
+    await /** @type {any} */ (moveBetweenRoots)._execute(asUser, {
       docRef: { collection: 'libraryNodes', id: ids.nodeA },
       newPosition: folderB.right - 0.5,
       newRootRef: folderB.root,
@@ -71,7 +71,7 @@ describe('Move and copy library nodes', function () {
   });
 
   it('Copies a node into a parent of another library', async function () {
-    await copyLibraryNodeTo._execute(asUser, {
+    await /** @type {any} */ (copyLibraryNodeTo)._execute(asUser, {
       _id: ids.childA,
       parent: { collection: 'libraryNodes', id: ids.folderB },
     });
@@ -84,7 +84,7 @@ describe('Move and copy library nodes', function () {
   });
 
   it('Copies a node to the top of a library', async function () {
-    await copyLibraryNodeTo._execute(asUser, {
+    await /** @type {any} */ (copyLibraryNodeTo)._execute(asUser, {
       _id: ids.folderB,
       parent: { collection: 'libraries', id: libraryA },
     });

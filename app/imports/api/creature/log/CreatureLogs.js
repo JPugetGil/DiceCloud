@@ -24,6 +24,8 @@ if (Meteor.isServer) {
   var sendLogToDiscord = require('/imports/api/creature/log/server/discordWebhooks').sendLogToDiscord;
 }
 
+// Ids are strings, as everywhere in the app: untyped, Meteor's types expect ObjectIds
+/** @type {Mongo.Collection<any>} */
 let CreatureLogs = new Mongo.Collection('creatureLogs');
 
 let CreatureLogSchema = new SimpleSchema({

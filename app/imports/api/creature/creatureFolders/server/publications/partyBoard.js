@@ -85,7 +85,7 @@ Meteor.publish('partyBoard', function (folderId) {
   try {
     schema.validate({ folderId });
   } catch (e) {
-    this.error(e);
+    this.error(/** @type {Error} */ (e));
     return;
   }
   reactivePublication(this, async function ({ firstRun }) {

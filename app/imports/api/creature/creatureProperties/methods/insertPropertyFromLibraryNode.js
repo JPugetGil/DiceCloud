@@ -15,6 +15,7 @@ import {
 import { union } from 'lodash';
 import batchInsertAsync from '/imports/api/utility/batchInsertAsync';
 import { Meteor } from 'meteor/meteor';
+import errorText from '/imports/api/utility/errorText';
 
 const insertPropertyFromLibraryNode = new ValidatedMethod({
   name: 'creatureProperties.insertPropertyFromLibraryNode',
@@ -180,7 +181,7 @@ export async function reifyNodeReferences(nodes, userId, visitedRefs = new Set()
       // We are definitely replacing this node, so add it to the list
       visitedRefs.add(node._id);
     } catch (e) {
-      node.cache = { error: e.reason || e.message || e.toString() };
+      node.cache = { error: errorText(e) };
       resultingNodes.push(node);
       continue;
     }

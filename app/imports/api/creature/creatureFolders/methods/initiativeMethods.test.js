@@ -191,6 +191,7 @@ describe('Initiative tracker', function () {
   });
 
   it('is only run by the folder\'s owner', async function () {
+    /** @type {any} */
     let error;
     try {
       await as(advanceInitiative, { step: 1 }, otherUserId);
@@ -248,6 +249,7 @@ describe('Initiative tracker', function () {
   it('lets only the game master hurt a creature', async function () {
     const orc = (await tracker()).entries.find(entry => entry.name === 'Orc 3');
     /** @type {any} */
+    /** @type {any} */
     let error;
     try {
       await as(damageInitiativeEntry, { entryId: orc._id, amount: 3 }, otherUserId);
@@ -288,6 +290,7 @@ describe('Initiative tracker', function () {
   });
 
   it('lets only the game master add characters to the fight', async function () {
+    /** @type {any} */
     /** @type {any} */
     let error;
     try {
@@ -424,6 +427,7 @@ describe('A full initiative tracker', function () {
   });
 
   it('takes no more creatures than it holds, and says why', async function () {
+    /** @type {any} */
     /** @type {any} */
     let error;
     try {

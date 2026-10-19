@@ -7,6 +7,7 @@ import {
   assertViewPermission,
 } from '/imports/api/sharing/sharingPermissions';
 import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
+import errorText from '/imports/api/utility/errorText';
 
 const updateReferenceNode = new ValidatedMethod({
   name: 'libraryNodes.updateReferenceNode',
@@ -40,6 +41,7 @@ async function writeCache(_id, cache) {
 }
 
 async function updateReferenceNodeWork(node, userId) {
+  /** @type {{ error?: string, node?: any, library?: { id: string, name: string } }} */
   let cache = {}
   if (!node.ref?.collection || !node.ref?.id) {
     await writeCache(node._id, cache);
@@ -54,7 +56,7 @@ async function updateReferenceNodeWork(node, userId) {
       await assertViewPermission(library, userId)
     }
   } catch (e) {
-    cache = { error: e.reason || e.message || e.toString() }
+    cache = { error: errorText(e) }
     await writeCache(node._id, cache);
     return;
   }

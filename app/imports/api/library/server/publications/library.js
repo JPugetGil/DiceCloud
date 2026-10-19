@@ -226,7 +226,7 @@ Meteor.publish('libraryNodes', function (libraryId, extraFields) {
     libraryIdSchema.validate({ libraryId });
     extraFieldsSchema.validate({ extraFields });
   } catch (e) {
-    return this.error(e);
+    return this.error(/** @type {Error} */ (e));
   }
   reactivePublication(this, async function () {
     let userId = this.userId;

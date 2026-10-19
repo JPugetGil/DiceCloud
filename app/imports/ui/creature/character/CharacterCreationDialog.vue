@@ -207,8 +207,8 @@
 </template>
 
 <script setup>
+import { subscribeToLibrary, subscribeToLibraryCollection } from '/imports/api/users/Users';
 import { ref, computed, useId, onMounted } from 'vue';
-import { Meteor } from 'meteor/meteor';
 import { subscribe } from 'vue-meteor-tracker';
 import listRulesets from '/imports/api/library/methods/listRulesets';
 import { preferredRuleset } from '/imports/api/library/rulesets';
@@ -267,11 +267,11 @@ onMounted(async () => {
 async function followRuleset(ruleset) {
   if (!ruleset || ruleset.followed) return;
   if (ruleset.collectionId) {
-    await Meteor.users.subscribeToLibraryCollection.callAsync({
+    await subscribeToLibraryCollection.callAsync({
       libraryCollectionId: ruleset.collectionId, subscribe: true,
     });
   } else {
-    await Meteor.users.subscribeToLibrary.callAsync({ libraryId: ruleset.libraryId, subscribe: true });
+    await subscribeToLibrary.callAsync({ libraryId: ruleset.libraryId, subscribe: true });
   }
 }
 const startingLevel = ref(1);

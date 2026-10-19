@@ -37,6 +37,7 @@ function applyToArrayKey(doc, key, fn) {
   // Stack based depth first traversal of arrays
   const array = get(doc, keySplit[0]);
   if (!array) return;
+  /** @type {{ array: any, paths: string[], currentPath: string, indices: string[] }[]} */
   const stack = [{
     array,
     paths: keySplit.slice(1),
@@ -69,6 +70,7 @@ async function applyToArrayKeyAsync(doc, key, fn) {
   // Stack based depth first traversal of arrays
   const array = get(doc, keySplit[0]);
   if (!array) return;
+  /** @type {{ array: any, paths: string[], currentPath: string, indices: string[] }[]} */
   const stack = [{
     array,
     paths: keySplit.slice(1),

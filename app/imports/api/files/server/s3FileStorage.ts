@@ -149,7 +149,9 @@ if (Meteor.settings.useS3) {
                 return console.error(updError);
               }
               // Unlink original files from FS after successful upload to AWS:S3
-              filesCollection.unlink(await filesCollection.findOneAsync(fileRef._id), version);
+              // (a file removed meanwhile has nothing left to unlink)
+              const stored = await filesCollection.findOneAsync(fileRef._id);
+              if (stored) filesCollection.unlink(stored, version);
               this.emit('s3Result', undefined, fileRef);
             });
           });

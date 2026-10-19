@@ -19,7 +19,7 @@ export function importIcons(file) {
   if (!metadata) throw 'No metadata to build with';
 
   reader.onload = async function () {
-    let data = JSON.parse(reader.result);
+    let data = JSON.parse(/** @type {string} */ (reader.result));
     let icons = [];
     data.svg.symbol.forEach(iconData => {
       let name = iconData._attributes.id;
@@ -47,7 +47,7 @@ export function importIconMetadata(file) {
   let reader = new FileReader();
 
   reader.onload = function () {
-    metadata = JSON.parse(reader.result);
+    metadata = JSON.parse(/** @type {string} */ (reader.result));
     console.log(metadata);
   };
 

@@ -283,6 +283,9 @@
 </template>
 
 <script setup>
+import {
+  setDarkMode as setDarkModeMethod, setLanguage as setLanguageMethod, setPreference, setUnitPreference,
+} from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { useRouter } from 'vue-router';
@@ -384,7 +387,7 @@ async function signOut() {
 async function setLanguage(value, ack) {
   setLocale(value);
   try {
-    await Meteor.users.setLanguage.callAsync({ language: value });
+    await setLanguageMethod.callAsync({ language: value });
     ack();
   } catch (error) {
     ack(error);
@@ -401,7 +404,7 @@ async function setDarkMode(value, ack) {
     dm = null;
   }
   try {
-    await Meteor.users.setDarkMode.callAsync({ darkMode: dm });
+    await setDarkModeMethod.callAsync({ darkMode: dm });
     ack();
   } catch (error) {
     ack(error);
@@ -413,7 +416,7 @@ const { preferences } = useUnits();
 
 async function setUnit(quantity, unit, ack) {
   try {
-    await Meteor.users.setUnitPreference.callAsync({ quantity, unit });
+    await setUnitPreference.callAsync({ quantity, unit });
     ack();
   } catch (error) {
     ack(error);
@@ -423,7 +426,7 @@ async function setUnit(quantity, unit, ack) {
 // Animations as the system asks, or reduced whatever it asks (useReducedMotion)
 async function setMotion(value, ack) {
   try {
-    await Meteor.users.setPreference.callAsync({
+    await setPreference.callAsync({
       preference: 'reduceMotion',
       value: value === 'reduced',
     });
@@ -435,7 +438,7 @@ async function setMotion(value, ack) {
 
 async function swapAbilityScoresAndModifiers(value, ack) {
   try {
-    await Meteor.users.setPreference.callAsync({
+    await setPreference.callAsync({
       preference: 'swapAbilityScoresAndModifiers',
       value: !!value,
     });

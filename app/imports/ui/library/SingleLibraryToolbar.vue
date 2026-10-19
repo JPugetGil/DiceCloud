@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import { subscribeToLibrary } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun } from 'vue-meteor-tracker';
@@ -133,7 +134,7 @@ const formatNumber = (num) => formatter.format(num);
 const subscribe = async (value) => {
   loading.value = true;
   try {
-    await Meteor.users.subscribeToLibrary.callAsync({
+    await subscribeToLibrary.callAsync({
       libraryId: route.params.id,
       subscribe: value,
     });

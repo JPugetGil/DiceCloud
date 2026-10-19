@@ -19,7 +19,7 @@ const libraryNode = (_id, library, fields) => ({
   ...fields,
 });
 
-const insert = nodeId => insertPropertyFromLibraryNode._execute({ userId }, {
+const insert = nodeId => /** @type {any} */ (insertPropertyFromLibraryNode)._execute({ userId }, {
   nodeIds: [nodeId],
   parentRef: { collection: 'creatures', id: creatureId },
 });

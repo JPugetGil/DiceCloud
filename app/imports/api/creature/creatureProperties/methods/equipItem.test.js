@@ -16,7 +16,7 @@ const prop = (_id, left, right, fields) => ({
   ...fields,
 });
 
-const equip = equipped => equipItem._execute({ userId }, { _id: itemId, equipped });
+const equip = equipped => /** @type {any} */ (equipItem)._execute({ userId }, { _id: itemId, equipped });
 
 describe('Equip item', function () {
   before(async function () {

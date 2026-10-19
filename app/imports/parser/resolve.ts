@@ -1,6 +1,6 @@
 import '/imports/parser/parseTree/array';
 import factories from '/imports/parser/parseTree';
-import type { CastSpellParams, CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import type ParseNode from '/imports/parser/parseTree/ParseNode';
 import rollDice from '/imports/parser/rollDice';
@@ -73,9 +73,6 @@ const computationInputProvider: InputProvider = {
     return 0;
   },
   async check(input: CheckParams) {
-    return input;
-  },
-  async castSpell(input: CastSpellParams) {
     return input;
   },
 }

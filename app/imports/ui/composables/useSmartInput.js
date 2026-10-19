@@ -32,10 +32,13 @@ export const smartInputProps = {
 export const smartInputEmits = ['change'];
 
 export function useSmartInput(props, model, emit, options = {}) {
+  /** @type {{ debounceTime?: number, editPermission?: boolean }} */
   const context = inject('context', {});
 
   const error = ref(false);
+  /** @type {import('vue').Ref<string | null>} */
   const ackErrors = ref(null);
+  /** @type {import('vue').Ref<string[] | null>} */
   const rulesErrors = ref(null);
   const focused = ref(false);
   const loading = ref(false);

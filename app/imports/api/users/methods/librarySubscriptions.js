@@ -9,7 +9,7 @@ import LibraryCollections from '/imports/api/library/LibraryCollections';
  * A user subscribes to a library, or a library collection, which its slots
  * and searches then offer (getUserLibraryIds). The library's subscriber
  * count, which ranks it in the library browser, counts the subscribers.
- * Meteor.users.subscribeToLibrary and subscribeToLibraryCollection (Users.js).
+ * Users.js exports them too, with the other methods of the users.
  */
 
 export const subscribeToLibrary = new ValidatedMethod({

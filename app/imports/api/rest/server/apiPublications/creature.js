@@ -21,6 +21,7 @@ JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
       },
     }).validate({ creatureId });
   } catch {
+    /** @type {Meteor.Error & { statusCode?: number }} */
     const error = new Meteor.Error('invalid-id', 'Invalid creature ID provided');
     error.statusCode = 400;
     throw error;
@@ -32,7 +33,7 @@ JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
   try {
     await assertViewPermission(creature, userId)
   } catch (e) {
-    e.statusCode = 403;
+    /** @type {any} */ (e).statusCode = 403;
     throw e;
   }
 
@@ -41,7 +42,7 @@ JsonRoutes.add('get', 'api/creature/:id', async function (req, res) {
     try {
       await computeCreature(creatureId)
     } catch (e) {
-      e.statusCode = 500;
+      /** @type {any} */ (e).statusCode = 500;
       console.error(e)
       throw e;
     }

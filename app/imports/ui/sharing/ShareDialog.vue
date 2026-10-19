@@ -138,6 +138,7 @@
 </template>
 
 <script setup lang="js">
+import { findUserByUsernameOrEmail } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { autorun, subscribe } from 'vue-meteor-tracker';
@@ -222,7 +223,7 @@ async function getUser({ value, ack }) {
     return;
   }
   try {
-    const result = await Meteor.users.findUserByUsernameOrEmail.callAsync({
+    const result = await findUserByUsernameOrEmail.callAsync({
       usernameOrEmail: value
     });
     userId.value = result;

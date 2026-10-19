@@ -6,10 +6,15 @@ const tabsWithoutSpells = ['stats', 'actions', 'inventory', 'features', 'journal
 
 export const useAppStore = defineStore('app', {
   state: () => ({
+    /** @type {boolean | undefined} */
     drawer: undefined,
+    /** @type {boolean | undefined} */
     rightDrawer: undefined,
+    /** @type {string | undefined} */
     pageTitle: undefined,
+    /** @type {Record<string, number>} */
     characterSheetTabs: {},
+    /** @type {Record<string, any[]>} */
     formExpansions: {},
     // Docs writers switch the documentation pages between reading and editing
     editingDocs: false,

@@ -108,6 +108,7 @@
 </template>
 
 <script setup>
+import { deleteMyAccount } from '/imports/api/users/methods/deleteMyAccount';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { subscribe, autorun } from 'vue-meteor-tracker';
@@ -156,7 +157,7 @@ const valid = computed(() => {
 });
 
 async function deleteAccount() {
-  await Meteor.users.deleteMyAccount.callAsync();
+  await deleteMyAccount.callAsync();
   await router.push('/');
   await dialogStackStore.popDialogStack();
 }

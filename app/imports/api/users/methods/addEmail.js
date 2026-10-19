@@ -19,8 +19,8 @@ const addEmail = new ValidatedMethod({
   },
   async run({ email }) {
     const userId = Meteor.userId();
-    const user = await Meteor.users.findOneAsync(userId);
-    if (!user) throw new Meteor.Error('No user',
+    const user = userId && await Meteor.users.findOneAsync(userId);
+    if (!userId || !user) throw new Meteor.Error('No user',
       'You must be logged in to add an email address');
     if (user.emails && user.emails.length >= 2) {
       throw new Meteor.Error('Emails full',

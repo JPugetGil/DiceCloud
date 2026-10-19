@@ -1,5 +1,6 @@
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
+/** @param {{ slot?: any, libraryIds?: string[] }} options Both required: it throws without either */
 export default function getSlotFillFilter({ slot, libraryIds }) {
 
   if (!slot) throw 'Slot is required for getSlotFillFilter';

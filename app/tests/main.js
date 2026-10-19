@@ -1,3 +1,5 @@
+// require.context below is Rspack's, typed by its module declarations
+/// <reference types="@rspack/core/module" />
 // Test entry point (meteor.testModule in package.json).
 //
 // `meteor test` runs neither client/main.js nor server/main.js, so nothing here

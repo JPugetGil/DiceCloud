@@ -128,11 +128,11 @@ const call: CallFactory = {
         return resolveOthers(fn, value, scope, context, inputProvider);
       }
     } catch (err) {
-      context.error(`Internal error: ${err.message || err}`);
+      context.error(`Internal error: ${(err as Error)?.message || err}`);
       return {
         result: error.create({
           node: node,
-          error: `Internal error: ${err.message || err}`,
+          error: `Internal error: ${(err as Error)?.message || err}`,
         }),
         context,
       }

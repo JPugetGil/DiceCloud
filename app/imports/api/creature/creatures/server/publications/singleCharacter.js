@@ -29,7 +29,7 @@ Meteor.publish('singleCharacter', function (creatureId) {
   try {
     schema.validate({ creatureId });
   } catch (e) {
-    this.error(e);
+    this.error(/** @type {Error} */ (e));
   }
   reactivePublication(this, async function ({ firstRun }) {
     let userId = this.userId;

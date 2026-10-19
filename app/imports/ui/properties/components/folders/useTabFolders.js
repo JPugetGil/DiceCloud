@@ -4,6 +4,7 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import softRemoveProperty from '/imports/api/creature/creatureProperties/methods/softRemoveProperty';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import errorText from '/imports/api/utility/errorText';
 
 export function useTabFolders(creatureId, tabName) {
   const dialogStackStore = useDialogStackStore();
@@ -46,7 +47,7 @@ export function useTabFolders(creatureId, tabName) {
     try {
       await softRemoveProperty.callAsync({ _id });
     } catch (error) {
-      snackbar({ text: error.reason || error.message || error.toString() });
+      snackbar({ text: errorText(error) });
       console.error(error);
     }
   }

@@ -24,7 +24,7 @@ export default function parseBearerToken(req, res, next) {
  * Parses bearer token from the Authorization header
  *
  * @param req {Object} The incoming Connect request
- * @returns {String} The bearer token
+ * @returns {string | undefined} The bearer token, if there is one
  * @private
  */
 function parseHeaders(req) {
@@ -46,7 +46,7 @@ function parseHeaders(req) {
  * Parses bearer token from URL query parameters
  *
  * @param req {Object} The incoming Connect request
- * @returns {String} The bearer token
+ * @returns {string | undefined} The bearer token, if there is one
  * @private
  */
 function parseQuery(req) {

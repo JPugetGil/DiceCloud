@@ -18,7 +18,7 @@ function assertDocExists(doc: Record<string, any> | undefined): asserts doc {
   }
 }
 
-export function assertOwnership(doc: Shared, userId: string): asserts doc {
+export function assertOwnership(doc: Shared | undefined, userId: string | undefined | null): asserts doc {
   assertIdValid(userId);
   assertDocExists(doc);
 

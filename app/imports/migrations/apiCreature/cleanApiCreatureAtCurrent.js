@@ -1,4 +1,5 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import errorText from '/imports/api/utility/errorText';
 
 export default function cleanApiCreatureAtCurrent(apiCreature) {
   apiCreature.creatureProperties = apiCreature.creatureProperties.map(prop => {
@@ -9,7 +10,7 @@ export default function cleanApiCreatureAtCurrent(apiCreature) {
       cleanProp = schema.clean(prop);
       schema.validate(cleanProp);
     } catch (e) {
-      console.warn('Failed to clean archive prop', { propId: prop._id, error: e.message || e.reason || e.toString() });
+      console.warn('Failed to clean archive prop', { propId: prop._id, error: errorText(e) });
     }
     return cleanProp;
   });

@@ -15,6 +15,7 @@ export default function createListOfProperties(filter = {}, getNamesWithValues) 
       });
     }
   }
+  /** @type {import('meteor/mongo').Mongo.Options<any>} */
   let options = { sort: { left: 1, variableName: 1 } }
   CreatureProperties.find(filter, options).forEach(addUniquePropertys);
   LibraryNodes.find(filter, options).forEach(addUniquePropertys);

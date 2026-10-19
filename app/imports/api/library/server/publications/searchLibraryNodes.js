@@ -78,6 +78,7 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
     }
 
     // Build a filter for nodes in those libraries that match the type
+    /** @type {Record<string, any>} a MongoDB selector */
     let filter = {
       ...getFilter.descendantsOfAllRoots(libraryIds),
       removed: { $ne: true },
@@ -99,6 +100,7 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
     let searchTerm = data.searchTerm || '';
     check(searchTerm, String);
 
+    /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options;
     if (searchTerm) {
       // Regex search instead of text index

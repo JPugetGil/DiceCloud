@@ -192,6 +192,7 @@
 </template>
 
 <script setup>
+import { setPreference } from '/imports/api/users/Users';
 import { ref, shallowRef, computed, watch, onMounted, reactive, provide } from 'vue';
 import { get, toPath } from 'lodash';
 import { autorun, subscribe } from 'vue-meteor-tracker';
@@ -416,7 +417,7 @@ function pull({ path, ack }) {
 
 async function propertyHelpChanged(value) {
   try {
-    await Meteor.users.setPreference.callAsync({
+    await setPreference.callAsync({
       preference: 'hidePropertySelectDialogHelp',
       value: !value
     });

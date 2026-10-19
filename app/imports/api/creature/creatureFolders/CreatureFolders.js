@@ -5,6 +5,8 @@ import { DiscordSessionSchema, SESSION_CLOSED_FIELDS, pastSessionFields } from '
 import { PUBLISH_KINDS } from '/imports/api/creature/log/discord/partyPublishing';
 import { channelFields } from '/imports/api/creature/log/discord/discordChannel';
 
+// Ids are strings, as everywhere in the app: untyped, Meteor's types expect ObjectIds
+/** @type {Mongo.Collection<any>} */
 let CreatureFolders = new Mongo.Collection('creatureFolders');
 
 // Players in a party besides its game master

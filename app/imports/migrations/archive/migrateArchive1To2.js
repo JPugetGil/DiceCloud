@@ -1,6 +1,7 @@
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import applyFnToKey from '/imports/api/engine/computation/utility/applyFnToKey';
 import { get } from 'lodash';
+import errorText from '/imports/api/utility/errorText';
 
 const dollarSignRegex = /(\W|^)\$(\w+)/gi;
 
@@ -47,7 +48,7 @@ export default function migrate1To2(archive) {
         });
       });
     } catch (e) {
-      console.warn('Property migration 1 -> 2 failed: ', { propId: prop._id, error: e.message || e.reason || e.toString() });
+      console.warn('Property migration 1 -> 2 failed: ', { propId: prop._id, error: errorText(e) });
     }
     return prop;
   });

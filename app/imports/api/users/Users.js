@@ -170,7 +170,7 @@ const userSchema = new SimpleSchema({
 
 Meteor.users.attachSchema(userSchema);
 
-Meteor.users.setDarkMode = new ValidatedMethod({
+export const setDarkMode = new ValidatedMethod({
   name: 'users.setDarkMode',
   validate: new SimpleSchema({
     darkMode: { type: Boolean, optional: true },
@@ -186,7 +186,7 @@ Meteor.users.setDarkMode = new ValidatedMethod({
   },
 });
 
-Meteor.users.setLanguage = new ValidatedMethod({
+export const setLanguage = new ValidatedMethod({
   name: 'users.setLanguage',
   validate: new SimpleSchema({
     language: { type: String, allowedValues: ['en', 'fr'] },
@@ -202,7 +202,7 @@ Meteor.users.setLanguage = new ValidatedMethod({
   },
 });
 
-Meteor.users.setUnitPreference = new ValidatedMethod({
+export const setUnitPreference = new ValidatedMethod({
   name: 'users.setUnitPreference',
   validate: new SimpleSchema({
     quantity: { type: String, allowedValues: ['distance', 'weight'] },
@@ -214,6 +214,7 @@ Meteor.users.setUnitPreference = new ValidatedMethod({
     timeInterval: 2000,
   },
   async run({ quantity, unit }) {
+    /** @type {readonly string[]} */
     const allowed = quantity === 'distance' ? DISTANCE_UNITS : WEIGHT_UNITS;
     if (!allowed.includes(unit)) {
       throw new Meteor.Error('invalid-unit', `${unit} is not a ${quantity} unit`);
@@ -225,7 +226,7 @@ Meteor.users.setUnitPreference = new ValidatedMethod({
   },
 });
 
-Meteor.users.canPickUsername = new ValidatedMethod({
+export const canPickUsername = new ValidatedMethod({
   name: 'users.canPickUsername',
   validate: userSchema.pick('username').validator(),
   mixins: [RateLimiterMixin],
@@ -244,7 +245,7 @@ Meteor.users.canPickUsername = new ValidatedMethod({
   }
 });
 
-Meteor.users.setUsername = new ValidatedMethod({
+export const setUsername = new ValidatedMethod({
   name: 'users.setUsername',
   validate: userSchema.pick('username').validator(),
   mixins: [RateLimiterMixin],
@@ -259,7 +260,7 @@ Meteor.users.setUsername = new ValidatedMethod({
   }
 });
 
-Meteor.users.setPreference = new ValidatedMethod({
+export const setPreference = new ValidatedMethod({
   name: 'users.setPreference',
   validate: new SimpleSchema({
     preference: {
@@ -327,10 +328,11 @@ if (Meteor.isServer) {
 }
 
 // In a module of their own, which the tests load without the users' schema
-Meteor.users.subscribeToLibrary = subscribeToLibrary;
-Meteor.users.subscribeToLibraryCollection = subscribeToLibraryCollection;
+// The methods of the users, exported where they are defined: the components
+// import those they call
+export { subscribeToLibrary, subscribeToLibraryCollection };
 
-Meteor.users.findUserByUsernameOrEmail = new ValidatedMethod({
+export const findUserByUsernameOrEmail = new ValidatedMethod({
   name: 'users.findUserByUsernameOrEmail',
   validate: new SimpleSchema({
     usernameOrEmail: {

@@ -1,6 +1,6 @@
 import embedInlineCalculations from '/imports/api/engine/computation/utility/embedInlineCalculations';
 import recalculateCalculation from './recalculateCalculation'
-import type { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
+import type { ComputedOnlyInlineCalculationField as InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
 import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import type ResolveLevel from '/imports/parser/types/ResolveLevel';
 import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';

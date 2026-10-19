@@ -13,6 +13,8 @@ import { Mongo } from 'meteor/mongo';
 /**
  * LibraryCollections are groups of libraries that are subscribed together at once
  */
+// Ids are strings, as everywhere in the app: untyped, Meteor's types expect ObjectIds
+/** @type {Mongo.Collection<any>} */
 const LibraryCollections = new Mongo.Collection('libraryCollections');
 
 const LibraryCollectionSchema = new SimpleSchema({
@@ -75,6 +77,8 @@ const insertLibraryCollection = new ValidatedMethod({
     simpleSchemaMixin,
     RateLimiterMixin,
   ],
+  // Made from the schema by simpleSchemaMixin
+  validate: null,
   schema: LibraryCollectionSchema.pick('name', 'description', 'libraries'),
   schemaValidatorOptions: { clean: true, filter: true },
   rateLimit: {
@@ -100,6 +104,8 @@ const updateLibraryCollection = new ValidatedMethod({
     simpleSchemaMixin,
     RateLimiterMixin,
   ],
+  // Made from the schema by simpleSchemaMixin
+  validate: null,
   schema: {
     _id: {
       type: String,

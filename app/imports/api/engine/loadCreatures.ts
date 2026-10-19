@@ -23,11 +23,17 @@ export const loadedCreatures: Map<string, LoadedCreature> = new Map(); // creatu
  */
 export type ComputeCreature = (creatureId: string) => Promise<unknown>;
 
+/**
+ * What keeps a creature loaded until it stops: a publication (its `this`) or,
+ * in the tests, a Tracker computation
+ */
+type CreatureSubscriber = { onStop(callback: () => void): void };
+
 // The scopes' links to properties are read from this cache
 // (scopeVariables.ts does not import it)
 setPropertyReader((creatureId, propertyId) => getSingleProperty(creatureId, propertyId));
 
-export function loadCreature(creatureId: string, subscription: Tracker.Computation, compute: ComputeCreature) {
+export function loadCreature(creatureId: string, subscription: CreatureSubscriber, compute: ComputeCreature) {
   if (!creatureId) throw 'creatureId is required';
   let creature = loadedCreatures.get(creatureId);
   if (!creature?.subs.has(subscription)) {
@@ -53,7 +59,7 @@ export async function unloadAllCreatures() {
   await Promise.all(stopping);
 }
 
-function unloadCreature(creatureId: string, subscription: Tracker.Computation) {
+function unloadCreature(creatureId: string, subscription: CreatureSubscriber) {
   if (!creatureId) throw 'creatureId is required';
   const creature = loadedCreatures.get(creatureId);
   if (!creature) return;
@@ -288,7 +294,7 @@ export async function getPropertyChildren(creatureId: string, property: string |
 }
 
 class LoadedCreature {
-  subs!: Set<Tracker.Computation>;
+  subs!: Set<CreatureSubscriber>;
   propertyObserver!: Meteor.LiveQueryHandle;
   creatureObserver!: Meteor.LiveQueryHandle;
   variablesObserver!: Meteor.LiveQueryHandle;
@@ -301,7 +307,7 @@ class LoadedCreature {
   // not start a computation that can no longer find it
   deleted = false;
 
-  constructor(sub: Tracker.Computation, creatureId: string, computeCreature: ComputeCreature) {
+  constructor(sub: CreatureSubscriber, creatureId: string, computeCreature: ComputeCreature) {
     const self = this;
     // This may be called from a subscription, but we don't want the observers
     // to be destroyed with it, so use a non-reactive context to observe

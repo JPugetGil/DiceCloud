@@ -33,12 +33,17 @@ const updateHistory = function (store) {
 
 export const useDialogStackStore = defineStore('dialogStack', {
   state: () => ({
+    /** @type {{ _id: string, component: any, data?: any, elementId?: string, callback?: (result: any) => any }[]} */
     dialogs: [],
+    /** @type {any} */
     currentResult: null,
+    /** @type {string | null | undefined} */
     currentReturnElement: null,
+    /** @type {string | null} */
     replacingDialog: null,
   }),
   actions: {
+    /** @param {{ component: any, data?: any, elementId?: string, callback?: (result: any) => any }} dialog */
     pushDialogStack({ component, data, elementId, callback }) {
       const _id = Random.id();
       this.dialogs.push({

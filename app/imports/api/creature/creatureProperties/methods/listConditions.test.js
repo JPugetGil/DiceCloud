@@ -10,7 +10,7 @@ import { isCondition } from '/imports/api/creature/creatureProperties/conditions
 describe('Conditions', function () {
   const [userId, otherUserId, englishId, frenchId, creatureId] =
     [Random.id(), Random.id(), Random.id(), Random.id(), Random.id()];
-  const list = (user = userId) => listConditions._execute({ userId: user }, { creatureId });
+  const list = (user = userId) => /** @type {any} */ (listConditions)._execute({ userId: user }, { creatureId });
   let left = 0;
   const node = (libraryId, fields) => LibraryNodes.rawCollection().insertOne({
     _id: Random.id(), root: { collection: 'libraries', id: libraryId }, left: left += 2, right: left + 1, ...fields,
@@ -51,6 +51,7 @@ describe('Conditions', function () {
   });
 
   it('is only for the character\'s editors', async function () {
+    /** @type {any} */
     let error;
     try {
       await list(otherUserId);

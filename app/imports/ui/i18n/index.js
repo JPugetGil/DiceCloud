@@ -21,7 +21,7 @@ const supported = value => LANGUAGES.some(l => l.value === value);
 function initialLocale() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (supported(stored)) return stored;
+    if (stored && supported(stored)) return stored;
   } catch {
     // Storage blocked: use the browser language
   }
@@ -53,7 +53,7 @@ export function setLocale(locale) {
 }
 
 // For code outside components: t('key') translates in the current language
-export const t = (...args) => i18n.global.t(...args);
+export const t = (...args) => /** @type {any} */ (i18n.global.t)(...args);
 
 // For values stored as data (spell schools...): their message if there is one
 export function translateOr(key, fallback) {

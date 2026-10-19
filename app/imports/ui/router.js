@@ -38,7 +38,7 @@ const nativeScrollBehavior = async (to, from, savedPosition) => {
   // Scroll to the anchor, clear of the app bar that stays over the page
   if (to.hash) {
     const el = await waitForAnchor(to.hash);
-    if (el) return { el, top: (document.querySelector('.v-app-bar')?.offsetHeight ?? 0) + 16 };
+    if (el) return { el, top: (/** @type {HTMLElement | null} */ (document.querySelector('.v-app-bar'))?.offsetHeight ?? 0) + 16 };
   }
   const position = {};
   // check if any matched route config has meta that requires scrolling to top
@@ -125,7 +125,7 @@ function verifyEmail(to) {
       if (error) {
         resolve({
           name: 'emailVerificationError',
-          query: { error: error.reason || error.message },
+          query: { error: /** @type {any} */ (error).reason || error.message },
         });
       } else {
         resolve('/email-verification-success');
@@ -339,10 +339,12 @@ const routes = [{
     meta: {
       title: 'pageTitle.terms',
     },
-  }, {
+  }, /** @type {any} */ ({
+    // No component: beforeEnter always redirects, once the email is verified
+    // or not (vue-router's types want a component, a redirect or children)
     path: '/verify-email/:token',
     beforeEnter: verifyEmail,
-  }, {
+  }), {
     name: 'emailVerificationError',
     path: '/email-verification-error',
     components: {

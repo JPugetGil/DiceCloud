@@ -5,7 +5,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import { removeCreatureWork } from '/imports/api/creature/creatures/methods/removeCreature';
 import { Meteor } from 'meteor/meteor';
 
-Meteor.users.deleteMyAccount = new ValidatedMethod({
+export const deleteMyAccount = new ValidatedMethod({
   name: 'users.deleteMyAccount',
   validate: null,
   mixins: [RateLimiterMixin],
@@ -40,12 +40,12 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
         { writers: userId },
         { readers: userId },
       ],
-    }, {
+    }, /** @type {any} */ ({
       $pull: {
         writers: userId,
         readers: userId
       },
-    }, {
+    }), {
       multi: true,
     });
 
@@ -70,12 +70,12 @@ Meteor.users.deleteMyAccount = new ValidatedMethod({
         { writers: userId },
         { readers: userId },
       ],
-    }, {
+    }, /** @type {any} */ ({
       $pull: {
         writers: userId,
         readers: userId
       },
-    }, {
+    }), {
       multi: true,
     });
 

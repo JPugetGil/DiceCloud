@@ -8,6 +8,8 @@ import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 const changeAllowedLibraries = new ValidatedMethod({
   name: 'creatures.changeAllowedLibraries',
   mixins: [RateLimiterMixin, simpleSchemaMixin],
+  // Made from the schema by simpleSchemaMixin
+  validate: null,
   schema: new SimpleSchema({
     _id: {
       type: String,
@@ -39,6 +41,7 @@ const changeAllowedLibraries = new ValidatedMethod({
   async run({ _id, allowedLibraries, allowedLibraryCollections }) {
     let creature = await Creatures.findOneAsync(_id);
     await assertEditPermission(creature, this.userId);
+    /** @type {Record<string, any> | undefined} */
     let $set;
     if (allowedLibraries) {
       $set = { allowedLibraries }
@@ -55,6 +58,8 @@ const changeAllowedLibraries = new ValidatedMethod({
 const toggleAllUserLibraries = new ValidatedMethod({
   name: 'creatures.removeLibraryLimits',
   mixins: [RateLimiterMixin, simpleSchemaMixin],
+  // Made from the schema by simpleSchemaMixin
+  validate: null,
   schema: new SimpleSchema({
     _id: {
       type: String,

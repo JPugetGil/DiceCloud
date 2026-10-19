@@ -111,12 +111,13 @@ declare module 'meteor/ostrio:files' {
     onBeforeUpload?: (this: ContextUpload & ContextUser, fileData: FileData<MetadataType>) => boolean | string;
     onBeforeRemove?: (this: ContextUser, cursor: Mongo.Cursor<FileObj<MetadataType>>) => boolean;
     onInitiateUpload?: (this: ContextUpload & ContextUser, fileData: FileData<MetadataType>) => void;
-    onAfterUpload?: (fileRef: FileRef<MetadataType>) => any;
+    // Called with the collection as `this` (it emits, serves...)
+    onAfterUpload?: (this: FilesCollection<MetadataType>, fileRef: FileRef<MetadataType>) => any;
     onAfterRemove?: (files: ReadonlyArray<FileObj<MetadataType>>) => any;
     onbeforeunloadMessage?: string | (() => string);
     allowClientCode?: boolean;
     debug?: boolean;
-    interceptDownload?: (http: object, fileRef: FileRef<MetadataType>, version: string) => boolean;
+    interceptDownload?: (this: FilesCollection<MetadataType>, http: any, fileRef: FileRef<MetadataType>, version: string) => boolean;
   }
 
   interface SearchOptions<MetadataType, TransformAdditions> {
@@ -190,6 +191,8 @@ declare module 'meteor/ostrio:files' {
 
   class FilesCollection<MetadataType = { [x: string]: any }> {
     collection: Mongo.Collection<FileObj<MetadataType>>;
+    // The size of the chunks a file is uploaded and served in
+    chunkSize?: number;
     schema: SimpleSchemaDefinition;
 
     constructor(config: FilesCollectionConfig<MetadataType>)
@@ -230,6 +233,16 @@ declare module 'meteor/ostrio:files' {
       options?: SearchOptions<MetadataType, TransformAdditions>
     ): FileCursor<MetadataType> & TransformAdditions;
 
+    // ostrio:files 3: the asynchronous versions, which Meteor 3 needs on the server
+    findOneAsync(
+      selector?: Mongo.Selector<Partial<FileObj<MetadataType>>> | string,
+      options?: SearchOptions<MetadataType, object>
+    ): Promise<FileCursor<MetadataType> | undefined>;
+    removeAsync(select: Mongo.Selector<FileObj<MetadataType>> | string): Promise<number>;
+    // An EventEmitter on the server ('afterUpload', the app's 's3Result'...)
+    emit(event: string, ...args: any[]): boolean;
+    // Sends a file's version to an HTTP response (interceptDownload)
+    serve(http: any, fileRef: FileRef<MetadataType>, vRef: any, version?: string, readableStream?: any, responseType?: string, force200?: boolean): void;
     insert(settings: InsertOptions<MetadataType>, autoStart?: boolean): FileUpload;
     remove(select: Mongo.Selector<FileObj<MetadataType>> | string, callback?: (error: Meteor.Error) => void): FilesCollection<MetadataType>;
     update(select: Mongo.Selector<FileObj<MetadataType>> | string, modifier: Mongo.Modifier<FileObj<MetadataType>>, options?: {

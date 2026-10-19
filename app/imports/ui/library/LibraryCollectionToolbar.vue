@@ -60,6 +60,7 @@
 </template>
 
 <script setup>
+import { subscribeToLibraryCollection } from '/imports/api/users/Users';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { autorun } from 'vue-meteor-tracker';
@@ -151,7 +152,7 @@ async function download() {
 async function subscribe(value) {
   loading.value = true;
   try {
-    await Meteor.users.subscribeToLibraryCollection.callAsync({
+    await subscribeToLibraryCollection.callAsync({
       libraryCollectionId: route.params.id,
       subscribe: value,
     });

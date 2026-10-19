@@ -53,7 +53,6 @@ const ActionSchema = new SimpleSchema({
   creatureId: {
     type: String,
     max: 32,
-    // @ts-expect-error index not defined
     index: 1,
   },
   rootPropId: {

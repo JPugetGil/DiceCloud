@@ -19,10 +19,11 @@ const pullFromProperty = new ValidatedMethod({
     await assertEditPermission(rootCreature, this.userId);
 
     // Do work
-    await CreatureProperties.updateAsync(_id, {
+    // A modifier on a path given as an argument: no type can follow it
+    await CreatureProperties.updateAsync(_id, /** @type {any} */ ({
       $pull: { [path.join('.')]: { _id: itemId } },
       $set: { dirty: true }
-    }, {
+    }), {
       selector: { type: property.type },
       getAutoValues: false,
     });

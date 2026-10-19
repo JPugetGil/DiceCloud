@@ -22,6 +22,8 @@ import { Mongo } from 'meteor/mongo';
  *
  * Permissions to library nodes are controlled by the libraries they belong to.
  */
+// Ids are strings, as everywhere in the app: untyped, Meteor's types expect ObjectIds
+/** @type {Mongo.Collection<any>} */
 let Libraries = new Mongo.Collection('libraries');
 
 let LibrarySchema = new SimpleSchema({
@@ -90,6 +92,8 @@ const insertLibrary = new ValidatedMethod({
     simpleSchemaMixin,
     RateLimiterMixin,
   ],
+  // Made from the schema by simpleSchemaMixin
+  validate: null,
   schema: LibrarySchema.pick('name', 'description'),
   schemaValidatorOptions: { clean: true, filter: true },
   rateLimit: {

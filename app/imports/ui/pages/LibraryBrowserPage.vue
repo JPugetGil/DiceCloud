@@ -180,6 +180,7 @@
 </template>
 
 <script setup>
+import { subscribeToLibrary, subscribeToLibraryCollection } from '/imports/api/users/Users';
 import { ref, computed } from 'vue';
 import { orderBy } from 'lodash';
 import { Meteor } from 'meteor/meteor';
@@ -268,14 +269,14 @@ async function changeSubscribe(card, ack) {
 
   if (card._type === 'library') {
     try {
-      await Meteor.users.subscribeToLibrary.callAsync({ libraryId: id, subscribe });
+      await subscribeToLibrary.callAsync({ libraryId: id, subscribe });
       ack();
     } catch (error) {
       ack(error);
     }
   } else if (card._type === 'libraryCollection') {
     try {
-      await Meteor.users.subscribeToLibraryCollection.callAsync({
+      await subscribeToLibraryCollection.callAsync({
         libraryCollectionId: id,
         subscribe,
       });

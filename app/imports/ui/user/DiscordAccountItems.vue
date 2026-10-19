@@ -71,6 +71,7 @@
 </template>
 
 <script setup>
+import { setPreference } from '/imports/api/users/Users';
 import { ref, computed } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import { useI18n } from 'vue-i18n';
@@ -130,6 +131,6 @@ function unlink() {
 }
 
 function setMention(value) {
-  run('mention', () => Meteor.users.setPreference.callAsync({ preference: 'discordMentionOff', value: !value }));
+  run('mention', () => setPreference.callAsync({ preference: 'discordMentionOff', value: !value }));
 }
 </script>

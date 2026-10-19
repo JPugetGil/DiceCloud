@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 // Not Users.js: attaching its schema here would make every suite's test users
 // need its required fields
-import '/imports/api/users/methods/deleteMyAccount';
+import { deleteMyAccount } from '/imports/api/users/methods/deleteMyAccount';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
@@ -82,7 +82,7 @@ if (Meteor.isServer) describe('Deleting an account or a character', function () 
   });
 
   it('leaves no trace of the deleted user or their characters in other users\' documents', async function () {
-    await execute(/** @type {any} */ (Meteor.users).deleteMyAccount, playerId);
+    await execute(deleteMyAccount, playerId);
 
     assert.isUndefined(await Meteor.users.findOneAsync(playerId));
     assert.isNull(await raw(Creatures).findOne({ _id: playerBardId }));
