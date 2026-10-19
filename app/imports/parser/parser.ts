@@ -1,7 +1,8 @@
 import grammar from '/imports/parser/grammar';
 import { Parser, Grammar } from 'nearley';
-import ParseNode from '/imports/parser/parseTree/ParseNode';
-import { Meteor } from 'meteor/meteor';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
+import type { Meteor } from 'meteor/meteor';
+import { setCalculationParser } from '/imports/api/creature/creatures/scopeVariables';
 
 const nearleyGrammar = Grammar.fromCompiled(grammar);
 
@@ -29,3 +30,7 @@ class EndOfInputError extends Error {
     super(message);
   }
 }
+
+// The scopes' linked constants are parsed here (scopeVariables.ts does not
+// import the parser, which reaches it again through the accessors)
+setCalculationParser(parse);

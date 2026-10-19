@@ -1,11 +1,11 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import {
   applyDefaultAfterPropTasks, applyAfterTasksSkipChildren, applyTriggers
 } from '/imports/api/engine/action/functions/applyTaskGroups';
 import {
   getEffectiveActionScope
 } from '/imports/api/engine/action/functions/getEffectiveActionScope';
-import { ItemAsAmmoTask } from '/imports/api/engine/action/tasks/Task';
+import type { ItemAsAmmoTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getPropertyChildren } from '/imports/api/engine/loadCreatures';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';

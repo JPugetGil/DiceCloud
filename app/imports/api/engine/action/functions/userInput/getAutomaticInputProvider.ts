@@ -1,5 +1,5 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';

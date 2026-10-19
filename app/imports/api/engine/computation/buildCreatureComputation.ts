@@ -1,5 +1,6 @@
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
-import { CreatureProperty, DenormalisedOnlyCreaturePropertySchema as denormSchema }
+import type { CreatureProperty} from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { DenormalisedOnlyCreaturePropertySchema as denormSchema }
   from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { getProperties, getCreature, getVariables } from '/imports/api/engine/loadCreatures';
 import computedOnlySchemas from '/imports/api/properties/computedOnlyPropertySchemasIndex';

@@ -1,11 +1,13 @@
 import { assert } from 'chai';
+import type {
+  TestCreature
+} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
   allMutations,
   createTestCreature,
   getRandomIds,
   removeAllCreaturesAndProps,
-  runActionById,
-  TestCreature
+  runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import { critInputProvider } from '../functions/userInput/inputProviderForTests.testFn';
 import type { EngineAction } from '/imports/api/engine/action/EngineActions';

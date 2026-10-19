@@ -1,8 +1,8 @@
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import { hasAncestorRelationship } from '/imports/api/parenting/parentingFunctions';

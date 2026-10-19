@@ -269,6 +269,8 @@ let creatureFolderSchema = new SimpleSchema({
 
 CreatureFolders.attachSchema(creatureFolderSchema);
 
-import '/imports/api/creature/creatureFolders/methods/index';
+// Its methods are registered by register-api.js on the server, and on the
+// client by the components that call them: importing them here made the
+// collection and its 17 method modules one import cycle (tests/cycles)
 import { Mongo } from 'meteor/mongo';
 export default CreatureFolders;

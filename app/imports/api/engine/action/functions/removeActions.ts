@@ -1,7 +1,8 @@
-import { Mongo } from 'meteor/mongo';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { Mongo } from 'meteor/mongo';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import { getVariables } from '/imports/api/engine/loadCreatures';
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
 import { insertCreatureLogWork } from '/imports/api/creature/log/CreatureLogs';
 import { logLine, msg, type LogParam } from '/imports/api/creature/log/logMessages';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';

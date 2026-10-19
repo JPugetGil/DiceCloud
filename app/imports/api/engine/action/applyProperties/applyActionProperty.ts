@@ -1,6 +1,7 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { PropTask } from '../tasks/Task';
-import TaskResult, { LogContent } from '../tasks/TaskResult';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { PropTask } from '../tasks/Task';
+import type { LogContent } from '../tasks/TaskResult';
+import type TaskResult from '../tasks/TaskResult';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
@@ -9,11 +10,11 @@ import { applyAfterChildrenTriggers, applyAfterTriggers, applyChildren } from '/
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
-import { getNumberFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
+import { getNumberFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
-import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { Meteor } from 'meteor/meteor';
 import { logLine, msg, withAdvantage } from '/imports/api/creature/log/logMessages';
 import { WHOLE, nameAndTotal, nameOnly } from '/imports/api/creature/log/logViews';

@@ -670,7 +670,7 @@ async function queueLog(
     if (!embeds.length) continue;
     const card = logComponents(input);
     if (card && rerollId && takesButtons(channel)) addButtons(card, rerollButtonsOf(rerollId, channel.language));
-    target.enqueue(channel.webhook, async request => {
+    void target.enqueue(channel.webhook, async request => {
       // A command's entry: its reply is in that channel already (D6)
       if (repliedIn && await landingChannel(request, channel) === repliedIn) return;
       // The card, or the embeds when Discord does not take it; the embeds
@@ -709,7 +709,7 @@ export function sendLogToDiscord(log: LogEntry, { reroll, besides }: { reroll?: 
     .then(() => queueLog(creatureId, log, target, repliedIn, reroll, besides))
     .catch(e => console.error(e));
   intake.set(creatureId, next);
-  next.finally(() => {
+  void next.finally(() => {
     if (intake.get(creatureId) === next) intake.delete(creatureId);
   });
 }

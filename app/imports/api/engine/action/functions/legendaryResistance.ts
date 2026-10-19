@@ -1,4 +1,4 @@
-import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
+import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/scopeVariables';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import getEffectiveProperty from '/imports/api/engine/action/functions/getEffectiveProperty';

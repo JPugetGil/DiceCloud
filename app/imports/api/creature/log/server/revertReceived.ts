@@ -6,7 +6,7 @@ import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { restore, softRemove } from '/imports/api/parenting/softRemove';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';

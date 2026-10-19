@@ -1,8 +1,8 @@
 import constant from '/imports/parser/parseTree/constant';
 import array from '/imports/parser/parseTree/array';
-import ResolvedResult from '/imports/parser/types/ResolvedResult';
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
+import type ResolvedResult from '/imports/parser/types/ResolvedResult';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
 
 export type AccessorNode = {
   parseType: 'accessor' | 'symbol';

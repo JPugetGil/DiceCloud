@@ -1,9 +1,10 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { Meteor } from 'meteor/meteor';
 import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';
 

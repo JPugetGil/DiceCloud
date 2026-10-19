@@ -1,12 +1,14 @@
 import { assert } from 'chai';
+import type {
+  TestCreature
+} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
   allLogContent,
   allUpdates,
   createTestCreature,
   getRandomIds,
   removeAllCreaturesAndProps,
-  runTask,
-  TestCreature
+  runTask
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import { concentrationDc } from '/imports/api/engine/action/tasks/applyDealDamageTask';
 import type { EngineAction } from '/imports/api/engine/action/EngineActions';

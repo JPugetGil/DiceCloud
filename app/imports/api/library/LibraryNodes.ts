@@ -10,15 +10,15 @@ import { assertDocEditPermission, assertEditPermission } from '/imports/api/shar
 import { softRemove } from '/imports/api/parenting/softRemove';
 import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
-import '/imports/api/library/methods/index';
 import { updateReferenceNodeWork } from '/imports/api/library/methods/updateReferenceNode';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { restore } from '/imports/api/parenting/softRemove';
 import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
 import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
-import { ConvertToUnion, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import type { ConvertToUnion, InferType} from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
-import { Simplify } from 'type-fest';
+import type { Simplify } from 'type-fest';
 import { Mongo } from 'meteor/mongo';
 
 const LibraryNodeSchema = TypedSimpleSchema.from({
@@ -120,7 +120,7 @@ if (Meteor.isServer) {
   LibraryNodes.createIndexAsync({
     'name': 'text',
     'tags': 'text',
-  });
+  }).catch(error => console.error('The search index of libraryNodes was not created', error));
 }
 
 const genericLibraryNodeSchema = TypedSimpleSchema.from({})

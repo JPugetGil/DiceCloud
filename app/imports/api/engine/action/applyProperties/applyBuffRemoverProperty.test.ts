@@ -3,13 +3,15 @@ import { Meteor } from 'meteor/meteor';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type {
+  TestCreature
+} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
   allMutations,
   createTestCreature,
   getRandomIds,
   removeAllCreaturesAndProps,
-  runActionById,
-  TestCreature
+  runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [

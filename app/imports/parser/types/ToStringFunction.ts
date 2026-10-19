@@ -1,4 +1,4 @@
-import ParseNode from '/imports/parser/parseTree/ParseNode';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
 
 type ToStringFunction<T extends ParseNode> = {
   (node: T, stringOthers: ToStringOthersFunction): string;

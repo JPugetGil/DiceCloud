@@ -1,15 +1,16 @@
 import error from '/imports/parser/parseTree/error';
 import constant from '/imports/parser/parseTree/constant';
-import functions, { ParserFunction } from '/imports/parser/functions';
-import Context from '../types/Context';
-import ResolvedResult from '../types/ResolvedResult';
-import ParseNode from '/imports/parser/parseTree/ParseNode';
+import type { ParserFunction } from '/imports/parser/functions';
+import functions from '/imports/parser/functions';
+import type Context from '../types/Context';
+import type ResolvedResult from '../types/ResolvedResult';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
 import { serialMap } from '/imports/api/utility/asyncMap';
-import ResolveFunction from '/imports/parser/types/ResolveFunction';
-import ResolveLevel from '/imports/parser/types/ResolveLevel';
-import TraverseFunction from '/imports/parser/types/TraverseFunction';
-import MapFunction from '/imports/parser/types/MapFunction';
-import ToStringFunction from '/imports/parser/types/ToStringFunction';
+import type ResolveFunction from '/imports/parser/types/ResolveFunction';
+import type ResolveLevel from '/imports/parser/types/ResolveLevel';
+import type TraverseFunction from '/imports/parser/types/TraverseFunction';
+import type MapFunction from '/imports/parser/types/MapFunction';
+import type ToStringFunction from '/imports/parser/types/ToStringFunction';
 
 export type CallNode = {
   parseType: 'call';

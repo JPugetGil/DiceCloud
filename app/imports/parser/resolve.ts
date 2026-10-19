@@ -1,12 +1,13 @@
 import '/imports/parser/parseTree/array';
 import factories from '/imports/parser/parseTree';
-import InputProvider, { CastSpellParams, CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
-import ParseNode from '/imports/parser/parseTree/ParseNode';
+import type { CastSpellParams, CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
 import rollDice from '/imports/parser/rollDice';
-import ResolveLevel from './types/ResolveLevel';
-import ResolvedResult from './types/ResolvedResult';
+import type ResolveLevel from './types/ResolveLevel';
+import type ResolvedResult from './types/ResolvedResult';
 import Context from './types/Context';
-import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
+import type ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
 import { Meteor } from 'meteor/meteor';
 
 // Takes a parse node and computes it to a set detail level

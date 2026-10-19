@@ -1,4 +1,4 @@
-import Task from '/imports/api/engine/action/tasks/Task';
+import type Task from '/imports/api/engine/action/tasks/Task';
 
 type InputProvider = {
   /**

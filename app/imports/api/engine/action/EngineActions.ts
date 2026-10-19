@@ -1,7 +1,8 @@
 import SimpleSchema from 'meteor/aldeed:simple-schema';
-import TaskResult from './tasks/TaskResult';
+import type TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
-import Task, { type ReceivedDamage } from './tasks/Task';
+import type Task from './tasks/Task';
+import { type ReceivedDamage } from './tasks/Task';
 import type { Decision } from './functions/userInput/saveInputChoices';
 import { Mongo } from 'meteor/mongo';
 

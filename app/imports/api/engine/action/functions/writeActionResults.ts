@@ -1,4 +1,5 @@
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import mutationToPropUpdates from './mutationToPropUpdates';
 import mutationToLogUpdates from '/imports/api/engine/action/functions/mutationToLogUpdates';
 import { union, uniq } from 'lodash';

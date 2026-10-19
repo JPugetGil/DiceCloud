@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
 import { getCreature, getPropertyDescendants, getVariables } from '/imports/api/engine/loadCreatures';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import resolve from '/imports/parser/resolve';
@@ -11,8 +11,9 @@ import computedSchemas from '/imports/api/properties/computedOnlyPropertySchemas
 import applyFnToKey, { applyFnToKeyAsync } from '/imports/api/engine/computation/utility/applyFnToKey';
 import accessor from '/imports/parser/parseTree/accessor';
 import traverse from '/imports/parser/traverse';
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import TaskResult, { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import cyrb53 from '/imports/api/engine/computation/utility/cyrb53';
 import { renewDocIds } from '/imports/api/parenting/parentingFunctions';
@@ -21,7 +22,7 @@ import recalculateInlineCalculations from '/imports/api/engine/action/functions/
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import INLINE_CALCULATION_REGEX from '/imports/constants/INLINE_CALCULATION_REGEX';
 import { applyAfterTasksSkipChildren } from '/imports/api/engine/action/functions/applyTaskGroups';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import { WHOLE, nameOnly } from '/imports/api/creature/log/logViews';

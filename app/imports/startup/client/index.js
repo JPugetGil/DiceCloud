@@ -10,5 +10,10 @@ await import('./connectionConfig');
 await import('./serviceWorker');
 await import('./linkPreview');
 
+// The library's nodes, from the start, as before 2026-10-19 (Libraries.js
+// imported them, an import cycle): subscriptions fill them on any page, and
+// methods' simulations read them by name (getCollectionByName)
+await import('/imports/api/library/LibraryNodes');
+
 // The Vue app, mounted once Meteor has started
 await import('/imports/ui/main');

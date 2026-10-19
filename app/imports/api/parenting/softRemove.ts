@@ -1,7 +1,7 @@
 import { getCollectionByName, getFilter } from '/imports/api/parenting/parentingFunctions';
-import { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 
 export async function softRemove(collectionOrName: Mongo.Collection<TreeDoc> | string, docOrId?: TreeDoc | string) {
   const removalDate = new Date();

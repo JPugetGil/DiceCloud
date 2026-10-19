@@ -6,7 +6,8 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import type { InferType} from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 
@@ -48,7 +49,7 @@ if (Meteor.isServer) {
     'name': 'text',
     'description': 'text',
     'tags': 'text',
-  });
+  }).catch(error => console.error('The search index of icons was not created', error));
 }
 
 const storedIconsSchema = TypedSimpleSchema.from({

@@ -1,12 +1,12 @@
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { applyDefaultAfterPropTasks, applyTaskToEachTarget, spendAttribute } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { usableLegendaryResistance } from '/imports/api/engine/action/functions/legendaryResistance';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';

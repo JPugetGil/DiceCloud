@@ -1,6 +1,6 @@
 import { getEffectTagTargets } from '/imports/api/engine/computation/buildComputation/linkTypeDependencies';
-import CreatureComputation from '/imports/api/engine/computation/CreatureComputation';
-import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type CreatureComputation from '/imports/api/engine/computation/CreatureComputation';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 export default function computeTrigger(computation: CreatureComputation, node: { data: CreaturePropertyTypes['trigger'] }) {
   const prop = node.data;

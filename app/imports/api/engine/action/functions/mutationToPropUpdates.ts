@@ -1,4 +1,4 @@
-import { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
+import type { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
 import { newOperation } from '/imports/api/engine/shared/bulkWrite';
 
 export default function mutationToPropUpdates(mutation: Mutation) {

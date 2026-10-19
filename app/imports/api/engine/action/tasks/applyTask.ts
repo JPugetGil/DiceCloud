@@ -1,11 +1,12 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import Task, { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask, UndoReceivedTask } from './Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { CheckTask, DamagePropTask, DealDamageTask, ItemAsAmmoTask, PropTask, UndoReceivedTask } from './Task';
+import type Task from './Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyDamagePropTask, { applyReceivedDamageTask } from '/imports/api/engine/action/tasks/applyDamagePropTask';
 import applyItemAsAmmoTask from '/imports/api/engine/action/tasks/applyItemAsAmmoTask';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyProperties from '/imports/api/engine/action/applyProperties';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import applyCheckTask from '/imports/api/engine/action/tasks/applyCheckTask';
 import applyResetTask, { applyTurnEventTask } from '/imports/api/engine/action/tasks/applyResetTask';
 import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellTask';

@@ -1,10 +1,10 @@
 import { get } from 'lodash';
 
 import { getPropertyChildren, getSingleProperty } from '/imports/api/engine/loadCreatures';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyTask from '../tasks/applyTask';
-import { PropTask } from '../tasks/Task';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { PropTask } from '../tasks/Task';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 /**

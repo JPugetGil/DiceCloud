@@ -1,7 +1,7 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { DealDamageTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { DealDamageTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { applyDamageMultipliers, dealDamage } from '/imports/api/engine/action/applyProperties/applyDamageProperty';
 import { damageTypeMessage, logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 import { WHOLE } from '/imports/api/creature/log/logViews';

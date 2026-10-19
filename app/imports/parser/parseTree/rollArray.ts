@@ -1,6 +1,6 @@
 import constant from '/imports/parser/parseTree/constant';
-import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
-import ToStringFunction from '/imports/parser/types/ToStringFunction';
+import type ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
+import type ToStringFunction from '/imports/parser/types/ToStringFunction';
 
 type RollValue = {
   value: number,

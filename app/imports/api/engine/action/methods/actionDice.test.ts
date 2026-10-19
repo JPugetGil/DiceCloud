@@ -4,7 +4,8 @@ import { DDP } from 'meteor/ddp';
 import { Mongo } from 'meteor/mongo';
 import { Accounts } from 'meteor/accounts-base';
 import { Random } from 'meteor/random';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
@@ -15,8 +16,9 @@ import applyAction from '/imports/api/engine/action/functions/applyAction';
 import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';
 import { drawDiceAt } from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
 import inputProviderForTests from '/imports/api/engine/action/functions/userInput/inputProviderForTests.testFn';
+import type { TestCreature} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
-  allLogContent, createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
+  allLogContent, createTestCreature, getRandomIds, removeAllCreaturesAndProps
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 // The server's dice: node:crypto, which the client's bundle of the tests has not

@@ -199,7 +199,7 @@ async function queueChange(folderId: string, change: InitiativeChange, ended: Tr
   }
   if (change === 'end') {
     if (on('initiative') || on('combat')) {
-      target.enqueue(webhook, request => endFight(request, channel, folderId, ended as Tracker));
+      void target.enqueue(webhook, request => endFight(request, channel, folderId, ended as Tracker));
     }
     return;
   }
@@ -218,7 +218,7 @@ async function queueChange(folderId: string, change: InitiativeChange, ended: Tr
   const show = on('initiative');
   if (!start && !line && (!show || waiting.has(folderId))) return;
   if (show) waiting.add(folderId);
-  target.enqueue(webhook, async request => {
+  void target.enqueue(webhook, async request => {
     if (start) await deliver(request, channel, { body: start });
     if (show) {
       waiting.delete(folderId);
@@ -241,7 +241,7 @@ export function initiativeChanged(folderId: string, change: InitiativeChange, en
     .then(() => queueChange(folderId, change, ended, target))
     .catch(e => console.error(e));
   intake.set(folderId, next);
-  next.finally(() => {
+  void next.finally(() => {
     if (intake.get(folderId) === next) intake.delete(folderId);
   });
 }

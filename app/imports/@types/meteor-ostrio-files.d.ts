@@ -1,10 +1,10 @@
 declare module 'meteor/ostrio:files' {
-  import { Meteor } from 'meteor/meteor';
+  import type { Meteor } from 'meteor/meteor';
   import { Mongo } from 'meteor/mongo';
-  import { ReactiveVar } from 'meteor/reactive-var';
+  import type { ReactiveVar } from 'meteor/reactive-var';
   import type { SimpleSchemaDefinition } from 'simpl-schema';
-  import * as http from 'http';
-  import { IncomingMessage } from 'connect';
+  import type * as http from 'http';
+  import type { IncomingMessage } from 'connect';
 
   interface Params {
     _id: string;

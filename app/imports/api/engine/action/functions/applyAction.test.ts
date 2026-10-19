@@ -2,13 +2,14 @@ import { assert } from 'chai';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import EngineActions from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
+import type {
+  TestCreature} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
   allMutations,
   createTestCreature,
   getRandomIds,
   removeAllCreaturesAndProps,
-  runActionById,
-  TestCreature,
+  runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import inputProvider from '/imports/api/engine/action/functions/userInput/inputProviderForTests.testFn';
 

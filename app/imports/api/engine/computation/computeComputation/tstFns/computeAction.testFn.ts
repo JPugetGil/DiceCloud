@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import computeCreatureComputation from '/imports/api/engine/computation/computeCreatureComputation';
 import buildTestComputation from './buildTestComputation';
 import type { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
-import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 export default async function () {
   const computation = buildTestComputation({

@@ -5,7 +5,7 @@ import SharingSchema from '/imports/api/sharing/SharingSchema';
 import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
 import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
 import { assertCanCreateLibrary } from '/imports/api/users/assertRolePermissions';
-import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { getCollectionByName } from '/imports/api/parenting/docReferences';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { LIBRARY_LANGUAGES } from '/imports/api/library/libraryLanguage';
 import { LIBRARY_LICENSES } from '/imports/api/library/libraryLicense';
@@ -200,7 +200,8 @@ const removeLibrary = new ValidatedMethod({
 
 export async function removeLibaryWork(libraryId) {
   await Libraries.removeAsync(libraryId);
-  await LibraryNodes.removeAsync(getFilter.descendantsOfRoot(libraryId));
+  // By name: LibraryNodes.ts imports this module (an import cycle otherwise)
+  await getCollectionByName('libraryNodes').removeAsync(getFilter.descendantsOfRoot(libraryId));
 }
 
 export { LibrarySchema, insertLibrary, updateLibraryName, updateLibraryDescription, updateLibraryShowInMarket, removeLibrary };

@@ -1,7 +1,8 @@
 import computeCreatureComputation from './computeCreatureComputation';
 import { buildComputationFromProps } from './buildCreatureComputation';
 import { assert } from 'chai';
-import CreatureProperties, { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeTests from '/imports/api/engine/computation/computeComputation/tstFns';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';

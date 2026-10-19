@@ -1,8 +1,9 @@
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { insertAction } from '/imports/api/engine/action/methods/insertAction';
-import Task from '/imports/api/engine/action/tasks/Task';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type Task from '/imports/api/engine/action/tasks/Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import getServerDiceRoller from '/imports/api/engine/action/functions/userInput/getServerDiceRoller';

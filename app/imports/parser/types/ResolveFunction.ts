@@ -1,9 +1,9 @@
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import ParseNode from '/imports/parser/parseTree/ParseNode';
-import Context from './Context';
-import ResolvedResult from './ResolvedResult';
-import ResolveLevel from './ResolveLevel';
-import ResolveOthersFunction from './ResolveOthersFunction';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
+import type Context from './Context';
+import type ResolvedResult from './ResolvedResult';
+import type ResolveLevel from './ResolveLevel';
+import type ResolveOthersFunction from './ResolveOthersFunction';
 
 type ResolveFunction<T extends ParseNode> = (
   fn: ResolveLevel,

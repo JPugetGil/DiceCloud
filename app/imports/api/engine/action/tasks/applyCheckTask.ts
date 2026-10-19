@@ -1,10 +1,10 @@
 import { applyTriggers } from '/imports/api/engine/action/functions/applyTaskGroups';
-import { CheckTask } from '/imports/api/engine/action/tasks/Task';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { CheckTask } from '/imports/api/engine/action/tasks/Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
-import { getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
+import { getFromScope } from '/imports/api/creature/creatures/scopeVariables';
 import { getVariables } from '/imports/api/engine/loadCreatures';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { Meteor } from 'meteor/meteor';

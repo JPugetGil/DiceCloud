@@ -1,19 +1,33 @@
 import { debounce } from 'lodash';
-import Creatures, { Creature } from '/imports/api/creature/creatures/Creatures';
+import type { Creature } from '/imports/api/creature/creatures/Creatures';
+import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
-import CreatureProperties, { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import computeCreature from './computeCreature';
-import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { setPropertyReader } from '/imports/api/creature/creatures/scopeVariables';
+import type { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { getFilter } from '/imports/api/parenting/treeFilters';
 import type { PropertyType } from '/imports/api/properties/PropertyType.type';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import { Tracker } from 'meteor/tracker';
 
 const COMPUTE_DEBOUNCE_TIME = 100; // ms
 export const loadedCreatures: Map<string, LoadedCreature> = new Map(); // creatureId => {creature, properties, etc.}
 
-export function loadCreature(creatureId: string, subscription: Tracker.Computation) {
+/**
+ * What computes a creature once its properties change: computeCreature, which
+ * the callers give. Never imported here: the computation reads the creatures
+ * through this module, and importing it back made every module of the engine
+ * and the parser one import cycle (tests/cycles)
+ */
+export type ComputeCreature = (creatureId: string) => Promise<unknown>;
+
+// The scopes' links to properties are read from this cache
+// (scopeVariables.ts does not import it)
+setPropertyReader((creatureId, propertyId) => getSingleProperty(creatureId, propertyId));
+
+export function loadCreature(creatureId: string, subscription: Tracker.Computation, compute: ComputeCreature) {
   if (!creatureId) throw 'creatureId is required';
   let creature = loadedCreatures.get(creatureId);
   if (!creature?.subs.has(subscription)) {
@@ -24,7 +38,7 @@ export function loadCreature(creatureId: string, subscription: Tracker.Computati
   if (creature) {
     creature.subs.add(subscription);
   } else {
-    creature = new LoadedCreature(subscription, creatureId);
+    creature = new LoadedCreature(subscription, creatureId, compute);
     loadedCreatures.set(creatureId, creature);
   }
   // logLoadedCreatures()
@@ -287,7 +301,7 @@ class LoadedCreature {
   // not start a computation that can no longer find it
   deleted = false;
 
-  constructor(sub: Tracker.Computation, creatureId: string) {
+  constructor(sub: Tracker.Computation, creatureId: string, computeCreature: ComputeCreature) {
     const self = this;
     // This may be called from a subscription, but we don't want the observers
     // to be destroyed with it, so use a non-reactive context to observe
@@ -298,7 +312,13 @@ class LoadedCreature {
         // It's possible that the creature was unloaded, or deleted, before we
         // get around to computing it
         if (!loadedCreatures.has(creatureId) || self.deleted) return;
-        await computeCreature(creatureId);
+        // Started by an observer, which nothing awaits: a failure is logged,
+        // never left as a rejected promise nobody handles
+        try {
+          await computeCreature(creatureId);
+        } catch (error) {
+          console.error(`Creature ${creatureId} failed to compute`, error);
+        }
       }), COMPUTE_DEBOUNCE_TIME);
 
       self.properties = new Map();
@@ -309,17 +329,17 @@ class LoadedCreature {
         added(id, fields: CreatureProperty) {
           fields._id = id;
           self.addProperty(fields);
-          if (fields.dirty) compute();
+          if (fields.dirty) void compute();
         },
         changed(id, fields) {
           self.changeProperty(id, fields);
           // Soft removing or restoring a property sets no dirty flag, but takes
           // it out of or puts it back into the computation all the same
-          if (fields.dirty || 'removed' in fields) compute();
+          if (fields.dirty || 'removed' in fields) void compute();
         },
         removed(id) {
           self.removeProperty(id);
-          compute();
+          void compute();
         },
       });
 
@@ -330,11 +350,11 @@ class LoadedCreature {
         added(id, fields: Creature) {
           fields._id = id;
           self.addCreature(fields)
-          if (fields.dirty) compute();
+          if (fields.dirty) void compute();
         },
         changed(id, fields) {
           self.changeCreature(id, fields);
-          if (fields.dirty) compute();
+          if (fields.dirty) void compute();
         },
         removed() {
           self.removeCreature();

@@ -1,10 +1,10 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import computeCreatureComputation from '../../computeCreatureComputation';
 import propsFromForest from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 
 export default async function () {
-  const computation = buildComputationFromProps(testProperties);
+  const computation = computationFromProps(testProperties);
   await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   assert.equal(prop('strengthId').value, 11, 'Point buys should apply a base value when active');

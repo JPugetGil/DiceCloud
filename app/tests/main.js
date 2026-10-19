@@ -10,11 +10,10 @@
 // first and the suites afterwards, which is what sequences them now.
 import 'meteor/aldeed:collection2/static';
 import '/imports/api/simpleSchemaConfig';
-// The API modules import each other in a cycle (Actions -> Icons -> ... ->
-// Spells -> Actions) that only initialises when entered from the parenting
-// functions. The suites load in file name order, so enter it here: otherwise
-// the first suite's imports decide, and a new suite can break the whole run.
-import '/imports/api/parenting/parentingFunctions';
+// The suites load in file name order. The property schemas no longer import
+// each other in a cycle (it went through the creatures' cache and the parser
+// until 2026-10-19, tests/cycles), so whichever suite comes first may load
+// them: no module has to be entered first any more.
 
 const suites = require.context('/imports', true, /\.test\.(js|ts)$/);
 suites.keys().forEach(suites);

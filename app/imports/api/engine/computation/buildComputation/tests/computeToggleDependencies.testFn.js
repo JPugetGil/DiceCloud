@@ -1,10 +1,10 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import clean from '../../utility/cleanProp.testFn';
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
 
 export default function () {
-  const computation = buildComputationFromProps(testProperties);
+  const computation = computationFromProps(testProperties);
   const hasLink = computation.dependencyGraph.hasLink;
   assert.include(
     computation.propsById['conditionToggleChildId']._computationDetails.toggleAncestors,

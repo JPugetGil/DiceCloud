@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 
 // This is more efficient on the database, but significantly less efficient
 // in the UI because of incompatibility with latency compensation. If the

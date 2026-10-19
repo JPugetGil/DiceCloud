@@ -1,13 +1,13 @@
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { findLast, filter, difference, intersection } from 'lodash';
 import { getPropertiesOfType, getPropertyAncestors } from '/imports/api/engine/loadCreatures';
 import getEffectivePropTags from '/imports/api/engine/computation/utility/getEffectivePropTags';
 import { applyDefaultAfterPropTasks, applyTaskToEachTarget } from '/imports/api/engine/action/functions/applyTaskGroups';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { WHOLE } from '/imports/api/creature/log/logViews';
 import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import { targetSight } from '/imports/api/engine/action/functions/hiddenStats';

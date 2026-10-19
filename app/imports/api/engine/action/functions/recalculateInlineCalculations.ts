@@ -1,9 +1,9 @@
 import embedInlineCalculations from '/imports/api/engine/computation/utility/embedInlineCalculations';
 import recalculateCalculation from './recalculateCalculation'
-import { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import ResolveLevel from '/imports/parser/types/ResolveLevel';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type ResolveLevel from '/imports/parser/types/ResolveLevel';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 export default async function recalculateInlineCalculations(
   inlineCalcObj: InlineCalculation, action: EngineAction,

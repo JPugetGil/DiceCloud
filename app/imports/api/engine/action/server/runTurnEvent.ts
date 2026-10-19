@@ -1,6 +1,6 @@
 import { Random } from 'meteor/random';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '/imports/api/engine/action/functions/writeActionResults';
 import getAutomaticInputProvider from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';

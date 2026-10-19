@@ -1,5 +1,6 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider, { Advantage } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { Advantage } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import type { Decision, DecisionKind } from '/imports/api/engine/action/functions/userInput/saveInputChoices';
 import { leaveChoiceUnmade } from '/imports/api/engine/action/functions/userInput/getAutomaticInputProvider';
 

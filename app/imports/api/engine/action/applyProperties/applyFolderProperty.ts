@@ -1,6 +1,6 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
 import { Meteor } from 'meteor/meteor';
 
 

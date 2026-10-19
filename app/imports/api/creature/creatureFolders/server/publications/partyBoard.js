@@ -121,7 +121,7 @@ Meteor.publish('partyBoard', function (folderId) {
     )).map(template => template.root?.id).filter(Boolean))] : [];
     // The creatures' caches observe their documents for good: outside the
     // computation, or their first change reruns the board
-    await AsyncTracker.nonreactive(() => shown.forEach(creature => loadCreature(creature._id, self)));
+    await AsyncTracker.nonreactive(() => shown.forEach(creature => loadCreature(creature._id, self, computeCreature)));
     shown.forEach(creature => {
       // Not awaited, as in singleCharacter: the results arrive through the cursors
       if (creature.computeVersion !== VERSION && firstRun) {

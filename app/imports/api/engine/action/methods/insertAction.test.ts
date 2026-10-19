@@ -2,13 +2,15 @@ import { assert } from 'chai';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import { EJSON } from 'meteor/ejson';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { insertAction } from '/imports/api/engine/action/methods/insertAction';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
+import type { TestCreature} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
-  createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
+  createTestCreature, getRandomIds, removeAllCreaturesAndProps
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import { MAX_TASK_TARGETS } from '/imports/api/engine/action/functions/taskFromDatabase';
 import { openAs, refusal as refusalOf } from '/imports/api/utility/ddpClient.testFn';

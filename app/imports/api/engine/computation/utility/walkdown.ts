@@ -1,5 +1,5 @@
-import { TreeDoc } from '/imports/api/parenting/ChildSchema';
-import { TreeNode } from '/imports/api/parenting/parentingFunctions';
+import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import type { TreeNode } from '/imports/api/parenting/parentingFunctions';
 
 export default function walkDown<T extends TreeDoc>(
   trees: TreeNode<T>[], callback: (node: TreeNode<T>, stack: TreeNode<T>[]) => any

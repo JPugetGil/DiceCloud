@@ -45,6 +45,28 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  // A type imported as a value is a dependency to madge, which counts the
+  // import cycles (tests/cycles), though the build drops it: 114 cycles were
+  // 59 once such imports said they were types (2026-10-19). `import()` in a
+  // type stays allowed: it types what a server-only require() returns.
+  // With the types (tsconfig.json), two rules on promises: one nobody awaits
+  // nor handles, which rejects unseen or crashes the server, and one where a
+  // plain value is expected (an async callback to forEach). The missing
+  // await is Meteor 3's first trap. A promise meant to run on its own says
+  // so with `void`
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      '@typescript-eslint/consistent-type-imports': ['error', {
+        prefer: 'type-imports', fixStyle: 'separate-type-imports', disallowTypeAnnotations: false,
+      }],
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+    },
+  },
   {
     files: ['rspack.config.js'],
     rules: {

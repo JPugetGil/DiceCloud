@@ -35,7 +35,8 @@ const UserImages = createS3FilesCollection({
   }
 });
 
-import './methods';
+// Its methods are registered by register-api.js on the server, and on the
+// client by the components that call them (an import cycle otherwise)
 import { Meteor } from 'meteor/meteor';
 
 export default UserImages;

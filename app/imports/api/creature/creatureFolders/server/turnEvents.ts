@@ -145,7 +145,7 @@ export function passTurn(folderId: string, turnPass: TurnPass): Promise<void> {
     .then(() => pass(folderId, turnPass))
     .catch(error => console.error(error));
   queues.set(folderId, next);
-  next.finally(() => {
+  void next.finally(() => {
     if (queues.get(folderId) === next) queues.delete(folderId);
   });
   return next;

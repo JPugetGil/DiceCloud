@@ -1,5 +1,5 @@
-import { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { CreatureProperty, CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CheckParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 type Task = PropTask | DamagePropTask | DealDamageTask | ItemAsAmmoTask | CheckTask | ResetTask | CastSpellTask
   | TurnEventTask | ReceivedDamageTask | UndoReceivedTask;

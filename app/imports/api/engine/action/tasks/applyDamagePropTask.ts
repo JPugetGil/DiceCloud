@@ -1,7 +1,7 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { DamagePropTask, ReceivedDamageTask } from '/imports/api/engine/action/tasks/Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { DamagePropTask, ReceivedDamageTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { WHOLE } from '/imports/api/creature/log/logViews';
 import { applyTriggers } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';

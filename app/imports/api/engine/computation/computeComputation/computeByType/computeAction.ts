@@ -1,5 +1,5 @@
-import CreatureComputation from '/imports/api/engine/computation/CreatureComputation';
-import { Node } from 'ngraph.graph';
+import type CreatureComputation from '/imports/api/engine/computation/CreatureComputation';
+import type { Node } from 'ngraph.graph';
 
 export default function computeAction(computation: CreatureComputation, node: Node) {
   const prop = node.data;

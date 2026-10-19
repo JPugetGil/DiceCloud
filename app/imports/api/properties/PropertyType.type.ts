@@ -1,3 +1,3 @@
-import propertySchemasIndex from './computedPropertySchemasIndex';
+import type propertySchemasIndex from './computedPropertySchemasIndex';
 
 export type PropertyType = Exclude<keyof typeof propertySchemasIndex, 'any'>;

@@ -4,7 +4,7 @@ import '/imports/api/simpleSchemaConfig';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { CalculatedField } from './computedField';
+import type { CalculatedField } from './computedField';
 
 export type InlineCalculationFieldToCompute = {
   text?: string,

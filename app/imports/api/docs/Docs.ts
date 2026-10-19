@@ -9,7 +9,8 @@ import '/imports/api/library/methods/index';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { restore } from '/imports/api/parenting/softRemove';
 import { getFilter, rebuildNestedSets, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
-import ChildSchema, { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import ChildSchema from '/imports/api/parenting/ChildSchema';
 import { Mongo } from 'meteor/mongo';
 
 // Give the docs a common root, so they can share parenting logic

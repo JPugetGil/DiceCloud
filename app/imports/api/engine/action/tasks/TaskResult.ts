@@ -1,4 +1,4 @@
-import Context from '../../../../parser/types/Context';
+import type Context from '../../../../parser/types/Context';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { logLine, msg, type LogI18n } from '/imports/api/creature/log/logMessages';
 import { WHOLE, type TargetView } from '/imports/api/creature/log/logViews';

@@ -2,8 +2,9 @@
 import { Meteor } from 'meteor/meteor';
 import { each, clone } from 'lodash';
 import { Random } from 'meteor/random';
-import { FileObj, FileRef, FilesCollection, FilesCollectionConfig } from 'meteor/ostrio:files';
-import stream from 'stream';
+import type { FileObj, FileRef, FilesCollectionConfig } from 'meteor/ostrio:files';
+import { FilesCollection } from 'meteor/ostrio:files';
+import type stream from 'stream';
 import { S3 } from '@aws-sdk/client-s3';
 import { DEFAULT_S3_REGION } from '/imports/api/files/s3Pricing';
 import { APP_FILES_PREFIX, type PrefixUsage, addObjectToUsage } from '/imports/api/files/bucketUsage';

@@ -1,11 +1,11 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import computeCreatureComputation from '../../computeCreatureComputation';
 import clean from '../../utility/cleanProp.testFn';
 import { applyNestedSetProperties, compareOrder } from '/imports/api/parenting/parentingFunctions';
 
 export default async function () {
-  const computation = buildComputationFromProps(testProperties);
+  const computation = computationFromProps(testProperties);
   await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   const scope = id => computation.scope[id].value;

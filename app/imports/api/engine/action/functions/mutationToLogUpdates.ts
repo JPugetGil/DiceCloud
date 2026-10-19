@@ -1,4 +1,4 @@
-import { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
+import type { Mutation } from '/imports/api/engine/action/tasks/TaskResult';
 
 export default function mutationToLogUpdates(mutation: Mutation) {
   if (!mutation.contents) return [];

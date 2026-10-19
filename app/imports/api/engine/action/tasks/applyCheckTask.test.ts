@@ -4,7 +4,8 @@ import {
   getRandomIds,
   removeAllCreaturesAndProps,
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import inputProvider from '/imports/api/engine/action/functions/userInput/inputProviderForTests.testFn';

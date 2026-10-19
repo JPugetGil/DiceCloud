@@ -1,18 +1,18 @@
 import { some, includes, difference, intersection } from 'lodash';
 
-import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/CreatureVariables';
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import { getConstantValueFromScope, getFromScope } from '/imports/api/creature/creatures/scopeVariables';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import recalculateCalculation from '/imports/api/engine/action/functions/recalculateCalculation';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import resolve from '/imports/parser/resolve';
 import toString from '/imports/parser/toString';
 import { getPropertiesOfType, getVariables } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import getEffectivePropTags from '/imports/api/engine/computation/utility/getEffectivePropTags';
 import Context from '/imports/parser/types/Context';
 import applySavingThrowProperty from '/imports/api/engine/action/applyProperties/applySavingThrowProperty';

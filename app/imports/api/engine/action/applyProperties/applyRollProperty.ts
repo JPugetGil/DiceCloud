@@ -1,9 +1,9 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import { rollAndReduceCalculation } from '/imports/api/engine/action/functions/recalculateCalculation';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import toString from '/imports/parser/toString';
 import { Meteor } from 'meteor/meteor';

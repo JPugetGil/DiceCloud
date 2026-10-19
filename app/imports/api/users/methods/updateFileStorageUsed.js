@@ -1,5 +1,4 @@
-import ArchiveCreatureFiles from '/imports/api/creature/archive/ArchiveCreatureFiles';
-import UserImages from '/imports/api/files/userImages/UserImages';
+import { getCollectionByName } from '/imports/api/parenting/docReferences';
 import { getFileStorageError } from '/imports/api/users/roles';
 import { Meteor } from 'meteor/meteor';
 
@@ -12,9 +11,9 @@ async function updateFileStorageUsedWork(userId) {
   let sum = 0;
   // for...of rather than forEach: an async callback handed to forEach is never
   // awaited, so `sum` was still 0 when it was written to the user below.
-  // Listed here, not when the module loads: both collections import this
-  // module, so either may not exist yet at that point
-  for (const collection of [ArchiveCreatureFiles, UserImages]) {
+  // By name, when called: both collections import this module, so importing
+  // them made an import cycle, and either may not exist yet when it loads
+  for (const collection of ['archiveCreatureFiles', 'userImages'].map(name => getCollectionByName(name))) {
     await collection.find({ userId }, { fields: { size: 1 } }).forEachAsync(file => {
       sum += file.size;
     });

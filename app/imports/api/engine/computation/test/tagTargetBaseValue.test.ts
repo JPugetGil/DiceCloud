@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import buildTestComputation from '/imports/api/engine/computation/computeComputation/tstFns/buildTestComputation'
 import computeCreatureComputation from '/imports/api/engine/computation/computeCreatureComputation';
-import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import type { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 describe('Tag targeting', function () {
   it('Can target an attribute with a base value', async function () {

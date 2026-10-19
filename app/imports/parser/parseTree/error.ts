@@ -1,6 +1,6 @@
-import ParseNode from '/imports/parser/parseTree/ParseNode';
-import ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
-import ToStringFunction from '/imports/parser/types/ToStringFunction';
+import type ParseNode from '/imports/parser/parseTree/ParseNode';
+import type ResolveLevelFunction from '/imports/parser/types/ResolveLevelFunction';
+import type ToStringFunction from '/imports/parser/types/ToStringFunction';
 
 export type ErrorNode = {
   parseType: 'error';

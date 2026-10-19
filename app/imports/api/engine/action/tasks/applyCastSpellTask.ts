@@ -1,7 +1,7 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { CastSpellTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from './TaskResult';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { CastSpellTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from './TaskResult';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import applyActionProperty from '../applyProperties/applyActionProperty';

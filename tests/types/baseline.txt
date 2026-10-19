@@ -29,7 +29,7 @@ imports/api/creature/creatures/methods/changeAllowedLibraries.js: TS2353: Object
 imports/api/creature/creatures/methods/insertCreature.js: TS2339: Property 'pick' does not exist on type 'TypedSimpleSchema<any>'.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2345: Argument of type 'Subscription' is not assignable to parameter of type 'Computation'.
 imports/api/creature/creatures/server/publications/singleCharacter.js: TS2769: No overload matches this call.
-imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
+imports/api/creature/log/CreatureLogs.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Meteor.Error | Error'.
 imports/api/creature/log/CreatureLogs.test.js: TS18048: 'oldest' is possibly 'undefined'.
 imports/api/creature/log/CreatureLogs.test.js: TS2345: Argument of type '{ _id: string; creatureId: any; date: Date; content: { value: string; }[]; }[]' is not assignable to parameter of type 'OptionalId<Document>[]'.
 imports/api/docs/Docs.ts: TS2339: Property 'getTextAsync' does not exist on type 'typeof Assets'.
@@ -40,25 +40,8 @@ imports/api/docs/server/publications.js: TS2790: The operand of a 'delete' opera
 imports/api/engine/action/EngineActions.ts: TS2578: Unused '@ts-expect-error' directive.
 imports/api/engine/action/functions/recalculateInlineCalculations.ts: TS2305: Module '"/imports/api/properties/subSchemas/inlineCalculationField"' has no exported member 'InlineCalculation'.
 imports/api/engine/action/functions/spendResources.ts: TS2769: No overload matches this call.
-imports/api/engine/computation/buildComputation/parseCalculationFields.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
-imports/api/engine/computation/buildComputation/tests/computeInactiveStatus.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/buildComputation/tests/computeSlotQuantityFilled.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/buildComputation/tests/computeToggleDependencies.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/buildComputation/tests/linkCalculationDependencies.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/buildComputation/tests/linkInventory.testFn.js: TS2554: Expected 3 arguments, but got 1.
+imports/api/engine/computation/buildComputation/parseCalculationFields.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Meteor.Error | Error'.
 imports/api/engine/computation/buildComputation/tests/linkTypeDependencies.testfn.js: TS2532: Object is possibly 'undefined'.
-imports/api/engine/computation/buildComputation/tests/linkTypeDependencies.testfn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/buildCreatureComputation.test.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeAttribute.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeCalculations.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeClasses.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeConstants.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeDamageMultipliers.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeEffects.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeInventory.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computePointBuys.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeProficiencies.testFn.js: TS2554: Expected 3 arguments, but got 1.
-imports/api/engine/computation/computeComputation/tstFns/computeSkills.testFn.js: TS2554: Expected 3 arguments, but got 1.
 imports/api/engine/computation/utility/applyFnToKey.js: TS2322: Type 'string' is not assignable to type 'never'.
 imports/api/engine/computation/utility/applyFnToKey.js: TS2322: Type 'string' is not assignable to type 'never'.
 imports/api/engine/computation/utility/applyFnToKey.js: TS2322: Type 'string' is not assignable to type 'never'.
@@ -104,8 +87,6 @@ imports/api/library/server/publications/slotFillers.js: TS2339: Property 'limit'
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
 imports/api/library/server/publications/slotFillers.js: TS2769: No overload matches this call.
-imports/api/parenting/parentingFunctions.ts: TS2344: Type 'T' does not satisfy the constraint 'Document'.
-imports/api/parenting/parentingFunctions.ts: TS2344: Type 'T' does not satisfy the constraint 'Document'.
 imports/api/parenting/parentingFunctions.ts: TS2698: Spread types may only be created from object types.
 imports/api/properties/Actions.ts: TS2322: Type '{ type: TypedSimpleSchema<any>; optional: true; max: 10000; removeBeforeCompute: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[] | (Omit<SchemaDefinition, "type"> & { type: ComputedFieldType; })'.
 imports/api/properties/Attributes.ts: TS2322: Type '{ type: StringConstructor; allowedValues: readonly ["none", "distance", "weight"]; optional: true; }' is not assignable to type 'SchemaDefinitionType | SchemaDefinitionType[] | (Omit<SchemaDefinition, "type"> & { type: ComputedFieldType; })'.
@@ -222,7 +203,7 @@ imports/ui/composables/useSmartInput.js: TS2339: Property 'length' does not exis
 imports/ui/composables/useSmartInput.js: TS2488: Type 'never' must have a '[Symbol.iterator]()' method that returns an iterator.
 imports/ui/composables/useUnits.js: TS2339: Property 'preferences' does not exist on type 'User'.
 imports/ui/creature/actions/doAction.ts: TS2769: No overload matches this call.
-imports/ui/creature/slots/slotFillerConditions.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Error | Meteor.Error'.
+imports/ui/creature/slots/slotFillerConditions.js: TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Meteor.Error | Error'.
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
 imports/ui/i18n/index.js: TS2551: Property 'value' does not exist on type 'string'. Did you mean 'valueOf'?
@@ -240,7 +221,7 @@ imports/ui/properties/forms/shared/lists/createListOfProperties.js: TS2769: No o
 imports/ui/properties/forms/shared/lists/createListOfProperties.js: TS2769: No overload matches this call.
 imports/ui/router.js: TS2322: Type '{ path: string; beforeEnter: (to: any) => Promise<any>; }' is not assignable to type 'RouteRecordRaw'.
 imports/ui/router.js: TS2339: Property 'offsetHeight' does not exist on type 'Element'.
-imports/ui/router.js: TS2339: Property 'reason' does not exist on type 'Error | Meteor.Error | TypedError'.
+imports/ui/router.js: TS2339: Property 'reason' does not exist on type 'Meteor.Error | Error | TypedError'.
 imports/ui/stores/app.js: TS2322: Type 'true' is not assignable to type 'undefined'.
 imports/ui/stores/app.js: TS2322: Type 'true' is not assignable to type 'undefined'.
 imports/ui/stores/dialogStack.js: TS2322: Type '{ _id: string; component: any; data: any; elementId: any; callback: (...args: any[]) => any; }' is not assignable to type 'never'.

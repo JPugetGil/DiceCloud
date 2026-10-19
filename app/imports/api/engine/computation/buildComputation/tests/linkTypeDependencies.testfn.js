@@ -1,9 +1,9 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import clean from '../../utility/cleanProp.testFn';
 
 export default function () {
-  const computation = buildComputationFromProps(testProperties);
+  const computation = computationFromProps(testProperties);
   const getLink = computation.dependencyGraph.hasLink;
   const getNode = computation.dependencyGraph.getNode;
 

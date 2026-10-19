@@ -1,10 +1,10 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import clean from '../../utility/cleanProp.testFn';
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
 
 export default function () {
-  let computation = buildComputationFromProps(testProperties);
+  let computation = computationFromProps(testProperties);
 
   const bySelf = (propId, note) => assertDeactivatedBySelf(computation, propId, note);
   const byAncestor = (propId, note) => assertDeactivatedByAncestor(computation, propId, note);

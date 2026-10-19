@@ -1,7 +1,7 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { getCollectionByName } from '/imports/api/parenting/docReferences';
 import {
   assertDocEditPermission,
   assertViewPermission,
@@ -23,14 +23,18 @@ const updateReferenceNode = new ValidatedMethod({
   },
   async run({ _id }) {
     let userId = this.userId;
-    let node = await LibraryNodes.findOneAsync(_id);
+    let node = await libraryNodes().findOneAsync(_id);
     await assertDocEditPermission(node, userId);
     await updateReferenceNodeWork(node, userId);
   },
 });
 
+// By name, when called: LibraryNodes.ts calls updateReferenceNodeWork, and
+// importing it here made an import cycle
+const libraryNodes = () => getCollectionByName('libraryNodes');
+
 async function writeCache(_id, cache) {
-  await LibraryNodes.updateAsync(_id, { $set: { cache } }, {
+  await libraryNodes().updateAsync(_id, { $set: { cache } }, {
     selector: { type: 'reference' },
   });
 }

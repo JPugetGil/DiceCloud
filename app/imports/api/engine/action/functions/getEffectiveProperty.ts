@@ -1,4 +1,4 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { get, set } from 'lodash';
 import { EJSON } from 'meteor/ejson';
 

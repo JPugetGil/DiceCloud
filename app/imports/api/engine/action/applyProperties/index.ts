@@ -1,7 +1,7 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 
 import action from './applyActionProperty';
 import adjustment from './applyAdjustmentProperty';

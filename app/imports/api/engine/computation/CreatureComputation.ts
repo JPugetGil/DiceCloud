@@ -1,5 +1,6 @@
 import { EJSON } from 'meteor/ejson';
-import createGraph, { Graph } from 'ngraph.graph';
+import type { Graph } from 'ngraph.graph';
+import createGraph from 'ngraph.graph';
 import getEffectivePropTags from '/imports/api/engine/computation/utility/getEffectivePropTags';
 import type { Creature } from '/imports/api/creature/creatures/Creatures';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';

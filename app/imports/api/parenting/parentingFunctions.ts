@@ -1,39 +1,15 @@
 import { chain, reverse } from 'lodash';
-import { TreeDoc, treeDocFields, Reference } from '/imports/api/parenting/ChildSchema';
+import type { TreeDoc, Reference } from '/imports/api/parenting/ChildSchema';
+import { treeDocFields } from '/imports/api/parenting/ChildSchema';
 import { getProperties } from '/imports/api/engine/loadCreatures';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { DDP } from 'meteor/ddp';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 
-export function getCollectionByName<T = TreeDoc>(name: string): Mongo.Collection<T> {
-  const collection = Mongo.Collection.get<T>(name)
-  if (!collection) {
-    throw new Meteor.Error('bad-collection-reference',
-      `Parent references collection ${name}, which does not exist`
-    );
-  }
-  return collection;
-}
-
-function assertDocFound(doc, ref) {
-  if (!doc) {
-    throw new Meteor.Error('document-not-found',
-      `No document could be found with id: ${ref.id} in ${ref.collection}`
-    );
-  }
-}
-
-// fetchDocByRef is async itself now; this name is kept for existing callers.
-export function fetchDocByRefAsync(ref: Reference, options?: Mongo.Options<object>): Promise<TreeDoc> {
-  return fetchDocByRef<TreeDoc>(ref, options);
-}
-
-export async function fetchDocByRef<T extends object = TreeDoc>(ref: Reference, options?: Mongo.Options<object>): Promise<T> {
-  const doc: T = await getCollectionByName<T>(ref.collection).findOneAsync(ref.id, options);
-  assertDocFound(doc, ref);
-  return doc;
-}
+export { getCollectionByName, fetchDocByRef, fetchDocByRefAsync } from '/imports/api/parenting/docReferences';
+export { getFilter } from '/imports/api/parenting/treeFilters';
+import { getFilter } from '/imports/api/parenting/treeFilters';
 
 export interface TreeNode<T> {
   doc: T,
@@ -218,101 +194,6 @@ export function docsToForestByParentId<T extends TreeDoc>(docs: T[]): Forest<T> 
     orphanIds,
     nodeIndex
   };
-}
-
-export const getFilter = {
-  /**
-   * 
-   * @param doc A document or array of documents that share a root
-   * @returns A query filter that finds all the ancestors of the doc(s)
-   */
-  ancestors(doc: TreeDoc) {
-    return {
-      'root.id': doc.root.id,
-      left: { $lt: doc.left },
-      right: { $gt: doc.right },
-    };
-  },
-  ancestorsOfAll(docs: Array<TreeDoc>) {
-    // The ancestors of no documents is a query that returns nothing
-    if (docs.length === 0) {
-      return { _id: '' };
-    }
-    // Fallback to the simpler filter for a single document
-    if (docs.length === 1) {
-      return getFilter.ancestors(docs[0]);
-    }
-    // Build a filter that selects all ancestors
-    const filter = {
-      'root.id': docs[0].root.id,
-      $or: <object[]>[],
-    };
-    docs.forEach(doc => {
-      filter.$or.push({
-        left: { $lt: doc.left },
-        right: { $gt: doc.right },
-      });
-    });
-    return filter;
-  },
-  descendantsOfRoot(rootId: string) {
-    return {
-      'root.id': rootId,
-    }
-  },
-  /**
-   * The documents under any of the roots. Under no root, none: a user who can
-   * see no library searches an empty list (searchLibraryNodes), rather than
-   * every library or an exception
-   */
-  descendantsOfAllRoots(rootIds: string[]) {
-    return {
-      'root.id': { $in: rootIds },
-    };
-  },
-  descendants(doc: TreeDoc) {
-    return {
-      'root.id': doc.root.id,
-      left: { $gt: doc.left },
-      right: { $lt: doc.right },
-    };
-  },
-  descendantsOfAll(docs: Array<TreeDoc>) {
-    // The descendants of no documents is a query that returns nothing
-    if (docs.length === 0) {
-      return { _id: '' };
-    }
-    // Fallback to the simpler filter for a single document
-    if (docs.length === 1) {
-      return getFilter.descendants(docs[0]);
-    }
-    // Build a filter that selects all descendants
-    const filter = {
-      'root.id': docs[0].root.id,
-      $or: <{
-        left: { $gt: number },
-        right: { $lt: number },
-      }[]>[],
-    };
-    docs.forEach(doc => {
-      filter.$or.push({
-        left: { $gt: doc.left },
-        right: { $lt: doc.right },
-      });
-    });
-    return filter;
-  },
-  children(doc: TreeDoc) {
-    return {
-      'root.id': doc.root.id,
-      parentId: doc._id,
-    };
-  },
-  parent(doc: TreeDoc) {
-    return {
-      _id: doc.parentId,
-    };
-  },
 }
 
 /**

@@ -53,7 +53,7 @@ Meteor.publish('singleCharacter', function (creatureId) {
     const canEdit = hasEditPermission(permissionCreature, user);
     // Its cache observes its documents for good: outside the computation, or
     // their first change reruns the sheet
-    await AsyncTracker.nonreactive(() => loadCreature(creatureId, self));
+    await AsyncTracker.nonreactive(() => loadCreature(creatureId, self, computeCreature));
     if (permissionCreature?.computeVersion !== VERSION && firstRun) {
       // Not awaited, as before Meteor 3: the results reach the client through
       // the cursors below as they land. Blocking the first run on it made the

@@ -285,7 +285,7 @@
 <script setup>
 import { ref } from 'vue';
 import { autorun } from 'vue-meteor-tracker';
-import router from '/imports/ui/router';
+import { useRouter } from 'vue-router';
 import addEmailMethod from '/imports/api/users/methods/addEmail';
 import removeEmailMethod from '/imports/api/users/methods/removeEmail';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -298,6 +298,9 @@ import { ROLES } from '/imports/api/users/roles';
 import prettyBytes from 'pretty-bytes';
 import { Meteor } from 'meteor/meteor';
 import DiscordAccountItems from '/imports/ui/user/DiscordAccountItems.vue';
+
+// From the app, not imported: the router imports this page (an import cycle)
+const router = useRouter();
 
 const dialogStackStore = useDialogStackStore();
 const { locale } = useI18n();

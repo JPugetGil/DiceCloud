@@ -1,13 +1,15 @@
 import { assert } from 'chai';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import CreatureLogs from '/imports/api/creature/log/CreatureLogs';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { insertAction } from '/imports/api/engine/action/methods/insertAction';
 import { drawDice } from '/imports/api/engine/action/methods/drawDice';
+import type { TestCreature} from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
-  createTestCreature, getRandomIds, removeAllCreaturesAndProps, TestCreature,
+  createTestCreature, getRandomIds, removeAllCreaturesAndProps
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 // The periodic job, on the server only (quave:synced-cron)

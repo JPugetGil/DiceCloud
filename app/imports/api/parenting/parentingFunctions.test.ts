@@ -1,6 +1,6 @@
 import '/imports/api/simpleSchemaConfig';
 import { docsToForest, calculateNestedSetOperations, getFilter, moveDocWithinRoot, moveDocBetweenRoots } from '/imports/api/parenting/parentingFunctions'
-import { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import { assert } from 'chai';
 import { Mongo } from 'meteor/mongo';
 

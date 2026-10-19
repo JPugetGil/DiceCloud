@@ -1,5 +1,5 @@
 import '/imports/api/simpleSchemaConfig';
-import { buildComputationFromProps } from './buildCreatureComputation';
+import computationFromProps from '/imports/api/engine/computation/utility/computationFromProps.testFn';
 import { assert } from 'chai';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeInactiveStatus from './buildComputation/tests/computeInactiveStatus.testFn';
@@ -11,7 +11,7 @@ import linkTypeDependencies from '/imports/api/engine/computation/buildComputati
 
 describe('buildComputation', function () {
   it('Builds something at all', function () {
-    let computation = buildComputationFromProps(testProperties);
+    let computation = computationFromProps(testProperties);
     assert.exists(computation);
   });
   it('Computes inactive status', computeInactiveStatus);

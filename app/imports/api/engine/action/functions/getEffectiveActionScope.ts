@@ -1,4 +1,4 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { getVariables } from '/imports/api/engine/loadCreatures';
 
 // Combine all the action results into the scope at present

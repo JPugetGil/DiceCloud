@@ -1,7 +1,8 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import { ResetTask, TurnEventTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult, { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import type { ResetTask, TurnEventTask } from '/imports/api/engine/action/tasks/Task';
+import type { LogContent } from '/imports/api/engine/action/tasks/TaskResult';
+import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
 import { getCreature, getPropertiesByFilter } from '/imports/api/engine/loadCreatures';
 import CreatureProperties, { type CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
@@ -11,7 +12,7 @@ import {
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
+import type { Mongo } from 'meteor/mongo';
 import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
 
 /*

@@ -1,13 +1,15 @@
 import '/imports/api/simpleSchemaConfig.js';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
-import propsFromForest, { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
+import type { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
+import propsFromForest from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
 import computeCreature from '/imports/api/engine/computeCreature';
 import { loadCreature, loadedCreatures, unloadAllCreatures } from '/imports/api/engine/loadCreatures';
-import EngineActions, { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import EngineActions from '/imports/api/engine/action/EngineActions';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
-import { LogContent, Mutation, Update } from '/imports/api/engine/action/tasks/TaskResult';
+import type { LogContent, Mutation, Update } from '/imports/api/engine/action/tasks/TaskResult';
 import inputProvider from './userInput/inputProviderForTests.testFn';
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
@@ -24,9 +26,12 @@ export async function removeAllCreaturesAndProps() {
       CreatureVariables.removeAsync({}),
     ]);
   } else {
-    await CreatureProperties.find({}).forEachAsync(async doc => await CreatureProperties.removeAsync(doc._id));
-    await Creatures.find({}).forEachAsync(async doc => await Creatures.removeAsync(doc._id));
-    await CreatureVariables.find({}).forEachAsync(async (doc: any) => await CreatureVariables.removeAsync(doc._id));
+    // One by one: the client removes documents by id only
+    for (const collection of [CreatureProperties, Creatures, CreatureVariables] as any[]) {
+      for (const { _id } of await collection.find({}, { fields: { _id: 1 } }).fetchAsync()) {
+        await collection.removeAsync(_id);
+      }
+    }
   }
 }
 
@@ -54,7 +59,7 @@ export async function createTestCreature(creature: TestCreature) {
   // runs, and the props' dirty flags start background recomputes that overlap
   // the following tests.
   await computeCreature(creature._id);
-  loadCreature(creature._id, dummySubscription);
+  loadCreature(creature._id, dummySubscription, computeCreature);
   await loadedCreatures.get(creature._id)?.ready;
 }
 

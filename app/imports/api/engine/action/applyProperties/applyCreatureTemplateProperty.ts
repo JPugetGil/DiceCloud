@@ -1,5 +1,5 @@
-import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
+import type { EngineAction } from '/imports/api/engine/action/EngineActions';
+import type { PropTask } from '/imports/api/engine/action/tasks/Task';
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { Meteor } from 'meteor/meteor';
