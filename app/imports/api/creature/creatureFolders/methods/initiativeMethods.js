@@ -71,6 +71,28 @@ async function getOwnFolder(folderId, userId) {
   return folder;
 }
 
+const TRACKER_ATTEMPTS = 5;
+
+/**
+ * Writes a change of the folder's tracker made from the folder as read, only
+ * while the tracker still is as read (trackerAsRead), reading it again
+ * otherwise: an entry removed, a turn passed or creatures added meanwhile are
+ * never undone, as they were when a method wrote the whole tracker back from
+ * an older read. `change` returns `{ update, ... }` from the folder, or nothing
+ * for no write; what it returned is returned. Server only
+ */
+async function updateTracker(folderId, change) {
+  for (let attempt = 0; attempt < TRACKER_ATTEMPTS; attempt += 1) {
+    const folder = await CreatureFolders.findOneAsync(folderId);
+    const changed = folder && await change(folder);
+    if (!changed) return undefined;
+    if (await CreatureFolders.updateAsync({ _id: folderId, ...trackerAsRead(folder.initiative) }, changed.update)) {
+      return changed;
+    }
+  }
+  throw new Meteor.Error('initiative.busy', 'The initiative tracker kept changing: try again');
+}
+
 const rollD20 = () => Math.floor(Random.fraction() * 20) + 1;
 
 // A character's initiative bonus: its initiative stat, else its Dexterity modifier
@@ -97,44 +119,67 @@ export const rollInitiative = new ValidatedMethod({
   mixins: [RateLimiterMixin],
   rateLimit,
   async run({ folderId }) {
-    const folder = await getOwnFolder(folderId, this.userId);
+    await getOwnFolder(folderId, this.userId);
     // The dice are the server's: the client waits for its result
     if (Meteor.isClient) return;
     const userId = this.userId;
-    const creatures = await Creatures.find({
-      _id: { $in: folder.creatures || [] },
-      $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
-    }, { fields: { name: 1 } }).fetchAsync();
-    const previous = folder.initiative?.entries || [];
-    const entries = [];
-    for (const creature of creatures) {
-      const existing = previous.find(entry => entry.creatureId === creature._id);
-      entries.push(rolled({
-        _id: existing?._id || Random.id(),
-        creatureId: creature._id,
-        name: creature.name,
-        bonus: await initiativeBonus(creature._id),
-      }));
-    }
-    for (const entry of previous) {
-      if (entry.creatureId) continue;
-      const handAdded = withoutTurnMarks(entry);
-      entries.push(Number.isFinite(handAdded.initiative) ? handAdded : rolled(handAdded));
-    }
-    await CreatureFolders.updateAsync(folderId, {
-      $set: {
-        initiative: {
-          round: 1, turn: 0, entries,
-          ...folder.initiative?.showStats && { showStats: true },
+    const rolledAll = await updateTracker(folderId, async folder => {
+      const creatures = await Creatures.find({
+        _id: { $in: folder.creatures || [] },
+        $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
+      }, { fields: { name: 1 } }).fetchAsync();
+      const previous = folder.initiative?.entries || [];
+      const entries = [];
+      for (const creature of creatures) {
+        const existing = previous.find(entry => entry.creatureId === creature._id);
+        entries.push(rolled({
+          _id: existing?._id || Random.id(),
+          creatureId: creature._id,
+          name: creature.name,
+          bonus: await initiativeBonus(creature._id),
+        }));
+      }
+      for (const entry of previous) {
+        if (entry.creatureId) continue;
+        const handAdded = withoutTurnMarks(entry);
+        entries.push(Number.isFinite(handAdded.initiative) ? handAdded : rolled(handAdded));
+      }
+      return {
+        entries,
+        fighting: !!folder.initiative?.round,
+        update: {
+          $set: {
+            initiative: {
+              round: 1, turn: 0, entries,
+              ...folder.initiative?.showStats && { showStats: true },
+            },
+          },
         },
-      },
+      };
     });
+    if (!rolledAll) return;
     // Rolled again during a fight, round 1 starts again: so does its first turn
-    await passTurn(folderId, { started: { entry: initiativeOrder(entries)[0], round: 1 } });
+    await passTurn(folderId, { started: { entry: initiativeOrder(rolledAll.entries)[0], round: 1 } });
     // Rolled again during a fight, the same message shows the new order
-    tellDiscord(folderId, folder.initiative?.round ? 'turn' : 'start');
+    tellDiscord(folderId, rolledAll.fighting ? 'turn' : 'start');
   },
 });
+
+/**
+ * The update that adds entries to the folder's tracker as read: pushed, not
+ * written back with the others, whose turn marks set meanwhile stay; the
+ * creature whose turn it is keeps it, though the newcomers may come first.
+ * Starts a tracker before any fight if there is none. `$set`: more to set
+ */
+function trackerAddition(folder, added, $set = {}) {
+  const tracker = folder.initiative || { round: 0, turn: 0, entries: [] };
+  const entries = tracker.entries || [];
+  const turn = turnAfterChange(entries, tracker.turn || 0, [...entries, ...added]);
+  return {
+    $push: { 'initiative.entries': { $each: added } },
+    $set: { ...$set, 'initiative.turn': turn, ...!folder.initiative && { 'initiative.round': 0 } },
+  };
+}
 
 /**
  * Adds creatures by hand (UX11): `count` of them, numbered ("Goblin ×4" makes
@@ -155,24 +200,24 @@ export const addInitiativeEntry = new ValidatedMethod({
   mixins: [RateLimiterMixin],
   rateLimit,
   async run({ folderId, name, bonus, initiative, count = 1, hp, ac }) {
-    const folder = await getOwnFolder(folderId, this.userId);
+    await getOwnFolder(folderId, this.userId);
     if (Meteor.isClient) return;
-    const tracker = folder.initiative || { round: 0, turn: 0, entries: [] };
-    const names = numberedNames(name, count, (tracker.entries || []).map(entry => entry.name));
-    const $set = {};
-    const added = names.map(entryName => {
-      let entry = { _id: Random.id(), name: entryName, bonus: bonus || 0 };
-      entry = Number.isFinite(initiative) ? { ...entry, initiative } : rolled(entry);
-      if (hp || Number.isFinite(ac)) {
-        $set[`initiativeStats.${entry._id}`] = { ...hp && { hp, damage: 0 }, ...Number.isFinite(ac) && { ac } };
+    await updateTracker(folderId, folder => {
+      const entries = folder.initiative?.entries || [];
+      if (entries.length + count > MAX_INITIATIVE_ENTRIES) {
+        throw boardError('initiative.full', 'initiative.full', { limit: MAX_INITIATIVE_ENTRIES });
       }
-      return entry;
-    });
-    const entries = [...(tracker.entries || []), ...added];
-    // The creature whose turn it is keeps it, though the newcomers may come first
-    const turn = turnAfterChange(tracker.entries, tracker.turn || 0, entries);
-    await CreatureFolders.updateAsync(folderId, {
-      $set: { ...$set, initiative: { ...tracker, entries, turn } },
+      const names = numberedNames(name, count, entries.map(entry => entry.name));
+      const $set = {};
+      const added = names.map(entryName => {
+        let entry = { _id: Random.id(), name: entryName, bonus: bonus || 0 };
+        entry = Number.isFinite(initiative) ? { ...entry, initiative } : rolled(entry);
+        if (hp || Number.isFinite(ac)) {
+          $set[`initiativeStats.${entry._id}`] = { ...hp && { hp, damage: 0 }, ...Number.isFinite(ac) && { ac } };
+        }
+        return entry;
+      });
+      return { update: trackerAddition(folder, added, $set) };
     });
     tellDiscord(folderId, 'update');
   },
@@ -183,39 +228,38 @@ export const addInitiativeEntry = new ValidatedMethod({
  * before one, without rerolling anyone: each rolls d20 plus its bonus, or the
  * whole group once with `sharedRoll`, as the rules suggest for identical
  * monsters. The creature whose turn it is keeps it. Those already in the
- * tracker, and those the game master can't view, are left out. Server only:
- * the dice are the server's. Returns the entries added
+ * tracker, and those the game master can't view, are left out. The folder is
+ * read again for its tracker as it is (updateTracker). Server only: the dice
+ * are the server's. Returns the entries added
  */
 export async function addCreaturesToTracker(folder, creatureIds, userId, { sharedRoll = false } = {}) {
-  const tracker = folder.initiative || { round: 0, turn: 0, entries: [] };
-  const entries = tracker.entries || [];
-  const ids = [...new Set(creatureIds)].filter(id => folder.creatures?.includes(id)
-    && !entries.some(entry => entry.creatureId === id));
-  const creatures = await Creatures.find({
-    _id: { $in: ids },
-    $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
-  }, { fields: { name: 1 } }).fetchAsync();
-  if (!creatures.length) return [];
-  if (entries.length + creatures.length > MAX_INITIATIVE_ENTRIES) {
-    throw boardError('initiative.full', 'initiative.full', { limit: MAX_INITIATIVE_ENTRIES });
-  }
-  const roll = sharedRoll ? rollD20() : undefined;
-  const added = [];
-  // In the order asked for: "Goblin 1" before "Goblin 2"
-  for (const id of ids) {
-    const creature = creatures.find(creature => creature._id === id);
-    if (!creature) continue;
-    const bonus = await initiativeBonus(id);
-    const d20 = roll ?? rollD20();
-    added.push({ _id: Random.id(), creatureId: id, name: creature.name, bonus, roll: d20, initiative: d20 + bonus });
-  }
-  const newEntries = [...entries, ...added];
-  const turn = turnAfterChange(entries, tracker.turn || 0, newEntries);
-  await CreatureFolders.updateAsync(folder._id, {
-    $set: { initiative: { ...tracker, entries: newEntries, turn } },
+  const changed = await updateTracker(folder._id, async current => {
+    const entries = current.initiative?.entries || [];
+    const ids = [...new Set(creatureIds)].filter(id => current.creatures?.includes(id)
+      && !entries.some(entry => entry.creatureId === id));
+    const creatures = await Creatures.find({
+      _id: { $in: ids },
+      $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
+    }, { fields: { name: 1 } }).fetchAsync();
+    if (!creatures.length) return undefined;
+    if (entries.length + creatures.length > MAX_INITIATIVE_ENTRIES) {
+      throw boardError('initiative.full', 'initiative.full', { limit: MAX_INITIATIVE_ENTRIES });
+    }
+    const roll = sharedRoll ? rollD20() : undefined;
+    const added = [];
+    // In the order asked for: "Goblin 1" before "Goblin 2"
+    for (const id of ids) {
+      const creature = creatures.find(creature => creature._id === id);
+      if (!creature) continue;
+      const bonus = await initiativeBonus(id);
+      const d20 = roll ?? rollD20();
+      added.push({ _id: Random.id(), creatureId: id, name: creature.name, bonus, roll: d20, initiative: d20 + bonus });
+    }
+    return { added, update: trackerAddition(current, added) };
   });
+  if (!changed) return [];
   tellDiscord(folder._id, 'update');
-  return added;
+  return changed.added;
 }
 
 /**

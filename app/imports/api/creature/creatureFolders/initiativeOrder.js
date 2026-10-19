@@ -70,14 +70,17 @@ const stillAt = value => value === undefined || value === null ? { $exists: fals
  * turn and entries, by id (not their order or marks). A change made from what
  * was read applies only then: a Next click and a creature leaving the tracker
  * at once never move the turn from an order that no longer is
- * (advanceTracker, removeFromTracker)
+ * (advanceTracker, removeFromTracker), and creatures added or rolled never
+ * bring back one removed meanwhile (updateTracker)
  */
 export function trackerAsRead(tracker) {
   const ids = (tracker?.entries || []).map(entry => entry._id);
   return {
     'initiative.round': stillAt(tracker?.round),
     'initiative.turn': stillAt(tracker?.turn),
-    'initiative.entries': { $size: ids.length },
-    ...ids.length && { 'initiative.entries._id': { $all: ids } },
+    ...ids.length
+      ? { 'initiative.entries': { $size: ids.length }, 'initiative.entries._id': { $all: ids } }
+      // No entries: none stored, or none yet (no tracker at all)
+      : { 'initiative.entries': { $in: [null, []] } },
   };
 }

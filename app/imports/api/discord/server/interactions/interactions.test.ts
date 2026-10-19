@@ -176,6 +176,21 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       assert.notInclude((await command('character', [], { user: GM })).answer.data.content, 'Too many', 'per user');
     });
 
+    it('answers an autocomplete that fails with no choices, never a message Discord would refuse', async function () {
+      const logged: string[] = [];
+      const warn = console.warn;
+      console.warn = (...args: unknown[]) => logged.push(args.join(' '));
+      let answer: any;
+      try {
+        // Options that are no list: the handler throws
+        ({ answer } = await autocomplete('action', 'broken' as any));
+      } finally {
+        console.warn = warn;
+      }
+      assert.deepEqual(answer, { type: 8, data: { choices: [] } });
+      assert.match(logged.join('\n'), /an interaction failed \(autocomplete \/action\)/);
+    });
+
     it('never logs an interaction\'s token', async function () {
       await fake.close();
       fake = await fakeDiscord({

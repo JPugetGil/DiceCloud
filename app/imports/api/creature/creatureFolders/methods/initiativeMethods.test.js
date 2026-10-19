@@ -305,6 +305,98 @@ describe('Initiative tracker', function () {
   });
 });
 
+describe('The initiative tracker, changed between a method\'s read and its write', function () {
+  const [userId, folderId, fighterId] = [Random.id(), Random.id(), Random.id()];
+  const as = (method, args) => /** @type {any} */ (method)._execute({ userId }, { folderId, ...args });
+  const tracker = async () => /** @type {any} */ (await CreatureFolders.findOneAsync(folderId)).initiative;
+  const names = async () => initiativeOrder((await tracker()).entries).map(entry => entry.name);
+  const whoseTurn = async () => (await names())[(await tracker()).turn];
+  // A (20), B (15), C (10): round 1, B's turn
+  const start = () => ({
+    round: 1, turn: 1,
+    entries: [['a', 'A', 20], ['b', 'B', 15], ['c', 'C', 10]].map(([_id, name, initiative]) => ({ _id, name, initiative, bonus: 0 })),
+  });
+
+  /**
+   * Runs `work`, and `change` right after the folder's read number `reads`
+   * (from 1): another change, landing between a method's read and its write.
+   * Fails if it never landed
+   */
+  async function meanwhile(reads, change, work) {
+    const folders = /** @type {any} */ (CreatureFolders);
+    const original = folders.findOneAsync;
+    let count = 0;
+    let landed = false;
+    folders.findOneAsync = async function (...args) {
+      const result = await original.apply(this, args);
+      count += 1;
+      if (count === reads) {
+        await change();
+        landed = true;
+      }
+      return result;
+    };
+    try {
+      await work();
+    } finally {
+      folders.findOneAsync = original;
+    }
+    assert.isTrue(landed, 'the other change landed meanwhile');
+  }
+
+  before(async function () {
+    if (!Meteor.isServer) this.skip();
+    await Creatures.rawCollection().insertOne({ _id: fighterId, name: 'Fighter', owner: userId, readers: [], writers: [] });
+  });
+
+  beforeEach(async function () {
+    if (!Meteor.isServer) this.skip();
+    await CreatureFolders.removeAsync(folderId);
+    await CreatureFolders.rawCollection().insertOne(/** @type {any} */ ({
+      _id: folderId, name: 'Party', owner: userId, creatures: [fighterId], order: 0, initiative: start(),
+    }));
+  });
+
+  after(async function () {
+    if (!Meteor.isServer) return;
+    await Creatures.removeAsync(fighterId);
+    await CreatureFolders.removeAsync(folderId);
+  });
+
+  // Each change lands after the method's first read, then after its second:
+  // the write must come from what the tracker is when it is written
+  for (const reads of [1, 2]) {
+    describe(`after read ${reads}`, function () {
+      it('adds by hand: an entry removed meanwhile stays removed, the turn stays put', async function () {
+        await meanwhile(reads, () => as(removeInitiativeEntry, { entryId: 'a' }),
+          () => as(addInitiativeEntry, { name: 'Goblin', initiative: 1 }));
+        assert.deepEqual(await names(), ['B', 'C', 'Goblin']);
+        assert.equal(await whoseTurn(), 'B');
+      });
+
+      it('adds by hand: a turn passed meanwhile stays passed', async function () {
+        await meanwhile(reads, () => as(advanceInitiative, { step: 1 }),
+          () => as(addInitiativeEntry, { name: 'Goblin', initiative: 1 }));
+        assert.deepEqual(await names(), ['A', 'B', 'C', 'Goblin']);
+        assert.equal(await whoseTurn(), 'C');
+      });
+
+      it('adds a character: an entry removed meanwhile stays removed', async function () {
+        await meanwhile(reads, () => as(removeInitiativeEntry, { entryId: 'a' }),
+          () => as(addCreaturesToInitiative, { creatureIds: [fighterId] }));
+        assert.sameMembers(await names(), ['B', 'C', 'Fighter']);
+        assert.equal(await whoseTurn(), 'B');
+      });
+
+      it('rolls: an entry removed meanwhile does not come back', async function () {
+        await meanwhile(reads, () => as(removeInitiativeEntry, { entryId: 'a' }), () => as(rollInitiative, {}));
+        assert.sameMembers(await names(), ['B', 'C', 'Fighter']);
+        assert.include(await tracker(), { round: 1, turn: 0 });
+      });
+    });
+  }
+});
+
 describe('A full initiative tracker', function () {
   const [userId, folderId, firstId, secondId] = [Random.id(), Random.id(), Random.id(), Random.id()];
   const add = creatureIds => /** @type {any} */ (addCreaturesToInitiative)._execute({ userId }, { folderId, creatureIds });

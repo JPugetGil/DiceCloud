@@ -121,7 +121,18 @@ if (publicSettings.discordInteractions && typeof clientId === 'string' && /^\d{1
   publicSettings.discordApplicationId = clientId;
 }
 
+// An answer slower than this is logged (Discord waits 3 s)
+const SLOW_ANSWER_MS = 1500;
+
+/** "autocomplete /action": what an interaction is, for the logs; never its token, options or ids */
+function interactionKind(interaction: Interaction) {
+  const type = Object.entries(INTERACTION).find(([, value]) => value === interaction.type)?.[0] ?? 'unknown';
+  const name = interaction.data?.name;
+  return typeof name === 'string' && /^[\w-]{1,32}$/.test(name) ? `${type} /${name}` : type;
+}
+
 WebApp.rawHandlers.use('/discord/interactions', async (req: any, res: any) => {
+  const received = Date.now();
   if (req.method !== 'POST') {
     res.writeHead(405, { Allow: 'POST' });
     res.end();
@@ -150,11 +161,21 @@ WebApp.rawHandlers.use('/discord/interactions', async (req: any, res: any) => {
     return;
   }
   let handled: Handled;
+  const started = Date.now();
   try {
     handled = await handleInteraction(interaction);
   } catch (e) {
-    console.warn(`Discord: an interaction failed: ${(e as Error)?.message || e}`);
-    handled = { response: { type: RESPONSE.message, data: textMessage(say(interactionLanguage(interaction.locale), 'failed', { error: '–' })) } };
+    console.warn(`Discord: an interaction failed (${interactionKind(interaction)}): ${(e as Error)?.message || e}`);
+    // An autocomplete takes choices alone: a message would be refused, as a failure to load them
+    handled = interaction.type === INTERACTION.autocomplete
+      ? { response: { type: RESPONSE.autocomplete, data: { choices: [] } } }
+      : { response: { type: RESPONSE.message, data: textMessage(say(interactionLanguage(interaction.locale), 'failed', { error: '–' })) } };
+  }
+  // Discord waits 3 s for the answer: one that came close says how long it
+  // took, and how much of it was the work, to find what slowed it
+  const now = Date.now();
+  if (now - received > SLOW_ANSWER_MS) {
+    console.warn(`Discord: slow answer (${interactionKind(interaction)}): ${now - received} ms, ${now - started} ms of work`);
   }
   answer(res, 200, handled.response);
   handled.after?.().catch(e => console.warn(`Discord: an interaction's follow-up failed: ${(e as Error)?.message || e}`));
