@@ -29,6 +29,7 @@
     "check:party-undo": "node checks/party-undo.js",
     "check:party-legendary": "node checks/party-legendary.js",
     "check:anchored-durations": "node checks/anchored-durations.js",
+    "check:repeated-saves": "node checks/repeated-saves.js",
     "check:licenses": "node checks/licenses.js",
     "check:account": "node checks/account.js",
     "check:library-node-actions": "node checks/library-node-actions.js"
