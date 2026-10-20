@@ -49,11 +49,19 @@ WORKDIR /home/node/bundle/programs/server
 RUN npm install --omit=dev
 WORKDIR /home/node/bundle
 
-# The version the app records (imports/constants/VERSION.js); without git
-# history in the image it falls back to GIT_VERSION_FAIL. Build with
-# --build-arg CONTAINER_VERSION=$(git rev-parse --short HEAD)
+# The commit the app records (imports/constants/VERSION.js); without git
+# history in the image it falls back to GIT_VERSION_FAIL. And the version
+# shown to the users (imports/api/version), read from the commits. Build with
+# --build-arg CONTAINER_VERSION=$(git rev-parse --short=8 HEAD)
+# --build-arg APP_VERSION=$(deploy/version.sh)
+# --build-arg APP_COMMIT_DATE=$(git log -1 --format=%cI)
+# (deploy/dicecloud.sh start passes them)
 ARG CONTAINER_VERSION
-ENV CONTAINER_VERSION=${CONTAINER_VERSION}
+ARG APP_VERSION
+ARG APP_COMMIT_DATE
+ENV CONTAINER_VERSION=${CONTAINER_VERSION} \
+    APP_VERSION=${APP_VERSION} \
+    APP_COMMIT_DATE=${APP_COMMIT_DATE}
 
 # Configure with ROOT_URL, MONGO_URL, PORT, MAIL_URL and METEOR_SETTINGS
 # (see deploy/compose.yml and the README)

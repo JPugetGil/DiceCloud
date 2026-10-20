@@ -49,6 +49,12 @@ const props = defineProps({
     type: Number,
     default: undefined,
   },
+  // Checked before a change is sent (useSmartInput), as the other smart
+  // inputs do: left to Vuetify, a broken rule showed but the change went
+  rules: {
+    type: Array,
+    default: undefined,
+  },
   // The parent's @change listener, declared as a prop so that the field can
   // tell whether anyone will acknowledge its changes: Vue keeps the listeners
   // of declared events out of $attrs. `emit('change')` still calls it.

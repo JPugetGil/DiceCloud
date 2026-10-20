@@ -1,4 +1,5 @@
 import error from '/imports/parser/parseTree/error';
+import { isFiniteNode } from '/imports/parser/parseTree/constant';
 import rollArray from '/imports/parser/parseTree/rollArray';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import type ParseNode from '/imports/parser/parseTree/ParseNode';
@@ -41,15 +42,21 @@ const rollNode: RollNodeFactory = {
     };
   },
   toString(node, stringOthers) {
+    const right = stringOthers(node.right);
+    // Written together ("2d6", "d20") unless a side would merge with the d
+    // into a name: "false" or a variable before it, a function after it
+    // ("2dfloor(x)" reads as a call of `dfloor`)
+    const together = /^[0-9(]/.test(right);
     if (
       node.left.parseType === 'constant'
       && typeof node.left.value === 'number'
       && node.left.value === 1
     ) {
-      return `d${stringOthers(node.right)}`;
-    } else {
-      return `${stringOthers(node.left)}d${stringOthers(node.right)}`;
+      return together ? `d${right}` : `d ${right}`;
     }
+    const left = stringOthers(node.left);
+    if (together && isFiniteNode(node.left)) return `${left}d${right}`;
+    return `${left} d ${right}`;
   },
   async roll(node, scope, context, inputProvider, resolveOthers) {
     const { result: left } = await resolveOthers('reduce', node.left, scope, context, inputProvider);

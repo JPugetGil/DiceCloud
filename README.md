@@ -119,6 +119,7 @@ the entry points only import the startup code, and everything else lives in
 | `app/client/main.html`, `app/client/main.js` | Client entry: the page's head and body, then `imports/startup/client` |
 | `app/server/main.js` | Server entry: `imports/startup/server` |
 | `app/tests/main.js` | Test entry (`meteor test`): every `*.test.js` and `*.test.ts` in `imports/` |
+| `app/tests/components/` | The Vue components' tests (Vitest), with their configuration and the stubs of Meteor they render with |
 | `app/imports/startup/` | Startup, run in order: `both/` loads collection2 and the schema options, then `client/` or `server/` (package configuration, then `register-api.js`) |
 | `app/imports/api/<domain>/` | Each domain's collections, schemas and methods (creatures, library, users...), with its server-only code (publications, REST routes, cron jobs) in a `server/` folder |
 | `app/imports/ui/` | The Vue app: `main.js` creates it, `App.vue` is its root and `router.js` its routes; `pages/` holds one component per route, next to `layouts/`, `components/` and a folder per feature; `plugins/` (Vuetify and its themes), `stores/` (Pinia), `composables/` (shared `use...` functions), `i18n/` and `stylesheets/` |
@@ -218,6 +219,25 @@ Tests
 
 `meteor npm test` in `app/` runs the unit tests (`*.test.js` and `*.test.ts`
 files in `app/imports/`), next to a running development server if need be.
+`MOCHA_GREP="<suite>"` runs the suites whose name matches.
+
+Among them, the `*.property.test.ts` files test properties on random inputs
+([fast-check](https://fast-check.dev/)): the formulas (the parser reads back
+what it prints, the grammar is unambiguous, a compiled formula means what the
+original did), the units (a value typed in feet reads back as typed), the
+sharing selectors (MongoDB and Minimongo select exactly what the sharing rules
+give) and the version rule (`deploy/version.sh` against a model of it). Each
+runs a few hundred cases; `FC_NUM_RUNS=50000 meteor npm test` searches longer.
+A failure prints the smallest input that fails and the seed that replays it.
+
+`meteor npm run test:components` in `app/` tests Vue components
+(`app/tests/components/*.spec.js`): Vitest renders them in happy-dom with the
+app's Vuetify and translations, out of Meteor, in a few seconds, with no
+server. A test clicks and types as a user does and reads what the component
+shows and emits (a text field's save and its errors, the health bar's menu,
+the About page's version). What a component imports from Meteor resolves to
+`app/tests/components/stubs/`; a component that needs the server
+(publications, methods) belongs to the browser checks below.
 
 `meteor npm run typecheck` in `app/` type checks the app, single-file
 components included (vue-tsc, about 35 s), once Meteor has built it (`meteor`
@@ -235,8 +255,8 @@ there).
 
 GitHub Actions (`.github/workflows/ci.yml`) runs, on every push to `develop`
 and every pull request: an audit of the production dependencies (high and
-critical advisories), the lint, the import cycles check, the unit tests on the
-server and the type check.
+critical advisories), the lint, the import cycles check, the component tests,
+the unit tests on the server and the type check.
 
 `tests/e2e/` holds 28 Playwright checks that drive a running development
 server: pages, the character sheet, action targets, docs navigation, every
@@ -264,8 +284,28 @@ as a replica set of one, a Cloudflare tunnel and daily backups, all driven by
 
 To run the image another way, give it `ROOT_URL`, `MONGO_URL` (a replica set:
 on a standalone MongoDB, Meteor polls the database), `MAIL_URL`, and the
-settings as JSON in `METEOR_SETTINGS`. To record which commit is running,
-build with `--build-arg CONTAINER_VERSION=$(git rev-parse --short HEAD)`.
+settings as JSON in `METEOR_SETTINGS`. To record which commit is running and
+show its version, build with `--build-arg CONTAINER_VERSION=$(git rev-parse
+--short=8 HEAD)`, `--build-arg APP_VERSION=$(deploy/version.sh)` and
+`--build-arg APP_COMMIT_DATE=$(git log -1 --format=%cI)` (see Versions).
+
+Versions
+--------
+
+The version DiceCloud shows (at the bottom of the side menu, and on the About
+page with its commit and date) is read from the commits by `deploy/version.sh`:
+the commit that added the script is 3.0.0, and after it each commit whose
+subject starts with `Feat:` raises the minor version (3.1.0), each `Fix:` the
+patch (3.1.1), and a `!` before the colon (`Feat!:`) the major version (4.0.0).
+A scope is allowed (`fix(actions):`) and the case is not checked; other
+commits (`Chore:`, `Refactor:`, `Test:`, merges) change nothing. Nothing is
+bumped by hand: deploying a new feature commit shows a new version.
+
+The image holds no git history: `deploy/dicecloud.sh start` runs the script on
+the host and builds the image with the result (`APP_VERSION`). The development
+server runs it in its clone. The commit hash the creatures' computations record
+(`CONTAINER_VERSION`, `imports/constants/VERSION.js`) is a separate thing: it
+still changes at every commit.
 
 Sign in with Google
 -------------------

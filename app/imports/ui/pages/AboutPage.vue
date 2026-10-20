@@ -133,6 +133,42 @@
             </template>
           </i18n-t>
         </section>
+        <!-- The version that runs: the side menu links here -->
+        <section
+          v-if="version"
+          class="about__version"
+        >
+          <h3
+            id="version"
+            class="text-title-large mb-0 mt-4"
+          >
+            {{ $t('about.versionTitle') }}
+          </h3>
+          <i18n-t
+            keypath="about.version"
+            scope="global"
+            tag="p"
+            class="my-2"
+            data-id="app-version"
+          >
+            <template #version>
+              <b>{{ version.version }}</b>
+            </template>
+            <template #commit>
+              <a
+                :href="`https://github.com/JPugetGil/DiceCloud/commit/${version.commit}`"
+                target="_blank"
+                rel="noopener"
+              ><code>{{ version.commit }}</code></a>
+            </template>
+            <template #date>
+              {{ versionDate }}
+            </template>
+          </i18n-t>
+          <p class="my-2">
+            {{ $t('about.versionRule') }}
+          </p>
+        </section>
       </div>
     </section>
   </div>
@@ -141,8 +177,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { appVersion } from '/imports/api/version/appVersion';
 
 const { locale } = useI18n();
+
+const version = appVersion();
+const versionDate = computed(() => version?.date &&
+  new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(version.date)));
 
 // The SRD 5.1's two editions, the interface's own first
 const srdEditions = computed(() => {
@@ -203,7 +244,8 @@ const paragons = ref([{
   max-width: 100%;
 }
 
-.about__licenses {
+.about__licenses,
+.about__version {
   max-width: 760px;
 }
 

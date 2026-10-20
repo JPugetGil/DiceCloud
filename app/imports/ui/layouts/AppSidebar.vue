@@ -143,6 +143,17 @@
         :append-icon="link.href ? 'mdi-open-in-new' : undefined"
       />
     </v-list>
+
+    <!-- The version that runs; the About page tells more -->
+    <router-link
+      v-if="version"
+      to="/about#version"
+      class="d-block px-6 pt-1 pb-4 text-body-small text-medium-emphasis text-decoration-none"
+      data-id="sidebar-version"
+    >
+      {{ $t('nav.version', { version: version.version }) }}
+      <span v-if="version.commit">· {{ version.commit }}</span>
+    </router-link>
   </nav>
 </template>
 
@@ -158,8 +169,11 @@ import getCreatureUrlName from '/imports/api/creature/creatures/getCreatureUrlNa
 import { uniq, flatten } from 'lodash';
 import { useI18n } from 'vue-i18n';
 import { getUserRole, ROLES } from '/imports/api/users/roles';
+import { appVersion } from '/imports/api/version/appVersion';
 
 const { t } = useI18n();
+
+const version = appVersion();
 
 const characterTransform = function (char) {
   char.url = `/character/${char._id}/${getCreatureUrlName(char)}`;

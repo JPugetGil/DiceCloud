@@ -212,7 +212,9 @@ character, board and channel has to be connected to Discord again.
 ## 7. Day to day
 
 - `./dicecloud.sh update`: pulls the code, backs up, rebuilds and restarts.
-  The previous image is kept.
+  The previous image is kept. The version it logs ("DiceCloud 3.2.0
+  (1a2b3c4d) is running") is the one the app shows; `./version.sh` prints it
+  for the code pulled (see the main README, Versions).
 - `./dicecloud.sh logs` (or `logs mongo`, `logs cloudflared`): follows a log.
 - `./dicecloud.sh stop`, then `start`.
 - `DICECLOUD_YES=1 ./dicecloud.sh <command>` answers "yes" to its

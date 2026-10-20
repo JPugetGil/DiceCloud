@@ -77,6 +77,11 @@ const operator: OperatorFactory = {
     if (operator === '+' && isFiniteNode(right) && right.value < 0) {
       return `${stringOthers(left)} - ${-right.value}`
     }
+    // A negative number a variable gave, raised to a power: "-2 ^ x" would
+    // read as -(2 ^ x), which the grammar does not even accept
+    if (operator === '^' && isFiniteNode(left) && left.value < 0) {
+      return `(${stringOthers(left)}) ^ ${stringOthers(right)}`;
+    }
     return `${stringOthers(left)} ${operator} ${stringOthers(right)}`;
   },
   traverse(node, fn, traverseOthers) {

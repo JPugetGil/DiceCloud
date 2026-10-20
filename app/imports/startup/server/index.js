@@ -16,6 +16,9 @@ await import('./limitLoginTokens');
 await import('./accountsEmailConfig');
 await import('./publicationRateLimit');
 
+// The version shown to the users, in the public settings
+await import('/imports/api/version/server/appVersion');
+
 // REST routes, publications, cron jobs and methods
 await import('./register-api');
 

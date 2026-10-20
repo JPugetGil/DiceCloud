@@ -97,7 +97,7 @@ docker_() {
     if docker info >/dev/null 2>&1; then
       DOCKER=(docker)
     else
-      DOCKER=(sudo --preserve-env=METEOR_SETTINGS,CONTAINER_VERSION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION docker)
+      DOCKER=(sudo --preserve-env=METEOR_SETTINGS,CONTAINER_VERSION,APP_VERSION,APP_COMMIT_DATE,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION docker)
     fi
   fi
   "${DOCKER[@]}" "$@"
@@ -242,13 +242,16 @@ EOF
 cmd_start() {
   load_env
   check_config
-  export CONTAINER_VERSION METEOR_SETTINGS
+  export CONTAINER_VERSION APP_VERSION APP_COMMIT_DATE METEOR_SETTINGS
   CONTAINER_VERSION="$(git -C "$REPO_DIR" rev-parse --short=8 HEAD)"
+  # The version shown to the users, read from the commits (version.sh)
+  APP_VERSION="$("$DEPLOY_DIR/version.sh")" || die "could not read the version from the commits: see above"
+  APP_COMMIT_DATE="$(git -C "$REPO_DIR" log -1 --format=%cI)"
   # One line of JSON, checked on the way
   METEOR_SETTINGS="$(python3 -c 'import json, sys; print(json.dumps(json.load(open(sys.argv[1])), separators=(",", ":")))' "$(settings_path)")" \
     || die "$(settings_path) is not valid JSON"
 
-  log "Building DiceCloud $CONTAINER_VERSION (the first build takes a while)"
+  log "Building DiceCloud $APP_VERSION ($CONTAINER_VERSION; the first build takes a while)"
   compose build dicecloud
   log "Starting"
   if ! compose up -d mongo; then
@@ -266,7 +269,7 @@ cmd_start() {
     die "the containers did not start: see above"
   fi
   wait_healthy dicecloud
-  log "DiceCloud $CONTAINER_VERSION is running: $ROOT_URL"
+  log "DiceCloud $APP_VERSION ($CONTAINER_VERSION) is running: $ROOT_URL"
 }
 
 cmd_update() {

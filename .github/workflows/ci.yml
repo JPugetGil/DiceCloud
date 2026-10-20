@@ -67,8 +67,13 @@ jobs:
           meteor npm ci --prefix ../tests/cycles
           meteor npm run cycles
 
+      # The Vue components, rendered in happy-dom with the app's Vuetify and
+      # translations (app/tests/components)
+      - name: Component tests
+        run: meteor npm run test:components
+
       # Client tests would need a browser driver: the tests that matter run on
-      # the server
+      # the server. They include the properties (*.property.test.ts, fast-check)
       - name: Unit tests
         run: meteor npm test
         env:

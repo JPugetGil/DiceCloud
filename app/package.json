@@ -14,6 +14,7 @@
     "bundle-viz": "meteor --extra-packages bundle-visualizer --production",
     "lint": "eslint .",
     "test": "meteor test --once --driver-package meteortesting:mocha --port 3100 --raw-logs",
+    "test:components": "vitest run --config tests/components/vitest.config.mjs",
     "typecheck": "node ../tests/types/checkTypes.mjs",
     "cycles": "node ../tests/cycles/checkCycles.mjs",
     "build": "meteor build ../build --architecture os.linux.x86_64"
@@ -77,14 +78,20 @@
     "@types/simpl-schema": "^1.12.9",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
     "@typescript-eslint/parser": "^8.71.0",
+    "@vitejs/plugin-vue": "6.0.9",
+    "@vue/test-utils": "2.5.1",
     "chai": "^6.2.2",
     "eslint": "^10.11.0",
     "eslint-plugin-vue": "^10.11.1",
     "eslint-plugin-vuetify": "^2.7.3",
+    "fast-check": "4.10.2",
     "globals": "^17.12.0",
+    "happy-dom": "20.14.5",
     "rspack-vue-loader": "^17.7.0",
     "type-fest": "^5.10.0",
     "typescript": "^6.0.3",
+    "vite": "8.3.2",
+    "vitest": "5.0.3",
     "vue-tsc": "^3.3.11"
   }
 }
