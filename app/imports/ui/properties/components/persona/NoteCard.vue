@@ -49,7 +49,3 @@ function clickProperty(_id) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

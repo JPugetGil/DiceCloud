@@ -221,16 +221,16 @@ const { result: ability } = autorun(() => {
 
 const { result: proficiencyBonus } = autorun(() => {
   if (!context.creatureId) return;
-  return CreatureProperties.findOne({
+  const value = CreatureProperties.findOne({
     ...getFilter.descendantsOfRoot(context.creatureId),
     variableName: 'proficiencyBonus',
     overridden: { $ne: true },
     removed: { $ne: true },
     inactive: { $ne: true },
   })?.value;
+  // A calculation's value may be text: the proficiency takes a number, else
+  // its default
+  const bonus = Number(value);
+  return value !== undefined && Number.isFinite(bonus) ? bonus : undefined;
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

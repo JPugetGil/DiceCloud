@@ -207,7 +207,3 @@ async function insertExperience() {
   }
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

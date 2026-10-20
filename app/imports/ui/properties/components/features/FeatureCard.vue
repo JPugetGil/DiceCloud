@@ -46,6 +46,3 @@ const summaryText = computed(() => {
   }
 });
 </script>
-
-<style lang="css" scoped>
-</style>

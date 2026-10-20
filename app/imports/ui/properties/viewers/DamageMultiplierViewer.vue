@@ -80,7 +80,3 @@ const operation = computed(() => {
   }
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

@@ -81,6 +81,10 @@ import InlineProficiency from '/imports/ui/properties/components/proficiencies/I
 import OutlinedInput from '/imports/ui/properties/viewers/shared/OutlinedInput.vue';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
+// The value's element takes the caller's attributes (v-bind="$attrs"), not
+// the column too: a data-id was on both
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps({
   name: {
     type: String,

@@ -106,6 +106,3 @@ function librariesChanged(val, ack) {
   ack();
 }
 </script>
-
-<style lang="css" scoped>
-</style>

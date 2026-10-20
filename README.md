@@ -221,10 +221,9 @@ files in `app/imports/`), next to a running development server if need be.
 
 `meteor npm run typecheck` in `app/` type checks the app, single-file
 components included (vue-tsc, about 35 s), once Meteor has built it (`meteor`
-or `meteor npm test`). The app has a small backlog of type errors, listed in
-`tests/types/baseline.txt`: the check fails only on errors that list doesn't
-hold. After fixing some, `meteor npm run typecheck -- --update` removes them
-from it.
+or `meteor npm test`). It fails on any error that `tests/types/baseline.txt`
+doesn't list; that list, the backlog the check started with, is empty since
+October 2026. `meteor npm run typecheck -- --update` rewrites it.
 
 `meteor npm run cycles` in `app/` fails when the imports gain a cycle: a cycle
 makes the order modules initialise in depend on which loads first, and has

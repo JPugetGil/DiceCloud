@@ -114,6 +114,3 @@ function levelUpDialog() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

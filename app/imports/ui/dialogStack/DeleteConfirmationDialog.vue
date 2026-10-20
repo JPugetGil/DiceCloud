@@ -73,7 +73,3 @@ const nameMatch = computed(() => {
   return uppername === upperInputName;
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

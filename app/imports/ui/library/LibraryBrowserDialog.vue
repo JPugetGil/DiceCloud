@@ -27,7 +27,3 @@ import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 
 const dialogStackStore = useDialogStackStore();
 </script>
-
-<style lang="css" scoped>
-
-</style>

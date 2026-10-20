@@ -279,7 +279,3 @@ function makeOwner(user) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

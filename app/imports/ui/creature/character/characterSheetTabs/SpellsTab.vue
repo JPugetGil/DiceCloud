@@ -178,7 +178,3 @@ const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.fin
 // Spell slot attributes alone (all at 0 before a caster class) are no content
 const isEmpty = computed(() => !hasSpells.value && !spellLists.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
-
-<style lang="css" scoped>
-
-</style>

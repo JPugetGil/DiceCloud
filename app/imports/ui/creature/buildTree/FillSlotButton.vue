@@ -54,7 +54,3 @@ function fillSlot() {
   });
 }
 </script>
-
-<style>
-
-</style>

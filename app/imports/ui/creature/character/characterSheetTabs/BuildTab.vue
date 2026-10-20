@@ -491,6 +491,3 @@ async function unhideProp(_id) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

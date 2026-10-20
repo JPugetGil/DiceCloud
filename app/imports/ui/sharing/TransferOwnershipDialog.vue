@@ -73,6 +73,3 @@ async function transfer() {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

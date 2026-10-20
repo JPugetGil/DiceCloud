@@ -434,7 +434,3 @@ function showDependencyGraph() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

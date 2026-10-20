@@ -50,6 +50,8 @@ async function ownerLanguage(userId?: string): Promise<string | undefined> {
  * classes, the hit points and the armor class. Undefined for a character that
  * is not public, or not there
  */
+const isFiniteNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+
 export async function characterSummary(creatureId: string): Promise<CharacterSummary | undefined> {
   const { Creatures, CreatureProperties, CreatureVariables } = await collections();
   const creature = await Creatures.findOneAsync({ _id: creatureId, public: true }, {
@@ -78,8 +80,11 @@ export async function characterSummary(creatureId: string): Promise<CharacterSum
     creature,
     race: typeof raceVariable === 'string' ? raceVariable : raceProperty?.name,
     classes: classes.map(cls => ({ name: cls.name, level: cls.level })),
-    ...hitPoints && { hitPoints: { value: hitPoints.value, total: hitPoints.total } },
-    ...Number.isFinite(armor?.value) && { armorClass: armor?.value },
+    // Numbers only: a calculation's value may be text or a boolean
+    ...hitPoints && isFiniteNumber(hitPoints.value) && isFiniteNumber(hitPoints.total) && {
+      hitPoints: { value: hitPoints.value, total: hitPoints.total },
+    },
+    ...isFiniteNumber(armor?.value) && { armorClass: armor.value },
     language: await ownerLanguage(creature.owner),
   };
 }

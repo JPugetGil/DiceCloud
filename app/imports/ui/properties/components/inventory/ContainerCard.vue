@@ -99,7 +99,3 @@ const itemIds = autorun(() => {
   }).map(prop => prop._id);
 }).result;
 </script>
-
-<style lang="css" scoped>
-
-</style>

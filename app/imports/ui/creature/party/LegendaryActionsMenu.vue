@@ -129,13 +129,17 @@ const options = autorun(() => CreatureProperties.find({
   removed: { $ne: true },
   inactive: { $ne: true },
 }, { sort: { left: 1 } }).map(action => {
-  const consumed = action.resources.attributesConsumed.find(c => c.variableName === LEGENDARY_ACTIONS);
-  const cost = Number.isFinite(consumed?.quantity?.value) ? consumed.quantity.value : 1;
+  // The entry the query asks for, its quantity computed (the schema's types
+  // keep the stored and computed rows of an action apart)
+  /** @type {{ quantity?: { calculation?: string, value?: unknown } } | undefined} */
+  const consumed = action.resources?.attributesConsumed?.find(c => c.variableName === LEGENDARY_ACTIONS);
+  const quantity = consumed?.quantity?.value;
+  const cost = typeof quantity === 'number' && Number.isFinite(quantity) ? quantity : 1;
   return {
     _id: action._id,
     name: action.name,
     cost,
-    affordable: !action.insufficientResources && cost <= (resource.value?.value ?? 0),
+    affordable: !action.insufficientResources && cost <= Number(resource.value?.value ?? 0),
   };
 })).result;
 

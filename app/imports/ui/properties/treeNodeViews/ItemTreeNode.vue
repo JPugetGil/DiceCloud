@@ -52,6 +52,3 @@ const title = computed(() => {
   return prop && prop.name;
 });
 </script>
-
-<style lang="css" scoped>
-</style>

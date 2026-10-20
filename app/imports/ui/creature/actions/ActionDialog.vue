@@ -156,7 +156,11 @@ const inputProvider = {
     userInput.value = [];
     activeInputParams.value = {
       choices,
-      quantity
+      // The engine counts [min, max], -1 for no limit; ChoiceInput takes
+      // { min, max }, and its default when there is none
+      ...quantity && {
+        quantity: { min: quantity[0], max: quantity[1] < 0 ? Infinity : quantity[1] },
+      },
     };
     activeInput.value = 'choice-input';
     return promiseInput();

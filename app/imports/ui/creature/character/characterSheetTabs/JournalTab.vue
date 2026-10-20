@@ -100,7 +100,4 @@ const creature = autorun(() => /** @type {import('/imports/api/creature/creature
   Creatures.findOne(props.creatureId)
 )).result;
 </script>
-
-<style lang="css" scoped>
-
-</style>.result
+.result

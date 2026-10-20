@@ -80,7 +80,3 @@ async function moveBetweenRoots({ doc, newPosition, newRootRef }) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

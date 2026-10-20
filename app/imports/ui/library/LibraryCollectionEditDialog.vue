@@ -200,7 +200,3 @@ function share() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

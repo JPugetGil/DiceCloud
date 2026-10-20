@@ -63,7 +63,3 @@ function showCharacterForm() {
   });
 }
 </script>
-
-<style>
-
-</style>

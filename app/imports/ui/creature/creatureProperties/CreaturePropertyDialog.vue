@@ -307,6 +307,3 @@ function addProperty({ elementId, suggestedType }) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

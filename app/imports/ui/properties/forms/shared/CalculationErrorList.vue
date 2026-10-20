@@ -10,7 +10,6 @@
       <v-alert
         v-for="error in computedErrors"
         :key="error.message"
-        :value="true"
         :icon="errorIcon(error.type)"
         :color="errorColor(error.type)"
         class="mb-2"

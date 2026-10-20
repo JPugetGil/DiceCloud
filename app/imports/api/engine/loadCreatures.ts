@@ -47,7 +47,6 @@ export function loadCreature(creatureId: string, subscription: CreatureSubscribe
     creature = new LoadedCreature(subscription, creatureId, compute);
     loadedCreatures.set(creatureId, creature);
   }
-  // logLoadedCreatures()
 }
 
 export async function unloadAllCreatures() {
@@ -71,7 +70,6 @@ function unloadCreature(creatureId: string, subscription: CreatureSubscriber) {
       console.error(`Failed to stop the observers of creature ${creatureId}`, e);
     });
   }
-  // logLoadedCreatures()
 }
 
 /**
@@ -93,13 +91,11 @@ export async function getSingleProperty(creatureId: string, propertyId: string) 
   if (property) {
     return EJSON.clone(property);
   }
-  // console.time(`Cache miss on creature properties: ${creatureId}`)
   const prop = await CreatureProperties.findOneAsync({
     _id: propertyId,
     'root.id': creatureId,
     'removed': { $ne: true },
   });
-  // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
   return prop;
 }
 
@@ -124,14 +120,12 @@ export async function getProperties(creatureId: string): Promise<CreaturePropert
       .filter(prop => !prop.removed);
     return EJSON.clone(props);
   }
-  // console.time(`Cache miss on creature properties: ${creatureId}`)
   const props = await CreatureProperties.find({
     'root.id': creatureId,
     'removed': { $ne: true },
   }, {
     sort: { left: 1 },
   }).fetchAsync();
-  // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
   return props;
 }
 
@@ -143,7 +137,6 @@ export async function getPropertiesOfType<T extends PropertyType>(creatureId: st
       .sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
-  // console.time(`Cache miss on creature properties: ${creatureId}`)
   const props: CreaturePropertyTypes[T][] = await CreatureProperties.find({
     'root.id': creatureId,
     'removed': { $ne: true },
@@ -151,7 +144,6 @@ export async function getPropertiesOfType<T extends PropertyType>(creatureId: st
   }, {
     sort: { left: 1 },
   }).fetchAsync() as unknown as CreaturePropertyTypes[T][];
-  // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
   return props;
 }
 
@@ -173,7 +165,6 @@ export async function getPropertiesByFilter(
       .sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
-  // console.time(`Cache miss on creature properties: ${creatureId}`)
   const props = await CreatureProperties.find({
     'root.id': creatureId,
     'removed': { $ne: true },
@@ -181,7 +172,6 @@ export async function getPropertiesByFilter(
   } as any, {
     sort: { left: 1 },
   }).fetchAsync();
-  // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
   return props;
 }
 
@@ -191,9 +181,7 @@ export async function getCreature(creatureId: string) {
   if (loadedCreatureDoc) {
     return EJSON.clone(loadedCreatureDoc);
   }
-  // console.time(`Cache miss on Creature: ${creatureId}`);
   const creature = await Creatures.findOneAsync(creatureId);
-  // console.timeEnd(`Cache miss on Creature: ${creatureId}`);
   return creature;
 }
 
@@ -203,9 +191,7 @@ export async function getVariables(creatureId: string) {
   if (loadedVariables) {
     return EJSON.clone(loadedVariables);
   }
-  // console.time(`Cache miss on variables: ${creatureId}`);
   const variables = await CreatureVariables.findOneAsync({ _creatureId: creatureId });
-  // console.timeEnd(`Cache miss on variables: ${creatureId}`);
   return variables;
 }
 

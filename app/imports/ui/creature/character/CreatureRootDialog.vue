@@ -137,6 +137,3 @@ function addProperty() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

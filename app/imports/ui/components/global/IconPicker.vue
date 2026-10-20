@@ -158,7 +158,3 @@ const select = (icon) => {
   change(icon);
 };
 </script>
-
-<style lang="css" scoped>
-
-</style>

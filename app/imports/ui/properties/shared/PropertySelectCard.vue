@@ -63,6 +63,3 @@ const showPropertyHelp = autorun(() => {
   return !(user?.preferences?.hidePropertySelectDialogHelp);
 }).result;
 </script>
-
-<style lang="css" scoped>
-</style>

@@ -1,6 +1,12 @@
 import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
 import { DDP } from 'meteor/ddp';
 
+/**
+ * The properties every new character starts with, as inserted (the schema
+ * fills the rest)
+ * @param {string} creatureId
+ * @returns {Partial<import('/imports/api/creature/creatureProperties/CreatureProperties').CreatureProperty>[]}
+ */
 export default function defaultCharacterProperties(creatureId) {
   if (!creatureId) throw 'creatureId is required';
   const creatureRef = { collection: 'creatures', id: creatureId };

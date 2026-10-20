@@ -129,7 +129,3 @@ function clickSpellList(_id) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

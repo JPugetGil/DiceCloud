@@ -104,7 +104,3 @@ async function importCharacterData() {
   }
 }
 </script>
-
-<style scoped>
-
-</style>

@@ -61,6 +61,3 @@ function insertLibraryNode() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

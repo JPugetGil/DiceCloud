@@ -242,7 +242,3 @@ async function restore(_id) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

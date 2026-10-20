@@ -125,7 +125,3 @@ async function handleMoveBetweenRoots({ doc, newPosition, newRootRef }) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

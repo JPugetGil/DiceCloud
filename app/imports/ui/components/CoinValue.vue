@@ -33,6 +33,3 @@ const coinValue = computed(() => {
   return valueToCoins(props.value);
 });
 </script>
-
-<style lang="css" scoped>
-</style>

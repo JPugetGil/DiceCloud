@@ -205,6 +205,3 @@ const archiveCreaturesWithNoParty = autorun(() => {
   ).map(fileTransform);
 }).result;
 </script>
-
-<style lang="css" scoped>
-</style>

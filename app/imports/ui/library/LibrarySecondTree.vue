@@ -115,6 +115,3 @@ const canEditLibrary = autorun(() => {
   return hasEditPermission(library.value, Meteor.user());
 }).result;
 </script>
-
-<style lang="css" scoped>
-</style>

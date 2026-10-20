@@ -41,6 +41,11 @@ declare module 'meteor/mongo' {
        *
        */
       attachSchema(ss: SimpleSchema | TypedSimpleSchema<T>, options?: SchemaOptions): void;
+      // Collection2 cleans an inserted document, which fills the fields that
+      // have a default (denormalizedStats, propCount...), then validates it
+      // against the schema: the type checks the fields given, the schema that
+      // none is missing
+      insertAsync(doc: Partial<T>): Promise<string>;
       updateAsync(
         selector: Selector<T> | ObjectID | string,
         modifier: Modifier<T>,

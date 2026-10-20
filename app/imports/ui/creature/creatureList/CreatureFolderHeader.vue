@@ -159,6 +159,3 @@ async function removeFolder() {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

@@ -68,6 +68,3 @@ async function selectItem(itemId){
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

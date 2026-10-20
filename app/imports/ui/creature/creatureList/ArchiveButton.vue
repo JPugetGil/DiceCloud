@@ -33,6 +33,3 @@ function openArchive() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

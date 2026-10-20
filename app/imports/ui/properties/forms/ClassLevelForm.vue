@@ -70,7 +70,3 @@ function change(path, value, ack) {
   emit('change', { path, value, ack });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

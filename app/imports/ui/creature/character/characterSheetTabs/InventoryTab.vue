@@ -262,7 +262,3 @@ const weightCarried = computed(() => {
 // Nothing to show yet: say what goes here and where it comes from
 const isEmpty = computed(() => !containers.value?.length && !carriedItemIds.value?.length && !equippedItemIds.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
-
-<style lang="css" scoped>
-
-</style>

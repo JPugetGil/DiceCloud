@@ -26,6 +26,3 @@ const drawer = computed({
   },
 });
 </script>
-
-<style lang="css" scoped>
-</style>

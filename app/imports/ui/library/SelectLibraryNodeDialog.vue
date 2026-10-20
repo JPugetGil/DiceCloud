@@ -43,6 +43,3 @@ const node = ref(undefined);
 
 const dialogStackStore = useDialogStackStore();
 </script>
-
-<style lang="css" scoped>
-</style>

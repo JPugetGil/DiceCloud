@@ -66,6 +66,3 @@ async function moveWithinRoot({ doc, newPosition }) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

@@ -250,9 +250,11 @@
                 class="os-resource"
               >
                 <span class="os-resource-name">{{ resource.name }}</span>
-                <template v-if="resource.total <= 12">
+                <!-- A total may be text (a calculation's value): over a string,
+                     v-for went through its characters -->
+                <template v-if="Number(resource.total) <= 12">
                   <span
-                    v-for="i in resource.total"
+                    v-for="i in Number(resource.total)"
                     :key="i"
                     class="os-circle"
                   />

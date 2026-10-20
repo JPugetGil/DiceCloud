@@ -72,6 +72,3 @@ function makeMilestone(isMilestone, ack) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

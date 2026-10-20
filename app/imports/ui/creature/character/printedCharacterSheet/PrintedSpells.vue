@@ -107,7 +107,3 @@ const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.fin
 })).result;
 
 </script>
-
-<style lang="css" scoped>
-
-</style>

@@ -20,6 +20,3 @@ const shape = computed(() => {
   return SVG_ICONS[props.name].shape;
 });
 </script>
-
-<style lang="css" scoped>
-</style>

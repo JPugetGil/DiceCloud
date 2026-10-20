@@ -67,7 +67,3 @@ const displayedValue = computed(() => {
 });
 
 </script>
-
-<style lang="css" scoped>
-
-</style>

@@ -282,6 +282,3 @@ function helpDialog() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

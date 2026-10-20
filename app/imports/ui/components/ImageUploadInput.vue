@@ -155,7 +155,3 @@ function resetState() {
   progress.value = 0;
 }
 </script>
-
-<style>
-
-</style>

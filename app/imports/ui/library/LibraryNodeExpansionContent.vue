@@ -11,7 +11,7 @@
         class="pt-4"
       >
         <component
-          :is="model?.type"
+          :is="propertyViewerIndex[model?.type]"
           :model="model"
           class="property-viewer"
         />
@@ -26,18 +26,9 @@
   </div>
 </template>
 
-<script lang="js">
-import propertyViewerIndex from '/imports/ui/properties/viewers/shared/propertyViewerIndex';
-
-export default {
-  components: {
-    ...propertyViewerIndex,
-  },
-};
-</script>
-
 <script setup lang="js">
 import { computed } from 'vue';
+import propertyViewerIndex from '/imports/ui/properties/viewers/shared/propertyViewerIndex';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { docsToForest, getFilter } from '/imports/api/parenting/parentingFunctions';
@@ -79,6 +70,3 @@ function clickChild(childId) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

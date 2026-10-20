@@ -163,7 +163,7 @@
         variant="text"
         @click="dialogStackStore.popDialogStack()"
       >
-        {{ tab === 1 ? "Discard" : "Cancel" }}
+        {{ tab === 1 ? $t('common.discard') : $t('common.cancel') }}
       </v-btn>
       <v-spacer />
       <v-btn

@@ -161,7 +161,3 @@ const back = () => {
   return window.history.length > 2 ? router.back() : router.push('/library');
 };
 </script>
-
-<style lang="css" scoped>
-
-</style>

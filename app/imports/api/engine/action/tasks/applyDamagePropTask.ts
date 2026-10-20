@@ -104,7 +104,9 @@ export default async function applyDamagePropTask(
   let damage, newValue, increment;
   let targetProp = await getSingleProperty(targetId, targetPropId);
 
-  if (!targetProp) return value;
+  // Only an attribute takes damage: the actions name one, but a trigger may
+  // point `~attributeDamaged` at any property
+  if (targetProp?.type !== 'attribute') return value;
   // Include the damage and healing this action has already dealt it
   targetProp = getEffectiveProperty(action, targetProp);
 
@@ -132,7 +134,7 @@ export default async function applyDamagePropTask(
       contents: [{
         ...logLine({
           name: title,
-          value: msg('logs.attributeSet', { name: getPropertyTitle(targetProp), from: targetProp.value, to: value }),
+          value: msg('logs.attributeSet', { name: getPropertyTitle(targetProp), from: String(targetProp.value), to: value }),
           inline: true,
           ...(task.silent || isHidden(targetProp)) && { silenced: true },
         }),

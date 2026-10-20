@@ -78,6 +78,16 @@ export default async function applyAdjustmentProperty(
       }, damageTargetIds);
       return;
     }
+    // An adjustment changes an attribute: a skill or a constant of that name
+    // has no damage to take, and its value was rewritten as if it had
+    if (stat.type !== 'attribute') {
+      result.appendLog({
+        name: 'Error', i18n: { name: { key: 'logs.error' } },
+        value: `Could not apply attribute damage, \`${prop.stat}\` is not an attribute`,
+        silenced: prop.silent,
+      }, damageTargetIds);
+      return;
+    }
   }
   // A target hidden from the actor's readers, a game master's monster: they
   // read what the actor applied, the stat's name and the actor's own number,

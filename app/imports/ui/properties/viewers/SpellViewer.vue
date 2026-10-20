@@ -66,7 +66,3 @@ const spellComponents = computed(() => {
   return components.join(', ');
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

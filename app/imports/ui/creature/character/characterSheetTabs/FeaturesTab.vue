@@ -106,7 +106,3 @@ function featureClicked({ _id }) {
 // Nothing to show yet: say what goes here and where it comes from
 const isEmpty = computed(() => !features.value?.length && !startFolders.value?.length && !endFolders.value?.length);
 </script>
-
-<style lang="css" scoped>
-
-</style>

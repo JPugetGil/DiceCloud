@@ -894,7 +894,8 @@
     "longRestTitle": "Repos long",
     "edit": "Modifier",
     "deleted": "{name} supprimé",
-    "removeItem": "Retirer {name}"
+    "removeItem": "Retirer {name}",
+    "discard": "Abandonner"
   },
   "propertyTypes": {
     "action": {

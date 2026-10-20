@@ -120,6 +120,3 @@ const { result: selectedNode } = autorun(() => {
   });
 });
 </script>
-
-<style lang="css" scoped>
-</style>

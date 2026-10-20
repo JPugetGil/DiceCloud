@@ -165,7 +165,3 @@ async function deleteAccount() {
   await dialogStackStore.popDialogStack();
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

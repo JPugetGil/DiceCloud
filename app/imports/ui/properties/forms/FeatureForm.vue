@@ -49,7 +49,3 @@ defineEmits(['change']);
 
 
 </script>
-
-<style lang="css" scoped>
-
-</style>

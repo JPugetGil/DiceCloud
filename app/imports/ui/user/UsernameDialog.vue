@@ -83,6 +83,3 @@ async function setUsername() {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

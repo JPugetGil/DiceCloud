@@ -104,7 +104,3 @@ const properties = computed(/** @returns {{ suggested?: PropertyDefinitions, mor
   }
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

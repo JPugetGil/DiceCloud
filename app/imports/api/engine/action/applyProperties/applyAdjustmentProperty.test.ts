@@ -3,6 +3,7 @@ import type {
   TestCreature
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import {
+  allLogContent,
   allMutations,
   createTestCreature,
   getRandomIds,
@@ -11,7 +12,8 @@ import {
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [
-  creatureId, targetCreatureId, targetCreature2Id, adjustmentToTargetId, adjustmentToSelfId, targetCreatureStrengthId, targetCreature2StrengthId, selfDexterityId
+  creatureId, targetCreatureId, targetCreature2Id, adjustmentToTargetId, adjustmentToSelfId, targetCreatureStrengthId, targetCreature2StrengthId, selfDexterityId,
+  adjustmentToSkillId, targetCreatureAthleticsId,
 ] = getRandomIds(100);
 
 const actionTestCreature: TestCreature = {
@@ -34,6 +36,14 @@ const actionTestCreature: TestCreature = {
       amount: { calculation: '11' }
     },
     {
+      _id: adjustmentToSkillId,
+      type: 'adjustment',
+      target: 'target',
+      stat: 'athletics',
+      operation: 'increment',
+      amount: { calculation: '2' }
+    },
+    {
       _id: selfDexterityId,
       type: 'attribute',
       name: 'Dexterity',
@@ -53,7 +63,14 @@ const actionTargetCreature: TestCreature = {
       attributeType: 'ability',
       variableName: 'strength',
       baseValue: { calculation: '12' },
-    }
+    },
+    {
+      _id: targetCreatureAthleticsId,
+      type: 'skill',
+      skillType: 'skill',
+      variableName: 'athletics',
+      ability: 'strength',
+    },
   ]
 }
 
@@ -163,5 +180,18 @@ describe('Apply Adjustment Properties', function () {
         },
       ],
     }]);
+  });
+
+  // A skill has no damage to take: the task wrote `damage` and `value` on it,
+  // and logged an attribute type of `undefined`
+  it('Refuses a stat that is not an attribute, and writes nothing', async function () {
+    const action = await runActionById(adjustmentToSkillId, [targetCreatureId]);
+    assert.exists(action);
+    const updates = allMutations(action).flatMap(mutation => mutation.updates ?? []);
+    assert.deepEqual(updates, [], 'nothing written');
+    assert.include(
+      allLogContent(action).map(line => line.value).join('\n'),
+      'Could not apply attribute damage, `athletics` is not an attribute',
+    );
   });
 });

@@ -6,7 +6,6 @@ import errorText from '/imports/api/utility/errorText';
 
 function calculationUp(val) {
   if (typeof val !== 'string') return val;
-  if (!val.replace) console.log({ val, replace: val.replace });
   return val.replace(/#(\w+).(\w+)Result/g, '#$1.$2')
     .replace(/\.value/g, '.total')
     .replace(/\.currentValue/g, '.value');

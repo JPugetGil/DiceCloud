@@ -101,7 +101,3 @@ function linkClick(e) {
   });
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

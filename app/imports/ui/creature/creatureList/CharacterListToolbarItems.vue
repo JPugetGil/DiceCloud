@@ -7,6 +7,3 @@
 <script setup>
 import ArchiveButton from '/imports/ui/creature/creatureList/ArchiveButton.vue';
 </script>
-
-<style lang="css">
-</style>

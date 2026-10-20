@@ -73,7 +73,7 @@
         >
           <health-change-menu
             :name="stats.hitPoints.name"
-            :value="stats.hitPoints.value"
+            :value="Number(stats.hitPoints.value)"
             :open="editing"
             @change="changeHealth"
             @close="editing = false"

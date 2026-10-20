@@ -43,7 +43,3 @@ defineProps({
 
 const context = useContext();
 </script>
-
-<style lang="css" scoped>
-
-</style>

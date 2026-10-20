@@ -164,7 +164,3 @@ const damageTypeRules = [
 ];
 
 </script>
-
-<style lang="css" scoped>
-
-</style>

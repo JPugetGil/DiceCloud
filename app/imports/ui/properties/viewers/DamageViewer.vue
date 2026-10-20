@@ -68,7 +68,3 @@ const saveDamage = computed(() => {
   return { calculation: props.model.save.damageFunction };
 });
 </script>
-
-<style lang="css" scoped>
-
-</style>

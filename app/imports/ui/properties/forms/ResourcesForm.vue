@@ -118,7 +118,3 @@ function addCondition() {
 }
 
 </script>
-
-<style lang="css" scoped>
-
-</style>

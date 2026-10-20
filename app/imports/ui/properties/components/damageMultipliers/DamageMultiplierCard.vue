@@ -93,6 +93,3 @@ function title(prop) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-</style>

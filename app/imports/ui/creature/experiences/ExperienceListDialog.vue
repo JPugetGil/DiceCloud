@@ -89,7 +89,6 @@
 <script setup lang="js">
 import { ref } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
-import { format } from 'date-fns';
 import DialogBase from '/imports/ui/dialogStack/DialogBase.vue';
 import Experiences, { removeExperience as removeExperienceMethod, recomputeExperiences } from '/imports/api/creature/experience/Experiences';
 import { useDialogStackStore } from '/imports/ui/stores/dialogStack';
@@ -132,9 +131,11 @@ function xpText(experience){
   return xpText.join(', ');
 }
 
-// date-fns 4 throws on a missing date
+// The day where the reader is, as yyyy-MM-dd
 function formatDate(date){
-  return date ? format(date, 'yyyy-MM-dd') : '';
+  if (!date) return '';
+  const pad = number => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 async function removeExperience(experienceId){

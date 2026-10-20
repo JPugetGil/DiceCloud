@@ -212,7 +212,3 @@ async function changeQuantity({ type, value }) {
   }
 }
 </script>
-
-<style lang="css" scoped>
-
-</style>

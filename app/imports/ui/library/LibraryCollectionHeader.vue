@@ -128,6 +128,3 @@ function editLibraryCollection() {
   });
 }
 </script>
-
-<style lang="css" scoped>
-</style>

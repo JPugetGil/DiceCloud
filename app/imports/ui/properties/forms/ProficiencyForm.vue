@@ -111,7 +111,3 @@ const change = (field, value, ack) => {
   }
 };
 </script>
-
-<style lang="css" scoped>
-
-</style>

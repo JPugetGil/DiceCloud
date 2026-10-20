@@ -193,6 +193,3 @@ watch(menu, (val) => {
   }
 });
 </script>
-
-<style lang="css" scoped>
-</style>

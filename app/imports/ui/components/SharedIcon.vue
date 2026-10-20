@@ -57,6 +57,3 @@ const accessText = computed(() => {
   }
 });
 </script>
-
-<style lang="css" scoped>
-</style>

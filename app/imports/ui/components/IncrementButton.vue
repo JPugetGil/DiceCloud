@@ -51,6 +51,3 @@ function changeIncrementMenu(e) {
   open.value = false;
 }
 </script>
-
-<style lang="css" scoped>
-</style>

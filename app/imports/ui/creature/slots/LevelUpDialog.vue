@@ -82,10 +82,6 @@
               <div
                 v-if="libraryNode.slotQuantityFilled !== undefined && libraryNode.slotQuantityFilled !== 1"
                 class="text-label-medium flex-grow-0 text-no-wrap"
-                :class="{
-                  'text-error': isDisabled(libraryNode) &&
-                    libraryNode._disabledByQuantityFilled
-                }"
               >
                 {{ $t('slots.slotCount', { count: libraryNode.slotQuantityFilled }) }}
               </div>
@@ -149,9 +145,6 @@
         :disabled="!selectedNodeIds.length"
         @click="dialogStackStore.popDialogStack(selectedNodeIds)"
       >
-        <template v-if="model?.spaceLeft">
-          {{ totalQuantitySelected }} / {{ model.spaceLeft }}
-        </template>
         <template v-if="classId">
           {{ $t('common.insert') }}
         </template>
@@ -188,7 +181,6 @@ const dialogStackStore = useDialogStackStore();
  * A filler as the dialog lists it: a library node, flagged with why it can't
  * be picked
  * @typedef {LibraryNode & {
- *   _disabledByQuantityFilled?: boolean,
  *   _disabledBySlotFillerCondition?: boolean,
  *   _conditionError?: string,
  * }} Filler
@@ -270,28 +262,6 @@ const filledLevels = computed(() => {
   ).sort((a, b) => a - b);
 });
 
-const totalQuantitySelected = autorun(() => {
-  let quantitySelected = 0;
-  LibraryNodes.find({
-    _id: { $in: selectedNodeIds.value }
-  }, {
-    fields: { slotQuantityFilled: 1 },
-  }).forEach(node => {
-    if (Number.isFinite(node.slotQuantityFilled)) {
-      // A number: it is finite
-      quantitySelected += /** @type {number} */ (node.slotQuantityFilled);
-    } else {
-      quantitySelected += 1;
-    }
-  });
-  return quantitySelected;
-}).result;
-
-const spaceLeft = autorun(() => {
-  if (!model.value?.quantityExpected || model.value.quantityExpected.value === 0) return undefined;
-  return model.value.spaceLeft - totalQuantitySelected.value;
-}).result;
-
 const libraryNames = autorun(() => {
   let names = {};
   Libraries.find().forEach(lib => names[lib._id] = lib.name);
@@ -311,17 +281,12 @@ const matchingNodes = autorun(() => {
   let nodes = /** @type {Filler[]} */ (LibraryNodes.find(libraryNodeFilter.value, {
     sort: { level: 1, name: 1, order: 1 }
   }).fetch());
-  // Mark classFillers that are too big to fit the quantity to fill
+  // A class has no quantity to fill, unlike a slot: SlotFillDialog's
+  // quantity checks, copied here, never applied
   nodes.forEach(node => {
     // A reference takes the level of the node it names
     if (node.cache?.node) {
       /** @type {{ level?: number }} */ (node).level = node.cache.node.level;
-    }
-    let quantityToFill = node.type === 'slotFiller' ? node.slotQuantityFilled : 1;
-    if (
-      spaceLeft.value !== undefined && quantityToFill > spaceLeft.value
-    ) {
-      node._disabledByQuantityFilled = true;
     }
   });
   // Each has a level: a class level's own, or the one its reference names,
@@ -437,8 +402,7 @@ function openPropertyDetails(id) {
 
 function isDisabled(node) {
   const selected = selectedNodeIds.value.includes(node._id);
-  return (node._disabledByQuantityFilled && !selected)
-    || (filledLevels.value.includes(node.level || node.cache?.node?.level || 0) && !selected);
+  return filledLevels.value.includes(node.level || node.cache?.node?.level || 0) && !selected;
 }
 </script>
 
