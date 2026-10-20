@@ -8,6 +8,7 @@ import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 const LIBRARY_NODE_TREE_FIELDS = {
   _id: 1,
@@ -74,12 +75,7 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
     if (!userId) return [];
     const libraryCollectionSelector = {
       _id: libraryCollectionId,
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     };
     const libraryCollection = (await LibraryCollections.find(libraryCollectionSelector).fetchAsync())[0];
     if (!libraryCollection) return [LibraryCollections.find(libraryCollectionSelector)];
@@ -87,12 +83,7 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
       LibraryCollections.find(libraryCollectionSelector),
       Libraries.find({
         _id: { $in: libraryCollection.libraries },
-        $or: [
-          { owner: userId },
-          { writers: userId },
-          { readers: userId },
-          { public: true },
-        ]
+        ...readableBy(userId)
       }, {
         sort: { name: 1 }
       }),
@@ -119,12 +110,7 @@ Meteor.publish('libraries', function () {
     // Get the collections the user is subscribed to
     const subCollections = user && user.subscribedLibraryCollections || [];
     const libraryCollectionsCursor = LibraryCollections.find({
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { _id: { $in: subCollections }, public: true },
-      ]
+      ...readableBy(userId, subCollections)
     }, {
       sort: { name: 1 }
     });
@@ -142,12 +128,7 @@ Meteor.publish('libraries', function () {
     const libIds = union(collectionLibIds, subs);
 
     const librariesCursor = Libraries.find({
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { _id: { $in: libIds }, public: true },
-      ]
+      ...readableBy(userId, libIds)
     }, {
       sort: { name: 1 }
     });

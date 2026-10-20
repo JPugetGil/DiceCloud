@@ -190,6 +190,7 @@
 </template>
 
 <script setup lang="js">
+import { sharedWith } from '/imports/api/sharing/sharedFilters';
 import errorText from '/imports/api/utility/errorText';
 import { ref, computed, watch } from 'vue';
 import { useDisplay } from 'vuetify';
@@ -237,7 +238,7 @@ const { result: folders } = autorun(() => {
     folder.creatures = Creatures.find(
       {
         _id: { $in: folder.creatures || [] },
-        $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+        $or: sharedWith(userId),
       }, {
       sort: { name: 1 },
     }
@@ -255,7 +256,7 @@ const { result: CreaturesWithNoParty } = autorun(() => {
   return Creatures.find(
     {
       _id: { $nin: folderChars },
-      $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+      $or: sharedWith(userId),
     },
     { sort: { name: 1 } }
   ).map(characterTransform);

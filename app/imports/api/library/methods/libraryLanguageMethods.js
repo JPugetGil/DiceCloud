@@ -8,6 +8,7 @@ import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { LIBRARY_LANGUAGES, nodeLanguages } from '/imports/api/library/libraryLanguage';
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { assertCanManageRoles } from '/imports/api/users/assertRolePermissions';
+import { sharedWith } from '/imports/api/sharing/sharedFilters';
 
 /*
  * A library's or a collection's language and recommendation (UX13): its
@@ -90,7 +91,7 @@ export const libraryNodeLanguages = new ValidatedMethod({
     const userId = this.userId;
     const libraries = await Libraries.find({
       _id: { $in: libraryIds },
-      $or: [{ public: true }, ...userId ? [{ owner: userId }, { readers: userId }, { writers: userId }] : []],
+      $or: [{ public: true }, ...userId ? sharedWith(userId) : []],
     }, { fields: { name: 1, description: 1, language: 1 } }).fetchAsync();
     return nodeLanguages(nodes, new Map(libraries.map(library => [library._id, library])));
   },

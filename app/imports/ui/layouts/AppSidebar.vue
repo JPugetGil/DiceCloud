@@ -147,6 +147,7 @@
 </template>
 
 <script setup lang="js">
+import { sharedWith } from '/imports/api/sharing/sharedFilters';
 import { computed } from 'vue';
 import { subscribe, autorun } from 'vue-meteor-tracker';
 import { Meteor } from 'meteor/meteor';
@@ -214,7 +215,7 @@ const folders = autorun(() => {
     folder.creatures = Creatures.find(
       {
         _id: { $in: folder.creatures || [] },
-        $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+        $or: sharedWith(userId),
       }, {
       sort: { name: 1 },
     }
@@ -238,7 +239,7 @@ const CreaturesWithNoParty = autorun(() => {
   return Creatures.find(
     {
       _id: { $nin: folderChars },
-      $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+      $or: sharedWith(userId),
       type: 'pc',
     },
     { sort: { name: 1 } }

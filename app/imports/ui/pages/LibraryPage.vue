@@ -97,6 +97,7 @@
 </template>
 
 <script setup>
+import { readableBy, sharedWith } from '/imports/api/sharing/sharedFilters';
 import errorText from '/imports/api/utility/errorText';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -125,23 +126,13 @@ const libraryCollections = autorun(() => {
   if (!userId) return;
   const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
   return LibraryCollections.find({
-    $or: [
-      { owner: userId },
-      { writers: userId },
-      { readers: userId },
-      { _id: { $in: subCollections }, public: true },
-    ]
+    ...readableBy(userId, subCollections)
   }, {
     sort: { name: 1 }
   }).map(libCollection => {
     libCollection.libraryDocuments = Libraries.find({
       _id: {$in: libCollection.libraries},
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     }, {
       sort: { name: 1 }
     }).fetch();
@@ -154,7 +145,7 @@ const libraryCollections = autorun(() => {
 const noLibraries = autorun(() => {
   const user = Meteor.user();
   if (!user) return false;
-  const mine = { $or: [{ owner: user._id }, { writers: user._id }, { readers: user._id }] };
+  const mine = { $or: sharedWith(user._id) };
   return !user.subscribedLibraries?.length && !user.subscribedLibraryCollections?.length
     && !Libraries.find(mine).count() && !LibraryCollections.find(mine).count();
 }).result;

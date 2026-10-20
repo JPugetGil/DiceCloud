@@ -1,4 +1,5 @@
 import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 /**
  * A character folder is a party: its owner is the game master, and the
@@ -41,7 +42,7 @@ export function getPartyRole(
 export function partyCreaturesFilter(folder: PartyFolder & { owner: string }, userId: string) {
   const _id = { $in: folder.creatures || [] };
   if (getPartyRole(folder, userId) === 'gm') {
-    return { _id, $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }] };
+    return { _id, ...readableBy(userId) };
   }
   return { _id, owner: { $in: [folder.owner, ...(folder.members || [])] } };
 }

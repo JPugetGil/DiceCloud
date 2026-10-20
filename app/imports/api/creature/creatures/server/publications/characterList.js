@@ -5,6 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { AsyncTracker } from 'meteor/nachocodoner:reactive-publish';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
 import { PARTY_DISCORD_FIELD } from '/imports/api/creature/creatures/webhookVisibility';
+import { sharedWith } from '/imports/api/sharing/sharedFilters';
 
 // Cursors and nothing else: their observers keep them up to date. This used
 // to be an autorun, which every change to a folder reran, every turn of a
@@ -16,11 +17,7 @@ Meteor.publish('characterList', function () {
   }
   return [
     Creatures.find({
-      $or: [
-        { readers: userId },
-        { writers: userId },
-        { owner: userId },
-      ],
+      $or: sharedWith(userId),
       type: 'pc',
     }, {
       fields: {
@@ -56,7 +53,7 @@ Meteor.publish('characterListClasses', function () {
     const userId = this.userId;
     if (!userId) return [];
     const creatureIds = await Creatures.find({
-      $or: [{ readers: userId }, { writers: userId }, { owner: userId }],
+      $or: sharedWith(userId),
       type: 'pc',
     }, { fields: { _id: 1 } }).mapAsync(creature => creature._id);
     // Made outside the computation: a class that levels up needs no rerun

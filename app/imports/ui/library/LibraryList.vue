@@ -65,6 +65,7 @@
 </template>
 
 <script setup>
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 import { ref, useId } from 'vue';
 import { autorun, subscribe } from 'vue-meteor-tracker';
 import { union } from 'lodash';
@@ -106,23 +107,13 @@ const libraryCollections = autorun(() => {
   if (!userId) return;
   const subCollections = Meteor.user()?.subscribedLibraryCollections || [];
   return LibraryCollections.find({
-    $or: [
-      { owner: userId },
-      { writers: userId },
-      { readers: userId },
-      { _id: { $in: subCollections }, public: true },
-    ]
+    ...readableBy(userId, subCollections)
   }, {
     sort: { name: 1 }
   }).map(libCollection => {
     libCollection.libraryDocuments = Libraries.find({
       _id: {$in: libCollection.libraries},
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     }, {
       sort: { name: 1 }
     }).fetch();
@@ -142,12 +133,7 @@ const librariesWithoutCollection = autorun(() => {
   return Libraries.find(
     {
       _id: {$nin: collectedLibraries},
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     },
     {sort: {name: 1}}
   ).fetch();

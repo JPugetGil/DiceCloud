@@ -44,6 +44,7 @@
 </template>
 
 <script setup>
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 import { ref } from 'vue';
 import { Meteor } from 'meteor/meteor';
 import { autorun } from 'vue-meteor-tracker';
@@ -69,12 +70,7 @@ const libraryOptions = autorun(() => {
   const userId = Meteor.userId();
   return Libraries.find(
     {
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     },
     { sort: { name: 1 } }
   ).map(library => {

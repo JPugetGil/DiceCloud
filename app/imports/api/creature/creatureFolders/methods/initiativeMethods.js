@@ -15,6 +15,7 @@ import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters'
 import {
   MAX_COUNT, numberedNames, damageAfter,
 } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 /*
  * The initiative tracker of a party board, stored on its character folder.
@@ -128,7 +129,7 @@ export const rollInitiative = new ValidatedMethod({
     const rolledAll = await updateTracker(folderId, async folder => {
       const creatures = await Creatures.find({
         _id: { $in: folder.creatures || [] },
-        $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
+        ...readableBy(userId),
       }, { fields: { name: 1 } }).fetchAsync();
       const previous = folder.initiative?.entries || [];
       const entries = [];
@@ -241,7 +242,7 @@ export async function addCreaturesToTracker(folder, creatureIds, userId, { share
       && !entries.some(entry => entry.creatureId === id));
     const creatures = await Creatures.find({
       _id: { $in: ids },
-      $or: [{ owner: userId }, { readers: userId }, { writers: userId }, { public: true }],
+      ...readableBy(userId),
     }, { fields: { name: 1 } }).fetchAsync();
     if (!creatures.length) return undefined;
     if (entries.length + creatures.length > MAX_INITIATIVE_ENTRIES) {

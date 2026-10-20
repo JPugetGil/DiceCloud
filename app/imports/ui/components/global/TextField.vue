@@ -31,13 +31,8 @@
 </template>
 
 <script setup lang="js">
-import { ref, computed, watch, onBeforeUnmount, nextTick } from 'vue';
-import useContext from '/imports/ui/composables/useContext';
-import { debounce as debounceFn } from 'lodash';
-import { useI18n } from 'vue-i18n';
-import { smartInputModel } from '/imports/ui/composables/useSmartInput';
-
-const { t } = useI18n();
+import { ref } from 'vue';
+import { smartInputModel, useSmartInput } from '/imports/ui/composables/useSmartInput';
 
 defineOptions({
   inheritAttrs: false,
@@ -67,85 +62,12 @@ const model = defineModel(smartInputModel);
 
 const emit = defineEmits(['keyup', 'change']);
 
-const context = useContext();
-
-const error = ref(false);
-const ackErrors = ref(/** @type {string | null} */ (null));
-const focused = ref(false);
-const loading = ref(false);
-const dirty = ref(false);
-const safeValue = ref(model.value);
+// What every smart input does (useSmartInput): the debounced change, its
+// acknowledgement and errors, and the value shown while the user types. This
+// field had its own copy of it
+const { focused, loading, safeValue, isDisabled, errors, input: onInput } = useSmartInput(props, model, emit);
 
 const inputRef = ref(/** @type {InstanceType<typeof import('vuetify/components').VTextField> | null} */ (null));
-
-const errors = computed(() => {
-  let errs = ackErrors.value ? [ackErrors.value] : [];
-  if (Array.isArray(props.errorMessages)) {
-    errs.push(...props.errorMessages);
-  } else if (typeof props.errorMessages === 'string' && props.errorMessages) {
-    errs.push(props.errorMessages);
-  }
-  return errs;
-});
-
-const isDisabled = computed(() => {
-  return context.editPermission === false || props.disabled;
-});
-
-const debounceTime = computed(() => {
-  if (Number.isFinite(props.debounce)) {
-    return props.debounce;
-  } else if (Number.isFinite(context.debounceTime)) {
-    return context.debounceTime;
-  } else {
-    return 750;
-  }
-});
-
-const hasChangeListener = () => !!props.onChange;
-
-const forceSafeValueUpdate = () => {
-  safeValue.value = null;
-  nextTick(() => {
-    safeValue.value = model.value;
-  });
-};
-
-const acknowledgeChange = (err) => {
-  loading.value = false;
-  dirty.value = false;
-  error.value = !!err;
-  if (!err) {
-    ackErrors.value = null;
-  } else if (typeof err === 'string') {
-    ackErrors.value = err;
-  } else if (err.reason) {
-    ackErrors.value = err.reason;
-  } else if (err.message) {
-    ackErrors.value = err.message;
-  } else {
-    ackErrors.value = t('common.somethingWentWrong');
-    console.error(err);
-  }
-};
-
-const change = (val) => {
-  dirty.value = true;
-  if (hasChangeListener()) loading.value = true;
-  emit('change', val, acknowledgeChange);
-};
-
-const debouncedChange = debounceFn(change, debounceTime.value);
-
-const onInput = (val) => {
-  model.value = val;
-  // v-text-field is controlled by safeValue, and Vue 3 re-applies an input's
-  // value on every render: unless safeValue follows the typing, the next render
-  // (a validation message appearing, say) wipes out what was typed
-  safeValue.value = val;
-  dirty.value = true;
-  debouncedChange(val);
-};
 
 const focus = () => {
   inputRef.value?.focus();
@@ -153,36 +75,6 @@ const focus = () => {
 
 defineExpose({
   focus,
-});
-
-watch(focused, (newFocus) => {
-  if (!newFocus && !dirty.value && !error.value) {
-    forceSafeValueUpdate();
-  }
-  if (!newFocus && dirty.value) {
-    if (hasChangeListener()) loading.value = true;
-  }
-});
-
-watch(dirty, (newDirty) => {
-  if (!newDirty && !focused.value && !error.value) {
-    forceSafeValueUpdate();
-  }
-});
-
-watch(model, (newValue) => {
-  if (!focused.value) {
-    safeValue.value = newValue;
-  }
-});
-
-watch(safeValue, () => {
-  error.value = false;
-  ackErrors.value = null;
-});
-
-onBeforeUnmount(() => {
-  debouncedChange.flush();
 });
 </script>
 

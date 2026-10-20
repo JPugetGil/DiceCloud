@@ -91,6 +91,7 @@
 </template>
 
 <script setup>
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 import errorText from '/imports/api/utility/errorText';
 import { useRouter } from 'vue-router';
 import { Meteor } from 'meteor/meteor';
@@ -126,12 +127,7 @@ const libraryOptions = autorun(() => {
   const userId = Meteor.userId();
   return Libraries.find(
     {
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { public: true },
-      ]
+      ...readableBy(userId)
     },
     { sort: { name: 1 } }
   ).map(library => {

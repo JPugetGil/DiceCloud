@@ -5,6 +5,7 @@ import Libraries from '/imports/api/library/Libraries';
 import LibraryCollections from '/imports/api/library/LibraryCollections';
 import LibraryNodes from '/imports/api/library/LibraryNodes';
 import { RULESET_TAG, guessLanguage, plainSummary } from '/imports/api/library/rulesets';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 /**
  * The rulesets a user can start a character from (UX3): the nodes that fill
@@ -29,7 +30,7 @@ const listRulesets = new ValidatedMethod({
     const user = await Meteor.users.findOneAsync(userId, {
       fields: { subscribedLibraries: 1, subscribedLibraryCollections: 1 },
     });
-    const visible = { $or: [{ public: true }, { owner: userId }, { readers: userId }, { writers: userId }] };
+    const visible = readableBy(userId);
     const libraries = await Libraries.find(visible, { fields: { name: 1, language: 1, recommended: 1 } }).fetchAsync();
     const nodes = await LibraryNodes.find({
       'root.id': { $in: libraries.map(library => library._id) },

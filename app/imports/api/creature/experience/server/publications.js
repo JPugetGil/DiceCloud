@@ -4,6 +4,7 @@ import Experiences from '/imports/api/creature/experience/Experiences';
 import { assertViewPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import { Meteor } from 'meteor/meteor';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 let schema = new SimpleSchema({
   creatureId: {
@@ -21,12 +22,7 @@ Meteor.publish('experiences', function (creatureId) {
     }
     let creatureCursor = Creatures.find({
       _id: creatureId,
-      $or: [
-        { readers: userId },
-        { writers: userId },
-        { owner: userId },
-        { public: true },
-      ],
+      ...readableBy(userId),
     });
     try {
       await assertViewPermission((await creatureCursor.fetchAsync())[0], this.userId);

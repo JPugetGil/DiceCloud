@@ -11,6 +11,7 @@ import escapeRegex from '/imports/api/utility/escapeRegex';
 import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
+import { readableBy } from '/imports/api/sharing/sharedFilters';
 
 // The fillers selected in a dialog that one subscription sends: its cursor's limit
 const MAX_SELECTED_FILLERS = 100;
@@ -52,12 +53,7 @@ Meteor.publish('selectedFillers', function (slotId, nodeIds, isDummySlot) {
     const creatureId = slot.root.id;
     const libraryIds = await getCreatureLibraryIds(creatureId, userId);
     const libraries = Libraries.find({
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { _id: { $in: libraryIds }, public: true },
-      ]
+      ...readableBy(userId, libraryIds)
     }, {
       sort: { name: 1 }
     });
@@ -105,12 +101,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
     const creatureId = slot.root.id;
     const libraryIds = await getCreatureLibraryIds(creatureId, userId);
     const libraries = Libraries.find({
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { _id: { $in: libraryIds }, public: true },
-      ]
+      ...readableBy(userId, libraryIds)
     }, {
       sort: { name: 1 }
     });
@@ -187,12 +178,7 @@ Meteor.publish('classFillers', function (classId) {
     const creatureId = classProp.root.id;
     const libraryIds = await getCreatureLibraryIds(creatureId, userId);
     const libraries = Libraries.find({
-      $or: [
-        { owner: userId },
-        { writers: userId },
-        { readers: userId },
-        { _id: { $in: libraryIds }, public: true },
-      ]
+      ...readableBy(userId, libraryIds)
     }, {
       sort: { name: 1 }
     });
