@@ -8,7 +8,7 @@ import { getActionDiceRoller, getHiddenDiceRoller } from '/imports/api/engine/ac
 import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import type { TurnEventName } from '/imports/api/engine/action/tasks/Task';
 import { getCreature } from '/imports/api/engine/loadCreatures';
-import { fitLineName, logLine, msg } from '/imports/api/creature/log/logMessages';
+import { fitLineName, logLine, msg, type LogKey } from '/imports/api/creature/log/logMessages';
 
 /*
  * A creature's turn starts or ends in a party's initiative tracker, on the
@@ -60,13 +60,13 @@ export type TurnEventOptions = {
 };
 
 // The log entry's title
-const TITLES: Record<TurnEventName, string> = {
+const TITLES: Record<TurnEventName, LogKey> = {
   turnStart: 'logs.turnStart',
   turnEnd: 'logs.turnEnd',
 };
 
 // The title of a holder's entry for another creature's turn: "End of Goblin 1's turn"
-const ANCHORED_TITLES: Record<TurnEventName, string> = {
+const ANCHORED_TITLES: Record<TurnEventName, LogKey> = {
   turnStart: 'logs.turnStartOf',
   turnEnd: 'logs.turnEndOf',
 };

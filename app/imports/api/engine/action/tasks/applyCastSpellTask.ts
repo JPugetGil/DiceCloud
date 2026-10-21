@@ -12,8 +12,6 @@ export default async function applySpellProperty(
   task: CastSpellTask, action: EngineAction, result: TaskResult, userInput: InputProvider
 ): Promise<void> {
   const prop = task.prop;
-  const targetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
-
   if (!prop) {
     result.appendLog({
       name: 'Error casting spell', i18n: { name: { key: 'logs.castSpellError' } },
@@ -22,6 +20,9 @@ export default async function applySpellProperty(
     }, [action.creatureId]);
     return;
   }
+  // Read once the spell is known: before, a missing spell threw a TypeError
+  // rather than say so
+  const targetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
   let slotLevel = prop.level || 0;
   let message: LogMessage;
 

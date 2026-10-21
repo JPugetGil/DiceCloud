@@ -15,7 +15,7 @@ import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import { Meteor } from 'meteor/meteor';
 import type { Mongo } from 'meteor/mongo';
-import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessages';
+import { logLine, msg, type LogKey, type LogPart } from '/imports/api/creature/log/logMessages';
 
 /*
  * The tasks of the events that happen to a creature as a whole: a rest
@@ -27,7 +27,7 @@ import { logLine, msg, type LogPart } from '/imports/api/creature/log/logMessage
  */
 
 // A rest's title, a message key (logs.shortRest)
-const REST_TITLES: Record<string, string> = {
+const REST_TITLES: Record<string, LogKey> = {
   shortRest: 'logs.shortRest',
   longRest: 'logs.longRest',
 };

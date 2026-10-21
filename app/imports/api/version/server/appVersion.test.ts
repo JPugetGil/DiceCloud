@@ -9,7 +9,8 @@ import { readAppVersion } from '/imports/api/version/server/appVersion';
  * against a model of it on random histories, and where the server reads it.
  */
 // `meteor test` runs the server outside the clone: from where npm ran
-const cwd = process.env.INIT_CWD || process.cwd();
+// (`meteor npm test`), else from the shell's directory (`meteor test`)
+const cwd = process.env.INIT_CWD || process.env.PWD || process.cwd();
 const git = (...args: string[]) => execFileSync('git', args, { cwd }).toString().trim();
 const root = () => git('rev-parse', '--show-toplevel');
 /** The script's version after these commit subjects, oldest first */

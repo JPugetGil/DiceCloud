@@ -30,6 +30,7 @@ const copyPropertyToLibrary = new ValidatedMethod({
     parentRef: {
       type: RefSchema,
     },
+    // Accepted, unused since the nested sets: the copy goes last
     order: {
       type: Number,
       optional: true,
@@ -40,7 +41,7 @@ const copyPropertyToLibrary = new ValidatedMethod({
     numRequests: 1,
     timeInterval: 5000,
   },
-  async run({ propId, parentRef, order }) {
+  async run({ propId, parentRef }) {
     // get the new ancestry for the properties
     const parentDoc = await fetchDocByRef(parentRef);
 
@@ -55,7 +56,10 @@ const copyPropertyToLibrary = new ValidatedMethod({
     }
     await assertEditPermission(rootLibrary, this.userId);
 
-    const insertedRootNode = await insertNodeFromProperty(propId, order, this);
+    // Under the node picked, else at the top of the library
+    const root = { collection: 'libraries', id: rootLibrary._id };
+    const parentId = parentRef.collection === 'libraryNodes' ? parentRef.id : undefined;
+    const insertedRootNode = await insertNodeFromProperty(propId, root, parentId, this);
 
     // Tree structure changed by inserts, reorder the tree
     await rebuildNestedSets(LibraryNodes, rootLibrary._id);
@@ -65,7 +69,7 @@ const copyPropertyToLibrary = new ValidatedMethod({
   },
 });
 
-async function insertNodeFromProperty(propId, order, method) {
+async function insertNodeFromProperty(propId, root, parentId, method) {
   // Fetch the property and its descendants, provided they have not been
   // removed
   let prop = await CreatureProperties.findOneAsync({
@@ -112,7 +116,21 @@ async function insertNodeFromProperty(propId, order, method) {
     collectionMap: { 'creatureProperties': 'libraryNodes' }
   });
 
-  // Order the root node
+  // Move the copies from the creature into the library. renewDocIds only
+  // remaps ids inside the copied set, so each copy still named the creature as
+  // root and the top one its parent on the creature: the copies were inserted
+  // but never appeared in the library (insertPropertyFromLibraryNode had the
+  // same fault the other way, since the nested-set migration)
+  for (const doc of props) {
+    doc.root = { ...root };
+  }
+  if (parentId) {
+    prop.parentId = parentId;
+  } else {
+    delete prop.parentId;
+  }
+
+  // Last among its new siblings
   prop.left = Number.MAX_SAFE_INTEGER - 1;
   prop.right = Number.MAX_SAFE_INTEGER;
 

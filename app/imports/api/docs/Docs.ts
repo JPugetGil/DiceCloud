@@ -13,6 +13,7 @@ import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import ChildSchema from '/imports/api/parenting/ChildSchema';
 import { declareTreeIndexes } from '/imports/api/parenting/treeIndexes';
 import { Mongo } from 'meteor/mongo';
+import { checkId, checkPath } from '/imports/api/utility/methodArguments';
 
 // Give the docs a common root, so they can share parenting logic
 export const DOC_ROOT_ID = 'DDDDDDDDDDDDDDDDD'
@@ -190,14 +191,19 @@ const insertDoc = new ValidatedMethod({
   },
 });
 
+// The fields the docs' editor changes (DocEditForm). The others are the
+// methods' to set: the tree (root, parentId, left, right) and the link (href,
+// from urlName). The check returned false, which ValidatedMethod ignores: it
+// refused nothing, and looked for `_is`
+const EDITABLE_DOC_FIELDS = ['name', 'urlName', 'published', 'icon', 'description'];
+
 const updateDoc = new ValidatedMethod({
   name: 'docs.update',
   validate({ _id, path }) {
-    if (!_id) return false;
-    // We cannot change these fields with a simple update
-    switch (path[0]) {
-      case '_is':
-        return false;
+    checkId(_id);
+    checkPath(path);
+    if (!EDITABLE_DOC_FIELDS.includes(String(path[0]))) {
+      throw new Meteor.Error('validation-error', `A doc's ${path[0]} is not changed here`);
     }
   },
   mixins: [RateLimiterMixin],

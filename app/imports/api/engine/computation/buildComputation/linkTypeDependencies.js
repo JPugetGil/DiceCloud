@@ -232,7 +232,8 @@ function getDefaultCalculationField(prop) {
     case 'roll': return 'roll';
     case 'savingThrow': return 'dc';
     case 'skill': return 'baseValue';
-    case 'slot': return 'quantityExpected';
+    // `slot` until 2026-10-21, a type that does not exist: an effect by tag left slots as they were
+    case 'propertySlot': return 'quantityExpected';
     case 'spellList': return 'attackRollBonus';
     case 'spell': return null;
     case 'toggle': return 'condition';

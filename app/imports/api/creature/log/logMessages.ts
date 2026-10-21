@@ -11,11 +11,16 @@ import en from '/imports/ui/i18n/en.json';
  * from en.json, so the two cannot drift apart.
  */
 
+// The log's own messages (en.json's `logs`). Stored in the logs with their
+// parameters, they must exist when written (typed here) and stay as they are
+// once written (storedLogKeys.test.ts): a missing key shows as itself
+export type LogKey = `logs.${keyof typeof en.logs}`;
+
 // A message key and its parameters. A parameter may itself be a message (a
 // damage type's name); `fallback` is shown when the key is unknown (a custom
 // damage type)
 export type LogMessage = {
-  key: string,
+  key: LogKey | `damageTypes.${string}` | `attributeTypes.${string}`,
   params?: Record<string, LogParam>,
   fallback?: string,
 };
@@ -28,7 +33,7 @@ export type LogI18n = {
   value?: LogPart[],
 };
 
-export const msg = (key: string, params?: Record<string, LogParam>): LogMessage => (
+export const msg = (key: LogKey, params?: Record<string, LogParam>): LogMessage => (
   params ? { key, params } : { key }
 );
 
