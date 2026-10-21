@@ -92,7 +92,7 @@ const actions = autorun(() => {
     removed: { $ne: true },
     inactive: { $ne: true },
   }, {
-    sort: { actionType: 1, order: 1 },
+    sort: { actionType: 1, left: 1 },
   }).fetch();
 }).result;
 

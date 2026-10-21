@@ -85,7 +85,7 @@
               @update:model-value="value => setQuery('container', value)"
             />
           </div>
-          <div class="d-flex flex-wrap ga-x-6 mt-2">
+          <div class="d-flex flex-wrap gc-6 mt-2">
             <v-switch
               :model-value="selection.backs"
               :label="$t('printCards.backs')"

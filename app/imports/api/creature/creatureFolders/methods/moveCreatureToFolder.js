@@ -44,20 +44,34 @@ const moveCreatureToFolder = new ValidatedMethod({
       });
       await assertViewPermission(creature, userId);
     }
-    // Remove from other folders
-    await CreatureFolders.updateAsync({
-      owner: userId
-    }, {
-      $pull: { creatures: creatureId },
-    }, {
-      multi: true,
-    });
+    // Remove from other folders. A player's character leaves a party of the
+    // user's as when its player takes it out: off the initiative tracker, and
+    // no longer the user's to edit (removeCharacters)
+    // Its folders but the one it goes to (`$ne: undefined` matches nothing)
+    const others = { owner: userId, ...folderId && { _id: { $ne: folderId } } };
+    const leaving = await CreatureFolders.find(
+      { ...others, creatures: creatureId }, { fields: { owner: 1, members: 1 } },
+    ).fetchAsync();
+    const creature = await Creatures.findOneAsync(creatureId, { fields: { owner: 1 } });
+    const ofAPlayer = !!creature && creature.owner !== userId;
     if (folderId) {
-      // Add to this folder
+      // Add to this folder first: a party of the user's it still sits in
+      // keeps the user's access to it
       await CreatureFolders.updateAsync(folderId, {
         $addToSet: { creatures: creatureId },
       });
     }
+    if (Meteor.isServer && ofAPlayer) {
+      const { removeCharacters } = await import('/imports/api/creature/creatureFolders/removeFromFolders');
+      for (const folder of leaving) {
+        if (folder.members?.length) await removeCharacters(folder, [creatureId]);
+      }
+    }
+    await CreatureFolders.updateAsync(others, {
+      $pull: { creatures: creatureId },
+    }, {
+      multi: true,
+    });
   },
 });
 

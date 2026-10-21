@@ -18,7 +18,7 @@
           size="small"
           label
         >
-          {{ damageType }}
+          {{ damageTypeName(damageType) }}
         </v-chip>
       </property-field>
       <property-field
@@ -61,6 +61,7 @@
 import { computed } from 'vue';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import { useI18n } from 'vue-i18n';
+import { damageTypeName } from '/imports/ui/i18n';
 
 const { t } = useI18n();
 

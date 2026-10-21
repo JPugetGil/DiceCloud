@@ -118,7 +118,6 @@ function removeBuff(buff: any, prop, result: TaskResult, actorsOwn = false) {
 const isCondition = (buff: any) => !!buff.tags?.includes('condition');
 
 function buffRemoverMatchTags(buffRemover, prop) {
-  let matched = false;
   const propTags = getEffectivePropTags(prop);
   // A buff with any tag of a NOT group is never removed. This was checked
   // inside the forEach below, whose `return false` only left its callback, and
@@ -127,24 +126,14 @@ function buffRemoverMatchTags(buffRemover, prop) {
     && intersection(extra.tags || [], propTags).length)) {
     return false;
   }
-  // Check the target tags
-  if (
-    !buffRemover.targetTags?.length ||
-    difference(buffRemover.targetTags, propTags).length === 0
-  ) {
-    matched = true;
-  }
+  const orGroups = (buffRemover.extraTags || []).filter(extra => extra.operation === 'OR');
+  // An OR group without tags matches any buff, as it always did
+  if (orGroups.some(extra => !extra.tags?.length)) return true;
+  // All the target tags; none required: any buff, unless OR groups name some,
+  // which alone then match, as an effect, a trigger and a slot read the same
+  // query (TagTargeting). It removed every buff, whatever its OR groups said
+  const targetTags = buffRemover.targetTags || [];
+  if (targetTags.length ? difference(targetTags, propTags).length === 0 : !orGroups.length) return true;
   // Or all the tags of one of the OR groups
-  buffRemover.extraTags?.forEach(extra => {
-    if (extra.operation === 'OR') {
-      if (matched) return;
-      if (
-        !extra.tags.length ||
-        difference(extra.tags, propTags).length === 0
-      ) {
-        matched = true;
-      }
-    }
-  });
-  return matched;
+  return orGroups.some(extra => difference(extra.tags, propTags).length === 0);
 }

@@ -43,6 +43,12 @@
         {{ errors.join('\n\n') }}
       </div>
     </v-expand-transition>
+    <div
+      v-if="hint && !errors.length"
+      class="pt-1 ps-1 text-body-small text-medium-emphasis"
+    >
+      {{ hint }}
+    </div>
   </div>
 </template>
 
@@ -65,6 +71,11 @@ const props = defineProps({
   options: {
     type: /** @type {import('vue').PropType<ToggleOption[]>} */ (Array),
     default: () => [],
+  },
+  // Under the options, as a field's hint; an error takes its place
+  hint: {
+    type: String,
+    default: undefined,
   },
 });
 

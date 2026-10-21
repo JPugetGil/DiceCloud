@@ -65,3 +65,56 @@ export function boardFolderFields(role, folder) {
   if (folder?.initiative?.showStats) return { inviteToken: 0, discord: 0 };
   return { inviteToken: 0, initiativeStats: 0, discord: 0 };
 }
+
+/**
+ * The initiative tracker as someone who doesn't run the board receives it:
+ * where each creature stands, but the roll and bonus of those whose stats
+ * they don't see (the game master's monsters, the creatures added by hand),
+ * which would tell their Dexterity. A projection cannot leave a field out of
+ * some entries only: the publications pass the folder through this
+ * (transformedCursor.js). `shownIds`: the creatures whose stats they see.
+ * @param {any} initiative The folder's `initiative`, or undefined
+ * @param {Iterable<string>} shownIds
+ */
+export function initiativeForPlayers(initiative, shownIds) {
+  if (!initiative?.entries) return initiative;
+  const shown = new Set(shownIds);
+  return {
+    ...initiative,
+    entries: initiative.entries.map(entry => {
+      if (entry.creatureId && shown.has(entry.creatureId)) return entry;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { roll, bonus, ...placed } = entry;
+      return placed;
+    }),
+  };
+}
+
+/**
+ * A folder's fields with its initiative as initiativeForPlayers gives it,
+ * when they hold it (a change to another field leaves it out)
+ * @param {Record<string, any>} fields
+ * @param {Iterable<string>} shownIds
+ */
+export function folderFieldsForPlayers(fields, shownIds) {
+  return 'initiative' in fields ? { ...fields, initiative: initiativeForPlayers(fields.initiative, shownIds) } : fields;
+}
+
+/**
+ * For the publications of the folders that hold a character (its sheet's
+ * fights and parties): by folder, whether the viewer runs it, and the
+ * creatures whose stats they see otherwise, for folderFieldsForPlayers.
+ * `creatures`: the folders' creatures, with their owner and type. A folder
+ * not in the map (one that just started matching) shows no roll at all.
+ * @param {{ _id: string, owner?: string, creatures?: string[] }[]} folders
+ * @param {{ _id: string, owner?: string, type?: string }[]} creatures
+ * @param {(creature: any, gmId: string | undefined) => boolean} hidesStats hidesStatsFromPlayers
+ * @param {string} userId
+ */
+export function folderViews(folders, creatures, hidesStats, userId) {
+  const byId = new Map(creatures.map(creature => [creature._id, creature]));
+  return new Map(folders.map(folder => [folder._id, {
+    runs: folder.owner === userId,
+    shownIds: (folder.creatures || []).filter(id => byId.has(id) && !hidesStats(byId.get(id), folder.owner)),
+  }]));
+}

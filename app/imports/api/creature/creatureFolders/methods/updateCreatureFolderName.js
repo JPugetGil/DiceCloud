@@ -2,10 +2,15 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
+import { check, Match } from 'meteor/check';
+import { checkId } from '/imports/api/utility/methodArguments';
 
 const updateCreatureFolderName = new ValidatedMethod({
   name: 'creatureFolders.methods.updateName',
-  validate: null,
+  validate({ _id, name }) {
+    checkId(_id);
+    check(name, Match.Maybe(String));
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -25,7 +30,7 @@ const updateCreatureFolderName = new ValidatedMethod({
         'This folder does not belong to you');
     }
     // Update
-    return await CreatureFolders.updateAsync(_id, { $set: { name } });
+    return await CreatureFolders.updateAsync(existingFolder._id, { $set: { name } });
   },
 });
 

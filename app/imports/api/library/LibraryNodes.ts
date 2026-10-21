@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { checkId, checkPath } from '/imports/api/utility/methodArguments';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import SimpleSchema from 'meteor/aldeed:simple-schema';
@@ -241,7 +243,10 @@ const updateLibraryNode = new ValidatedMethod({
 
 const pushToLibraryNode = new ValidatedMethod({
   name: 'libraryNodes.push',
-  validate: null,
+  validate({ _id, path }) {
+    checkId(_id);
+    checkPath(path);
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -250,7 +255,7 @@ const pushToLibraryNode = new ValidatedMethod({
   async run({ _id, path, value }) {
     const node = await LibraryNodes.findOneAsync(_id);
     await assertDocEditPermission(node, this.userId);
-    return await LibraryNodes.updateAsync(_id, {
+    return await LibraryNodes.updateAsync(node!._id, {
       $push: { [path.join('.')]: value },
     }, {
       // Found: assertDocEditPermission throws otherwise
@@ -261,7 +266,11 @@ const pushToLibraryNode = new ValidatedMethod({
 
 const pullFromLibraryNode = new ValidatedMethod({
   name: 'libraryNodes.pull',
-  validate: null,
+  validate({ _id, path, itemId }) {
+    checkId(_id);
+    checkPath(path);
+    check(itemId, String);
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -271,7 +280,7 @@ const pullFromLibraryNode = new ValidatedMethod({
     const node = await LibraryNodes.findOneAsync(_id);
     await assertDocEditPermission(node, this.userId);
     // A modifier on a path given as an argument: no type can follow it
-    return await LibraryNodes.updateAsync(_id, {
+    return await LibraryNodes.updateAsync(node!._id, {
       $pull: { [path.join('.')]: { _id: itemId } },
     } as any, {
       // Found: assertDocEditPermission throws otherwise

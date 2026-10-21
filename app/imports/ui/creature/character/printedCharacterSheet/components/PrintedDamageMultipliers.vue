@@ -17,7 +17,7 @@
           {{ title(multiplier) }}
         </div>
         <div class="d-flex flex-wrap align-center">
-          {{ multiplier.damageTypes.join(', ') }}
+          {{ multiplier.damageTypes.map(damageTypeName).join(', ') }}
         </div>
         <div
           v-if="multiplier.includeTags && multiplier.includeTags.length"
@@ -44,6 +44,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
+import { damageTypeName } from '/imports/ui/i18n';
 
 const { t } = useI18n();
 defineProps({

@@ -403,10 +403,13 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     const plays: [string, string, string][] = [
       ['sword', swordId, goblinId], ['flame', flameId, goblinId], ['charm', charmId, goblinId],
       ['hex', hexId, goblinId], ['dispel', dispelId, goblinId], ['enfeeble', enfeebleId, goblinId],
-      ['empower', empowerId, goblinId], ['petrify', petrifyId, goblinId],
+      ['empower', empowerId, goblinId],
       ['curse', curseId, goblinId], ['impSword', swordId, impId], ['impFlame', flameId, impId],
       ['lichFlame', flameId, lichId],
     ];
+    // A value set on the goblin is refused outright (decision of 2026-10-21)
+    const setRefusal = await refusal(insert(player, lyraId, propTask(petrifyId, [goblinId])));
+    assert.equal(setRefusal?.details?.i18n?.key, 'targetPicker.errors.foreignWrite', 'Petrify on the goblin');
     for (const [name, propId, targetId] of plays) {
       const actionId = await insert(player, lyraId, propTask(propId, [targetId]));
       actionIds[name] = actionId;
@@ -536,10 +539,7 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
       .filter((line: any) => line.targetIds?.includes(goblinId) && line.value).map((line: any) => line.value);
     assert.deepEqual(await applied('enfeeble'), ['Strength \u22122'], 'a decrease');
     assert.deepEqual(await applied('empower'), ['Strength +3'], 'an increase');
-    assert.deepEqual(await applied('petrify'), ['Strength set to 10'], 'a set, to the player\'s own value');
-    const petrify = (await logOf(actionIds.petrify, lyraId)).content.find((line: any) => line.value === 'Strength set to 10');
-    assert.equal(translateLogLine(petrify, translatorFor('fr')).value, 'Valeur de Strength fixée à 10');
-    for (const name of ['enfeeble', 'empower', 'petrify']) {
+    for (const name of ['enfeeble', 'empower']) {
       assert.lengthOf((await logOf(actionIds[name], lyraId)).content, 2, `${name}: the action and what it applied, nothing else`);
     }
     assert.deepEqual((await logOf(actionIds.curse, lyraId)).content.map((line: any) => line.name), ['Curse'],
@@ -562,8 +562,6 @@ if (Meteor.isServer) describe('A player\'s character targets the game master\'s 
     for (const value of [
       '161803', 'SECRET-SEAL', 'SECRET-TRIGGER: hurt by 7', 'logs.noSave', 'does not have', 'logs.concentrationCheck',
       'logs.attributeDamaged', 'logs.noArmor',
-      // The +3 capped at its total: the player read "+3", their own number
-      'Strength set from 141421 to 10',
       // The lich's legendary resistance: its roll, the point it spent
       'logs.legendaryResistance', 'SECRET-RESISTANCE',
     ]) {

@@ -69,7 +69,7 @@
         :label="$t('library.libraries')"
         :items="libraryOptions"
         :model-value="model.libraries"
-        :debounce-time="0"
+        :debounce="0"
         multiple
         chips
         closable-chips

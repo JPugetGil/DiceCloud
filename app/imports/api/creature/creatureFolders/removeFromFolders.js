@@ -20,8 +20,26 @@ export async function removeCharacters(folder, creatureIds) {
     const { removeFromTracker } = require('/imports/api/creature/creatureFolders/server/turnEvents');
     await removeFromTracker(folder._id, { creatureIds });
   }
+  await revokeOwnerAccess(folder, creatureIds);
+}
+
+/**
+ * The folder's owner no longer edits nor reads the characters, which they did
+ * as the party's game master, but those another of their parties still holds:
+ * a character in two of their parties stays theirs to run in the other. A
+ * folder without players grants nothing. Their own creatures are theirs
+ * anyway. Call it once the characters are out of the folder, or the folder
+ * gone. Server only
+ */
+export async function revokeOwnerAccess(folder, creatureIds) {
+  if (!folder?.owner || !creatureIds.length) return;
+  const stillHeld = new Set((await CreatureFolders.find({
+    owner: folder.owner, _id: { $ne: folder._id }, creatures: { $in: creatureIds }, 'members.0': { $exists: true },
+  }, { fields: { creatures: 1 } }).fetchAsync()).flatMap(other => other.creatures || []));
+  const released = creatureIds.filter(id => !stillHeld.has(id));
+  if (!released.length) return;
   await Creatures.updateAsync(
-    { _id: { $in: creatureIds } },
+    { _id: { $in: released } },
     { $pull: { writers: folder.owner, readers: folder.owner } },
     { multi: true },
   );

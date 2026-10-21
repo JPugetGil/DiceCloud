@@ -2,7 +2,7 @@
   <v-banner
     v-if="!connected"
     sticky
-    single-line
+    lines="one"
     :icon="icon"
     :color="color"
     style="top: var(--v-layout-top);"

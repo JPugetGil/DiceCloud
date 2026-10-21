@@ -5,10 +5,14 @@ import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import { get } from 'lodash';
 import { Meteor } from 'meteor/meteor';
+import { checkId, checkPath } from '/imports/api/utility/methodArguments';
 
 const pushToProperty = new ValidatedMethod({
   name: 'creatureProperties.push',
-  validate: null,
+  validate({ _id, path }) {
+    checkId(_id);
+    checkPath(path);
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -39,7 +43,7 @@ const pushToProperty = new ValidatedMethod({
     }
 
     // Do work
-    await CreatureProperties.updateAsync(_id, {
+    await CreatureProperties.updateAsync(property._id, {
       $push: { [joinedPath]: value },
       $set: { dirty: true },
     }, {

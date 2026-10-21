@@ -34,6 +34,11 @@
 import { ref } from 'vue';
 import IncrementMenu from '/imports/ui/components/IncrementMenu.vue';
 
+// Its attributes are its button's (v-bind="$attrs"), not the menu's too
+defineOptions({
+  inheritAttrs: false,
+});
+
 defineProps({
   value: {
     type: Number,

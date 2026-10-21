@@ -77,7 +77,7 @@ const spellsWithoutList = autorun(() => CreatureProperties.find({
 }, {
   sort: {
     level: 1,
-    order: 1,
+    left: 1,
   }
 }).fetch()).result;
 
@@ -100,7 +100,7 @@ const spellListsWithoutAncestorSpellLists = autorun(() => CreatureProperties.fin
   }, {
     sort: {
       level: 1,
-      order: 1,
+      left: 1,
     }
   }).fetch();
   return sl;

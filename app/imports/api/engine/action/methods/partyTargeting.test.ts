@@ -59,8 +59,8 @@ const [folderId, oldFolderId] = getRandomIds(2);
 const [ariaId, lyraId, goblinId, npcId, gmHeroId, strayId, zedId, ariaTooId, longId] = getRandomIds(9);
 const [
   cureId, castId, blessId, bigBuffId, hugeBuffId, zedCureId, ariaTooCureId, breathId, lyraHpId, gmHeroHpId,
-  ariaHpId, ammoActionId, arrowId, longCureId,
-] = getRandomIds(14);
+  ariaHpId, ammoActionId, arrowId, longCureId, doomId, dispelId, curseId, holdId,
+] = getRandomIds(18);
 
 const hitPoints = (_id: string | undefined, total: number) => ({
   ...(_id && { _id }), type: 'attribute', name: 'Hit Points', attributeType: 'healthBar', variableName: 'hitPoints',
@@ -96,6 +96,31 @@ const aria: TestCreature = {
     buffOf(hugeBuffId, 'Huge Blessing', MAX_FOREIGN_BUFF_PROPERTIES + 1),
     { _id: arrowId, type: 'item', name: 'Arrow', quantity: 20 } as any,
     { _id: ammoActionId, type: 'action', name: 'Shoot', target: 'singleTarget' } as any,
+    // Writes on the target, which another's creature refuses (C5): sets its
+    // hit points, strips its buffs, or carries a buff that sets them
+    {
+      _id: doomId, type: 'action', name: 'Doom', target: 'singleTarget',
+      children: [{ type: 'adjustment', target: 'target', stat: 'hitPoints', operation: 'set', amount: { calculation: '0' } }],
+    } as any,
+    {
+      _id: dispelId, type: 'action', name: 'Dispel', target: 'singleTarget',
+      children: [{ type: 'buffRemover', name: 'Dispel', target: 'target', removeAll: true }],
+    } as any,
+    {
+      _id: curseId, type: 'action', name: 'Curse', target: 'singleTarget',
+      children: [{
+        type: 'buff', name: 'Cursed', target: 'target',
+        children: [{ type: 'adjustment', target: 'self', stat: 'hitPoints', operation: 'set', amount: { calculation: '1' } }],
+      }],
+    } as any,
+    // A condition that ends itself on a save, as the bestiary's: allowed
+    {
+      _id: holdId, type: 'action', name: 'Hold', target: 'singleTarget',
+      children: [{
+        type: 'buff', name: 'Held', target: 'target',
+        children: [{ type: 'buffRemover', name: 'End of Held', targetParentBuff: true }],
+      }],
+    } as any,
   ],
 };
 const lyra: TestCreature = {
@@ -348,6 +373,24 @@ if (Meteor.isServer) describe('A player targets the other players\' characters o
     } finally {
       // Back at the table, with Aria
       await CreatureFolders.updateAsync(folderId, { $addToSet: { members: ariaPlayerId, creatures: ariaId } });
+      await EngineActions.removeAsync({ creatureId: ariaId });
+    }
+  });
+
+  it('refuses, on Lyra, an action that sets a value or removes her buffs; a condition that ends itself goes', async function () {
+    const FOREIGN_WRITE = 'targetPicker.errors.foreignWrite';
+    try {
+      for (const [name, propId] of [['a value set', doomId], ['a buff remover', dispelId], ['a buff that sets', curseId]]) {
+        const error = await refusal(insert(ariaPlayer, ariaId, propTask(propId, [lyraId])));
+        assert.equal(error?.details?.i18n?.key, FOREIGN_WRITE, `${name} refused`);
+      }
+      assert.isString(await insert(ariaPlayer, ariaId, propTask(holdId, [lyraId])), 'a condition that ends itself');
+      assert.isString(await insert(ariaPlayer, ariaId, propTask(doomId, [ariaId])), 'on Aria herself');
+      // The game master's monster: dispelled as in play, never set
+      assert.isString(await insert(ariaPlayer, ariaId, propTask(dispelId, [goblinId])), 'a dispel on the goblin');
+      const error = await refusal(insert(ariaPlayer, ariaId, propTask(doomId, [goblinId])));
+      assert.equal(error?.details?.i18n?.key, FOREIGN_WRITE, 'a value set on the goblin');
+    } finally {
       await EngineActions.removeAsync({ creatureId: ariaId });
     }
   });

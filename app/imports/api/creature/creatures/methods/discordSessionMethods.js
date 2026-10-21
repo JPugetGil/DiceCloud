@@ -4,7 +4,7 @@ import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
-import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { isDiscordWebhookURL } from '/imports/api/creature/log/discord/webhookUrl';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import {
@@ -52,6 +52,8 @@ export const setCharacterWebhook = new ValidatedMethod({
     const creature = await getEditableCreature(creatureId, this.userId);
     const url = webhook?.trim();
     if (url && !isDiscordWebhookURL(url)) throw boardError('discord.invalid', 'discord.errors.invalidWebhook');
+    // Its log is its game master's alone: none to set, one to remove still
+    if (url && GM_CREATURE_TYPES.includes(creature.type)) throw boardError('discord.denied', 'discord.errors.gmCreature');
     // The server alone seals it
     if (Meteor.isServer) {
       if (creature.discordChannel) {

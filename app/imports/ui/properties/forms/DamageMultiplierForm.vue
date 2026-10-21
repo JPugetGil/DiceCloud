@@ -30,7 +30,8 @@
           chips
           closable-chips
           :rules="damageTypeRules"
-          :items="DAMAGE_TYPES"
+          :items="damageTypeItems"
+          :return-object="false"
           :model-value="model.damageTypes"
           :error-messages="errors.damageTypes"
           @change="(value, ack) => change('damageTypes', value, ack)"
@@ -83,7 +84,9 @@
 import FormSection from '/imports/ui/properties/forms/shared/FormSection.vue';
 import FormSections from '/imports/ui/properties/forms/shared/FormSections.vue';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
+import { computed } from 'vue';
 import DAMAGE_TYPES from '/imports/constants/DAMAGE_TYPES';
+import { damageTypeName } from '/imports/ui/i18n';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -119,4 +122,8 @@ function change(path, value, ack) {
   }
   emit('change', { path, value, ack });
 }
+
+// Shown in the user's language; the type stored stays the English one, or
+// what the user typed
+const damageTypeItems = computed(() => DAMAGE_TYPES.map(type => ({ title: damageTypeName(type), value: type })));
 </script>

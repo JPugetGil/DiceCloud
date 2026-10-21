@@ -8,7 +8,7 @@
   >
     <v-expansion-panels
       v-model="expandedLibrary"
-      accordian
+      variant="accordion"
       flat
       multiple
     >

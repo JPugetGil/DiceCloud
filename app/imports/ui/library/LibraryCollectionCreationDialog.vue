@@ -9,20 +9,20 @@
       <text-field
         :label="$t('common.name')"
         :model-value="libraryCollection.name"
-        :debounce-time="0"
+        :debounce="0"
         @change="nameChanged"
       />
       <text-area
         :label="$t('common.description')"
         :model-value="libraryCollection.description"
-        :debounce-time="0"
+        :debounce="0"
         @change="descriptionChanged"
       />
       <smart-select
         :label="$t('library.libraries')"
         :items="libraryOptions"
         :model-value="libraryCollection.libraries"
-        :debounce-time="0"
+        :debounce="0"
         multiple
         chips
         closable-chips

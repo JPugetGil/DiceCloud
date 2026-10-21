@@ -166,6 +166,7 @@
     "previewsText": "A link to a public character, pasted in Discord, shows its name, portrait, race, class, level, hit points and armor class, with a button to the sheet. A private character's link shows nothing of it.",
     "errors": {
       "denied": "Only the game master of this party can do this",
+      "gmCreature": "A monster or a non-player character posts nothing to Discord: its log is its game master's alone",
       "invalidWebhook": "This is not a Discord webhook URL: it looks like https://discord.com/api/webhooks/…",
       "noWebhook": "Set a Discord webhook first",
       "unavailable": "This server does not post to Discord",
@@ -246,6 +247,7 @@
       "characterAmbiguous": "Several of your characters are named “{name}”: pick one from the list.",
       "denied": "You can no longer change this character.",
       "failed": "DiceCloud could not do it: {error}",
+      "unexpected": "something went wrong on its side",
       "nothingLogged": "Nothing was rolled.",
       "noFormula": "What should be rolled? For example: 1d20 + 5.",
       "checkNotFound": "{name} has no skill or ability “{check}”.",
@@ -2079,6 +2081,10 @@
     "criticalMiss": "Critical miss!",
     "hit": "Hit!",
     "miss": "Miss!",
+    "onHit": "**On hit**",
+    "onMiss": "**On miss**",
+    "onFailedSave": "**On failed save**",
+    "onSave": "**On save**",
     "toHit": "To hit",
     "withAdvantage": "{name} (Advantage)",
     "withDisadvantage": "{name} (Disadvantage)",
@@ -2345,7 +2351,8 @@
   "targetPicker": {
     "errors": {
       "singleTarget": "This action takes a single target",
-      "denied": "You may not target this creature with this action"
+      "denied": "You may not target this creature with this action",
+      "foreignWrite": "This action sets a value or removes buffs: you may only use it on your own creatures"
     },
     "title": "Targets",
     "titleFor": "{name}: targets",

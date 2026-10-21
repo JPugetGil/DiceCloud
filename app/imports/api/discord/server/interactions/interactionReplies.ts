@@ -40,6 +40,18 @@ export function say(language: DiscordLanguage, key: string, params: Record<strin
   return translatorFor(language)(`discord.interactions.${key}`, params) ?? key;
 }
 
+/**
+ * A failure, as its user reads it: a Meteor.Error's reason, which is written
+ * for them; anything else is the server's own (its log has it), and a reply
+ * may be public: a general sentence instead
+ */
+export function failureMessage(language: DiscordLanguage, error: unknown) {
+  const meteorError = (error as { errorType?: string })?.errorType === 'Meteor.Error';
+  const { reason, error: code } = (error || {}) as { reason?: string, error?: string | number };
+  const shown = meteorError ? String(reason || code) : say(language, 'unexpected');
+  return textMessage(say(language, 'failed', { error: shown.slice(0, 300) }));
+}
+
 /** A plain text, for the user alone unless `ephemeral` is false */
 export function textMessage(content: string, { ephemeral = true, components }: { ephemeral?: boolean, components?: unknown[] } = {}) {
   return { content, ...ephemeral && { flags: EPHEMERAL }, ...components && { components }, ...NO_MENTIONS };

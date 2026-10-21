@@ -8,13 +8,13 @@
     <text-field
       :label="$t('common.name')"
       :model-value="library.name"
-      :debounce-time="0"
+      :debounce="0"
       @change="nameChanged"
     />
     <text-area
       :label="$t('common.description')"
       :model-value="library.description"
-      :debounce-time="0"
+      :debounce="0"
       @change="descriptionChanged"
     />
     <template #actions>

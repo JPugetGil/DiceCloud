@@ -23,7 +23,8 @@
           style="flex-basis: 200px;"
           :hint="$t('forms.damage.damageTypeHint')"
           :rules="damageTypeRules"
-          :items="DAMAGE_TYPES"
+          :items="damageTypeItems"
+          :return-object="false"
           :model-value="model.damageType"
           :error-messages="errors.damageType"
           @change="(...args) => change('damageType', ...args)"
@@ -121,7 +122,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import DAMAGE_TYPES from '/imports/constants/DAMAGE_TYPES';
+import { damageTypeName } from '/imports/ui/i18n';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import { useSaveList } from '/imports/ui/properties/forms/shared/lists/useSaveList';
 
@@ -163,4 +166,8 @@ const damageTypeRules = [
   }
 ];
 
+
+// Shown in the user's language; the type stored stays the English one, or
+// what the user typed
+const damageTypeItems = computed(() => DAMAGE_TYPES.map(type => ({ title: damageTypeName(type), value: type })));
 </script>

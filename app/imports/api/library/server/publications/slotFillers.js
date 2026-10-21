@@ -12,6 +12,7 @@ import { EJSON } from 'meteor/ejson';
 import { Meteor } from 'meteor/meteor';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
 import { readableBy } from '/imports/api/sharing/sharedFilters';
+import resultLimit from '/imports/api/library/server/publications/resultLimit';
 
 // The fillers selected in a dialog that one subscription sends: its cursor's limit
 const MAX_SELECTED_FILLERS = 100;
@@ -109,8 +110,7 @@ Meteor.publish('slotFillers', function (slotId, searchTerm, isDummySlot) {
     // Build a filter for nodes in those libraries that match the slot
     let filter = getSlotFillFilter({ slot, libraryIds });
     // Get the limit of the documents the user can fetch
-    var limit = data.limit || 50;
-    check(limit, Number);
+    const limit = resultLimit(data.limit, 50);
 
     /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options;
@@ -187,8 +187,7 @@ Meteor.publish('classFillers', function (classId) {
     let filter = getSlotFillFilter({ slot: classProp, libraryIds });
 
     // Get the limit of the documents the user can fetch
-    var limit = data.limit || 50;
-    check(limit, Number);
+    const limit = resultLimit(data.limit, 50);
 
     /** @type {import('meteor/mongo').Mongo.Options<any>} */
     let options = {

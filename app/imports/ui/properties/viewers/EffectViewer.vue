@@ -49,7 +49,7 @@
 import { computed } from 'vue';
 import PropertyTargetTags from '/imports/ui/properties/viewers/shared/PropertyTargetTags.vue';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
-import { isFinite } from 'lodash';
+import { effectDisplayedValue, effectOperationName } from '/imports/ui/utility/effectDisplay';
 import PropertyField from '/imports/ui/properties/viewers/shared/PropertyField.vue';
 import { useI18n } from 'vue-i18n';
 import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
@@ -80,39 +80,9 @@ const effectIcon = computed(() => {
   return getEffectIcon(props.model.operation, value);
 });
 
-const operation = computed(() => {
-  switch (props.model.operation) {
-    case 'base': return t('effectOps.base');
-    case 'add': return t('effectOps.add');
-    case 'mul': return t('effectOps.mul');
-    case 'min': return t('effectOps.min');
-    case 'max': return t('effectOps.max');
-    case 'set': return t('effectOps.set');
-    case 'advantage': return t('effectOps.advantage');
-    case 'disadvantage': return t('effectOps.disadvantage');
-    case 'passiveAdd': return t('effectOps.passiveAdd');
-    case 'fail': return t('effectOps.fail');
-    case 'conditional': return t('effectOps.conditional');
-    default: return props.model.operation;
-  }
-});
+const operation = computed(() => effectOperationName(props.model.operation, t));
 
-const displayedValue = computed(() => {
-  let value = resolvedValue.value;
-  switch (props.model.operation) {
-    case 'base': return value;
-    case 'add': return isFinite(value) ? Math.abs(value) : value;
-    case 'mul': return value;
-    case 'min': return value;
-    case 'max': return value;
-    case 'advantage': return;
-    case 'disadvantage': return;
-    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
-    case 'fail': return;
-    case 'conditional': return;
-    default: return undefined;
-  }
-});
+const displayedValue = computed(() => effectDisplayedValue(props.model.operation, resolvedValue.value));
 </script>
 
 <style lang="css" scoped>

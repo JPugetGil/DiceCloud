@@ -26,11 +26,12 @@
         v-on="selection ? { click() { emit('click') } } : {}"
       >
         <template #prepend>
+          <!-- Its initial in the colour that reads on it: a theme colour's
+               own, or black or white on the user's (DESIGN_SYSTEM.md, rule 2) -->
           <v-avatar
             variant="flat"
-            :color="isSelected ? 'red-darken-1' : model.color || 'grey'"
+            v-bind="avatarColor"
             :size="dense ? 30 : undefined"
-            class="text-white"
             style="transition: background 0.3s;"
           >
             <v-fade-transition leave-absolute>
@@ -87,7 +88,8 @@
 
 <script setup lang="js">
 import errorText from '/imports/api/utility/errorText';
-import { ref } from 'vue';
+import userColorProps from '/imports/ui/utility/userColor';
+import { ref, computed } from 'vue';
 import { omit } from 'lodash';
 import draggable from 'vuedraggable';
 import SharedIcon from '/imports/ui/components/SharedIcon.vue';
@@ -164,6 +166,11 @@ async function dropItem({ added }) {
     snackbar({ text: errorText(e) });
   }
 }
+
+const avatarColor = computed(() => {
+  if (props.isSelected) return { color: 'primary' };
+  return props.model.color ? userColorProps(props.model.color) : { color: 'surface-variant' };
+});
 </script>
 
 <style lang="css">

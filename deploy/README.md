@@ -172,8 +172,11 @@ snapshots hold text outside the SRD.
   comes back.
 - The whole `tools/` folder (the bestiary's generator, the SRD's PDFs): on
   your computer, `tar -czf ~/dicecloud-tools-$(date +%F).tar.gz
-  --exclude='tools/monsters/work/pylib' --exclude='__pycache__' tools`, copy
-  the archive to the server, then `./dicecloud.sh snapshots tools <archive>`.
+  --exclude='tools/monsters/work/pylib' --exclude='__pycache__'
+  --exclude='.env*' tools`, copy the archive to the server, then
+  `./dicecloud.sh snapshots tools <archive>`. The `.env` files of `tools/`
+  hold secrets (Discord's client secret and bot token): `snapshots tools`
+  refuses an archive that holds one. Their `.example` files may stay.
 - `./dicecloud.sh snapshots list` shows what the bucket holds of them.
 
 Turn the bucket's versioning on to keep the earlier snapshots when new ones
@@ -196,11 +199,45 @@ was off runs when it starts again.
 - `journalctl -u dicecloud-backup`: the backup log.
 - `./dicecloud.sh restore /srv/dicecloud/backups/dicecloud-<date>_<time>.archive.gz`:
   replaces the database with that backup, after backing the current one up.
+  It says how many documents it restored, and refuses an archive that
+  restores none (another database's: nothing would change). If it fails
+  halfway, the app stays stopped and it names the backup made just before, to
+  go back to.
 
 A disk failure, a theft or a fire takes the backups along with the machine. To
-keep a copy elsewhere, fill in the `BACKUP_S3_*` values: after each backup, the
-bucket gets the same files under `BACKUP_S3_PREFIX`, old ones removed there
-too. An AWS key limited to that prefix is best.
+keep a copy elsewhere, fill in the `BACKUP_S3_*` values: after each backup,
+the new files go to the bucket, under `BACKUP_S3_PREFIX`. Removing old ones
+here removes nothing there: a mirror would have left the bucket, after a lost
+disk, with nothing but the new machine's first backup, of an empty database.
+The bucket expires them itself, with a lifecycle rule (once):
+
+```sh
+aws s3api put-bucket-lifecycle-configuration --bucket <bucket> --lifecycle-configuration \
+  '{"Rules":[{"ID":"dicecloud-backups","Filter":{"Prefix":"dicecloud-backups/"},"Status":"Enabled","Expiration":{"Days":90},"NoncurrentVersionExpiration":{"NoncurrentDays":30}}]}'
+```
+
+(or in the console: the bucket, Management, Create lifecycle rule). Turn the
+bucket's versioning on too: an overwritten or deleted backup stays for 30
+days. An AWS key limited to that prefix is best, and needs no
+`s3:DeleteObject`.
+
+- `./dicecloud.sh backups list`: the backups the bucket keeps.
+- `./dicecloud.sh backups pull [dicecloud-<date>_<time>.archive.gz]`: one of
+  them (the latest by default) back into `BACKUP_DIR`, checked, ready for
+  `restore`. On a new machine: `install`, the settings, `start`, then
+  `backups pull` and `restore`.
+
+**Try a restore now and then** (every few months, and after a change to
+`deploy/`), on the server, without touching production: a second compose
+project with its own `.env`, which `DICECLOUD_ENV_FILE` selects. In a copy of
+`.env`, set `COMPOSE_PROJECT_NAME=dicecloud-drill`, `APP_LOCAL_PORT=3010`
+and a `BACKUP_DIR` of its own, and empty `CLOUDFLARE_TUNNEL_TOKEN` (no tunnel)
+and `BACKUP_S3_BUCKET` (its backups never reach the bucket). Then
+`DICECLOUD_ENV_FILE=<copy> ./dicecloud.sh start`, copy a backup into its
+`BACKUP_DIR`, `DICECLOUD_ENV_FILE=<copy> ./dicecloud.sh restore <it>`, open
+`http://localhost:3010` (an SSH tunnel from your computer), sign in, open a
+character, then remove the project and its volumes:
+`docker compose -p dicecloud-drill down -v`.
 
 A backup holds the database alone (`mongodump` of the app's database), never
 the settings file nor `.env`. With `discord.tokenKey` set, the Discord

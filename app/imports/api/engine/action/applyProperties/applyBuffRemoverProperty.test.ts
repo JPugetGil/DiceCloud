@@ -17,7 +17,7 @@ import {
 const [
   creatureId, otherCreatureId, buffId, removeParentBuffId, removeTargetBuffsId, buffEffectId,
   removeParentBuffUntargetedId, taggedCreatureId, shieldBuffId, hexBuffId, poisonedBuffId,
-  removeMagicNotCurseId, removeCurseOrPoisonId,
+  removeMagicNotCurseId, removeCurseOrPoisonId, removeOrPoisonId,
 ] = getRandomIds(100);
 
 const actionTestCreature: TestCreature = {
@@ -95,6 +95,16 @@ const taggedCreature: TestCreature = {
       targetTags: ['curse'],
       extraTags: [{ _id: 'or-poison', operation: 'OR', tags: ['poison'] }],
     },
+    // No tag required, an OR group: those of the group alone, as an effect,
+    // a trigger and a slot read the same query
+    {
+      _id: removeOrPoisonId,
+      type: 'buffRemover',
+      target: 'target',
+      removeAll: true,
+      targetTags: [],
+      extraTags: [{ _id: 'or-poison-alone', operation: 'OR', tags: ['poison'] }],
+    },
   ],
 };
 
@@ -120,6 +130,11 @@ describe('Apply Buff Remover Properties', function () {
   it('removes the buffs with the target tags or those of an OR group', async function () {
     const action = await runActionById(removeCurseOrPoisonId, [taggedCreatureId]);
     assert.sameMembers(removedIds(action), [hexBuffId, poisonedBuffId]);
+  });
+
+  it('removes those of its OR groups alone when it requires no tag, as effects read it', async function () {
+    const action = await runActionById(removeOrPoisonId, [taggedCreatureId]);
+    assert.sameMembers(removedIds(action), [poisonedBuffId], 'not every buff');
   });
 
   it('removes a parent buff', async function () {

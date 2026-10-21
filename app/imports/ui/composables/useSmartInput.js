@@ -145,6 +145,9 @@ export function useSmartInput(props, model, emit, options = {}) {
     }
     if (!newFocus && dirty.value && !(rulesErrors.value && rulesErrors.value.length)) {
       if (hasChangeListener()) loading.value = true;
+      // Leaving the field sends what waits: a dialog's button clicked right
+      // after read the value from before the last keystrokes
+      debouncedChange.flush?.();
     }
   });
 

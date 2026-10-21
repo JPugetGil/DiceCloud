@@ -11,7 +11,7 @@
       :label="$t('library.license')"
       :items="licenseItems"
       :model-value="model.license || 'none'"
-      :debounce-time="0"
+      :debounce="0"
       :disabled="!isOwner"
       :hint="hint"
       persistent-hint

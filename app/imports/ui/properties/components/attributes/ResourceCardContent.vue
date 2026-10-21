@@ -87,10 +87,8 @@ watch(() => props.model.value, () => {
 .buttons>.v-btn {
   margin: 0;
 }
+/* Medium emphasis, the theme's: 0.54, from Vuetify 2, read 4.48:1 */
 .max-value {
-  color: rgba(0, 0, 0, .54);
-}
-.v-theme--dark .max-value {
-  color: rgba(255, 255, 255, 0.54);
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 </style>

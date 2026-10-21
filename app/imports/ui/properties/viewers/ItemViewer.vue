@@ -12,8 +12,8 @@
         <increment-button
           v-if="context.creatureId && model.showIncrement"
           icon
-          large
-          outlined
+          size="large"
+          variant="outlined"
           color="primary"
           :loading="incrementLoading"
           :value="model.quantity"

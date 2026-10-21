@@ -67,6 +67,14 @@ jobs:
           meteor npm ci --prefix ../tests/cycles
           meteor npm run cycles
 
+      # The production scripts: their syntax, and the backups and restores
+      # against stubs of Docker (tests/deploy)
+      - name: Deploy scripts
+        working-directory: .
+        run: |
+          for script in deploy/*.sh; do bash -n "$script"; done
+          bash tests/deploy/dicecloud.test.sh
+
       # The Vue components, rendered in happy-dom with the app's Vuetify and
       # translations (app/tests/components)
       - name: Component tests

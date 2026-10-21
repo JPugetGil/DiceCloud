@@ -84,9 +84,18 @@
         />
       </form-section>
       <form-section :name="$t('creatureForm.discord')">
+        <!-- A monster's or a non-player character's log is its game master's
+             alone: no channel of its own, but one it had can be removed -->
+        <p
+          v-if="isGmCreature"
+          class="text-body-medium mt-0 mb-4"
+          data-id="creature-discord-gm"
+        >
+          {{ $t('discord.errors.gmCreature') }}
+        </p>
         <!-- Connected (D4): Discord's own channel picker; the token stays on the server -->
         <discord-connect-controls
-          v-if="editPermission"
+          v-if="editPermission && (!isGmCreature || model.discordChannel)"
           :channel="model.discordChannel"
           :available="discordOAuth"
           :busy="connectBusy"
@@ -97,7 +106,7 @@
         <!-- Or pasted: the way for a forum channel, which the picker never offers.
              Its URL stays on the server: the sheet only knows the webhook's id -->
         <discord-pasted-webhook
-          v-if="!model.discordChannel"
+          v-if="!model.discordChannel && (!isGmCreature || model.discordWebhookId)"
           :webhook-id="model.discordWebhookId"
           :label="$t('creatureForm.discordWebhook')"
           :hint="$t('creatureForm.discordWebhookHint')"
@@ -190,6 +199,7 @@ import { discordConnectUrl, discordDisconnect } from '/imports/api/discord/metho
 import { webhookIdOf } from '/imports/api/creature/log/discord/discordChannel';
 import { characterPartyWebhook, setCharacterWebhook } from '/imports/api/creature/creatures/methods/discordSessionMethods';
 import { sessionOf } from '/imports/api/creature/log/discord/discordSession';
+import { GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import boardErrorText from '/imports/ui/creature/party/boardErrorText';
 import { snackbar } from '/imports/ui/components/snackbars/SnackbarQueue';
 import { useI18n } from 'vue-i18n';
@@ -273,6 +283,9 @@ const librariesSelectedByCollections = autorun(() => {
   });
   return ids;
 }).result;
+
+// A monster or a non-player character posts nothing to Discord
+const isGmCreature = computed(() => GM_CREATURE_TYPES.includes(props.model.type));
 
 const editPermission = autorun(() => {
   return hasEditPermission(props.model, Meteor.user());

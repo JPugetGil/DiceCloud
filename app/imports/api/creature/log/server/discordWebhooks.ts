@@ -597,7 +597,10 @@ export async function logChannels(creature: LogCreature): Promise<Channel[]> {
     const webhook = await partyWebhook(party.discord);
     if (webhook && !known(webhook)) channels.push(await partyChannel(party, webhook));
   }
-  const own = await characterWebhook(creature);
+  // A monster or a non-player character has no channel of its own: its log,
+  // hit points and bonuses included, is its game master's alone (decision
+  // of 2026-10-21), whatever channel it was once given
+  const own = GM_CREATURE_TYPES.includes(creature.type as any) ? undefined : await characterWebhook(creature);
   if (own && !known(own)) channels.push(await characterChannel(creature, own));
   return channels;
 }

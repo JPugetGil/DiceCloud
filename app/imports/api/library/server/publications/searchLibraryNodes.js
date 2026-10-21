@@ -8,6 +8,7 @@ import escapeRegex from '/imports/api/utility/escapeRegex';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
 import { Meteor } from 'meteor/meteor';
 import reactivePublication from '/imports/api/utility/server/reactivePublication';
+import resultLimit from '/imports/api/library/server/publications/resultLimit';
 
 // The nodes selected in the property dialog, with what is under them, so that
 // they stay while the search changes; of libraries the user may view only
@@ -93,8 +94,7 @@ Meteor.publish('searchLibraryNodes', function (creatureId) {
     }
 
     // Get the limit of the documents the user can fetch
-    var limit = data.limit || 32;
-    check(limit, Number);
+    const limit = resultLimit(data.limit, 32);
 
     // Get the search term
     let searchTerm = data.searchTerm || '';

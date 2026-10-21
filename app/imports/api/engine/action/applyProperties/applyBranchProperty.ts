@@ -8,6 +8,7 @@ import type { PropTask } from '/imports/api/engine/action/tasks/Task';
 import type TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 import { getPropertyChildren } from '/imports/api/engine/loadCreatures';
 import { Meteor } from 'meteor/meteor';
+import { logLine, msg } from '/imports/api/creature/log/logMessages';
 import { WHOLE } from '/imports/api/creature/log/logViews';
 
 export default async function applyBranchProperty(
@@ -77,10 +78,10 @@ export default async function applyBranchProperty(
       const scope = await getEffectiveActionScope(action);
       if (scope['~attackHit']?.value) {
         if (!targets.length && !prop.silent) {
-          result.appendLog({
-            value: '**On hit**',
+          result.appendLog(logLine({
+            value: msg('logs.onHit'),
             silenced: prop.silent,
-          }, targets);
+          }), targets);
         }
         return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
@@ -91,10 +92,10 @@ export default async function applyBranchProperty(
       const scope = await getEffectiveActionScope(action);
       if (scope['~attackMiss']?.value) {
         if (!targets.length && !prop.silent) {
-          result.appendLog({
-            value: '**On miss**',
+          result.appendLog(logLine({
+            value: msg('logs.onMiss'),
             silenced: prop.silent,
-          }, targets);
+          }), targets);
         }
         return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
@@ -105,10 +106,10 @@ export default async function applyBranchProperty(
       const scope = await getEffectiveActionScope(action);
       if (scope['~saveFailed']?.value) {
         if (!targets.length && !prop.silent) {
-          result.appendLog({
-            value: '**On failed save**',
+          result.appendLog(logLine({
+            value: msg('logs.onFailedSave'),
             silenced: prop.silent,
-          }, targets);
+          }), targets);
         }
         return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {
@@ -119,10 +120,10 @@ export default async function applyBranchProperty(
       const scope = await getEffectiveActionScope(action);
       if (scope['~saveSucceeded']?.value) {
         if (!targets.length && !prop.silent) {
-          result.appendLog({
-            value: '**On save**',
+          result.appendLog(logLine({
+            value: msg('logs.onSave'),
             silenced: prop.silent,
-          }, targets);
+          }), targets);
         }
         return await applyDefaultAfterPropTasks(action, prop, targets, userInput);
       } else {

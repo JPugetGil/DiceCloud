@@ -24,7 +24,8 @@ export default defineConfig({
     environment: 'happy-dom',
     include: ['tests/components/**/*.spec.{js,ts}'],
     setupFiles: ['tests/components/setup.js'],
-    // Vuetify imports its styles from its modules: Vite has to process them
-    server: { deps: { inline: ['vuetify'] } },
+    // Processed by Vite: Vuetify imports its styles from its modules, and
+    // vue-meteor-tracker imports meteor/*, which the stubs stand for
+    server: { deps: { inline: ['vuetify', 'vue-meteor-tracker'] } },
   },
 });

@@ -10,6 +10,10 @@ export const Meteor = {
   userId: () => null,
   user: () => null,
   startup: callback => callback(),
+  // A subscription that is ready at once, with nothing: what a component
+  // reads of its collections is what the test put there
+  subscribe: () => ({ ready: () => true, stop() {}, subscriptionId: 'stub' }),
+  call: () => undefined,
   Error: class extends Error {
     constructor(error, reason) {
       super(reason || error);

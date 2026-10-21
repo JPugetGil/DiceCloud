@@ -317,7 +317,7 @@ const spells = autorun(() => {
     };
   }
   return CreatureProperties.find(filter, {
-    sort: { order: 1 }
+    sort: { left: 1 }
   }).fetch();
 }).result;
 

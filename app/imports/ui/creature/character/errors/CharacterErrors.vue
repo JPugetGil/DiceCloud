@@ -12,13 +12,11 @@
     >
       <v-icon
         v-if="expanded"
-        style="color: rgba(0,0,0,0.8);"
       >
         mdi-close
       </v-icon>
       <v-icon
         v-else
-        style="color: rgba(0,0,0,0.8);"
       >
         mdi-alert-circle-outline
       </v-icon>

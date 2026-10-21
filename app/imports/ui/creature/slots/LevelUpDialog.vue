@@ -279,7 +279,7 @@ const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!classFillersReady.value) return [];
   let nodes = /** @type {Filler[]} */ (LibraryNodes.find(libraryNodeFilter.value, {
-    sort: { level: 1, name: 1, order: 1 }
+    sort: { level: 1, name: 1, left: 1 }
   }).fetch());
   // A class has no quantity to fill, unlike a slot: SlotFillDialog's
   // quantity checks, copied here, never applied
@@ -362,7 +362,7 @@ watch(selectedNodeIds, (newVal, oldVal) => {
   const sortedIds = LibraryNodes.find({
     _id: { $in: selectedIds }
   }, {
-    sort: { level: 1, name: 1, order: 1 }
+    sort: { level: 1, name: 1, left: 1 }
   })
     .fetch()
     .sort((a, b) => (a.level || a.cache?.node?.level || 0) - (b.level || b.cache?.node?.level || 0))

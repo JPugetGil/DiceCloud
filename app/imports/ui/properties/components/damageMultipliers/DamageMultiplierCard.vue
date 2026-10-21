@@ -25,7 +25,7 @@
               size="small"
               label
             >
-              {{ damageType }}
+              {{ damageTypeName(damageType) }}
             </v-chip>
           </v-list-item-subtitle>
           <v-list-item-subtitle
@@ -74,6 +74,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n';
+import { damageTypeName } from '/imports/ui/i18n';
 
 const { t } = useI18n();
 defineProps({

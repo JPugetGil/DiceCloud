@@ -155,7 +155,7 @@ const spellsWithoutList = autorun(() => CreatureProperties.find({
 }, {
   sort: {
     level: 1,
-    order: 1,
+    left: 1,
   }
 }).fetch()).result;
 

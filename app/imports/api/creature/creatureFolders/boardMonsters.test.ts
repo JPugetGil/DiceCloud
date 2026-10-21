@@ -465,10 +465,16 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       assert.isNotEmpty(trackers, 'the tracker reached the player');
       for (const message of trackers) {
         for (const entry of message.fields.initiative.entries) {
-          assert.includeMembers(Object.keys(entry), ['_id', 'creatureId', 'name', 'bonus', 'roll', 'initiative']);
-          // And the rounds its turn started and ended in (turn events), which tell nothing of it
+          // Where each creature stands, and the rounds its turn started and
+          // ended in (turn events), which tell nothing of it
           assert.includeMembers(['_id', 'creatureId', 'name', 'bonus', 'roll', 'initiative', 'startedRound', 'endedRound'],
             Object.keys(entry));
+          assert.includeMembers(Object.keys(entry), ['_id', 'creatureId', 'name', 'initiative']);
+          // A monster's roll and bonus (its Dexterity) are the game master's
+          if (entry.creatureId !== heroId) {
+            assert.notProperty(entry, 'roll');
+            assert.notProperty(entry, 'bonus');
+          }
         }
       }
 
@@ -595,6 +601,80 @@ if (Meteor.isServer) describe('Monsters on a party board', function () {
       assert.deepEqual(after.map(message => `${message.msg} ${message.collection}`), ['changed creatureFolders'],
         'the tracker alone, not every creature\'s variables again');
     } finally {
+      gm.connection.disconnect();
+    }
+  });
+
+  /*
+   * The initiative tracker shows the players where a monster stands, never its
+   * roll nor its bonus (its Dexterity): neither may reach their browser, which
+   * a projection of the folder could not tell apart from a character's
+   */
+  it('sends the players a monster\'s place in the initiative, never its roll nor its bonus', async function () {
+    const [goblinId] = await add();
+    await as(rollInitiative, gmId, { folderId });
+    // A creature the game master added by hand, with a roll of its own
+    await CreatureFolders.updateAsync(folderId, {
+      $push: { 'initiative.entries': { _id: 'byHand', name: 'Bandit', initiative: 12, bonus: 1, roll: 11 } },
+    } as any);
+    // The folder's initiative as a connection holds it: its latest value
+    const initiativeOf = (messages: any[]) => {
+      let initiative;
+      for (const message of about(messages, 'creatureFolders', folderId)) {
+        if (message.fields && 'initiative' in message.fields) initiative = message.fields.initiative;
+      }
+      return initiative as any;
+    };
+    const entry = (initiative: any, match: (entry: any) => boolean) => initiative?.entries?.find(match);
+    const player = await openAs(playerId);
+    const gm = await openAs(gmId);
+    try {
+      await player.subscribe('partyBoard', folderId);
+      await gm.subscribe('partyBoard', folderId);
+      const check = (initiative: any) => {
+        const goblin = entry(initiative, e => e.creatureId === goblinId);
+        const bandit = entry(initiative, e => e._id === 'byHand');
+        const hero = entry(initiative, e => e.creatureId === heroId);
+        assert.isNumber(goblin?.initiative, 'the goblin\'s place');
+        assert.notProperty(goblin, 'roll');
+        assert.notProperty(goblin, 'bonus');
+        assert.equal(bandit?.initiative, 12);
+        assert.notProperty(bandit, 'roll');
+        assert.notProperty(bandit, 'bonus');
+        assert.property(hero, 'roll', 'a character\'s roll, which the board shows');
+        assert.property(hero, 'bonus');
+      };
+      check(initiativeOf(player.messages));
+      assert.property(entry(initiativeOf(gm.messages), e => e.creatureId === goblinId), 'roll', 'the game master\'s');
+      // Rolled again while the board is open: the change goes through the same filter
+      const received = player.messages.length;
+      await as(rollInitiative, gmId, { folderId });
+      for (let i = 0; i < 50 && !initiativeOf(player.messages.slice(received)); i += 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      const changed = initiativeOf(player.messages.slice(received));
+      assert.exists(changed, 'the new rolls reached the player');
+      check(changed);
+      // The character sheet's fights and parties, which hold the same folder
+      for (const publication of ['characterCombat', 'characterParties']) {
+        const sheet = await openAs(playerId);
+        try {
+          await sheet.subscribe(publication, heroId);
+          check(initiativeOf(sheet.messages));
+        } finally {
+          sheet.connection.disconnect();
+        }
+      }
+      const gmSheet = await openAs(gmId);
+      try {
+        await gmSheet.subscribe('characterParties', heroId);
+        assert.property(entry(initiativeOf(gmSheet.messages), e => e.creatureId === goblinId), 'roll',
+          'the game master, who runs the board, keeps them');
+      } finally {
+        gmSheet.connection.disconnect();
+      }
+    } finally {
+      player.connection.disconnect();
       gm.connection.disconnect();
     }
   });

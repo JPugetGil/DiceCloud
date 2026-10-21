@@ -34,7 +34,7 @@
         <v-spacer />
         <increment-button
           v-if="context.creatureId"
-          outlined
+          variant="outlined"
           icon
           tile
           color="primary"

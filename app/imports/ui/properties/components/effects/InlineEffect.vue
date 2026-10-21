@@ -34,7 +34,7 @@
 import { computed} from 'vue';
 import { autorun } from 'vue-meteor-tracker';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
-import { isFinite } from 'lodash';
+import { effectDisplayedValue, effectOperationName } from '/imports/ui/utility/effectDisplay';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { useI18n } from 'vue-i18n';
 import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
@@ -68,21 +68,7 @@ const effectIcon = computed(() => {
   return getEffectIcon(model.value?.operation, value);
 });
 
-const operation = computed(() => {
-  switch(model.value?.operation) {
-    case 'base': return t('effectOps.base');
-    case 'add': return t('effectOps.add');
-    case 'mul': return t('effectOps.mul');
-    case 'min': return t('effectOps.min');
-    case 'max': return t('effectOps.max');
-    case 'advantage': return t('effectOps.advantage');
-    case 'disadvantage': return t('effectOps.disadvantage');
-    case 'passiveAdd': return t('effectOps.passiveAdd');
-    case 'fail': return t('effectOps.fail');
-    case 'conditional': return t('effectOps.conditional');
-    default: return '';
-  }
-});
+const operation = computed(() => effectOperationName(model.value?.operation, t));
 
 const displayedText = computed(() => {
   if (model.value?.operation === 'conditional') {
@@ -93,22 +79,7 @@ const displayedText = computed(() => {
 });
 
 
-const displayedValue = computed(() => {
-  let value = resolvedValue.value;
-  switch(model.value?.operation) {
-    case 'base': return value;
-    case 'add': return isFinite(Number(value)) ? Math.abs(Number(value)) : value;
-    case 'mul': return value;
-    case 'min': return value;
-    case 'max': return value;
-    case 'advantage': return;
-    case 'disadvantage': return;
-    case 'passiveAdd': return isFinite(Number(value)) ? Math.abs(Number(value)) : value;
-    case 'fail': return;
-    case 'conditional': return undefined;
-    default: return undefined;
-  }
-});
+const displayedValue = computed(() => effectDisplayedValue(model.value?.operation, resolvedValue.value));
 
 function click(e) {
   emit('click', e);

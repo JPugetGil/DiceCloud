@@ -416,7 +416,7 @@ const classes = computed(() => {
   return [
     ...(highestLevels.value || []),
     ...(classProperties.value || [])
-  ].sort((a, b) => a.order - b.order);
+  ].sort((a, b) => a.left - b.left);
 });
 
 const hiddenCount = computed(() => {

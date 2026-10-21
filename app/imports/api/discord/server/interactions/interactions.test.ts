@@ -657,21 +657,19 @@ if (Meteor.isServer) describe('Discord\'s interactions: commands and buttons (D6
       assert.equal(await DiscordRerolls.find({ creatureId }).countAsync(), 1, 'kept for the first check alone');
     });
 
-    it('never show a monster\'s check to the players: nothing in the party\'s channel; its game master\'s own channel has them', async function () {
+    // A monster's log is its game master's alone (decision of 2026-10-21):
+    // not even a channel of its own, which it may still hold from before
+    it('never post a monster\'s check: not in the party\'s channel, not in a channel of its own', async function () {
       const gmOwn = { id: '1700000000000000003', token: 'gm-own-token' };
       await connect(gmOwn, '1500000000000000004');
       await Creatures.updateAsync(monsterId, {
         $set: { discordChannel: { webhookId: gmOwn.id, guildId: GUILD, channelId: '1500000000000000004', connectedAt: new Date() } },
       });
       await appCheck(gmId, monsterId, { skillVariableName: 'perception', abilityVariableName: 'wisdom' });
+      await discordIntakeIdle();
+      await sender.idle();
       assert.lengthOf(posts(PARTY), 0);
-      const [own] = posts(gmOwn);
-      const [advantage] = customIds(own.body);
-      assert.match(advantage, /^dc:reroll:/);
-      assert.include(text((await click(advantage, {})).answer), 'Only those who can edit Goblin', 'not the player');
-      const again = await click(advantage, { user: GM, channel: '1500000000000000004' });
-      assert.equal(again.answer.data?.flags, 64, 'for its game master alone');
-      assert.include(text(await edited(again.token)), '(Advantage)');
+      assert.lengthOf(posts(gmOwn), 0);
     });
   });
 

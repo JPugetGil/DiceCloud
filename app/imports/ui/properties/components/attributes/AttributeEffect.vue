@@ -49,6 +49,7 @@
 <script setup>
 import { computed} from 'vue';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
+import { effectDisplayedValue } from '/imports/ui/utility/effectDisplay';
 import PropertyBreadcrumbs from '/imports/ui/creature/creatureProperties/PropertyBreadcrumbs.vue';
 import { isFinite, find } from 'lodash';
 import useUnits from '/imports/ui/composables/useUnits';
@@ -107,19 +108,7 @@ const displayedValue = computed(() => {
   } else if (props.model.type === 'attribute') {
     return props.model.baseValue?.value;
   }
-  switch(operation.value) {
-    case 'base': return value;
-    case 'add': return isFinite(value) ? Math.abs(value) : value;
-    case 'mul': return value;
-    case 'min': return value;
-    case 'max': return value;
-    case 'advantage': return;
-    case 'disadvantage': return;
-    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value;
-    case 'fail': return;
-    case 'conditional': return undefined;
-    default: return undefined;
-  }
+  return effectDisplayedValue(operation.value, value);
 });
 
 const { quantityParts } = useUnits();

@@ -38,7 +38,7 @@
         </div>
         <div class="action-sub-title d-flex flex-1-1 align-center text-body-small text-medium-emphasis text-no-wrap overflow-hidden w-100">
           <div class="flex-1-1">
-            {{ model.actionType }}
+            {{ translateOr(`forms.actionTypes.${model.actionType}`, model.actionType) }}
           </div>
           <div v-if="Number.isFinite(model.usesLeft)">
             {{ $t('cards.uses', { count: model.usesLeft }) }}
@@ -115,6 +115,7 @@ import useContext from '/imports/ui/composables/useContext';
 import { autorun } from 'vue-meteor-tracker';
 
 import { getPropertyName } from '/imports/ui/i18n/propertyNames';
+import { translateOr } from '/imports/ui/i18n';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
 import doAction from '/imports/ui/creature/actions/doAction';
 import ActionConditionView from '/imports/ui/properties/components/actions/ActionConditionView.vue';

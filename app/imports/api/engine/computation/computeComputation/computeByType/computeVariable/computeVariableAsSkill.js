@@ -29,25 +29,31 @@ export default function computeVariableAsSkill(computation, node, prop) {
   }
 
   // Combine everything to get the final result
-  const statBase = node.data.baseValue || 0;
+  const definedBase = node.data.baseValue;
+  const statBase = definedBase || 0;
   const aggregator = node.data.effectAggregator;
-  const aggregatorBase = aggregator?.base || 0;
 
   // Store effects and proficiencies
   prop.effectIds = node.data.effectIds;
   prop.definitions = node.data.definitions;
   prop.proficiencyIds = node.data.proficiencyIds;
 
-  // If there is no aggregator, determine if the prop can hide, then exit
+  // If there is no aggregator, determine if the prop can hide, then exit: a
+  // skill nothing defines a base for, nor makes proficient
   if (!aggregator) {
-    prop.hide = statBase === undefined &&
+    prop.hide = definedBase === undefined &&
       prop.proficiency == 0 ||
       undefined;
-    prop.value = (statBase || 0) + prop.abilityMod + profBonus;
+    prop.value = statBase + prop.abilityMod + profBonus;
     return;
   }
-  // Combine aggregator
-  const base = statBase > aggregatorBase ? statBase : aggregatorBase;
+  // Combine aggregator: the greater of the defined base and the effects'
+  // base, as getAggregatorResult does. A missing one counts for nothing: a
+  // base of -2 stays -2 under an effect that sets no base (it became 0)
+  let base;
+  if (!Number.isFinite(aggregator.base)) base = statBase;
+  else if (!Number.isFinite(definedBase)) base = aggregator.base;
+  else base = Math.max(aggregator.base, definedBase);
   let result = (base + prop.abilityMod + profBonus + aggregator.add) * aggregator.mul;
   if (result < aggregator.min) result = aggregator.min;
   if (result > aggregator.max) result = aggregator.max;
@@ -66,20 +72,13 @@ export default function computeVariableAsSkill(computation, node, prop) {
   } else {
     prop.advantage = 0;
   }
-  // Passive bonus
-  prop.passiveBonus = aggregator.passiveAdd;
-  // +/- 5 to passive bonus if the skill has advantage/disadvantage
-  if (
-    prop.advantage === 1
-    && Number.isFinite(prop.passiveBonus)
-  ) {
-    prop.passiveBonus += 5;
-  } else if (
-    prop.advantage === -1
-    && Number.isFinite(prop.passiveBonus)
-  ) {
-    prop.bassiveBonus -= 5;
-  }
+  // Passive bonus: the effects' own, and +5 with advantage, -5 with
+  // disadvantage (the rules), with or without them. The -5 was written to a
+  // misspelled field, and neither applied without a passive effect
+  const advantageBonus = prop.advantage * 5;
+  prop.passiveBonus = aggregator.passiveAdd === undefined && !advantageBonus
+    ? undefined
+    : (aggregator.passiveAdd || 0) + advantageBonus;
   // conditional benefits
   prop.conditionalBenefits = aggregator.conditional;
   // Roll bonuses

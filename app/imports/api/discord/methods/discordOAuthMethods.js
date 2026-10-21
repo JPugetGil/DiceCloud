@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
 import { getPartyRole } from '/imports/api/creature/creatureFolders/party';
-import { boardError } from '/imports/api/creature/creatureFolders/boardMonsters';
+import { boardError, GM_CREATURE_TYPES } from '/imports/api/creature/creatureFolders/boardMonsters';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import { NONCE_HASH } from '/imports/api/discord/discordNonce';
 
@@ -40,9 +40,11 @@ async function getTarget({ creatureId, folderId }, userId) {
   if (!userId) throw boardError('discord.denied', 'discord.errors.denied');
   if (creatureId && !folderId) {
     const creature = await Creatures.findOneAsync(creatureId, {
-      fields: { owner: 1, writers: 1, readers: 1, public: 1 },
+      fields: { owner: 1, writers: 1, readers: 1, public: 1, type: 1 },
     });
     await assertEditPermission(creature, userId);
+    // A monster's or a non-player character's log is its game master's alone
+    if (creature?.type && GM_CREATURE_TYPES.includes(creature.type)) throw boardError('discord.denied', 'discord.errors.gmCreature');
     return { creatureId };
   }
   if (folderId && !creatureId) {

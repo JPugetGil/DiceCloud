@@ -12,7 +12,7 @@
       :label="$t('library.language')"
       :items="languageItems"
       :model-value="model.language || 'auto'"
-      :debounce-time="0"
+      :debounce="0"
       :disabled="!canEdit"
       :hint="model.language ? undefined : $t('library.languageAutoHint')"
       persistent-hint

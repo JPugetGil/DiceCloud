@@ -11,7 +11,7 @@ import {
   namedCharacter, partyOfChannel, setActiveCharacter, type CommandCreature, type LinkedUser,
 } from '/imports/api/discord/server/interactions/interactionCharacters';
 import {
-  EPHEMERAL, RESPONSE, interactionLanguage, logMessage, notLinkedMessage, say, textMessage, type ReplyButton,
+  EPHEMERAL, RESPONSE, failureMessage, interactionLanguage, logMessage, notLinkedMessage, say, textMessage, type ReplyButton,
 } from '/imports/api/discord/server/interactions/interactionReplies';
 import { rerollButtons, singleD20 } from '/imports/api/discord/server/interactions/interactionRerolls';
 
@@ -93,12 +93,6 @@ const numberOption = (interaction: Interaction, name: string) => {
 
 const reply = (message: Record<string, unknown>): Handled => ({ response: { type: RESPONSE.message, data: message } });
 
-/** An error, as its user reads it */
-function failure(language: DiscordLanguage, error: unknown) {
-  const reason = (error as { reason?: string, message?: string })?.reason || (error as Error)?.message || String(error);
-  return textMessage(say(language, 'failed', { error: reason.slice(0, 300) }));
-}
-
 /** Answers at once that the reply is coming (for its user alone, or not), then edits it with what `work` returns */
 function deferred(context: Context, ephemeral: boolean, work: () => Promise<Record<string, unknown>>): Handled {
   return {
@@ -109,7 +103,7 @@ function deferred(context: Context, ephemeral: boolean, work: () => Promise<Reco
         message = await work();
       } catch (e) {
         console.warn(`Discord: a command failed: ${(e as Error)?.message || e}`);
-        message = failure(context.language, e);
+        message = failureMessage(context.language, e);
       }
       // An edit keeps what the deferral said: for its user alone, or not
       const { flags, ...rest } = message as { flags?: number };

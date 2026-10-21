@@ -72,8 +72,10 @@ async function resolveTarget(user: LinkedUser, value: string): Promise<Target | 
   }
   const creatureMatch = /^creature:(\w{1,32})$/.exec(value);
   if (!creatureMatch) return undefined;
-  const creature = await Creatures.findOneAsync(creatureMatch[1], { fields: { name: 1, owner: 1, writers: 1 } });
+  const creature = await Creatures.findOneAsync(creatureMatch[1], { fields: { name: 1, owner: 1, writers: 1, type: 1 } });
   if (!creature) return undefined;
+  // Characters only, as offered: a monster's log is its game master's alone
+  if (creature.type !== 'pc') return 'denied';
   return hasEditPermission(creature as any, user) ? { creatureId: creature._id, name: creature.name?.trim() || '?' } : 'denied';
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="stats">
     <div
-      class="d-flex wrap justify-space-between px-2 pt-3 pb-2"
+      class="d-flex flex-wrap justify-space-between px-2 pt-3 pb-2"
       style="page-break-after: avoid"
     >
       <div
@@ -510,7 +510,7 @@ const languages = autorun(() => getSkillOfType(creature.value, 'language')).resu
 
 const actions = autorun(() => /** @type {import('/imports/api/creature/creatureProperties/CreatureProperties').CreaturePropertyTypes['action'][]} */ (
   getProperties(creature.value, { type: 'action' }, {
-    sort: { actionType: 1, order: 1 }
+    sort: { actionType: 1, left: 1 }
   })
 )).result;
 
@@ -518,7 +518,7 @@ const actions = autorun(() => /** @type {import('/imports/api/creature/creatureP
 const multipliers = autorun(() => getProperties(creature.value, {
   type: 'damageMultiplier'
 }, {
-  sort: { value: 1, order: 1 }
+  sort: { value: 1, left: 1 }
 })).result;
 
 const features = autorun(() => getProperties(creature.value, { type: 'feature' })).result;

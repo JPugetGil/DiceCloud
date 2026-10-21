@@ -8,6 +8,7 @@ import type stream from 'stream';
 import { S3 } from '@aws-sdk/client-s3';
 import { DEFAULT_S3_REGION } from '/imports/api/files/s3Pricing';
 import { APP_FILES_PREFIX, type PrefixUsage, addObjectToUsage } from '/imports/api/files/bucketUsage';
+import { fileResponseHeaders } from '/imports/api/files/server/fileResponseHeaders';
 
 /* See fs-extra and graceful-fs NPM packages */
 /* For better i/o performance */
@@ -87,6 +88,7 @@ if (Meteor.settings.useS3) {
     onAfterUpload,
     debug,// = !Meteor.isProduction,
     allowClientCode = false,
+    servedType,
   }: {
     collectionName: string,
     storagePath: string,
@@ -94,11 +96,13 @@ if (Meteor.settings.useS3) {
     onAfterUpload: (...args: any[]) => any,
     debug: boolean,
     allowClientCode?: boolean,
+    servedType: (storedType?: string) => string,
   }) {
     const filesCollection: S3FilesCollection = new FilesCollection<S3Metadata>({
       collectionName,
       storagePath,
       onBeforeUpload,
+      responseHeaders: fileResponseHeaders(servedType),
       onAfterUpload(fileRef) {
         // Call the provided afterUpload hook first
         onAfterUpload?.(fileRef);
@@ -281,11 +285,13 @@ if (Meteor.settings.useS3) {
     onAfterUpload,
     debug,// = !Meteor.isProduction,
     allowClientCode = false,
-  }: FilesCollectionConfig<S3Metadata>) {
+    servedType,
+  }: FilesCollectionConfig<S3Metadata> & { servedType: (storedType?: string) => string }) {
     const collection: S3FilesCollection = new FilesCollection<S3Metadata>({
       collectionName,
       storagePath,
       onBeforeUpload,
+      responseHeaders: fileResponseHeaders(servedType),
       onAfterUpload,
       debug,
       allowClientCode,

@@ -26,7 +26,7 @@ import '/imports/api/discord/server/botClient';
  * autocompletions; nothing of an interaction's token is ever logged.
  */
 
-const MAX_BODY_BYTES = 1024 * 1024;
+const MAX_BODY_BYTES = 256 * 1024;
 
 const LIMITS = {
   action: { count: 8, windowMs: 10 * 1000 },

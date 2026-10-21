@@ -5,6 +5,9 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import { hasEditPermission } from '/imports/api/sharing/sharingPermissions';
 import reactivePublication, { findOneReactive } from '/imports/api/utility/server/reactivePublication';
+import transformedCursor from '/imports/api/utility/server/transformedCursor';
+import { folderFieldsForPlayers, folderViews } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
 
 const schema = new SimpleSchema({
   creatureId: { type: String, max: 32 },
@@ -37,14 +40,20 @@ Meteor.publish('characterParties', function (creatureId) {
     });
     const user = await findOneReactive(Meteor.users, userId, { fields: { roles: 1 } });
     if (!creature || !hasEditPermission(creature, user)) return [];
-    // Made outside the computation, which would otherwise rerun at every turn
-    return AsyncTracker.nonreactive(() => CreatureFolders.find({
-      creatures: creatureId,
-      archived: { $ne: true },
-    }, {
+    const selector = { creatures: creatureId, archived: { $ne: true } };
+    // Who runs each folder and whose rolls its players see: read on these
+    // fields alone, which a turn does not change
+    const folders = await CreatureFolders.find(selector, { fields: { owner: 1, creatures: 1 } }).fetchAsync();
+    const creatures = await Creatures.find(
+      { _id: { $in: folders.flatMap(folder => folder.creatures || []) } }, { fields: { owner: 1, type: 1 } },
+    ).fetchAsync();
+    const views = folderViews(folders, creatures, hidesStatsFromPlayers, userId);
+    // Made outside the computation, which would otherwise rerun at every turn.
+    // The initiative rolls of the game master's creatures are theirs alone
+    return AsyncTracker.nonreactive(() => transformedCursor(CreatureFolders.find(selector, {
       fields: {
         name: 1, owner: 1, members: 1, creatures: 1, initiative: 1, playersTargetMonsters: 1, encounterId: 1,
       },
-    }));
+    }), (fields, id) => views.get(id)?.runs ? fields : folderFieldsForPlayers(fields, views.get(id)?.shownIds ?? [])));
   });
 });

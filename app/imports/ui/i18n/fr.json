@@ -99,7 +99,7 @@
     "iconsLicenseUrl": "https://creativecommons.org/licenses/by/3.0/deed.fr",
     "versionTitle": "Version",
     "version": "DiceCloud {version}, commit {commit} du {date}.",
-    "versionRule": "La version suit ce qui est déployé : chaque nouvelle fonctionnalité fait monter le deuxième nombre, chaque correction le troisième.",
+    "versionRule": "La version suit ce qui est déployé : chaque nouvelle fonctionnalité fait monter le deuxième nombre, chaque correction le troisième.",
     "licenses": "Licences et crédits",
     "srdTitle": "Document de Référence du Système 5.1",
     "srdIntro": "Les bestiaires du SRD 5.1, dont les maîtres du jeu ajoutent les monstres à leurs tableaux de groupe, comprennent des textes du Document de Référence du Système 5.1, en anglais et dans sa traduction officielle en français.",
@@ -166,6 +166,7 @@
     "previewsText": "Un lien vers un personnage public, collé dans Discord, montre son nom, son portrait, sa race, sa classe, son niveau, ses points de vie et sa classe d'armure, avec un bouton vers la fiche. Le lien d'un personnage privé ne montre rien de lui.",
     "errors": {
       "denied": "Seul le maître du jeu de ce groupe peut faire cela",
+      "gmCreature": "Un monstre ou un PNJ ne publie rien sur Discord : son journal reste à son MJ",
       "invalidWebhook": "Ce n'est pas l'URL d'un webhook Discord : elle ressemble à https://discord.com/api/webhooks/…",
       "noWebhook": "Renseignez d'abord un webhook Discord",
       "unavailable": "Ce serveur ne publie pas sur Discord",
@@ -246,6 +247,7 @@
       "characterAmbiguous": "Plusieurs de vos personnages s'appellent « {name} » : choisissez dans la liste.",
       "denied": "Vous ne pouvez plus modifier ce personnage.",
       "failed": "DiceCloud n'a pas pu le faire : {error}",
+      "unexpected": "un problème est survenu de son côté",
       "nothingLogged": "Rien n'a été lancé.",
       "noFormula": "Que lancer ? Par exemple : 1d20 + 5.",
       "checkNotFound": "{name} n'a pas de compétence ni de caractéristique « {check} ».",
@@ -1594,7 +1596,7 @@
       "damageTypeHint": "Utilisez le type Soins pour rendre des points de vie",
       "savingThrow": "Jet de sauvegarde",
       "onSave": "Dégâts en cas de sauvegarde réussie",
-      "onSaveHint": "Utilisez \"~damage\" pour faire référence aux dégâts normalement infligés",
+      "onSaveHint": "Utilisez « ~damage » pour faire référence aux dégâts normalement infligés",
       "halfDamage": "Moitié des dégâts",
       "typeRequired": "Le type de dégâts est obligatoire",
       "invalidType": "{value} n'est pas un type de dégâts valide"
@@ -1815,7 +1817,7 @@
       "tagsHint": "Les étiquettes permettent à d'autres propriétés de cibler celle-ci",
       "childProperties": "Propriétés enfants",
       "childrenAfterCreate": "Des enfants pourront être ajoutés une fois cette propriété créée",
-      "otherChild": "...Autre",
+      "otherChild": "…Autre",
       "child": "Enfant"
     }
   },
@@ -2079,6 +2081,10 @@
     "criticalMiss": "Échec critique !",
     "hit": "Touché !",
     "miss": "Raté !",
+    "onHit": "**Si touché**",
+    "onMiss": "**Si raté**",
+    "onFailedSave": "**Si le jet de sauvegarde échoue**",
+    "onSave": "**Si le jet de sauvegarde réussit**",
     "toHit": "Attaque",
     "withAdvantage": "{name} (avantage)",
     "withDisadvantage": "{name} (désavantage)",
@@ -2345,7 +2351,8 @@
   "targetPicker": {
     "errors": {
       "singleTarget": "Cette action ne prend qu'une seule cible",
-      "denied": "Vous ne pouvez pas cibler cette créature avec cette action"
+      "denied": "Vous ne pouvez pas cibler cette créature avec cette action",
+      "foreignWrite": "Cette action fixe une valeur ou retire des buffs : vous ne pouvez l'utiliser que sur vos propres créatures"
     },
     "title": "Cibles",
     "titleFor": "{name} : cibles",

@@ -305,7 +305,7 @@ const classes = computed(() => {
   return [
     ...(highestLevels.value || []),
     ...(classProperties.value || [])
-  ].sort((a, b) => a.order - b.order);
+  ].sort((a, b) => a.left - b.left);
 });
 
 watch(() => creature.value?.name, (value) => {

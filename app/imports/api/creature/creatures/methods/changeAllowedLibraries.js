@@ -74,6 +74,8 @@ const toggleAllUserLibraries = new ValidatedMethod({
     timeInterval: 5000,
   },
   async run({ _id, value }) {
+    const creature = await Creatures.findOneAsync(_id, { fields: { owner: 1, writers: 1 } });
+    await assertEditPermission(creature, this.userId);
     if (value) {
       await Creatures.updateAsync(_id, {
         $unset: {

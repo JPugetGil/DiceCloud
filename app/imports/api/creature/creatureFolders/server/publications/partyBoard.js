@@ -12,10 +12,11 @@ import { loadCreature } from '/imports/api/engine/loadCreatures';
 import VERSION from '/imports/constants/VERSION';
 import EngineActions, { WITHOUT_SEED } from '/imports/api/engine/action/EngineActions';
 import { getPartyRole, partyCreaturesFilter } from '/imports/api/creature/creatureFolders/party';
-import { boardFolderFields } from '/imports/api/creature/creatureFolders/initiativeCreatures';
+import { boardFolderFields, folderFieldsForPlayers } from '/imports/api/creature/creatureFolders/initiativeCreatures';
 import { settingsFieldsWithoutWebhook } from '/imports/api/creature/creatures/webhookVisibility';
 import { hidesStatsFromPlayers } from '/imports/api/creature/creatureFolders/boardMonsters';
 import reactivePublication, { findOneReactive } from '/imports/api/utility/server/reactivePublication';
+import transformedCursor from '/imports/api/utility/server/transformedCursor';
 
 const schema = new SimpleSchema({
   folderId: { type: String, max: 32 },
@@ -137,10 +138,14 @@ Meteor.publish('partyBoard', function (folderId) {
     return AsyncTracker.nonreactive(() => [
       // The players get neither the invitation's token nor, unless the game
       // master shows them, the hit points and armor class of the creatures
-      // added to the initiative tracker (UX11), which tell their status too
-      CreatureFolders.find({ _id: folderId }, {
+      // added to the initiative tracker (UX11), which tell their status too;
+      // nor the initiative roll and bonus of the creatures whose stats they
+      // don't see
+      role === 'gm' ? CreatureFolders.find({ _id: folderId }, {
         fields: boardFolderFields(role, { initiative: { showStats } }),
-      }),
+      }) : transformedCursor(CreatureFolders.find({ _id: folderId }, {
+        fields: boardFolderFields(role, { initiative: { showStats } }),
+      }), fields => folderFieldsForPlayers(fields, shownIds)),
       Creatures.find({ _id: { $in: creatureIds } }, {
         fields: role === 'gm' ? CREATURE_FIELDS : MEMBER_CREATURE_FIELDS,
       }),

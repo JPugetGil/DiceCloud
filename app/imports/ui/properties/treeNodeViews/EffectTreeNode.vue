@@ -36,6 +36,7 @@
 <script setup>
 import { computed } from 'vue';
 import getEffectIcon from '/imports/ui/utility/getEffectIcon';
+import { effectDisplayedValue } from '/imports/ui/utility/effectDisplay';
 import { useI18n } from 'vue-i18n';
 import useUnits, { useEffectUnit } from '/imports/ui/composables/useUnits';
 
@@ -63,21 +64,11 @@ const effectIcon = computed(() => {
   return getEffectIcon(props.model.operation, value);
 });
 
+// An unresolved base or addition shows 0
 const displayedValue = computed(() => {
-  let value = resolvedValue.value;
-  switch(props.model.operation) {
-    case 'base': return value || 0;
-    case 'add': return isFinite(value) ? Math.abs(value) : value || 0;
-    case 'mul': return value;
-    case 'min': return value;
-    case 'max': return value;
-    case 'advantage': return;
-    case 'disadvantage': return;
-    case 'passiveAdd': return isFinite(value) ? Math.abs(value) : value || 0;
-    case 'fail': return;
-    case 'conditional': return;
-    default: return undefined;
-  }
+  const operation = props.model.operation;
+  const value = ['base', 'add', 'passiveAdd'].includes(operation) ? resolvedValue.value || 0 : resolvedValue.value;
+  return effectDisplayedValue(operation, value);
 });
 
 const displayedStats = computed(() => {

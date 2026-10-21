@@ -10,6 +10,10 @@
 #   ./dicecloud.sh logs [service]   follows a service's log (default: dicecloud)
 #   ./dicecloud.sh backup           backs the database up now (the timer does it daily)
 #   ./dicecloud.sh restore <file>   replaces the database with a backup
+#   ./dicecloud.sh backups list     lists the backups the S3 bucket keeps
+#   ./dicecloud.sh backups pull [name]
+#                                   copies one back into BACKUP_DIR (the
+#                                   latest by default), for `restore`
 #   ./dicecloud.sh libraries <folder> <username>
 #                                   imports the libraries of tools/libraryImport
 #                                   (its data/*.gz and manifests), owned by that
@@ -331,18 +335,19 @@ prune_backups() {
     done
 }
 
-# The same backups in the bucket: files removed here are removed there
+# The new backups go to the bucket; removing old ones here removes nothing
+# there: the bucket keeps them until its lifecycle rule expires them (README,
+# Backups). A mirror (sync --delete) would leave it, after a disk lost, with
+# nothing but the new machine's first backup, of an empty database
 copy_to_s3() {
-  log "Copying the backups to s3://$BACKUP_S3_BUCKET/$BACKUP_S3_PREFIX/"
-  export AWS_ACCESS_KEY_ID="$BACKUP_S3_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$BACKUP_S3_SECRET_ACCESS_KEY"
-  export AWS_DEFAULT_REGION="$BACKUP_S3_REGION"
-  local endpoint=()
-  if [ -n "$BACKUP_S3_ENDPOINT" ]; then endpoint=(--endpoint-url "$BACKUP_S3_ENDPOINT"); fi
-  docker_ run --rm \
-    -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_DEFAULT_REGION \
-    -v "$BACKUP_DIR:/backups:ro" amazon/aws-cli "${endpoint[@]}" \
-    s3 sync /backups "s3://$BACKUP_S3_BUCKET/$BACKUP_S3_PREFIX/" \
-    --delete --exclude '*' --include 'dicecloud-*.archive.gz' --only-show-errors
+  log "Copying the new backups to s3://$BACKUP_S3_BUCKET/$BACKUP_S3_PREFIX/"
+  aws_ "$BACKUP_DIR" ro s3 sync /work "s3://$BACKUP_S3_BUCKET/$BACKUP_S3_PREFIX/" \
+    --exclude '*' --include 'dicecloud-*.archive.gz' --only-show-errors
+}
+
+# The latest backup in BACKUP_DIR, if any
+latest_backup() {
+  find "$BACKUP_DIR" -maxdepth 1 -name 'dicecloud-*.archive.gz' 2>/dev/null | sort | tail -n 1
 }
 
 cmd_backup() {
@@ -366,25 +371,86 @@ cmd_backup() {
   if [ -n "$BACKUP_S3_BUCKET" ]; then copy_to_s3; fi
 }
 
+# Restores the archive on stdin into the app's database; its report on
+# stdout (mongorestore's, ending with how many documents it restored)
 restore_archive() {
-  compose exec -T mongo sh -c 'exec mongorestore --quiet --host localhost -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --drop --nsInclude "$MONGO_APP_DATABASE.*"'
+  compose exec -T mongo sh -c 'exec mongorestore --host localhost -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --archive --gzip --drop --nsInclude "$MONGO_APP_DATABASE.*" 2>&1'
+}
+
+# What a failed restore leaves, and the way back: the app stopped, the
+# database perhaps half replaced
+restore_failed() {
+  log "ERROR: the restore did not finish. The app is stopped, and the database may be half restored." >&2
+  log "  Back to the database as it was just before: ./dicecloud.sh restore $1" >&2
+  log "  Or start the app on the database as it is: ./dicecloud.sh start" >&2
 }
 
 cmd_restore() {
   load_env
-  local file="${1:-}"
-  [ -n "$file" ] && [ -f "$file" ] || die "usage: ./dicecloud.sh restore <backup file>"
+  local file="${1:-}" safety report restored failed
+  [ -n "$file" ] && [ -f "$file" ] || die "usage: ./dicecloud.sh restore <backup file> (./dicecloud.sh backups pull gets one from the bucket)"
   gzip -t "$file" || die "$file is damaged"
   is_running mongo || die "MongoDB is not running: ./dicecloud.sh start"
   confirm "This replaces the whole database with $(basename "$file")."
   log "Backing up the current database first"
   cmd_backup
+  safety="$(latest_backup)"
   compose stop dicecloud
   log "Restoring $(basename "$file")"
-  restore_archive < "$file"
+  if ! report="$(restore_archive < "$file")"; then
+    printf '%s\n' "$report" | tail -n 5 >&2
+    restore_failed "$safety"
+    exit 1
+  fi
+  restored="$(printf '%s\n' "$report" | sed -nE 's/.*[^0-9]([0-9]+) document\(s\) restored successfully.*/\1/p' | tail -n 1)"
+  failed="$(printf '%s\n' "$report" | sed -nE 's/.*[^0-9]([0-9]+) document\(s\) failed to restore.*/\1/p' | tail -n 1)"
+  printf '%s\n' "$report" | grep -E 'document\(s\)' || true
+  if [ "${failed:-0}" -gt 0 ]; then
+    restore_failed "$safety"
+    exit 1
+  fi
+  # An archive of another database restores nothing and drops nothing: it
+  # would pass for a restore that worked
+  if [ "${restored:-0}" -eq 0 ]; then
+    log "ERROR: nothing was restored: $(basename "$file") holds no \"$MONGO_APP_DATABASE\" database; the database is as it was" >&2
+    compose start dicecloud
+    exit 1
+  fi
   compose start dicecloud
   wait_healthy dicecloud
-  log "Restored"
+  log "Restored $restored documents"
+}
+
+# The backups the bucket keeps: their list, or one copied back into
+# BACKUP_DIR (the latest by default), which a new machine restores
+cmd_backups() {
+  load_env
+  [ -n "$BACKUP_S3_BUCKET" ] || die "BACKUP_S3_BUCKET is empty in $ENV_FILE: no backup goes to a bucket"
+  local action="${1:-}" name="${2:-}"
+  local base="s3://$BACKUP_S3_BUCKET/$BACKUP_S3_PREFIX/"
+  case "$action" in
+    list)
+      aws_ "" ro s3 ls "$base" --human-readable
+      ;;
+    pull)
+      if [ -z "$name" ]; then
+        name="$(aws_ "" ro s3 ls "$base" | awk '{ print $4 }' | grep -E '^dicecloud-.+\.archive\.gz$' | sort | tail -n 1 || true)"
+        [ -n "$name" ] || die "no backup in $base"
+      fi
+      [[ "$name" =~ ^dicecloud-[0-9_-]+\.archive\.gz$ ]] || die "not a backup's name: $name (./dicecloud.sh backups list)"
+      mkdir -p "$BACKUP_DIR"
+      log "Getting $name into $BACKUP_DIR"
+      aws_ "$BACKUP_DIR" rw s3 cp "$base$name" "/work/$name.part" --only-show-errors
+      if ! gzip -t "$BACKUP_DIR/$name.part"; then
+        rm -f "$BACKUP_DIR/$name.part"
+        die "$name is damaged"
+      fi
+      mv "$BACKUP_DIR/$name.part" "$BACKUP_DIR/$name"
+      log "Ready: ./dicecloud.sh restore $BACKUP_DIR/$name"
+      ;;
+    *)
+      die "usage: ./dicecloud.sh backups list|pull [name] (see ./dicecloud.sh)" ;;
+  esac
 }
 
 cmd_import() {
@@ -506,6 +572,11 @@ cmd_snapshots() {
       ;;
     tools)
       [ -f "$target" ] || die "usage: ./dicecloud.sh snapshots tools <archive of the tools/ folder>"
+      # Its .env files hold secrets (Discord's client secret and bot token),
+      # which have no place in the bucket: their examples may stay
+      if tar -tzf "$target" | grep -E '(^|/)\.env[^/]*$' | grep -qvE '\.example$'; then
+        die "$(basename "$target") holds .env files, which are secrets: make it again with --exclude='.env*' (README)"
+      fi
       dir="$(cd "$(dirname "$target")" && pwd)"
       file="$(basename "$target")"
       log "Sending $file to $base/tools/"
@@ -544,6 +615,7 @@ main() {
     logs) cmd_logs "$@" ;;
     backup) cmd_backup ;;
     restore) cmd_restore "$@" ;;
+    backups) cmd_backups "$@" ;;
     import) cmd_import "$@" ;;
     libraries) cmd_libraries "$@" ;;
     snapshots) cmd_snapshots "$@" ;;

@@ -1,5 +1,6 @@
 
 import { incrementFileStorageUsed, getUserFileStorageError } from '/imports/api/users/methods/updateFileStorageUsed';
+import { imageTypeError, servedImageType } from '/imports/api/files/fileTypes';
 let createS3FilesCollection;
 if (Meteor.isServer) {
   // require(), not import: this module is only pulled in on one side of the
@@ -21,10 +22,9 @@ const UserImages = createS3FilesCollection({
     if (file.size > 30_000_000) {
       return 'Images must be less than 30MB';
     }
-    // Allow common image extensions
-    if (!/gif|png|jpe?g|webp/i.test(file.extension || '')) {
-      return 'Please upload an image file only';
-    }
+    // An image type, with an extension of that type (fileTypes.ts)
+    const typeError = imageTypeError(file);
+    if (typeError) return typeError;
     // Make sure the user has enough space left in their role's storage limit.
     // The server checks the uploading user, the client the logged in one.
     const userId = Meteor.isServer ? this.userId : Meteor.userId();
@@ -32,7 +32,9 @@ const UserImages = createS3FilesCollection({
   },
   async onAfterUpload(file) {
     if (Meteor.isServer) await incrementFileStorageUsed(file.userId, file.size);
-  }
+  },
+  // Served as the image it is, whatever type the uploading client declared
+  servedType: servedImageType,
 });
 
 // Its methods are registered by register-api.js on the server, and on the

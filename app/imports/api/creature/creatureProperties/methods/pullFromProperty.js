@@ -4,10 +4,16 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+import { checkId, checkPath } from '/imports/api/utility/methodArguments';
 
 const pullFromProperty = new ValidatedMethod({
   name: 'creatureProperties.pull',
-  validate: null,
+  validate({ _id, path, itemId }) {
+    checkId(_id);
+    checkPath(path);
+    check(itemId, String);
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -22,7 +28,7 @@ const pullFromProperty = new ValidatedMethod({
 
     // Do work
     // A modifier on a path given as an argument: no type can follow it
-    await CreatureProperties.updateAsync(_id, /** @type {any} */ ({
+    await CreatureProperties.updateAsync(property._id, /** @type {any} */ ({
       $pull: { [path.join('.')]: { _id: itemId } },
       $set: { dirty: true }
     }), {

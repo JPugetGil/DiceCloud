@@ -2,10 +2,13 @@ import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolde
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { Meteor } from 'meteor/meteor';
+import { checkId } from '/imports/api/utility/methodArguments';
 
 const removeCreatureFolder = new ValidatedMethod({
   name: 'creatureFolders.methods.remove',
-  validate: null,
+  validate({ _id }) {
+    checkId(_id);
+  },
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
@@ -33,7 +36,12 @@ const removeCreatureFolder = new ValidatedMethod({
       await removeBoardMonsters(existingFolder);
     }
     // Remove
-    const removed = await CreatureFolders.removeAsync(_id);
+    const removed = await CreatureFolders.removeAsync(existingFolder._id);
+    // The players' characters it held are no longer the game master's to edit
+    if (Meteor.isServer) {
+      const { revokeOwnerAccess } = await import('/imports/api/creature/creatureFolders/removeFromFolders');
+      await revokeOwnerAccess(existingFolder, existingFolder.creatures || []);
+    }
     // Its Discord channel's webhook, once nothing else posts with it
     if (Meteor.isServer && existingFolder.discord?.channel?.webhookId) {
       const { releaseWebhook } = await import('/imports/api/creature/log/server/connectedWebhooks');

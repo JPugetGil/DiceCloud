@@ -82,6 +82,18 @@ describe('TextField', () => {
     expect(wrapper.find('input').element.value).toBe('Orc');
   });
 
+  it('sends a change still waiting as soon as the user leaves the field', async () => {
+    const onChange = vi.fn();
+    const wrapper = field({ onChange });
+    const input = wrapper.find('input');
+    await input.trigger('focus');
+    await input.setValue('Bugbear');
+    expect(onChange).not.toHaveBeenCalled();
+    // A dialog's button clicked right after: its value must have left
+    await input.trigger('blur');
+    expect(onChange).toHaveBeenCalledWith('Bugbear', expect.any(Function));
+  });
+
   it('sends a change still waiting when it closes', async () => {
     const onChange = vi.fn();
     const wrapper = field({ onChange });

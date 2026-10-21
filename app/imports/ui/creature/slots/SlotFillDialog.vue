@@ -406,7 +406,7 @@ const matchingNodes = autorun(() => {
   if (!libraryNodeFilter.value) return [];
   if (!slotFillersReady.value) return [];
   let nodes = /** @type {Filler[]} */ (LibraryNodes.find(libraryNodeFilter.value, {
-    sort: { name: 1, order: 1 }
+    sort: { name: 1, left: 1 }
   }).fetch());
   nodes.forEach(node => {
     let quantityToFill = typeof node.slotQuantityFilled == 'number' ? node.slotQuantityFilled : 1;

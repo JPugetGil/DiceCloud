@@ -27,7 +27,7 @@ const ArchiveCreatureFiles = createS3FilesCollection({
       return 'Please upload with size equal or less than 10MB';
     }
     // Only accept JSON
-    if (!/json/i.test(file.extension)) {
+    if (!/^json$/i.test(file.extension || '')) {
       return 'Please upload only a JSON file';
     }
     // Make sure the user has enough space left in their role's storage limit.
@@ -37,7 +37,9 @@ const ArchiveCreatureFiles = createS3FilesCollection({
   },
   async onAfterUpload(file) {
     if (Meteor.isServer) await incrementFileStorageUsed(file.userId, file.size);
-  }
+  },
+  // Served as JSON, whatever type the uploading client declared
+  servedType: () => 'application/json',
 });
 
 let archiveSchema = new SimpleSchema({

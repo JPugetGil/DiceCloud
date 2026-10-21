@@ -38,7 +38,7 @@
         <text-field
           :label="$t('auth.usernameOrEmail')"
           :model-value="userSearched"
-          :debounce-time="300"
+          :debounce="300"
           @change="(value, ack) => getUser({value, ack})"
         />
         <v-btn
@@ -50,7 +50,7 @@
         </v-btn>
       </div>
       <v-list
-        two-lines
+        lines="two"
         class="sharedWith"
       >
         <v-list-item
