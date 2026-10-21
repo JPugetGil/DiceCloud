@@ -270,8 +270,10 @@ export async function getPropertyChildren(creatureId: string, property: string |
     const cloneProps = EJSON.clone(props);
     return cloneProps.sort((a, b) => a.left - b.left);
   } else {
+    // By its root too: by parentId alone, no index served it, and it read the
+    // properties of every creature
     return await CreatureProperties.find({
-      'parentId': property._id,
+      ...getFilter.children(property),
       removed: { $ne: true },
     }, {
       sort: { left: 1 },

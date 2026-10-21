@@ -1,4 +1,3 @@
-import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { checkId, checkPath } from '/imports/api/utility/methodArguments';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
@@ -11,6 +10,7 @@ import Libraries from '/imports/api/library/Libraries';
 import { assertDocEditPermission, assertEditPermission } from '/imports/api/sharing/sharingPermissions';
 import { softRemove } from '/imports/api/parenting/softRemove';
 import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
+import { declareTreeIndexes } from '/imports/api/parenting/treeIndexes';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import { updateReferenceNodeWork } from '/imports/api/library/methods/updateReferenceNode';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
@@ -117,13 +117,22 @@ export type LibraryNode = StrictUnion<ConvertToUnion<LibraryNodeTypes>>;
 
 const LibraryNodes = new Mongo.Collection<LibraryNode>('libraryNodes');
 
-// Set up server side search index
-if (Meteor.isServer) {
-  LibraryNodes.createIndexAsync({
-    'name': 'text',
-    'tags': 'text',
-  }).catch(error => console.error('The search index of libraryNodes was not created', error));
-}
+// The reads of the user's libraries, measured on 118,240 nodes (21 libraries
+// read) against the schemas' indexes (tools/tech-debt, lot O)
+declareTreeIndexes(LibraryNodes, {
+  indexes: [
+    // A library's trash: its removed nodes alone, in tree order
+    { key: { 'root.id': 1, left: 1 }, name: 'removed_root.id_1_left_1', partialFilterExpression: { removed: true } },
+    // By tag and type: conditions.list (343 ms, 1 ms), the slot fillers (122 ms, 2 ms)
+    { key: { libraryTags: 1, type: 1 } },
+    // By type: the bestiaries (124 ms, 18 ms), the monsters (162 ms, 2 ms) and,
+    // with the slot fillers' type, the search (125 ms, 10 ms)
+    { key: { type: 1, 'root.id': 1 } },
+    { key: { slotFillerType: 1 }, partialFilterExpression: { slotFillerType: { $exists: true } } },
+  ],
+  // The text index: the search reads names by regex, its $text is commented out
+  dropped: ['name_text_tags_text'],
+});
 
 const genericLibraryNodeSchema = TypedSimpleSchema.from({})
   .extend(LibraryNodeSchema)

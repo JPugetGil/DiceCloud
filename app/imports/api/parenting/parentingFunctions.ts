@@ -295,7 +295,8 @@ export async function moveDocWithinRoot<T extends TreeDoc>(doc: TreeDoc, treeCol
   // Move the doc and its children the move distance
   await collection.find({
     'root.id': doc.root.id,
-    left: { $gte: doc.left },
+    // Bounded on both sides, as getFilter.descendants: the subtree alone
+    left: { $gte: doc.left, $lte: doc.right },
     right: { $lte: doc.right },
   }, {
     fields: { _id: 1, left: 1, right: 1 },
@@ -431,7 +432,8 @@ export async function moveDocBetweenRoots<T extends TreeDoc>(doc: TreeDoc, treeC
   const move = newPosition + 0.5 - doc.left;
   await collection.find({
     'root.id': doc.root.id,
-    left: { $gte: doc.left },
+    // Bounded on both sides, as getFilter.descendants: the subtree alone
+    left: { $gte: doc.left, $lte: doc.right },
     right: { $lte: doc.right },
   }, {
     fields: { _id: 1, left: 1, right: 1 },

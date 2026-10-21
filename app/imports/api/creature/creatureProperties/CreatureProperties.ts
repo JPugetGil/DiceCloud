@@ -2,6 +2,7 @@ import SimpleSchema from 'meteor/aldeed:simple-schema';
 import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
 import ChildSchema from '/imports/api/parenting/ChildSchema';
 import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
+import { declareTreeIndexes } from '/imports/api/parenting/treeIndexes';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
@@ -148,6 +149,7 @@ export type CreaturePropertyTypes = {
 export type CreatureProperty = Simplify<StrictUnion<ConvertToUnion<CreaturePropertyTypes>>>;
 
 const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
+declareTreeIndexes(CreatureProperties);
 
 const genericCreaturePropertySchema = TypedSimpleSchema.from({})
   .extend(CreaturePropertySchema)

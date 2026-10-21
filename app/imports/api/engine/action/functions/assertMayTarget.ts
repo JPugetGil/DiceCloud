@@ -86,7 +86,7 @@ async function writesOnTarget(actorId: string, propId: string, { buffRemovers }:
   const nodes = await CreatureProperties.find({
     'root.id': actorId,
     removed: { $ne: true },
-    left: { $gte: prop.left },
+    left: { $gte: prop.left, $lte: prop.right },
     right: { $lte: prop.right },
     type: { $in: ['adjustment', 'buffRemover', 'buff'] },
   } as any, { fields: { type: 1, left: 1, right: 1, target: 1, operation: 1, targetParentBuff: 1 } }).fetchAsync() as Node[];

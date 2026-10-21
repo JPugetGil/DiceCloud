@@ -162,9 +162,7 @@ export async function searchMonsters(userId, { libraryIds, text = '', tags = [],
   const stats = templates.length ? await LibraryNodes.find({
     variableName: { $in: ['hitPoints', 'hitDice'] },
     removed: { $ne: true },
-    $or: templates.map(template => ({
-      'root.id': template.root.id, left: { $gt: template.left }, right: { $lt: template.right },
-    })),
+    $or: templates.map(template => getFilter.descendants(template)),
   }, { fields: { variableName: 1, baseValue: 1, hitDiceSize: 1, root: 1, left: 1 } }).fetchAsync() : [];
   const statOf = (template, variableName) => stats.find(stat => stat.variableName === variableName
     && stat.root.id === template.root.id && stat.left > template.left && stat.left < template.right);

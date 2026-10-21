@@ -58,10 +58,17 @@ export const getFilter = {
       'root.id': { $in: rootIds },
     };
   },
+  /**
+   * Bounded on `left` from both sides: a descendant's left is below its right,
+   * so below the doc's right too, which changes nothing of what matches but lets
+   * the { 'root.id', left } index read the subtree alone. Bounded below only, it
+   * read the rest of the tree: 16,600 keys for a monster of 38 nodes, and the
+   * bestiary picker's 50 monsters 1.6 million (4 s; 55 ms bounded)
+   */
   descendants(doc: TreeDoc) {
     return {
       'root.id': doc.root.id,
-      left: { $gt: doc.left },
+      left: { $gt: doc.left, $lt: doc.right },
       right: { $lt: doc.right },
     };
   },
@@ -78,13 +85,13 @@ export const getFilter = {
     const filter = {
       'root.id': docs[0].root.id,
       $or: <{
-        left: { $gt: number },
+        left: { $gt: number, $lt: number },
         right: { $lt: number },
       }[]>[],
     };
     docs.forEach(doc => {
       filter.$or.push({
-        left: { $gt: doc.left },
+        left: { $gt: doc.left, $lt: doc.right },
         right: { $lt: doc.right },
       });
     });

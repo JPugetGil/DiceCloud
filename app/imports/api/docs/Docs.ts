@@ -11,6 +11,7 @@ import { restore } from '/imports/api/parenting/softRemove';
 import { getFilter, rebuildNestedSets, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
 import type { TreeDoc } from '/imports/api/parenting/ChildSchema';
 import ChildSchema from '/imports/api/parenting/ChildSchema';
+import { declareTreeIndexes } from '/imports/api/parenting/treeIndexes';
 import { Mongo } from 'meteor/mongo';
 
 // Give the docs a common root, so they can share parenting logic
@@ -71,6 +72,7 @@ schema.extend(DocSchema);
 schema.extend(ChildSchema);
 schema.extend(SoftRemovableSchema);
 Docs.attachSchema(schema);
+declareTreeIndexes(Docs);
 
 async function assertDocsEditPermission(userId) {
   if (!userId || typeof userId !== 'string') throw new Meteor.Error('No user id provided');
