@@ -253,10 +253,22 @@ removing some, `meteor npm run cycles -- --update` takes them out of it. It
 needs `meteor npm ci` in `tests/cycles` first (madge, the tool it uses, lives
 there).
 
-GitHub Actions (`.github/workflows/ci.yml`) runs, on every push to `develop`
-and every pull request: an audit of the production dependencies (high and
-critical advisories), the lint, the import cycles check, the component tests,
-the unit tests on the server and the type check.
+GitHub Actions (`.github/workflows/ci.yml`) runs, on every push to `develop`,
+every pull request and every week: an audit of the production dependencies
+(high and critical advisories), the lint, the import cycles check, ShellCheck
+and the tests of the production scripts (`tests/deploy`, without Docker), the
+component tests, the unit tests on the server and the type check.
+`.github/workflows/docker.yml` builds the production image as
+`deploy/dicecloud.sh` does, starts it on MongoDB 7.0 and checks that it answers
+with its version.
+
+`tests/prod/prodcheck.sh` checks the production bundle of the working tree as
+the image runs it: built and pruned as the `Dockerfile` does, the server-only
+code absent from the client (the dice's HMAC, Discord's secrets), started on a
+throwaway MongoDB with its version shown, then the e2e checks below against it
+(about 40 minutes; `PRODCHECK_SKIP_E2E=1` stops before them). It exits non-zero
+and lists what failed. Run it before deploying a change to the build, to
+`deploy/` or to the dependencies.
 
 `tests/e2e/` holds 28 Playwright checks that drive a running development
 server: pages, the character sheet, action targets, docs navigation, every
@@ -266,6 +278,28 @@ sign-in, commands and buttons), monsters on a party board (initiative, turns,
 targets, healing, undo, legendary actions, durations, repeated saves), the licences, the
 account's screens and the actions on library nodes.
 See [tests/e2e/README.md](tests/e2e/README.md).
+
+Dependencies
+------------
+
+npm packages are installed with `meteor npm`. A new version is taken once it
+has been published for two weeks, which leaves time for a compromised release
+to be found; a package pinned to an exact version is upgraded on purpose, with
+its own check. What is held back or pinned, and why:
+
+| Package | Held at | Why |
+|---------|---------|-----|
+| `@babel/runtime` | 7 | Meteor 3.5.2 compiles with Babel 7 |
+| `@meteorjs/rspack` | 3.0.0-rc.0, exact | npm's `latest` tag still points to an older beta: never "upgrade to latest" |
+| `rspack-vue-loader` | instead of `vue-loader` | `vue-loader` 17 emits the components' `<style>` as CSS only with Rspack's `experiments.css`, which Rspack 2 removed: every component style vanished, the build passing |
+| `vue-meteor-tracker`, `vuedraggable` | 3.0.0-beta.7 exact, 4.x | their `next` releases, for Vue 3: npm's `latest` points at their Vue 2 releases |
+| `@types/simpl-schema` | 1.x | types only: they must match Meteor's `aldeed:simple-schema` 2.0.0, which has the 1.13 API |
+| `typescript` | below 6.1 | typescript-eslint 8 supports `>=4.8.4 <6.1.0`; TypeScript 7 is the Go compiler, a migration of its own |
+| `vuetify` | exact | a release can change what screens look like: upgraded with a look at them |
+| `@aws-sdk/client-s3` | exact | the e2e checks do not reach S3 |
+| `vite`, `vitest`, `@vitejs/plugin-vue`, `happy-dom`, `@vue/test-utils`, `fast-check` | exact | the component and property tests' tools, upgraded together |
+| `mongodb` | 4.17.2, exact, development | the driver of the library import scripts (`tools/libraryImport`), which run outside the app; the version `@types/meteor` installs |
+| `meteor-node-stubs` | 1.2.30 | it bundles `pbkdf2` 3.1.3 (a moderate advisory, in a browser polyfill no client code loads); 1.2.31 bundles 3.1.7 and is two weeks old on 2 November 2026 |
 
 Design system
 -------------

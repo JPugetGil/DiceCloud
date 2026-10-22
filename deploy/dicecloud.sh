@@ -15,15 +15,15 @@
 #                                   copies one back into BACKUP_DIR (the
 #                                   latest by default), for `restore`
 #   ./dicecloud.sh libraries <folder> <username>
-#                                   imports the libraries of tools/libraryImport
-#                                   (its data/*.gz and manifests), owned by that
-#                                   account, which must exist
+#                                   imports the library snapshots of <folder>
+#                                   (its data/*.gz and manifests) with the
+#                                   clone's tools/libraryImport scripts, owned
+#                                   by that account, which must exist
 #   ./dicecloud.sh snapshots push <folder>
-#                                   sends a tools/libraryImport folder (its
-#                                   scripts, data/*.gz and manifests) to the
-#                                   backups' S3 bucket
+#                                   sends <folder>'s snapshots (data/*.gz and
+#                                   manifests) to the backups' S3 bucket
 #   ./dicecloud.sh snapshots pull <folder> [pattern]
-#                                   gets it back into <folder>, ready for
+#                                   gets them back into <folder>/data, ready for
 #                                   `libraries`; a pattern ('srd51-bestiary*')
 #                                   keeps only the matching snapshots
 #   ./dicecloud.sh snapshots tools <archive>
@@ -41,6 +41,9 @@ set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$DEPLOY_DIR")"
+# The library import scripts, in git; not their snapshots (data/), whose
+# libraries hold text outside the SRD
+KIT_DIR="$REPO_DIR/tools/libraryImport"
 ENV_FILE="${DICECLOUD_ENV_FILE:-$DEPLOY_DIR/.env}"
 
 log() { printf '%s %s\n' "$(date '+%F %T')" "$*"; }
@@ -101,6 +104,8 @@ docker_() {
     if docker info >/dev/null 2>&1; then
       DOCKER=(docker)
     else
+      # The commas are --preserve-env's list of variables, one argument
+      # shellcheck disable=SC2054
       DOCKER=(sudo --preserve-env=METEOR_SETTINGS,CONTAINER_VERSION,APP_VERSION,APP_COMMIT_DATE,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION docker)
     fi
   fi
@@ -354,7 +359,8 @@ cmd_backup() {
   load_env
   is_running mongo || die "MongoDB is not running: ./dicecloud.sh start"
   mkdir -p "$BACKUP_DIR"
-  local file="$BACKUP_DIR/dicecloud-$(date +%F_%H%M%S).archive.gz"
+  local file
+  file="$BACKUP_DIR/dicecloud-$(date +%F_%H%M%S).archive.gz"
   log "Backing up the database to $file"
   # Written aside, then renamed: a failed backup never passes for a good one
   if ! compose exec -T mongo sh -c 'exec mongodump --quiet --host localhost -u root -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --db "$MONGO_APP_DATABASE" --archive --gzip' > "$file.part"; then
@@ -491,9 +497,9 @@ MONGODB_DRIVER=/home/node/bundle/programs/server/npm/node_modules/meteor/npm-mon
 cmd_libraries() {
   load_env
   local dir="${1:-}" owner="${2:-}" id file
-  [ -n "$dir" ] && [ -n "$owner" ] || die "usage: ./dicecloud.sh libraries <tools/libraryImport folder> <owner's username>"
+  [ -n "$dir" ] && [ -n "$owner" ] || die "usage: ./dicecloud.sh libraries <folder holding data/> <owner's username>"
   for file in import.js createCollection.js lib.js; do
-    [ -f "$dir/$file" ] || die "$dir/$file not found"
+    [ -f "$KIT_DIR/$file" ] || die "$KIT_DIR/$file not found: is the clone up to date?"
   done
   compgen -G "$dir/data/*.gz" >/dev/null || die "no snapshot (*.gz) in $dir/data"
   is_running dicecloud || die "DiceCloud is not running: ./dicecloud.sh start"
@@ -501,8 +507,9 @@ cmd_libraries() {
 
   log "Backing up the database first"
   cmd_backup
-  log "Copying the import tools into the app's container"
-  tar -C "$dir" -cf - import.js createCollection.js lib.js data \
+  log "Copying the clone's import scripts and the snapshots into the app's container"
+  # The folder by its absolute path: tar reads a relative -C from the one before
+  tar -cf - -C "$KIT_DIR" import.js createCollection.js lib.js -C "$(cd "$dir" && pwd)" data \
     | docker_ exec -i "$id" sh -c 'rm -rf /tmp/libraryImport && mkdir /tmp/libraryImport && tar -C /tmp/libraryImport -xf -'
   log "Importing the libraries, owned by $owner"
   if ! docker_ exec -w /tmp/libraryImport -e "MONGODB_PATH=$MONGODB_DRIVER" -e "OWNER=$owner" "$id" sh -c '
@@ -535,7 +542,7 @@ aws_() {
   docker_ run "${run[@]}" amazon/aws-cli "${endpoint[@]}" "$@"
 }
 
-# The library snapshots and the tools that import them are not in git: they
+# The library snapshots are not in git (the scripts that import them are): they
 # are kept in the backups' bucket, under SNAPSHOTS_S3_PREFIX. The Vexus
 # snapshots hold text outside the SRD: the bucket must stay private
 cmd_snapshots() {
@@ -545,28 +552,26 @@ cmd_snapshots() {
   local base="s3://$BACKUP_S3_BUCKET/$SNAPSHOTS_S3_PREFIX"
   case "$action" in
     push)
-      [ -n "$target" ] || die "usage: ./dicecloud.sh snapshots push <tools/libraryImport folder>"
-      for file in import.js createCollection.js lib.js; do
-        [ -f "$target/$file" ] || die "$target/$file not found"
-      done
+      [ -n "$target" ] || die "usage: ./dicecloud.sh snapshots push <folder holding data/>"
       compgen -G "$target/data/*.gz" >/dev/null || die "no snapshot (*.gz) in $target/data"
       dir="$(cd "$target" && pwd)"
-      log "Sending $dir to $base/kit/"
-      # The folder's own scripts and settings, its snapshots and manifests:
-      # not its backups/ nor any other subfolder. The last matching filter wins
+      log "Sending the snapshots of $dir/data to $base/kit/data/"
+      # The snapshots and their manifests alone: the scripts are in git. The
+      # last matching filter wins
       aws_ "$dir" ro s3 sync /work "$base/kit/" --only-show-errors \
-        --exclude '*' --include '*.js' --include '*.json' --include 'README.md' \
-        --exclude '*/*' --include 'data/*.gz' --include 'data/manifest*.json'
+        --exclude '*' --include 'data/*.gz' --include 'data/manifest*.json'
       log "Sent: ./dicecloud.sh snapshots list"
       ;;
     pull)
       [ -n "$target" ] || die "usage: ./dicecloud.sh snapshots pull <folder> [pattern, e.g. 'srd51-bestiary*']"
       mkdir -p "$target/data"
       dir="$(cd "$target" && pwd)"
-      local only=()
-      if [ -n "$pattern" ]; then only=(--exclude 'data/*' --include "data/$pattern"); fi
-      log "Getting $base/kit/ into $dir"
-      aws_ "$dir" rw s3 sync "$base/kit/" /work --only-show-errors "${only[@]}"
+      # The snapshots alone, never the scripts the bucket may still hold from
+      # before they were in git: those matching the pattern, else all of them
+      # with their manifests
+      log "Getting the snapshots of $base/kit/data/ into $dir/data"
+      aws_ "$dir" rw s3 sync "$base/kit/" /work --only-show-errors \
+        --exclude '*' --include "data/${pattern:-*}"
       compgen -G "$dir/data/*.gz" >/dev/null || die "no snapshot came: check the pattern, or ./dicecloud.sh snapshots list"
       log "Ready: ./dicecloud.sh libraries $target <username>"
       ;;

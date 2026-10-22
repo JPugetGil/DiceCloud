@@ -1,10 +1,16 @@
 build
 .DS_Store
 # Local agent configuration and data tools, kept out of the repository, but
-# for the CI workflows
+# for the CI workflows and the library import kit's scripts: its snapshots
+# (data/) hold text outside the SRD, and stay out of it
 /.github/*
 !/.github/workflows/
-/tools/
+/tools/*
+!/tools/libraryImport/
+/tools/libraryImport/*
+!/tools/libraryImport/*.js
+!/tools/libraryImport/propertyFields.json
+!/tools/libraryImport/README.md
 
 # Production secrets (deploy/dicecloud.sh)
 /deploy/.env

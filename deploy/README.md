@@ -94,19 +94,23 @@ The database starts empty. Once the app runs:
 
 1. Create your account on the site, then make it an administrator:
    `./dicecloud.sh admin <username>`.
-2. Copy the library import tools to the server. They are kept out of git, in
-   `tools/libraryImport`; only these are needed:
+2. Bring the library snapshots to the server. The import scripts come with
+   the clone (`tools/libraryImport`); the snapshots (its `data/`) are kept out
+   of git, their libraries holding text outside the SRD. From the bucket,
+   once they are there (below, "The import kit on S3"):
+   `./dicecloud.sh snapshots pull ~/libraryImport`. Or from your computer:
 
    ```sh
    cd tools/libraryImport
-   tar -czf - import.js createCollection.js lib.js data | ssh <user>@<server> 'mkdir -p ~/libraryImport && tar -C ~/libraryImport -xzf -'
+   tar -czf - data | ssh <user>@<server> 'mkdir -p ~/libraryImport && tar -C ~/libraryImport -xzf -'
    ```
 
 3. Import them, owned by your account:
    `./dicecloud.sh libraries ~/libraryImport <username>`. Every snapshot in
-   `data/*.gz` is imported, then each `data/manifest*.json` becomes a library
-   collection. It takes a few minutes; the database is backed up first.
-   Libraries already there are skipped, so it can be run again.
+   `data/*.gz` is imported with the clone's scripts, then each
+   `data/manifest*.json` becomes a library collection. It takes a few
+   minutes; the database is backed up first. Libraries already there are
+   skipped, so it can be run again.
 
 4. Subscribe new accounts to the rulesets, so that they can build a
    character at once: in `.env`, set `DEFAULT_LIBRARY_COLLECTIONS` to the
@@ -158,18 +162,19 @@ Then:
 
 ### The import kit on S3
 
-The import kit and its snapshots are not in git. Keep them in the backups'
-bucket (`BACKUP_S3_*`, section 6), under `SNAPSHOTS_S3_PREFIX`
-(`library-snapshots` by default). The bucket must stay private: the Vexus
-snapshots hold text outside the SRD.
+The import scripts are in git (`tools/libraryImport`), their snapshots are
+not. Keep the snapshots in the backups' bucket (`BACKUP_S3_*`, section 6),
+under `SNAPSHOTS_S3_PREFIX` (`library-snapshots` by default). The bucket must
+stay private: the Vexus snapshots hold text outside the SRD.
 
-- After changing a snapshot, copy the folder to the server (step 2), then
-  `./dicecloud.sh snapshots push ~/libraryImport`. Only its scripts,
-  `data/*.gz` and manifests are sent, not its `backups/`.
+- After changing a snapshot, copy the folder's `data/` to the server (step
+  2), then `./dicecloud.sh snapshots push ~/libraryImport`. Only `data/*.gz`
+  and the manifests are sent.
 - To work on them again, or to import only some of them:
   `./dicecloud.sh snapshots pull ~/kit 'srd51-bestiary*'`, then
-  `./dicecloud.sh libraries ~/kit <username>`. Without a pattern, everything
-  comes back.
+  `./dicecloud.sh libraries ~/kit <username>`. Without a pattern, every
+  snapshot and manifest comes back. The scripts the bucket may still hold,
+  sent before they were in git, are never pulled: the clone's are used.
 - The whole `tools/` folder (the bestiary's generator, the SRD's PDFs): on
   your computer, `tar -czf ~/dicecloud-tools-$(date +%F).tar.gz
   --exclude='tools/monsters/work/pylib' --exclude='__pycache__'

@@ -1,12 +1,16 @@
-# Lint, unit tests and type check of the app, on every push and pull request.
-# The browser checks of tests/e2e need a running app with data: run them
-# locally (see tests/e2e/README.md).
+# Lint, unit tests and type check of the app, on every push and pull request,
+# and weekly. The browser checks of tests/e2e need a running app with data:
+# run them locally (see tests/e2e/README.md). The production image has its own
+# workflow (docker.yml).
 name: CI
 
 on:
   push:
     branches: [develop]
   pull_request:
+  # Weekly: new advisories against the dependencies, a changed runner
+  schedule:
+    - cron: '17 5 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -25,6 +29,10 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v5
+        with:
+          # The whole history: the version test runs deploy/version.sh on it
+          # (a shallow clone skips that part)
+          fetch-depth: 0
 
       - name: Cache Meteor
         uses: actions/cache@v6.1.0
@@ -68,12 +76,15 @@ jobs:
           meteor npm ci --prefix ../tests/cycles
           meteor npm run cycles
 
-      # The production scripts: their syntax, and the backups and restores
+      # The production scripts: their syntax, ShellCheck's warnings (the
+      # runner's ShellCheck), and the backups, restores and library imports
       # against stubs of Docker (tests/deploy)
       - name: Deploy scripts
         working-directory: .
         run: |
-          for script in deploy/*.sh; do bash -n "$script"; done
+          for script in deploy/*.sh tests/prod/*.sh; do bash -n "$script"; done
+          shellcheck --version | head -n 2
+          shellcheck -x -S warning deploy/*.sh tests/deploy/*.sh tests/prod/*.sh
           bash tests/deploy/dicecloud.test.sh
 
       # The Vue components, rendered in happy-dom with the app's Vuetify and

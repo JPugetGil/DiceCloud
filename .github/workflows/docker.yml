@@ -1,0 +1,91 @@
+# The production image: built as deploy/dicecloud.sh builds it, then started
+# on MongoDB 7.0 (a replica set of one, as in deploy/compose.yml). It must
+# answer / and show the version read from the commits. The e2e checks of the
+# bundle stay local (tests/prod/prodcheck.sh): they need data out of git.
+name: Docker image
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'app/**'
+      - 'deploy/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/docker.yml'
+  # Weekly: the base images and the Meteor installer change underneath
+  schedule:
+    - cron: '47 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # deploy/version.sh reads the whole history
+          fetch-depth: 0
+
+      - name: Version
+        id: version
+        run: |
+          {
+            echo "version=$(bash deploy/version.sh)"
+            echo "commit=$(git rev-parse --short=8 HEAD)"
+            echo "date=$(git log -1 --format=%cI)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build the image
+        run: >-
+          docker build --pull
+          --build-arg CONTAINER_VERSION=${{ steps.version.outputs.commit }}
+          --build-arg APP_VERSION=${{ steps.version.outputs.version }}
+          --build-arg APP_COMMIT_DATE=${{ steps.version.outputs.date }}
+          --tag dicecloud:ci .
+
+      - name: Start MongoDB 7.0, a replica set of one
+        run: |
+          docker network create dicecloud
+          docker run --detach --name mongo --network dicecloud mongo:7.0 --replSet rs0 --bind_ip_all
+          for _ in $(seq 1 30); do
+            if docker exec mongo mongosh --quiet --eval "
+              try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) }
+              quit(db.hello().isWritablePrimary ? 0 : 1)"; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Start the app
+        run: |
+          docker run --detach --name app --network dicecloud --publish 3000:3000 \
+            --env ROOT_URL=http://localhost:3000 \
+            --env MONGO_URL='mongodb://mongo:27017/dicecloud?replicaSet=rs0' \
+            --env METEOR_SETTINGS="$(cat app/exampleMeteorSettings.json)" \
+            dicecloud:ci
+
+      - name: The app answers, with its version
+        env:
+          EXPECTED: ${{ steps.version.outputs.version }} ${{ steps.version.outputs.commit }}
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fs -o /dev/null http://localhost:3000/; then break; fi
+            sleep 3
+          done
+          curl -fs http://localhost:3000/about > about.html
+          shown="$(grep -o 'decodeURIComponent("[^"]*' about.html | sed 's/^decodeURIComponent("//' \
+            | python3 -c 'import sys, urllib.parse, json; v = json.loads(urllib.parse.unquote(sys.stdin.read()))["PUBLIC_SETTINGS"].get("appVersion") or {}; print(v.get("version"), v.get("commit"))')"
+          echo "shown: $shown, expected: $EXPECTED"
+          test "$shown" = "$EXPECTED"
+
+      - name: The app's log
+        if: always()
+        run: docker logs app 2>&1 | tail -n 100
