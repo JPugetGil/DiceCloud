@@ -318,7 +318,7 @@ as a replica set of one, a Cloudflare tunnel and daily backups, all driven by
 
 To run the image another way, give it `ROOT_URL`, `MONGO_URL` (a replica set:
 on a standalone MongoDB, Meteor polls the database), `MAIL_URL`, and the
-settings as JSON in `METEOR_SETTINGS`. To record which commit is running and
+settings as JSON in `METEOR_SETTINGS`. It listens on port 3000 (`PORT`). To record which commit is running and
 show its version, build with `--build-arg CONTAINER_VERSION=$(git rev-parse
 --short=8 HEAD)`, `--build-arg APP_VERSION=$(deploy/version.sh)` and
 `--build-arg APP_COMMIT_DATE=$(git log -1 --format=%cI)` (see Versions).

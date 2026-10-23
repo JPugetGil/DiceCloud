@@ -44,10 +44,22 @@ expect() {
 
 MONGOD_PID=''
 BUNDLE_PID=''
+# stop <pid, or -pid for its process group>: SIGTERM, then SIGKILL if it still
+# runs 10 s later
+stop() {
+  kill -TERM -- "$1" 2>/dev/null || return 0
+  for _ in $(seq 1 10); do
+    kill -0 -- "$1" 2>/dev/null || return 0
+    sleep 1
+  done
+  kill -KILL -- "$1" 2>/dev/null
+}
 cleanup() {
-  # Only the processes this script started
-  if [ -n "$BUNDLE_PID" ]; then pkill -P "$BUNDLE_PID" 2>/dev/null; kill "$BUNDLE_PID" 2>/dev/null; fi
-  if [ -n "$MONGOD_PID" ]; then kill "$MONGOD_PID" 2>/dev/null; fi
+  # Only the processes this script started. The bundle's whole process group:
+  # `meteor node` runs the server as a grandchild, which a signal to the
+  # launcher and its children could leave running
+  if [ -n "$BUNDLE_PID" ]; then stop "-$BUNDLE_PID"; fi
+  if [ -n "$MONGOD_PID" ]; then stop "$MONGOD_PID"; fi
   # meteor build leaves the client's production chunks in app/public: the
   # typecheck would scan them
   find "$REPO/app/public/build-chunks" "$REPO/app/public/build-assets" -type f -newermt "$START" -delete 2>/dev/null
@@ -126,9 +138,10 @@ CONTAINER_VERSION="$(git -C "$REPO" rev-parse --short=8 HEAD)"
 APP_VERSION="$("$REPO/deploy/version.sh")"
 APP_COMMIT_DATE="$(git -C "$REPO" log -1 --format=%cI)"
 export CONTAINER_VERSION APP_VERSION APP_COMMIT_DATE
+# In a process group of its own (setsid), which cleanup stops whole
 (cd "$W/dist/bundle" && PORT=3300 ROOT_URL=http://localhost:3300 \
   METEOR_SETTINGS="$(cat "$REPO/app/exampleMeteorSettings.json")" \
-  exec meteor node main.js > "$W/bundle.log" 2>&1) &
+  exec setsid meteor node main.js > "$W/bundle.log" 2>&1) &
 BUNDLE_PID=$!
 status=''
 for _ in $(seq 1 90); do

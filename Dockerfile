@@ -63,7 +63,9 @@ ENV CONTAINER_VERSION=${CONTAINER_VERSION} \
     APP_VERSION=${APP_VERSION} \
     APP_COMMIT_DATE=${APP_COMMIT_DATE}
 
-# Configure with ROOT_URL, MONGO_URL, PORT, MAIL_URL and METEOR_SETTINGS
-# (see deploy/compose.yml and the README)
+# Configure with ROOT_URL, MONGO_URL, MAIL_URL and METEOR_SETTINGS (see
+# deploy/compose.yml and the README). The port it exposes by default: without
+# PORT, Meteor listens on a random one
+ENV PORT=3000
 EXPOSE 3000
 ENTRYPOINT ["node", "main.js"]

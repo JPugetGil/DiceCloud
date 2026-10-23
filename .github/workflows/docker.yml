@@ -64,6 +64,8 @@ jobs:
           done
           exit 1
 
+      # As the README says to run the image: no PORT, the image's own (3000).
+      # Without it, Meteor listened on a random port and nothing answered
       - name: Start the app
         run: |
           docker run --detach --name app --network dicecloud --publish 3000:3000 \
@@ -76,10 +78,19 @@ jobs:
         env:
           EXPECTED: ${{ steps.version.outputs.version }} ${{ steps.version.outputs.commit }}
         run: |
+          answered=''
           for _ in $(seq 1 60); do
-            if curl -fs -o /dev/null http://localhost:3000/; then break; fi
+            if curl -fs -o /dev/null http://localhost:3000/; then answered=1; break; fi
+            if [ "$(docker inspect --format '{{.State.Running}}' app)" != true ]; then
+              echo "::error::the app stopped (its log below)"
+              exit 1
+            fi
             sleep 3
           done
+          if [ -z "$answered" ]; then
+            echo "::error::nothing answered on port 3000 within 3 minutes (the app's log below)"
+            exit 1
+          fi
           curl -fs http://localhost:3000/about > about.html
           shown="$(grep -o 'decodeURIComponent("[^"]*' about.html | sed 's/^decodeURIComponent("//' \
             | python3 -c 'import sys, urllib.parse, json; v = json.loads(urllib.parse.unquote(sys.stdin.read()))["PUBLIC_SETTINGS"].get("appVersion") or {}; print(v.get("version"), v.get("commit"))')"
